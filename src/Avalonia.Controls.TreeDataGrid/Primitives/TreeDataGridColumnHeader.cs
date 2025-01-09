@@ -1,5 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
+using Avalonia.Automation.Peers;
+using Avalonia.Controls.Automation.Peers;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Utils;
 using Avalonia.Input;
@@ -79,6 +81,11 @@ namespace Avalonia.Controls.Primitives
             _model = null;
             ColumnIndex = -1;
             UpdatePropertiesFromModel();
+        }
+
+        protected override AutomationPeer OnCreateAutomationPeer()
+        {
+            return new TreeDataGridColumnHeaderAutomationPeer(this);
         }
 
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
