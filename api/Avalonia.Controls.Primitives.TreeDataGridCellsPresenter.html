@@ -97,7 +97,7 @@ Class TreeDataGridCellsPresenter  <a class="header-action link-secondary" title=
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public class TreeDataGridCellsPresenter : TreeDataGridColumnarPresenterBase&lt;IColumn&gt;, INotifyPropertyChanged, IDataContextProvider, ILogical, IThemeVariantHost, IResourceHost, IResourceNode, IStyleHost, ISetLogicalParent, ISetInheritanceParent, ISupportInitialize, IStyleable, IInputElement, IDataTemplateHost, INamed, ISetterValue, IChildIndexProvider</code></pre>
+    <pre><code class="lang-csharp hljs">public class TreeDataGridCellsPresenter : TreeDataGridColumnarPresenterBase&lt;IColumn&gt;, INotifyPropertyChanged, IDataContextProvider, ILogical, IThemeVariantHost, IResourceHost, IResourceNode, IStyleHost, ISetLogicalParent, ISetInheritanceParent, ISupportInitialize, INamed, IInputElement, IDataTemplateHost, ISetterValue, IChildIndexProvider</code></pre>
   </div>
 
 
@@ -136,10 +136,9 @@ Class TreeDataGridCellsPresenter  <a class="header-action link-secondary" title=
       <div><span class="xref">ISetLogicalParent</span></div>
       <div><span class="xref">ISetInheritanceParent</span></div>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.componentmodel.isupportinitialize">ISupportInitialize</a></div>
-      <div><span class="xref">IStyleable</span></div>
+      <div><span class="xref">INamed</span></div>
       <div><span class="xref">IInputElement</span></div>
       <div><span class="xref">IDataTemplateHost</span></div>
-      <div><span class="xref">INamed</span></div>
       <div><span class="xref">ISetterValue</span></div>
       <div><span class="xref">IChildIndexProvider</span></div>
     </dd>
@@ -225,6 +224,9 @@ Class TreeDataGridCellsPresenter  <a class="header-action link-secondary" title=
       <span class="xref">Border.BackgroundProperty</span>
     </div>
     <div>
+      <span class="xref">Border.BackgroundSizingProperty</span>
+    </div>
+    <div>
       <span class="xref">Border.BorderBrushProperty</span>
     </div>
     <div>
@@ -241,6 +243,9 @@ Class TreeDataGridCellsPresenter  <a class="header-action link-secondary" title=
     </div>
     <div>
       <span class="xref">Border.Background</span>
+    </div>
+    <div>
+      <span class="xref">Border.BackgroundSizing</span>
     </div>
     <div>
       <span class="xref">Border.BorderBrush</span>
@@ -312,6 +317,9 @@ Class TreeDataGridCellsPresenter  <a class="header-action link-secondary" title=
       <span class="xref">Control.OnAttachedToVisualTreeCore(VisualTreeAttachmentEventArgs)</span>
     </div>
     <div>
+      <span class="xref">Control.OnHolding(HoldingRoutedEventArgs)</span>
+    </div>
+    <div>
       <span class="xref">Control.OnDetachedFromVisualTreeCore(VisualTreeAttachmentEventArgs)</span>
     </div>
     <div>
@@ -328,6 +336,9 @@ Class TreeDataGridCellsPresenter  <a class="header-action link-secondary" title=
     </div>
     <div>
       <span class="xref">Control.OnKeyUp(KeyEventArgs)</span>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">Control.UpdateDataValidation(AvaloniaProperty, BindingValueType, Exception)</a>
     </div>
     <div>
       <span class="xref">Control.FocusAdorner</span>
@@ -390,7 +401,13 @@ Class TreeDataGridCellsPresenter  <a class="header-action link-secondary" title=
       <span class="xref">InputElement.GotFocusEvent</span>
     </div>
     <div>
+      <span class="xref">InputElement.GettingFocusEvent</span>
+    </div>
+    <div>
       <span class="xref">InputElement.LostFocusEvent</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.LosingFocusEvent</span>
     </div>
     <div>
       <span class="xref">InputElement.KeyDownEvent</span>
@@ -432,6 +449,9 @@ Class TreeDataGridCellsPresenter  <a class="header-action link-secondary" title=
       <span class="xref">InputElement.TappedEvent</span>
     </div>
     <div>
+      <span class="xref">InputElement.RightTappedEvent</span>
+    </div>
+    <div>
       <span class="xref">InputElement.HoldingEvent</span>
     </div>
     <div>
@@ -439,6 +459,15 @@ Class TreeDataGridCellsPresenter  <a class="header-action link-secondary" title=
     </div>
     <div>
       <span class="xref">InputElement.Focus(NavigationMethod, KeyModifiers)</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.OnAccessKey(RoutedEventArgs)</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.OnGettingFocus(FocusChangingEventArgs)</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.OnLosingFocus(FocusChangingEventArgs)</span>
     </div>
     <div>
       <span class="xref">InputElement.OnKeyDown(KeyEventArgs)</span>
@@ -459,10 +488,37 @@ Class TreeDataGridCellsPresenter  <a class="header-action link-secondary" title=
       <span class="xref">InputElement.OnPointerPressed(PointerPressedEventArgs)</span>
     </div>
     <div>
+      <span class="xref">InputElement.GetNextTabStopOverride()</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.GetPreviousTabStopOverride()</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.GetFirstFocusableElementOverride()</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.GetLastFocusableElementOverride()</span>
+    </div>
+    <div>
       <span class="xref">InputElement.OnPointerCaptureLost(PointerCaptureLostEventArgs)</span>
     </div>
     <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">InputElement.ProcessTabStopOverride(IInputElement, IInputElement, bool, bool, ref IInputElement)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">InputElement.ProcessCandidateTabStopOverride(IInputElement, IInputElement, IInputElement, bool, ref IInputElement)</a>
+    </div>
+    <div>
       <span class="xref">InputElement.OnPointerWheelChanged(PointerWheelEventArgs)</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.OnTapped(TappedEventArgs)</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.OnRightTapped(TappedEventArgs)</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.OnDoubleTapped(TappedEventArgs)</span>
     </div>
     <div>
       <span class="xref">InputElement.UpdateIsEffectivelyEnabled()</span>
@@ -510,7 +566,13 @@ Class TreeDataGridCellsPresenter  <a class="header-action link-secondary" title=
       <span class="xref">InputElement.GotFocus</span>
     </div>
     <div>
+      <span class="xref">InputElement.GettingFocus</span>
+    </div>
+    <div>
       <span class="xref">InputElement.LostFocus</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.LosingFocus</span>
     </div>
     <div>
       <span class="xref">InputElement.KeyDown</span>
@@ -547,6 +609,9 @@ Class TreeDataGridCellsPresenter  <a class="header-action link-secondary" title=
     </div>
     <div>
       <span class="xref">InputElement.Tapped</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.RightTapped</span>
     </div>
     <div>
       <span class="xref">InputElement.Holding</span>
@@ -705,6 +770,9 @@ Class TreeDataGridCellsPresenter  <a class="header-action link-secondary" title=
       <span class="xref">Visual.OpacityMaskProperty</span>
     </div>
     <div>
+      <span class="xref">Visual.CacheModeProperty</span>
+    </div>
+    <div>
       <span class="xref">Visual.EffectProperty</span>
     </div>
     <div>
@@ -763,6 +831,9 @@ Class TreeDataGridCellsPresenter  <a class="header-action link-secondary" title=
     </div>
     <div>
       <span class="xref">Visual.OpacityMask</span>
+    </div>
+    <div>
+      <span class="xref">Visual.CacheMode</span>
     </div>
     <div>
       <span class="xref">Visual.Effect</span>
@@ -969,6 +1040,9 @@ Class TreeDataGridCellsPresenter  <a class="header-action link-secondary" title=
       <span class="xref">AvaloniaObject.SetCurrentValue&lt;T&gt;(StyledProperty&lt;T&gt;, T)</span>
     </div>
     <div>
+      <span class="xref">AvaloniaObject.Bind(AvaloniaProperty, BindingBase)</span>
+    </div>
+    <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.iobservable-1">AvaloniaObject.Bind(AvaloniaProperty, IObservable&lt;object&gt;, BindingPriority)</a>
     </div>
     <div>
@@ -991,9 +1065,6 @@ Class TreeDataGridCellsPresenter  <a class="header-action link-secondary" title=
     </div>
     <div>
       <span class="xref">AvaloniaObject.CoerceValue(AvaloniaProperty)</span>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">AvaloniaObject.UpdateDataValidation(AvaloniaProperty, BindingValueType, Exception)</a>
     </div>
     <div>
       <span class="xref">AvaloniaObject.RaisePropertyChanged&lt;T&gt;(DirectPropertyBase&lt;T&gt;, T, T)</span>

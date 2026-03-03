@@ -85,7 +85,7 @@
 
 
   <h1 id="Avalonia_Controls_TreeDataGrid" data-uid="Avalonia.Controls.TreeDataGrid" class="text-break">
-Class TreeDataGrid  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L18"><i class="bi bi-code-slash"></i></a>
+Class TreeDataGrid  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L19"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
@@ -97,7 +97,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public class TreeDataGrid : TemplatedControl, INotifyPropertyChanged, IDataContextProvider, ILogical, IThemeVariantHost, IResourceHost, IResourceNode, IStyleHost, ISetLogicalParent, ISetInheritanceParent, ISupportInitialize, IStyleable, IInputElement, IDataTemplateHost, INamed, ISetterValue</code></pre>
+    <pre><code class="lang-csharp hljs">public class TreeDataGrid : TemplatedControl, INotifyPropertyChanged, IDataContextProvider, ILogical, IThemeVariantHost, IResourceHost, IResourceNode, IStyleHost, ISetLogicalParent, ISetInheritanceParent, ISupportInitialize, INamed, IInputElement, IDataTemplateHost, ISetterValue</code></pre>
   </div>
 
 
@@ -133,10 +133,9 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
       <div><span class="xref">ISetLogicalParent</span></div>
       <div><span class="xref">ISetInheritanceParent</span></div>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.componentmodel.isupportinitialize">ISupportInitialize</a></div>
-      <div><span class="xref">IStyleable</span></div>
+      <div><span class="xref">INamed</span></div>
       <div><span class="xref">IInputElement</span></div>
       <div><span class="xref">IDataTemplateHost</span></div>
-      <div><span class="xref">INamed</span></div>
       <div><span class="xref">ISetterValue</span></div>
     </dd>
   </dl>
@@ -149,6 +148,9 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
       <span class="xref">TemplatedControl.BackgroundProperty</span>
     </div>
     <div>
+      <span class="xref">TemplatedControl.BackgroundSizingProperty</span>
+    </div>
+    <div>
       <span class="xref">TemplatedControl.BorderBrushProperty</span>
     </div>
     <div>
@@ -159,6 +161,9 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
     </div>
     <div>
       <span class="xref">TemplatedControl.FontFamilyProperty</span>
+    </div>
+    <div>
+      <span class="xref">TemplatedControl.FontFeaturesProperty</span>
     </div>
     <div>
       <span class="xref">TemplatedControl.FontSizeProperty</span>
@@ -174,6 +179,9 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
     </div>
     <div>
       <span class="xref">TemplatedControl.ForegroundProperty</span>
+    </div>
+    <div>
+      <span class="xref">TemplatedControl.LetterSpacingProperty</span>
     </div>
     <div>
       <span class="xref">TemplatedControl.PaddingProperty</span>
@@ -212,6 +220,9 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
       <span class="xref">TemplatedControl.Background</span>
     </div>
     <div>
+      <span class="xref">TemplatedControl.BackgroundSizing</span>
+    </div>
+    <div>
       <span class="xref">TemplatedControl.BorderBrush</span>
     </div>
     <div>
@@ -222,6 +233,9 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
     </div>
     <div>
       <span class="xref">TemplatedControl.FontFamily</span>
+    </div>
+    <div>
+      <span class="xref">TemplatedControl.FontFeatures</span>
     </div>
     <div>
       <span class="xref">TemplatedControl.FontSize</span>
@@ -237,6 +251,9 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
     </div>
     <div>
       <span class="xref">TemplatedControl.Foreground</span>
+    </div>
+    <div>
+      <span class="xref">TemplatedControl.LetterSpacing</span>
     </div>
     <div>
       <span class="xref">TemplatedControl.Padding</span>
@@ -287,6 +304,9 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
       <span class="xref">Control.OnAttachedToVisualTreeCore(VisualTreeAttachmentEventArgs)</span>
     </div>
     <div>
+      <span class="xref">Control.OnHolding(HoldingRoutedEventArgs)</span>
+    </div>
+    <div>
       <span class="xref">Control.OnDetachedFromVisualTreeCore(VisualTreeAttachmentEventArgs)</span>
     </div>
     <div>
@@ -297,6 +317,9 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
     </div>
     <div>
       <span class="xref">Control.OnCreateAutomationPeer()</span>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">Control.UpdateDataValidation(AvaloniaProperty, BindingValueType, Exception)</a>
     </div>
     <div>
       <span class="xref">Control.FocusAdorner</span>
@@ -359,7 +382,13 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
       <span class="xref">InputElement.GotFocusEvent</span>
     </div>
     <div>
+      <span class="xref">InputElement.GettingFocusEvent</span>
+    </div>
+    <div>
       <span class="xref">InputElement.LostFocusEvent</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.LosingFocusEvent</span>
     </div>
     <div>
       <span class="xref">InputElement.KeyDownEvent</span>
@@ -401,6 +430,9 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
       <span class="xref">InputElement.TappedEvent</span>
     </div>
     <div>
+      <span class="xref">InputElement.RightTappedEvent</span>
+    </div>
+    <div>
       <span class="xref">InputElement.HoldingEvent</span>
     </div>
     <div>
@@ -410,16 +442,52 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
       <span class="xref">InputElement.Focus(NavigationMethod, KeyModifiers)</span>
     </div>
     <div>
+      <span class="xref">InputElement.OnAccessKey(RoutedEventArgs)</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.OnGettingFocus(FocusChangingEventArgs)</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.OnLosingFocus(FocusChangingEventArgs)</span>
+    </div>
+    <div>
       <span class="xref">InputElement.OnPointerEntered(PointerEventArgs)</span>
     </div>
     <div>
       <span class="xref">InputElement.OnPointerExited(PointerEventArgs)</span>
     </div>
     <div>
+      <span class="xref">InputElement.GetNextTabStopOverride()</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.GetPreviousTabStopOverride()</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.GetFirstFocusableElementOverride()</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.GetLastFocusableElementOverride()</span>
+    </div>
+    <div>
       <span class="xref">InputElement.OnPointerCaptureLost(PointerCaptureLostEventArgs)</span>
     </div>
     <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">InputElement.ProcessTabStopOverride(IInputElement, IInputElement, bool, bool, ref IInputElement)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">InputElement.ProcessCandidateTabStopOverride(IInputElement, IInputElement, IInputElement, bool, ref IInputElement)</a>
+    </div>
+    <div>
       <span class="xref">InputElement.OnPointerWheelChanged(PointerWheelEventArgs)</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.OnTapped(TappedEventArgs)</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.OnRightTapped(TappedEventArgs)</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.OnDoubleTapped(TappedEventArgs)</span>
     </div>
     <div>
       <span class="xref">InputElement.UpdateIsEffectivelyEnabled()</span>
@@ -467,7 +535,13 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
       <span class="xref">InputElement.GotFocus</span>
     </div>
     <div>
+      <span class="xref">InputElement.GettingFocus</span>
+    </div>
+    <div>
       <span class="xref">InputElement.LostFocus</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.LosingFocus</span>
     </div>
     <div>
       <span class="xref">InputElement.KeyDown</span>
@@ -504,6 +578,9 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
     </div>
     <div>
       <span class="xref">InputElement.Tapped</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.RightTapped</span>
     </div>
     <div>
       <span class="xref">InputElement.Holding</span>
@@ -665,6 +742,9 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
       <span class="xref">Visual.OpacityMaskProperty</span>
     </div>
     <div>
+      <span class="xref">Visual.CacheModeProperty</span>
+    </div>
+    <div>
       <span class="xref">Visual.EffectProperty</span>
     </div>
     <div>
@@ -729,6 +809,9 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
     </div>
     <div>
       <span class="xref">Visual.OpacityMask</span>
+    </div>
+    <div>
+      <span class="xref">Visual.CacheMode</span>
     </div>
     <div>
       <span class="xref">Visual.Effect</span>
@@ -932,6 +1015,9 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
       <span class="xref">AvaloniaObject.SetCurrentValue&lt;T&gt;(StyledProperty&lt;T&gt;, T)</span>
     </div>
     <div>
+      <span class="xref">AvaloniaObject.Bind(AvaloniaProperty, BindingBase)</span>
+    </div>
+    <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.iobservable-1">AvaloniaObject.Bind(AvaloniaProperty, IObservable&lt;object&gt;, BindingPriority)</a>
     </div>
     <div>
@@ -954,9 +1040,6 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
     </div>
     <div>
       <span class="xref">AvaloniaObject.CoerceValue(AvaloniaProperty)</span>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">AvaloniaObject.UpdateDataValidation(AvaloniaProperty, BindingValueType, Exception)</a>
     </div>
     <div>
       <span class="xref">AvaloniaObject.RaisePropertyChanged&lt;T&gt;(DirectPropertyBase&lt;T&gt;, T, T)</span>
@@ -1006,7 +1089,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid__ctor" data-uid="Avalonia.Controls.TreeDataGrid.#ctor">
   TreeDataGrid()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L93"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L95"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1035,7 +1118,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid_AutoDragDropRowsProperty" data-uid="Avalonia.Controls.TreeDataGrid.AutoDragDropRowsProperty">
   AutoDragDropRowsProperty
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L20"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L21"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1065,7 +1148,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid_CanUserResizeColumnsProperty" data-uid="Avalonia.Controls.TreeDataGrid.CanUserResizeColumnsProperty">
   CanUserResizeColumnsProperty
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L23"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L24"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1095,7 +1178,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid_CanUserSortColumnsProperty" data-uid="Avalonia.Controls.TreeDataGrid.CanUserSortColumnsProperty">
   CanUserSortColumnsProperty
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L26"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L27"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1125,7 +1208,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid_ColumnsProperty" data-uid="Avalonia.Controls.TreeDataGrid.ColumnsProperty">
   ColumnsProperty
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L29"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L30"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1155,7 +1238,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid_ElementFactoryProperty" data-uid="Avalonia.Controls.TreeDataGrid.ElementFactoryProperty">
   ElementFactoryProperty
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L34"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L35"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1185,7 +1268,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid_RowDragOverEvent" data-uid="Avalonia.Controls.TreeDataGrid.RowDragOverEvent">
   RowDragOverEvent
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L65"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L66"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1215,7 +1298,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid_RowDragStartedEvent" data-uid="Avalonia.Controls.TreeDataGrid.RowDragStartedEvent">
   RowDragStartedEvent
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L60"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L61"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1245,7 +1328,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid_RowDropEvent" data-uid="Avalonia.Controls.TreeDataGrid.RowDropEvent">
   RowDropEvent
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L70"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L71"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1275,7 +1358,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid_RowsProperty" data-uid="Avalonia.Controls.TreeDataGrid.RowsProperty">
   RowsProperty
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L40"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L41"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1305,7 +1388,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid_ScrollProperty" data-uid="Avalonia.Controls.TreeDataGrid.ScrollProperty">
   ScrollProperty
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L46"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L47"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1335,7 +1418,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid_ShowColumnHeadersProperty" data-uid="Avalonia.Controls.TreeDataGrid.ShowColumnHeadersProperty">
   ShowColumnHeadersProperty
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L51"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L52"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1365,7 +1448,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid_SourceProperty" data-uid="Avalonia.Controls.TreeDataGrid.SourceProperty">
   SourceProperty
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L54"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L55"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1400,7 +1483,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid_AutoDragDropRows" data-uid="Avalonia.Controls.TreeDataGrid.AutoDragDropRows">
   AutoDragDropRows
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L106"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L108"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1431,7 +1514,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid_CanUserResizeColumns" data-uid="Avalonia.Controls.TreeDataGrid.CanUserResizeColumns">
   CanUserResizeColumns
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L112"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L114"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1462,7 +1545,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid_CanUserSortColumns" data-uid="Avalonia.Controls.TreeDataGrid.CanUserSortColumns">
   CanUserSortColumns
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L118"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L120"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1493,7 +1576,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid_ColumnHeadersPresenter" data-uid="Avalonia.Controls.TreeDataGrid.ColumnHeadersPresenter">
   ColumnHeadersPresenter
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L146"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L148"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1524,7 +1607,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid_ColumnSelection" data-uid="Avalonia.Controls.TreeDataGrid.ColumnSelection">
   ColumnSelection
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L161"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L163"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1555,7 +1638,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid_Columns" data-uid="Avalonia.Controls.TreeDataGrid.Columns">
   Columns
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L124"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L126"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1586,7 +1669,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid_ElementFactory" data-uid="Avalonia.Controls.TreeDataGrid.ElementFactory">
   ElementFactory
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L130"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L132"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1617,7 +1700,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid_RowSelection" data-uid="Avalonia.Controls.TreeDataGrid.RowSelection">
   RowSelection
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L162"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L164"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1648,7 +1731,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid_Rows" data-uid="Avalonia.Controls.TreeDataGrid.Rows">
   Rows
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L140"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L142"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1679,7 +1762,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid_RowsPresenter" data-uid="Avalonia.Controls.TreeDataGrid.RowsPresenter">
   RowsPresenter
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L147"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L149"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1710,7 +1793,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid_Scroll" data-uid="Avalonia.Controls.TreeDataGrid.Scroll">
   Scroll
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L149"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L151"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1741,7 +1824,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid_ShowColumnHeaders" data-uid="Avalonia.Controls.TreeDataGrid.ShowColumnHeaders">
   ShowColumnHeaders
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L155"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L157"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1772,7 +1855,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid_Source" data-uid="Avalonia.Controls.TreeDataGrid.Source">
   Source
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L164"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L166"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1807,7 +1890,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid_CreateDefaultElementFactory" data-uid="Avalonia.Controls.TreeDataGrid.CreateDefaultElementFactory">
   CreateDefaultElementFactory()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L313"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L315"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1838,7 +1921,7 @@ Class TreeDataGrid  <a class="header-action link-secondary" title="View source" 
 
   <h3 id="Avalonia_Controls_TreeDataGrid_OnApplyTemplate_Avalonia_Controls_Primitives_TemplateAppliedEventArgs_" data-uid="Avalonia.Controls.TreeDataGrid.OnApplyTemplate(Avalonia.Controls.Primitives.TemplateAppliedEventArgs)">
   OnApplyTemplate(TemplateAppliedEventArgs)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L315"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L317"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Called when the control's template is applied.
@@ -1872,7 +1955,7 @@ In simple terms, this means the method is called just before the control is disp
 
   <h3 id="Avalonia_Controls_TreeDataGrid_OnDetachedFromVisualTree_Avalonia_VisualTreeAttachmentEventArgs_" data-uid="Avalonia.Controls.TreeDataGrid.OnDetachedFromVisualTree(Avalonia.VisualTreeAttachmentEventArgs)">
   OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L336"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L338"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Called when the control is removed from a rooted visual tree.</p>
@@ -1905,10 +1988,12 @@ In simple terms, this means the method is called just before the control is disp
 
   <h3 id="Avalonia_Controls_TreeDataGrid_OnKeyDown_Avalonia_Input_KeyEventArgs_" data-uid="Avalonia.Controls.TreeDataGrid.OnKeyDown(Avalonia.Input.KeyEventArgs)">
   OnKeyDown(KeyEventArgs)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L357"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L359"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"><p>Called before the <span class="xref">Avalonia.Input.InputElement.KeyDown</span> event occurs.</p>
+  <div class="markdown level1 summary"><p>Invoked when an unhandled <span class="xref">Avalonia.Input.InputElement.KeyDownEvent</span> reaches an element in its
+route that is derived from this class. Implement this method to add class handling
+for this event.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -1919,7 +2004,7 @@ In simple terms, this means the method is called just before the control is disp
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>e</code> <span class="xref">KeyEventArgs</span></dt>
-    <dd><p>The event args.</p>
+    <dd><p>Data about the event.</p>
 </dd>
   </dl>
 
@@ -1938,10 +2023,12 @@ In simple terms, this means the method is called just before the control is disp
 
   <h3 id="Avalonia_Controls_TreeDataGrid_OnKeyUp_Avalonia_Input_KeyEventArgs_" data-uid="Avalonia.Controls.TreeDataGrid.OnKeyUp(Avalonia.Input.KeyEventArgs)">
   OnKeyUp(KeyEventArgs)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L363"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L365"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"><p>Called before the <span class="xref">Avalonia.Input.InputElement.KeyUp</span> event occurs.</p>
+  <div class="markdown level1 summary"><p>Invoked when an unhandled <span class="xref">Avalonia.Input.InputElement.KeyUpEvent</span> reaches an element in its
+route that is derived from this class. Implement this method to add class handling
+for this event.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -1952,7 +2039,7 @@ In simple terms, this means the method is called just before the control is disp
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>e</code> <span class="xref">KeyEventArgs</span></dt>
-    <dd><p>The event args.</p>
+    <dd><p>Data about the event.</p>
 </dd>
   </dl>
 
@@ -1971,10 +2058,12 @@ In simple terms, this means the method is called just before the control is disp
 
   <h3 id="Avalonia_Controls_TreeDataGrid_OnPointerMoved_Avalonia_Input_PointerEventArgs_" data-uid="Avalonia.Controls.TreeDataGrid.OnPointerMoved(Avalonia.Input.PointerEventArgs)">
   OnPointerMoved(PointerEventArgs)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L385"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L387"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"><p>Called before the <span class="xref">Avalonia.Input.InputElement.PointerMoved</span> event occurs.</p>
+  <div class="markdown level1 summary"><p>Invoked when an unhandled <span class="xref">Avalonia.Input.InputElement.PointerMovedEvent</span> reaches an element in its
+route that is derived from this class. Implement this method to add class handling
+for this event.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -1985,7 +2074,7 @@ In simple terms, this means the method is called just before the control is disp
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>e</code> <span class="xref">PointerEventArgs</span></dt>
-    <dd><p>The event args.</p>
+    <dd><p>Data about the event.</p>
 </dd>
   </dl>
 
@@ -2004,10 +2093,12 @@ In simple terms, this means the method is called just before the control is disp
 
   <h3 id="Avalonia_Controls_TreeDataGrid_OnPointerPressed_Avalonia_Input_PointerPressedEventArgs_" data-uid="Avalonia.Controls.TreeDataGrid.OnPointerPressed(Avalonia.Input.PointerPressedEventArgs)">
   OnPointerPressed(PointerPressedEventArgs)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L379"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L381"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"><p>Called before the <span class="xref">Avalonia.Input.InputElement.PointerPressed</span> event occurs.</p>
+  <div class="markdown level1 summary"><p>Invoked when an unhandled <span class="xref">Avalonia.Input.InputElement.PointerPressedEvent</span> reaches an element in its
+route that is derived from this class. Implement this method to add class handling
+for this event.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -2018,7 +2109,7 @@ In simple terms, this means the method is called just before the control is disp
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>e</code> <span class="xref">PointerPressedEventArgs</span></dt>
-    <dd><p>The event args.</p>
+    <dd><p>Data about the event.</p>
 </dd>
   </dl>
 
@@ -2037,10 +2128,12 @@ In simple terms, this means the method is called just before the control is disp
 
   <h3 id="Avalonia_Controls_TreeDataGrid_OnPointerReleased_Avalonia_Input_PointerReleasedEventArgs_" data-uid="Avalonia.Controls.TreeDataGrid.OnPointerReleased(Avalonia.Input.PointerReleasedEventArgs)">
   OnPointerReleased(PointerReleasedEventArgs)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L391"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L393"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"><p>Called before the <span class="xref">Avalonia.Input.InputElement.PointerReleased</span> event occurs.</p>
+  <div class="markdown level1 summary"><p>Invoked when an unhandled <span class="xref">Avalonia.Input.InputElement.PointerReleasedEvent</span> reaches an element in its
+route that is derived from this class. Implement this method to add class handling
+for this event.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -2051,7 +2144,7 @@ In simple terms, this means the method is called just before the control is disp
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>e</code> <span class="xref">PointerReleasedEventArgs</span></dt>
-    <dd><p>The event args.</p>
+    <dd><p>Data about the event.</p>
 </dd>
   </dl>
 
@@ -2070,7 +2163,7 @@ In simple terms, this means the method is called just before the control is disp
 
   <h3 id="Avalonia_Controls_TreeDataGrid_OnPreviewKeyDown_System_Object_Avalonia_Input_KeyEventArgs_" data-uid="Avalonia.Controls.TreeDataGrid.OnPreviewKeyDown(System.Object,Avalonia.Input.KeyEventArgs)">
   OnPreviewKeyDown(object?, KeyEventArgs)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L342"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L344"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -2103,7 +2196,7 @@ In simple terms, this means the method is called just before the control is disp
 
   <h3 id="Avalonia_Controls_TreeDataGrid_OnPropertyChanged_Avalonia_AvaloniaPropertyChangedEventArgs_" data-uid="Avalonia.Controls.TreeDataGrid.OnPropertyChanged(Avalonia.AvaloniaPropertyChangedEventArgs)">
   OnPropertyChanged(AvaloniaPropertyChangedEventArgs)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L347"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L349"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Called when a avalonia property changes on the object.</p>
@@ -2136,10 +2229,12 @@ In simple terms, this means the method is called just before the control is disp
 
   <h3 id="Avalonia_Controls_TreeDataGrid_OnTextInput_Avalonia_Input_TextInputEventArgs_" data-uid="Avalonia.Controls.TreeDataGrid.OnTextInput(Avalonia.Input.TextInputEventArgs)">
   OnTextInput(TextInputEventArgs)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L369"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L371"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"><p>Called before the <span class="xref">Avalonia.Input.InputElement.TextInput</span> event occurs.</p>
+  <div class="markdown level1 summary"><p>Invoked when an unhandled <span class="xref">Avalonia.Input.InputElement.TextInputEvent</span> reaches an element in its
+route that is derived from this class. Implement this method to add class handling
+for this event.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -2150,7 +2245,7 @@ In simple terms, this means the method is called just before the control is disp
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>e</code> <span class="xref">TextInputEventArgs</span></dt>
-    <dd><p>The event args.</p>
+    <dd><p>Data about the event.</p>
 </dd>
   </dl>
 
@@ -2169,7 +2264,7 @@ In simple terms, this means the method is called just before the control is disp
 
   <h3 id="Avalonia_Controls_TreeDataGrid_QueryCancelSelection" data-uid="Avalonia.Controls.TreeDataGrid.QueryCancelSelection">
   QueryCancelSelection()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L304"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L306"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -2200,7 +2295,7 @@ In simple terms, this means the method is called just before the control is disp
 
   <h3 id="Avalonia_Controls_TreeDataGrid_TryGetCell_Avalonia_Controls_Control_Avalonia_Controls_Primitives_TreeDataGridCell__" data-uid="Avalonia.Controls.TreeDataGrid.TryGetCell(Avalonia.Controls.Control,Avalonia.Controls.Primitives.TreeDataGridCell@)">
   TryGetCell(Control?, out TreeDataGridCell?)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L255"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L257"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -2238,7 +2333,7 @@ In simple terms, this means the method is called just before the control is disp
 
   <h3 id="Avalonia_Controls_TreeDataGrid_TryGetCell_System_Int32_System_Int32_" data-uid="Avalonia.Controls.TreeDataGrid.TryGetCell(System.Int32,System.Int32)">
   TryGetCell(int, int)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L239"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L241"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -2276,7 +2371,7 @@ In simple terms, this means the method is called just before the control is disp
 
   <h3 id="Avalonia_Controls_TreeDataGrid_TryGetRow_Avalonia_Controls_Control_Avalonia_Controls_Primitives_TreeDataGridRow__" data-uid="Avalonia.Controls.TreeDataGrid.TryGetRow(Avalonia.Controls.Control,Avalonia.Controls.Primitives.TreeDataGridRow@)">
   TryGetRow(Control?, out TreeDataGridRow?)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L269"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L271"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -2314,7 +2409,7 @@ In simple terms, this means the method is called just before the control is disp
 
   <h3 id="Avalonia_Controls_TreeDataGrid_TryGetRow_System_Int32_" data-uid="Avalonia.Controls.TreeDataGrid.TryGetRow(System.Int32)">
   TryGetRow(int)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L250"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L252"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -2350,7 +2445,7 @@ In simple terms, this means the method is called just before the control is disp
 
   <h3 id="Avalonia_Controls_TreeDataGrid_TryGetRowModel__1_Avalonia_Controls_Control___0__" data-uid="Avalonia.Controls.TreeDataGrid.TryGetRowModel``1(Avalonia.Controls.Control,``0@)">
   TryGetRowModel&lt;TModel&gt;(Control, out TModel?)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L288"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L290"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -2396,7 +2491,7 @@ In simple terms, this means the method is called just before the control is disp
 
   <h3 id="Avalonia_Controls_TreeDataGrid_CellClearing" data-uid="Avalonia.Controls.TreeDataGrid.CellClearing">
   CellClearing
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L213"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L215"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -2426,7 +2521,7 @@ In simple terms, this means the method is called just before the control is disp
 
   <h3 id="Avalonia_Controls_TreeDataGrid_CellPrepared" data-uid="Avalonia.Controls.TreeDataGrid.CellPrepared">
   CellPrepared
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L214"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L216"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -2456,7 +2551,7 @@ In simple terms, this means the method is called just before the control is disp
 
   <h3 id="Avalonia_Controls_TreeDataGrid_CellValueChanged" data-uid="Avalonia.Controls.TreeDataGrid.CellValueChanged">
   CellValueChanged
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L215"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L217"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -2486,7 +2581,7 @@ In simple terms, this means the method is called just before the control is disp
 
   <h3 id="Avalonia_Controls_TreeDataGrid_RowClearing" data-uid="Avalonia.Controls.TreeDataGrid.RowClearing">
   RowClearing
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L216"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L218"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -2516,7 +2611,7 @@ In simple terms, this means the method is called just before the control is disp
 
   <h3 id="Avalonia_Controls_TreeDataGrid_RowDragOver" data-uid="Avalonia.Controls.TreeDataGrid.RowDragOver">
   RowDragOver
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L225"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L227"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -2546,7 +2641,7 @@ In simple terms, this means the method is called just before the control is disp
 
   <h3 id="Avalonia_Controls_TreeDataGrid_RowDragStarted" data-uid="Avalonia.Controls.TreeDataGrid.RowDragStarted">
   RowDragStarted
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L219"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L221"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -2576,7 +2671,7 @@ In simple terms, this means the method is called just before the control is disp
 
   <h3 id="Avalonia_Controls_TreeDataGrid_RowDrop" data-uid="Avalonia.Controls.TreeDataGrid.RowDrop">
   RowDrop
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L231"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L233"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -2606,7 +2701,7 @@ In simple terms, this means the method is called just before the control is disp
 
   <h3 id="Avalonia_Controls_TreeDataGrid_RowPrepared" data-uid="Avalonia.Controls.TreeDataGrid.RowPrepared">
   RowPrepared
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L217"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L219"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -2636,7 +2731,7 @@ In simple terms, this means the method is called just before the control is disp
 
   <h3 id="Avalonia_Controls_TreeDataGrid_SelectionChanging" data-uid="Avalonia.Controls.TreeDataGrid.SelectionChanging">
   SelectionChanging
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L237"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L239"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -2667,7 +2762,7 @@ In simple terms, this means the method is called just before the control is disp
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L18" class="edit-link">Edit this page</a>
+          <a href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/TreeDataGrid.cs/#L19" class="edit-link">Edit this page</a>
         </div>
 
 

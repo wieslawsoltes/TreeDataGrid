@@ -98,7 +98,7 @@ Class TreeDataGridCell  <a class="header-action link-secondary" title="View sour
 
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[PseudoClasses(new string[] { &quot;:editing&quot; })]
-public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChanged, IDataContextProvider, ILogical, IThemeVariantHost, IResourceHost, IResourceNode, IStyleHost, ISetLogicalParent, ISetInheritanceParent, ISupportInitialize, IStyleable, IInputElement, IDataTemplateHost, INamed, ISetterValue</code></pre>
+public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChanged, IDataContextProvider, ILogical, IThemeVariantHost, IResourceHost, IResourceNode, IStyleHost, ISetLogicalParent, ISetInheritanceParent, ISupportInitialize, INamed, IInputElement, IDataTemplateHost, ISetterValue</code></pre>
   </div>
 
 
@@ -134,10 +134,9 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
       <div><span class="xref">ISetLogicalParent</span></div>
       <div><span class="xref">ISetInheritanceParent</span></div>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.componentmodel.isupportinitialize">ISupportInitialize</a></div>
-      <div><span class="xref">IStyleable</span></div>
+      <div><span class="xref">INamed</span></div>
       <div><span class="xref">IInputElement</span></div>
       <div><span class="xref">IDataTemplateHost</span></div>
-      <div><span class="xref">INamed</span></div>
       <div><span class="xref">ISetterValue</span></div>
     </dd>
   </dl>
@@ -159,6 +158,9 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
       <span class="xref">TemplatedControl.BackgroundProperty</span>
     </div>
     <div>
+      <span class="xref">TemplatedControl.BackgroundSizingProperty</span>
+    </div>
+    <div>
       <span class="xref">TemplatedControl.BorderBrushProperty</span>
     </div>
     <div>
@@ -169,6 +171,9 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
     </div>
     <div>
       <span class="xref">TemplatedControl.FontFamilyProperty</span>
+    </div>
+    <div>
+      <span class="xref">TemplatedControl.FontFeaturesProperty</span>
     </div>
     <div>
       <span class="xref">TemplatedControl.FontSizeProperty</span>
@@ -184,6 +189,9 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
     </div>
     <div>
       <span class="xref">TemplatedControl.ForegroundProperty</span>
+    </div>
+    <div>
+      <span class="xref">TemplatedControl.LetterSpacingProperty</span>
     </div>
     <div>
       <span class="xref">TemplatedControl.PaddingProperty</span>
@@ -219,6 +227,9 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
       <span class="xref">TemplatedControl.Background</span>
     </div>
     <div>
+      <span class="xref">TemplatedControl.BackgroundSizing</span>
+    </div>
+    <div>
       <span class="xref">TemplatedControl.BorderBrush</span>
     </div>
     <div>
@@ -229,6 +240,9 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
     </div>
     <div>
       <span class="xref">TemplatedControl.FontFamily</span>
+    </div>
+    <div>
+      <span class="xref">TemplatedControl.FontFeatures</span>
     </div>
     <div>
       <span class="xref">TemplatedControl.FontSize</span>
@@ -244,6 +258,9 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
     </div>
     <div>
       <span class="xref">TemplatedControl.Foreground</span>
+    </div>
+    <div>
+      <span class="xref">TemplatedControl.LetterSpacing</span>
     </div>
     <div>
       <span class="xref">TemplatedControl.Padding</span>
@@ -294,6 +311,9 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
       <span class="xref">Control.OnAttachedToVisualTreeCore(VisualTreeAttachmentEventArgs)</span>
     </div>
     <div>
+      <span class="xref">Control.OnHolding(HoldingRoutedEventArgs)</span>
+    </div>
+    <div>
       <span class="xref">Control.OnDetachedFromVisualTreeCore(VisualTreeAttachmentEventArgs)</span>
     </div>
     <div>
@@ -304,6 +324,9 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
     </div>
     <div>
       <span class="xref">Control.OnKeyUp(KeyEventArgs)</span>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">Control.UpdateDataValidation(AvaloniaProperty, BindingValueType, Exception)</a>
     </div>
     <div>
       <span class="xref">Control.FocusAdorner</span>
@@ -366,7 +389,13 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
       <span class="xref">InputElement.GotFocusEvent</span>
     </div>
     <div>
+      <span class="xref">InputElement.GettingFocusEvent</span>
+    </div>
+    <div>
       <span class="xref">InputElement.LostFocusEvent</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.LosingFocusEvent</span>
     </div>
     <div>
       <span class="xref">InputElement.KeyDownEvent</span>
@@ -408,6 +437,9 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
       <span class="xref">InputElement.TappedEvent</span>
     </div>
     <div>
+      <span class="xref">InputElement.RightTappedEvent</span>
+    </div>
+    <div>
       <span class="xref">InputElement.HoldingEvent</span>
     </div>
     <div>
@@ -415,6 +447,15 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
     </div>
     <div>
       <span class="xref">InputElement.Focus(NavigationMethod, KeyModifiers)</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.OnAccessKey(RoutedEventArgs)</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.OnGettingFocus(FocusChangingEventArgs)</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.OnLosingFocus(FocusChangingEventArgs)</span>
     </div>
     <div>
       <span class="xref">InputElement.OnTextInput(TextInputEventArgs)</span>
@@ -429,10 +470,34 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
       <span class="xref">InputElement.OnPointerMoved(PointerEventArgs)</span>
     </div>
     <div>
+      <span class="xref">InputElement.GetNextTabStopOverride()</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.GetPreviousTabStopOverride()</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.GetFirstFocusableElementOverride()</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.GetLastFocusableElementOverride()</span>
+    </div>
+    <div>
       <span class="xref">InputElement.OnPointerCaptureLost(PointerCaptureLostEventArgs)</span>
     </div>
     <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">InputElement.ProcessTabStopOverride(IInputElement, IInputElement, bool, bool, ref IInputElement)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">InputElement.ProcessCandidateTabStopOverride(IInputElement, IInputElement, IInputElement, bool, ref IInputElement)</a>
+    </div>
+    <div>
       <span class="xref">InputElement.OnPointerWheelChanged(PointerWheelEventArgs)</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.OnTapped(TappedEventArgs)</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.OnRightTapped(TappedEventArgs)</span>
     </div>
     <div>
       <span class="xref">InputElement.UpdateIsEffectivelyEnabled()</span>
@@ -480,7 +545,13 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
       <span class="xref">InputElement.GotFocus</span>
     </div>
     <div>
+      <span class="xref">InputElement.GettingFocus</span>
+    </div>
+    <div>
       <span class="xref">InputElement.LostFocus</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.LosingFocus</span>
     </div>
     <div>
       <span class="xref">InputElement.KeyDown</span>
@@ -517,6 +588,9 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
     </div>
     <div>
       <span class="xref">InputElement.Tapped</span>
+    </div>
+    <div>
+      <span class="xref">InputElement.RightTapped</span>
     </div>
     <div>
       <span class="xref">InputElement.Holding</span>
@@ -675,6 +749,9 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
       <span class="xref">Visual.OpacityMaskProperty</span>
     </div>
     <div>
+      <span class="xref">Visual.CacheModeProperty</span>
+    </div>
+    <div>
       <span class="xref">Visual.EffectProperty</span>
     </div>
     <div>
@@ -739,6 +816,9 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
     </div>
     <div>
       <span class="xref">Visual.OpacityMask</span>
+    </div>
+    <div>
+      <span class="xref">Visual.CacheMode</span>
     </div>
     <div>
       <span class="xref">Visual.Effect</span>
@@ -942,6 +1022,9 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
       <span class="xref">AvaloniaObject.SetCurrentValue&lt;T&gt;(StyledProperty&lt;T&gt;, T)</span>
     </div>
     <div>
+      <span class="xref">AvaloniaObject.Bind(AvaloniaProperty, BindingBase)</span>
+    </div>
+    <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.iobservable-1">AvaloniaObject.Bind(AvaloniaProperty, IObservable&lt;object&gt;, BindingPriority)</a>
     </div>
     <div>
@@ -964,9 +1047,6 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
     </div>
     <div>
       <span class="xref">AvaloniaObject.CoerceValue(AvaloniaProperty)</span>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">AvaloniaObject.UpdateDataValidation(AvaloniaProperty, BindingValueType, Exception)</a>
     </div>
     <div>
       <span class="xref">AvaloniaObject.RaisePropertyChanged&lt;T&gt;(DirectPropertyBase&lt;T&gt;, T, T)</span>
@@ -1459,17 +1539,21 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
   <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridCell.cs/#L166"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Invoked when an unhandled <span class="xref">Avalonia.Input.InputElement.DoubleTappedEvent</span> reaches an element in its
+route that is derived from this class. Implement this method to add class handling
+for this event.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected virtual void OnDoubleTapped(TappedEventArgs e)</code></pre>
+    <pre><code class="lang-csharp hljs">protected override void OnDoubleTapped(TappedEventArgs e)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>e</code> <span class="xref">TappedEventArgs</span></dt>
-    <dd></dd>
+    <dd><p>Data about the event.</p>
+</dd>
   </dl>
 
 
@@ -1487,10 +1571,12 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
 
   <h3 id="Avalonia_Controls_Primitives_TreeDataGridCell_OnKeyDown_Avalonia_Input_KeyEventArgs_" data-uid="Avalonia.Controls.Primitives.TreeDataGridCell.OnKeyDown(Avalonia.Input.KeyEventArgs)">
   OnKeyDown(KeyEventArgs)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridCell.cs/#L179"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridCell.cs/#L181"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"><p>Called before the <span class="xref">Avalonia.Input.InputElement.KeyDown</span> event occurs.</p>
+  <div class="markdown level1 summary"><p>Invoked when an unhandled <span class="xref">Avalonia.Input.InputElement.KeyDownEvent</span> reaches an element in its
+route that is derived from this class. Implement this method to add class handling
+for this event.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -1501,7 +1587,7 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>e</code> <span class="xref">KeyEventArgs</span></dt>
-    <dd><p>The event args.</p>
+    <dd><p>Data about the event.</p>
 </dd>
   </dl>
 
@@ -1523,7 +1609,9 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
   <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridCell.cs/#L146"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"><p>Called before the <span class="xref">Avalonia.Input.InputElement.LostFocus</span> event occurs.</p>
+  <div class="markdown level1 summary"><p>Invoked when an unhandled <span class="xref">Avalonia.Input.InputElement.LostFocusEvent</span> reaches an element in its
+route that is derived from this class. Implement this method to add class handling
+for this event.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -1534,7 +1622,7 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>e</code> <span class="xref">RoutedEventArgs</span></dt>
-    <dd><p>The event args.</p>
+    <dd><p>Data about the event.</p>
 </dd>
   </dl>
 
@@ -1553,7 +1641,7 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
 
   <h3 id="Avalonia_Controls_Primitives_TreeDataGridCell_OnModelPropertyChanged_System_Object_System_ComponentModel_PropertyChangedEventArgs_" data-uid="Avalonia.Controls.Primitives.TreeDataGridCell.OnModelPropertyChanged(System.Object,System.ComponentModel.PropertyChangedEventArgs)">
   OnModelPropertyChanged(object?, PropertyChangedEventArgs)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridCell.cs/#L206"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridCell.cs/#L208"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1586,10 +1674,12 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
 
   <h3 id="Avalonia_Controls_Primitives_TreeDataGridCell_OnPointerPressed_Avalonia_Input_PointerPressedEventArgs_" data-uid="Avalonia.Controls.Primitives.TreeDataGridCell.OnPointerPressed(Avalonia.Input.PointerPressedEventArgs)">
   OnPointerPressed(PointerPressedEventArgs)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridCell.cs/#L210"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridCell.cs/#L212"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"><p>Called before the <span class="xref">Avalonia.Input.InputElement.PointerPressed</span> event occurs.</p>
+  <div class="markdown level1 summary"><p>Invoked when an unhandled <span class="xref">Avalonia.Input.InputElement.PointerPressedEvent</span> reaches an element in its
+route that is derived from this class. Implement this method to add class handling
+for this event.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -1600,7 +1690,7 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>e</code> <span class="xref">PointerPressedEventArgs</span></dt>
-    <dd><p>The event args.</p>
+    <dd><p>Data about the event.</p>
 </dd>
   </dl>
 
@@ -1619,10 +1709,12 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
 
   <h3 id="Avalonia_Controls_Primitives_TreeDataGridCell_OnPointerReleased_Avalonia_Input_PointerReleasedEventArgs_" data-uid="Avalonia.Controls.Primitives.TreeDataGridCell.OnPointerReleased(Avalonia.Input.PointerReleasedEventArgs)">
   OnPointerReleased(PointerReleasedEventArgs)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridCell.cs/#L229"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridCell.cs/#L231"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"><p>Called before the <span class="xref">Avalonia.Input.InputElement.PointerReleased</span> event occurs.</p>
+  <div class="markdown level1 summary"><p>Invoked when an unhandled <span class="xref">Avalonia.Input.InputElement.PointerReleasedEvent</span> reaches an element in its
+route that is derived from this class. Implement this method to add class handling
+for this event.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -1633,7 +1725,7 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>e</code> <span class="xref">PointerReleasedEventArgs</span></dt>
-    <dd><p>The event args.</p>
+    <dd><p>Data about the event.</p>
 </dd>
   </dl>
 
@@ -1652,7 +1744,7 @@ public abstract class TreeDataGridCell : TemplatedControl, INotifyPropertyChange
 
   <h3 id="Avalonia_Controls_Primitives_TreeDataGridCell_OnPropertyChanged_Avalonia_AvaloniaPropertyChangedEventArgs_" data-uid="Avalonia.Controls.Primitives.TreeDataGridCell.OnPropertyChanged(Avalonia.AvaloniaPropertyChangedEventArgs)">
   OnPropertyChanged(AvaloniaPropertyChangedEventArgs)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridCell.cs/#L257"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridCell.cs/#L259"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Called when a avalonia property changes on the object.</p>

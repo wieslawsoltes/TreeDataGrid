@@ -85,7 +85,7 @@
 
 
   <h1 id="Avalonia_Controls_Models_TreeDataGrid_DragInfo" data-uid="Avalonia.Controls.Models.TreeDataGrid.DragInfo" class="text-break">
-Class DragInfo  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/DragInfo.cs/#L9"><i class="bi bi-code-slash"></i></a>
+Class DragInfo  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/DragInfo.cs/#L10"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
@@ -154,7 +154,7 @@ by <a class="xref" href="Avalonia.Controls.TreeDataGrid.html#Avalonia_Controls_T
 
   <h3 id="Avalonia_Controls_Models_TreeDataGrid_DragInfo__ctor_Avalonia_Controls_ITreeDataGridSource_System_Collections_Generic_IEnumerable_Avalonia_Controls_IndexPath__" data-uid="Avalonia.Controls.Models.TreeDataGrid.DragInfo.#ctor(Avalonia.Controls.ITreeDataGridSource,System.Collections.Generic.IEnumerable{Avalonia.Controls.IndexPath})">
   DragInfo(ITreeDataGridSource, IEnumerable&lt;IndexPath&gt;)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/DragInfo.cs/#L21"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/DragInfo.cs/#L23"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Avalonia.Controls.Models.TreeDataGrid.DragInfo.html">DragInfo</a> class.</p>
@@ -193,15 +193,15 @@ by <a class="xref" href="Avalonia.Controls.TreeDataGrid.html#Avalonia_Controls_T
 
   <h3 id="Avalonia_Controls_Models_TreeDataGrid_DragInfo_DataFormat" data-uid="Avalonia.Controls.Models.TreeDataGrid.DragInfo.DataFormat">
   DataFormat
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/DragInfo.cs/#L14"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/DragInfo.cs/#L15"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"><p>Defines the data format in an <span class="xref">Avalonia.Input.IDataObject</span>.</p>
+  <div class="markdown level1 summary"><p>Defines the data format that carries the drag token in an <span class="xref">Avalonia.Input.IDataTransfer</span>.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public const string DataFormat = &quot;TreeDataGridDragInfo&quot;</code></pre>
+    <pre><code class="lang-csharp hljs">public static readonly DataFormat&lt;string&gt; DataFormat</code></pre>
   </div>
 
 
@@ -209,7 +209,7 @@ by <a class="xref" href="Avalonia.Controls.TreeDataGrid.html#Avalonia_Controls_T
 
   <h4 class="section">Field Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dt><span class="xref">DataFormat</span>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>&gt;</dt>
     <dd></dd>
   </dl>
 
@@ -229,7 +229,7 @@ by <a class="xref" href="Avalonia.Controls.TreeDataGrid.html#Avalonia_Controls_T
 
   <h3 id="Avalonia_Controls_Models_TreeDataGrid_DragInfo_Indexes" data-uid="Avalonia.Controls.Models.TreeDataGrid.DragInfo.Indexes">
   Indexes
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/DragInfo.cs/#L35"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/DragInfo.cs/#L37"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Gets or sets the model indexes of the rows being dragged.</p>
@@ -261,7 +261,7 @@ by <a class="xref" href="Avalonia.Controls.TreeDataGrid.html#Avalonia_Controls_T
 
   <h3 id="Avalonia_Controls_Models_TreeDataGrid_DragInfo_Source" data-uid="Avalonia.Controls.Models.TreeDataGrid.DragInfo.Source">
   Source
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/DragInfo.cs/#L30"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/DragInfo.cs/#L32"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Gets the <a class="xref" href="Avalonia.Controls.ITreeDataGridSource.html">ITreeDataGridSource</a> that rows are being dragged from.</p>
@@ -293,7 +293,7 @@ by <a class="xref" href="Avalonia.Controls.TreeDataGrid.html#Avalonia_Controls_T
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/DragInfo.cs/#L9" class="edit-link">Edit this page</a>
+          <a href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/DragInfo.cs/#L10" class="edit-link">Edit this page</a>
         </div>
 
 
