@@ -6,6 +6,13 @@
     <Authors>Wiesław Šoltés</Authors>
     <Company>Wiesław Šoltés</Company>
     <Description>TreeDataGrid is a control which displays hierarchical and tabular data together in a single view. It is a combination of a TreeView and DataGrid control.</Description>
+    <PackageIcon>Icon.png</PackageIcon>
+    <PackageReadmeFile>readme.md</PackageReadmeFile>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
+
+  <ItemGroup Label="PackageAssets">
+    <None Include="$(MSBuildThisFileDirectory)/../readme.md" Pack="true" PackagePath="" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)/Assets/Icon.png" Pack="true" PackagePath="" Visible="false" />
+  </ItemGroup>
 </Project>
