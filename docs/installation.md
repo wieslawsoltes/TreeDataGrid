@@ -1,6 +1,6 @@
 # `TreeDataGrid` Installation
 
-- Add the `Avalonia.Controls.TreeDataGrid` NuGet package to your project
+- Add the `TreeDataGrid` NuGet package to your project
 - Add the `TreeDataGrid` theme to your `App.xaml` file (the `StyleInclude` in the following markup):
 
 ```xml
@@ -13,3 +13,5 @@
   </Application.Styles>
 </Application>
 ```
+
+Note: the `StyleInclude` URI remains `avares://Avalonia.Controls.TreeDataGrid/...` for compatibility.
