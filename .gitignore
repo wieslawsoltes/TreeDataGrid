@@ -338,3 +338,8 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
+
+# DocFX output
+/_site
+docfx/api/*.yml
+docfx/api/*.manifest

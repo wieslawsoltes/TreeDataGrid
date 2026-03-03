@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reactive.Subjects;
 using System.Text;
@@ -133,7 +134,11 @@ namespace Avalonia.Controls.TreeDataGridTests.Models
 
             private ITextCellOptions? GetOptions(string format = "{0:n2}")
             {
-                return new TextColumnOptions<int> { StringFormat = format };
+                return new TextColumnOptions<int>
+                {
+                    StringFormat = format,
+                    Culture = CultureInfo.InvariantCulture,
+                };
             }
         }
     }

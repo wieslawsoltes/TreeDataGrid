@@ -126,4 +126,4 @@ It's now time to add the `TreeDataGrid` control to a window and bind it to the s
 
 Run the application and you should see the data appear:
 
-![Simple TreeDataGrid](images/get-started-hierarchical-1.png)
+![Simple TreeDataGrid](../images/get-started-hierarchical-1.png)

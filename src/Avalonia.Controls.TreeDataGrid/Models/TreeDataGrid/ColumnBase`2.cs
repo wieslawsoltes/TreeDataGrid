@@ -12,7 +12,7 @@ namespace Avalonia.Controls.Models.TreeDataGrid
     /// Base class for columns which select cell values from a model.
     /// </summary>
     /// <typeparam name="TModel">The model type.</typeparam>
-    /// <typeparam name="TModel">The value type.</typeparam>
+    /// <typeparam name="TValue">The value type.</typeparam>
     public abstract class ColumnBase<TModel, TValue> : ColumnBase<TModel>
         where TModel : class
     {

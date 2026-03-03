@@ -26,7 +26,7 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         (int index, double y) GetRowAt(double y);
 
         /// <summary>
-        /// Given a model index, returns an index into <see cref="Rows"/>.
+        /// Given a model index, returns an index into <see cref="ITreeDataGridSource.Rows"/>.
         /// </summary>
         /// <param name="modelIndex">The model index.</param>
         /// <returns>The row index, or -1 if the model index is not displayed.</returns>

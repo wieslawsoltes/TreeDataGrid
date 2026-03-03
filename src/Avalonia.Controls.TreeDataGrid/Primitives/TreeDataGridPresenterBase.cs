@@ -217,7 +217,7 @@ namespace Avalonia.Controls.Primitives
         /// - The final pass is made once the "natural" sizes of the elements are known and any
         ///   layout logic has been run. This pass is needed because controls should not be 
         ///   arranged with a size less than that passed as the constraint during the measure
-        ///   pass. This pass is only run if <see cref="InitialMeasurePassComplete"/> returns
+        ///   pass. This pass is only run if <see cref="NeedsFinalMeasurePass(int, IReadOnlyList{Control})"/> returns
         ///   true.
         /// </remarks>
         protected virtual Size GetInitialConstraint(
