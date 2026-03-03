@@ -13,11 +13,11 @@ The control has two modes of operation:
 
 An example of `TreeDataGrid` displaying hierarchical data:
 
-![TreeDataGrid in hierarchical mode](docs/images/files.png)
+![TreeDataGrid in hierarchical mode](docfx/images/files.png)
 
 An example of `TreeDataGrid` displaying flat data:
 
-![TreeDataGrid in hierarchical mode](docs/images/countries.png)
+![TreeDataGrid in flat mode](docfx/images/countries.png)
 
 ## Current Status
 
@@ -148,13 +148,29 @@ dotnet pack src/Avalonia.Controls.TreeDataGrid/Avalonia.Controls.TreeDataGrid.cs
 
 Packages are generated in `artifacts/packages` (`.nupkg` and `.snupkg`).
 
+## Build Documentation
+
+Build docs locally:
+
+```bash
+./build-docs.sh
+```
+
+Serve docs locally:
+
+```bash
+./serve-docs.sh
+```
+
+Generated docs output is written to `_site`.
+
 ## Getting Started
 
-- [Installation](docs/installation.md)
-- [Creating a flat `TreeDataGrid`](docs/get-started-flat.md)
-- [Creating a hierarchical `TreeDataGrid`](docs/get-started-hierarchical.md)
-- [Supported column types](docs/column-types.md)
-- [Selection](docs/selection.md)
+- [Installation](docfx/articles/installation.md)
+- [Creating a flat `TreeDataGrid`](docfx/articles/get-started-flat.md)
+- [Creating a hierarchical `TreeDataGrid`](docfx/articles/get-started-hierarchical.md)
+- [Supported column types](docfx/articles/column-types.md)
+- [Selection](docfx/articles/selection.md)
 
 ## License
 
