@@ -199,8 +199,9 @@ namespace Avalonia.Controls.TreeDataGridTests
                 {
                     Assert.Equal(NotifyCollectionChangedAction.Add, e.Action);
                     Assert.Equal(0, e.NewStartingIndex);
-                    Assert.Equal(1, e.NewItems!.Count);
-                    Assert.Equal(10, ((IModelIndexableRow)e.NewItems[0]!).ModelIndex);
+                    var newItems = Assert.IsAssignableFrom<System.Collections.IList>(e.NewItems);
+                    Assert.Single(newItems.Cast<object?>());
+                    Assert.Equal(10, ((IModelIndexableRow)newItems[0]!).ModelIndex);
                     ++raised;
                 };
 
@@ -225,8 +226,9 @@ namespace Avalonia.Controls.TreeDataGridTests
                 {
                     Assert.Equal(NotifyCollectionChangedAction.Remove, e.Action);
                     Assert.Equal(4, e.OldStartingIndex);
-                    Assert.Equal(1, e.OldItems!.Count);
-                    Assert.Equal(5, ((IModelIndexableRow)e.OldItems[0]!).ModelIndex);
+                    var oldItems = Assert.IsAssignableFrom<System.Collections.IList>(e.OldItems);
+                    Assert.Single(oldItems.Cast<object?>());
+                    Assert.Equal(5, ((IModelIndexableRow)oldItems[0]!).ModelIndex);
                     ++raised;
                 };
 
@@ -252,7 +254,7 @@ namespace Avalonia.Controls.TreeDataGridTests
                     else if (e.Action == NotifyCollectionChangedAction.Add)
                         Assert.Equal(0, e.NewStartingIndex);
                     else
-                        Assert.True(false, "Unexpected collection change");
+                        Assert.Fail("Unexpected collection change");
                     ++raised;
                 };
 
@@ -278,7 +280,7 @@ namespace Avalonia.Controls.TreeDataGridTests
                     else if (e.Action == NotifyCollectionChangedAction.Add)
                         Assert.Equal(4, e.NewStartingIndex);
                     else
-                        Assert.True(false, "Unexpected collection change");
+                        Assert.Fail("Unexpected collection change");
                     ++raised;
                 };
 
