@@ -36,6 +36,7 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         public TextWrapping TextWrapping { get; set; } = TextWrapping.NoWrap;
         
         
+        /// <summary>
         /// Gets or sets the text alignment mode for the cells in the column.
         /// </summary>
         public TextAlignment TextAlignment { get; set; } = TextAlignment.Left;
