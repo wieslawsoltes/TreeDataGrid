@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Interface ITreeDataGridSelectionInteraction | TreeDataGrid for Avalonia </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Interface ITreeDataGridSelectionInteraction | TreeDataGrid for Avalonia ">
+      
+      <meta name="description" content="Defines the interaction between a  and an  model.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/wieslawsoltes/TreeDataGrid/new/master/apiSpec/new?filename=Avalonia_Controls_Selection_ITreeDataGridSelectionInteraction.md&amp;value=---%0Auid%3A%20Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../images/logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction">
+
+
+
+  <h1 id="Avalonia_Controls_Selection_ITreeDataGridSelectionInteraction" data-uid="Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction" class="text-break">
+Interface ITreeDataGridSelectionInteraction  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Selection/ITreeDataGridSelectionInteraction.cs/#L11"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Avalonia.html">Avalonia</a>.<a class="xref" href="Avalonia.Controls.html">Controls</a>.<a class="xref" href="Avalonia.Controls.Selection.html">Selection</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Avalonia.Controls.TreeDataGrid.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Defines the interaction between a <a class="xref" href="Avalonia.Controls.TreeDataGrid.html">TreeDataGrid</a> and an
+<a class="xref" href="Avalonia.Controls.Selection.ITreeDataGridSelection.html">ITreeDataGridSelection</a> model.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface ITreeDataGridSelectionInteraction</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Avalonia_Controls_Selection_ITreeDataGridSelectionInteraction_IsCellSelected_" data-uid="Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction.IsCellSelected*"></a>
+
+  <h3 id="Avalonia_Controls_Selection_ITreeDataGridSelectionInteraction_IsCellSelected_System_Int32_System_Int32_" data-uid="Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction.IsCellSelected(System.Int32,System.Int32)">
+  IsCellSelected(int, int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Selection/ITreeDataGridSelectionInteraction.cs/#L15"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsCellSelected(int columnIndex, int rowIndex)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>columnIndex</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>rowIndex</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Avalonia_Controls_Selection_ITreeDataGridSelectionInteraction_IsRowSelected_" data-uid="Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction.IsRowSelected*"></a>
+
+  <h3 id="Avalonia_Controls_Selection_ITreeDataGridSelectionInteraction_IsRowSelected_Avalonia_Controls_Models_TreeDataGrid_IRow_" data-uid="Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction.IsRowSelected(Avalonia.Controls.Models.TreeDataGrid.IRow)">
+  IsRowSelected(IRow)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Selection/ITreeDataGridSelectionInteraction.cs/#L16"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsRowSelected(IRow rowModel)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>rowModel</code> <a class="xref" href="Avalonia.Controls.Models.TreeDataGrid.IRow.html">IRow</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Avalonia_Controls_Selection_ITreeDataGridSelectionInteraction_IsRowSelected_" data-uid="Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction.IsRowSelected*"></a>
+
+  <h3 id="Avalonia_Controls_Selection_ITreeDataGridSelectionInteraction_IsRowSelected_System_Int32_" data-uid="Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction.IsRowSelected(System.Int32)">
+  IsRowSelected(int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Selection/ITreeDataGridSelectionInteraction.cs/#L17"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsRowSelected(int rowIndex)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>rowIndex</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Avalonia_Controls_Selection_ITreeDataGridSelectionInteraction_OnKeyDown_" data-uid="Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction.OnKeyDown*"></a>
+
+  <h3 id="Avalonia_Controls_Selection_ITreeDataGridSelectionInteraction_OnKeyDown_Avalonia_Controls_TreeDataGrid_Avalonia_Input_KeyEventArgs_" data-uid="Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction.OnKeyDown(Avalonia.Controls.TreeDataGrid,Avalonia.Input.KeyEventArgs)">
+  OnKeyDown(TreeDataGrid, KeyEventArgs)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Selection/ITreeDataGridSelectionInteraction.cs/#L18"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnKeyDown(TreeDataGrid sender, KeyEventArgs e)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>sender</code> <a class="xref" href="Avalonia.Controls.TreeDataGrid.html">TreeDataGrid</a></dt>
+    <dd></dd>
+    <dt><code>e</code> <span class="xref">KeyEventArgs</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Avalonia_Controls_Selection_ITreeDataGridSelectionInteraction_OnKeyUp_" data-uid="Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction.OnKeyUp*"></a>
+
+  <h3 id="Avalonia_Controls_Selection_ITreeDataGridSelectionInteraction_OnKeyUp_Avalonia_Controls_TreeDataGrid_Avalonia_Input_KeyEventArgs_" data-uid="Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction.OnKeyUp(Avalonia.Controls.TreeDataGrid,Avalonia.Input.KeyEventArgs)">
+  OnKeyUp(TreeDataGrid, KeyEventArgs)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Selection/ITreeDataGridSelectionInteraction.cs/#L20"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnKeyUp(TreeDataGrid sender, KeyEventArgs e)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>sender</code> <a class="xref" href="Avalonia.Controls.TreeDataGrid.html">TreeDataGrid</a></dt>
+    <dd></dd>
+    <dt><code>e</code> <span class="xref">KeyEventArgs</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Avalonia_Controls_Selection_ITreeDataGridSelectionInteraction_OnPointerMoved_" data-uid="Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction.OnPointerMoved*"></a>
+
+  <h3 id="Avalonia_Controls_Selection_ITreeDataGridSelectionInteraction_OnPointerMoved_Avalonia_Controls_TreeDataGrid_Avalonia_Input_PointerEventArgs_" data-uid="Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction.OnPointerMoved(Avalonia.Controls.TreeDataGrid,Avalonia.Input.PointerEventArgs)">
+  OnPointerMoved(TreeDataGrid, PointerEventArgs)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Selection/ITreeDataGridSelectionInteraction.cs/#L23"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnPointerMoved(TreeDataGrid sender, PointerEventArgs e)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>sender</code> <a class="xref" href="Avalonia.Controls.TreeDataGrid.html">TreeDataGrid</a></dt>
+    <dd></dd>
+    <dt><code>e</code> <span class="xref">PointerEventArgs</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Avalonia_Controls_Selection_ITreeDataGridSelectionInteraction_OnPointerPressed_" data-uid="Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction.OnPointerPressed*"></a>
+
+  <h3 id="Avalonia_Controls_Selection_ITreeDataGridSelectionInteraction_OnPointerPressed_Avalonia_Controls_TreeDataGrid_Avalonia_Input_PointerPressedEventArgs_" data-uid="Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction.OnPointerPressed(Avalonia.Controls.TreeDataGrid,Avalonia.Input.PointerPressedEventArgs)">
+  OnPointerPressed(TreeDataGrid, PointerPressedEventArgs)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Selection/ITreeDataGridSelectionInteraction.cs/#L22"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnPointerPressed(TreeDataGrid sender, PointerPressedEventArgs e)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>sender</code> <a class="xref" href="Avalonia.Controls.TreeDataGrid.html">TreeDataGrid</a></dt>
+    <dd></dd>
+    <dt><code>e</code> <span class="xref">PointerPressedEventArgs</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Avalonia_Controls_Selection_ITreeDataGridSelectionInteraction_OnPointerReleased_" data-uid="Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction.OnPointerReleased*"></a>
+
+  <h3 id="Avalonia_Controls_Selection_ITreeDataGridSelectionInteraction_OnPointerReleased_Avalonia_Controls_TreeDataGrid_Avalonia_Input_PointerReleasedEventArgs_" data-uid="Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction.OnPointerReleased(Avalonia.Controls.TreeDataGrid,Avalonia.Input.PointerReleasedEventArgs)">
+  OnPointerReleased(TreeDataGrid, PointerReleasedEventArgs)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Selection/ITreeDataGridSelectionInteraction.cs/#L24"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnPointerReleased(TreeDataGrid sender, PointerReleasedEventArgs e)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>sender</code> <a class="xref" href="Avalonia.Controls.TreeDataGrid.html">TreeDataGrid</a></dt>
+    <dd></dd>
+    <dt><code>e</code> <span class="xref">PointerReleasedEventArgs</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Avalonia_Controls_Selection_ITreeDataGridSelectionInteraction_OnPreviewKeyDown_" data-uid="Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction.OnPreviewKeyDown*"></a>
+
+  <h3 id="Avalonia_Controls_Selection_ITreeDataGridSelectionInteraction_OnPreviewKeyDown_Avalonia_Controls_TreeDataGrid_Avalonia_Input_KeyEventArgs_" data-uid="Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction.OnPreviewKeyDown(Avalonia.Controls.TreeDataGrid,Avalonia.Input.KeyEventArgs)">
+  OnPreviewKeyDown(TreeDataGrid, KeyEventArgs)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Selection/ITreeDataGridSelectionInteraction.cs/#L19"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnPreviewKeyDown(TreeDataGrid sender, KeyEventArgs e)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>sender</code> <a class="xref" href="Avalonia.Controls.TreeDataGrid.html">TreeDataGrid</a></dt>
+    <dd></dd>
+    <dt><code>e</code> <span class="xref">KeyEventArgs</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Avalonia_Controls_Selection_ITreeDataGridSelectionInteraction_OnTextInput_" data-uid="Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction.OnTextInput*"></a>
+
+  <h3 id="Avalonia_Controls_Selection_ITreeDataGridSelectionInteraction_OnTextInput_Avalonia_Controls_TreeDataGrid_Avalonia_Input_TextInputEventArgs_" data-uid="Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction.OnTextInput(Avalonia.Controls.TreeDataGrid,Avalonia.Input.TextInputEventArgs)">
+  OnTextInput(TreeDataGrid, TextInputEventArgs)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Selection/ITreeDataGridSelectionInteraction.cs/#L21"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnTextInput(TreeDataGrid sender, TextInputEventArgs e)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>sender</code> <a class="xref" href="Avalonia.Controls.TreeDataGrid.html">TreeDataGrid</a></dt>
+    <dd></dd>
+    <dt><code>e</code> <span class="xref">TextInputEventArgs</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="events">Events
+</h2>
+
+
+
+  <h3 id="Avalonia_Controls_Selection_ITreeDataGridSelectionInteraction_SelectionChanged" data-uid="Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction.SelectionChanged">
+  SelectionChanged
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Selection/ITreeDataGridSelectionInteraction.cs/#L13"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">event EventHandler? SelectionChanged</code></pre>
+  </div>
+
+
+
+
+
+
+  <h4 class="section">Event Type</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.eventhandler">EventHandler</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Selection/ITreeDataGridSelectionInteraction.cs/#L11" class="edit-link">Edit this page</a>
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

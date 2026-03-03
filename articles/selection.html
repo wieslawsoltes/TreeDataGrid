@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Selection | TreeDataGrid for Avalonia </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Selection | TreeDataGrid for Avalonia ">
+      
+      
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/docfx/articles/selection.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../images/logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="selection">Selection</h1>
+
+<p>Two selection modes are supported:</p>
+<ul>
+<li>Row selection allows the user to select whole rows</li>
+<li>Cell selection allows the user to select individual cells</li>
+</ul>
+<p>Both selection types support either single or multiple selection. The default selection type is single row selection.</p>
+<h2 id="index-paths">Index Paths</h2>
+<p>Because <code>TreeDataGrid</code> supports hierarchical data, using a simple index to identify a row in the data source isn't enough. Instead indexes are represented using the <code>IndexPath</code> struct.</p>
+<p>An <code>IndexPath</code> is essentially an array of indexes, each element of which specifies the index at a successively deeper level in the hierarchy of the data.</p>
+<p>Consider the following data source:</p>
+<pre><code>|- A
+|  |- B
+|  |- C
+|     |- D
+|- E
+</code></pre>
+<ul>
+<li><code>A</code> has an index path of <code>0</code> as it's the first item at the root of the hierarchy</li>
+<li><code>B</code> has an index path of <code>0,0</code> as it's the first child of the first item</li>
+<li><code>C</code> has an index path of <code>0,1</code> as it's the second child of the first item</li>
+<li><code>D</code> has an index path of <code>0,1,0</code> as it's the first child of <code>C</code></li>
+<li><code>E</code> has an index path of <code>1</code> as it's the second item in the root</li>
+</ul>
+<p><code>IndexPath</code> is an immutable struct which is constructed with an array of integers, e.g.: <code>new IndexPath(0, 1, 0)</code>. There is also an implicit conversion from <code>int</code> for when working with a flat data source.</p>
+<h2 id="row-selection">Row Selection</h2>
+<p>Row selection is the default and is exposed via the <code>RowSelection</code> property on the <code>FlatTreeDataGridSource&lt;TModel&gt;</code> and <code>HierarchicalTreeDataGridSource&lt;TModel&gt;</code> classes when enabled. Row selection is stored in an instance of the <code>TreeDataGridRowSelectionModel&lt;TModel&gt;</code> class.</p>
+<p>By default, selection is single-select. To enable multiple selection set the <code>SingleSelect</code> property to <code>false</code>, e.g.:</p>
+<pre><code class="lang-csharp">Source = new FlatTreeDataGridSource&lt;Person&gt;(_people)
+{
+    Columns =
+    {
+        new TextColumn&lt;Person, string&gt;(&quot;First Name&quot;, x =&gt; x.FirstName),
+        new TextColumn&lt;Person, string&gt;(&quot;Last Name&quot;, x =&gt; x.LastName),
+        new TextColumn&lt;Person, int&gt;(&quot;Age&quot;, x =&gt; x.Age),
+    },
+};
+
+Source.RowSelection!.SingleSelect = false;
+</code></pre>
+<p>The properties on <code>ITreeDataGridRowSelectionModel&lt;TModel&gt;</code> can be used to manipulate the selection, e.g.:</p>
+<pre><code class="lang-csharp">Source.RowSelection!.SelectedIndex = 1;
+</code></pre>
+<p>Or</p>
+<pre><code class="lang-csharp">Source.RowSelection!.SelectedIndex = new IndexPath(0, 1);
+</code></pre>
+<h2 id="cell-selection">Cell Selection</h2>
+<p>To enable cell selection for a <code>TreeDataGridSource</code>, assign an instance of <code>TreeDataGridCellSelectionModel&lt;TModel&gt;</code> to the source's <code>Selection</code> property:</p>
+<pre><code class="lang-csharp">Source = new FlatTreeDataGridSource&lt;Person&gt;(_people)
+{
+    Columns =
+    {
+        new TextColumn&lt;Person, string&gt;(&quot;First Name&quot;, x =&gt; x.FirstName),
+        new TextColumn&lt;Person, string&gt;(&quot;Last Name&quot;, x =&gt; x.LastName),
+        new TextColumn&lt;Person, int&gt;(&quot;Age&quot;, x =&gt; x.Age),
+    },
+};
+
+Source.Selection = new TreeDataGridCellSelectionModel&lt;Person&gt;(Source);
+</code></pre>
+<p>Or for multiple cell selection:</p>
+<pre><code class="lang-csharp">Source.Selection = new TreeDataGridCellSelectionModel&lt;Person&gt;(Source) { SingleSelect = false };
+</code></pre>
+<p>Cell selection is exposed via the <code>CellSelection</code> property on the <code>FlatTreeDataGridSource&lt;TModel&gt;</code> and <code>HierarchicalTreeDataGridSource&lt;TModel&gt;</code> classes when enabled.</p>
+<p>The <code>CellIndex</code> struct identifies an individual cell by combining an integer column index and an <code>IndexPath</code> row index.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/docfx/articles/selection.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
