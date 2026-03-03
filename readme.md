@@ -1,29 +1,6 @@
-> [!IMPORTANT]  
-> # Important Notice: Repository Archived
-> 
-> This repository has been archived and is no longer actively maintained.
-> 
-> The `TreeDataGrid` control is moving to Avalonia Accelerate as a commercially supported component, where it will continue to receive updates, improvements, and professional support.
-> 
-> We previously opened a call for community maintainers to continue maintaining this as an open-source project, but unfortunately no maintainers came forward to take on this responsibility.
->
-> ## What This Means
->
-> - No further updates: This repository will not receive bug fixes, feature updates, or dependency updates
-> - Issues and PRs closed: We will not be accepting new issues or pull requests
-> - Code remains available: The existing code will remain accessible for reference and forking under its current license
->
-> ## For Current Users
->If you rely on TreeDataGrid in your projects, you have several options:
-> 
-> - Continue using the current version - The existing code will remain available
-> - Upgrade to Avalonia Accelerate - Get continued support and updates through our commercial offering
-> - Fork the repository - Maintain your own version if that better suits your needs
->
-> We appreciate everyone who has contributed to and used this control over the years. Thank you for being part of the Avalonia community.
+[![NuGet](https://img.shields.io/nuget/v/TreeDataGrid.svg)](https://www.nuget.org/packages/TreeDataGrid/)
 
-[![NuGet](https://img.shields.io/nuget/v/Avalonia.Controls.TreeDataGrid.svg)](https://www.nuget.org/packages/Avalonia.Controls.TreeDataGrid/)
-# Avalonia `TreeDataGrid`
+# `TreeDataGrid` for Avalonia
 
 ## Introduction
 
@@ -46,6 +23,131 @@ An example of `TreeDataGrid` displaying flat data:
 
 We accept issues and pull requests but we answer and review only pull requests and issues that are created by our customers. It's a quite big project and servicing all issues and pull requests will require more time than we have. But feel free to open issues and pull requests because they may be useful for us!
 
+## Quick Start
+
+Install the package:
+
+```bash
+dotnet add package TreeDataGrid
+```
+
+Or add a package reference:
+
+```xml
+<ItemGroup>
+  <PackageReference Include="TreeDataGrid" Version="x.y.z" />
+</ItemGroup>
+```
+
+Add the theme to `App.axaml`:
+
+```xml
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="AvaloniaApplication.App">
+  <Application.Styles>
+    <FluentTheme/>
+    <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
+  </Application.Styles>
+</Application>
+```
+
+## Basic Usage
+
+### Flat mode
+
+```csharp
+using System.Collections.ObjectModel;
+using Avalonia.Controls.Models.TreeDataGrid;
+
+public class Person
+{
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+    public int Age { get; set; }
+}
+
+public class MainWindowViewModel
+{
+    private readonly ObservableCollection<Person> _people = new()
+    {
+        new() { FirstName = "Eleanor", LastName = "Pope", Age = 32 },
+        new() { FirstName = "Jeremy", LastName = "Navarro", Age = 74 },
+    };
+
+    public FlatTreeDataGridSource<Person> Source { get; }
+
+    public MainWindowViewModel()
+    {
+        Source = new FlatTreeDataGridSource<Person>(_people)
+        {
+            Columns =
+            {
+                new TextColumn<Person, string>("First Name", x => x.FirstName),
+                new TextColumn<Person, string>("Last Name", x => x.LastName),
+                new TextColumn<Person, int>("Age", x => x.Age),
+            },
+        };
+    }
+}
+```
+
+### Hierarchical mode
+
+```csharp
+using System.Collections.ObjectModel;
+using Avalonia.Controls.Models.TreeDataGrid;
+
+public class Person
+{
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+    public int Age { get; set; }
+    public ObservableCollection<Person> Children { get; } = new();
+}
+
+public class MainWindowViewModel
+{
+    private readonly ObservableCollection<Person> _people = new();
+
+    public HierarchicalTreeDataGridSource<Person> Source { get; }
+
+    public MainWindowViewModel()
+    {
+        Source = new HierarchicalTreeDataGridSource<Person>(_people)
+        {
+            Columns =
+            {
+                new HierarchicalExpanderColumn<Person>(
+                    new TextColumn<Person, string>("First Name", x => x.FirstName),
+                    x => x.Children),
+                new TextColumn<Person, string>("Last Name", x => x.LastName),
+                new TextColumn<Person, int>("Age", x => x.Age),
+            },
+        };
+    }
+}
+```
+
+Bind in XAML (both modes):
+
+```xml
+<TreeDataGrid Source="{Binding Source}" />
+```
+
+## Build and Package
+
+Build/test/pack the library project:
+
+```bash
+dotnet restore src/Avalonia.Controls.TreeDataGrid/Avalonia.Controls.TreeDataGrid.csproj
+dotnet build src/Avalonia.Controls.TreeDataGrid/Avalonia.Controls.TreeDataGrid.csproj -c Release --no-restore
+dotnet test tests/Avalonia.Controls.TreeDataGrid.Tests/Avalonia.Controls.TreeDataGrid.Tests.csproj -c Release
+dotnet pack src/Avalonia.Controls.TreeDataGrid/Avalonia.Controls.TreeDataGrid.csproj -c Release -o artifacts/packages
+```
+
+Packages are generated in `artifacts/packages` (`.nupkg` and `.snupkg`).
+
 ## Getting Started
 
 - [Installation](docs/installation.md)
@@ -53,3 +155,8 @@ We accept issues and pull requests but we answer and review only pull requests a
 - [Creating a hierarchical `TreeDataGrid`](docs/get-started-hierarchical.md)
 - [Supported column types](docs/column-types.md)
 - [Selection](docs/selection.md)
+
+## License
+
+- Main project license: [licence.md](licence.md)
+- Preserved original upstream license: [LICENSE-AVALONIA](LICENSE-AVALONIA)

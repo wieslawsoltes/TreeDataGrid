@@ -5,7 +5,7 @@
     <RootNamespace>Avalonia.Controls</RootNamespace>
   </PropertyGroup>
   <PropertyGroup>
-    <PackageId>Avalonia.Controls.TreeDataGrid</PackageId>
+    <PackageId>TreeDataGrid</PackageId>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
