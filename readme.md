@@ -21,7 +21,7 @@ An example of `TreeDataGrid` displaying flat data:
 
 ## Current Status
 
-We accept issues and pull requests but we answer and review only pull requests and issues that are created by our customers. It's a quite big project and servicing all issues and pull requests will require more time than we have. But feel free to open issues and pull requests because they may be useful for us!
+We accept all issues and pull requests but we answer and review only pull requests and issues that are high quality and align with project scope.
 
 ## Quick Start
 
