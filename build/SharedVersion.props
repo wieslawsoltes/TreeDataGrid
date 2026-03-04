@@ -1,7 +1,7 @@
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Product>TreeDataGrid</Product>
-    <Version>11.3.12</Version>
+    <Version>11.3.12.1</Version>
     <Copyright>Copyright © Wiesław Šoltés 2026</Copyright>
     <Authors>Wiesław Šoltés</Authors>
     <Company>Wiesław Šoltés</Company>
