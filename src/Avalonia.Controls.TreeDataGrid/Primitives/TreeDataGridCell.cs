@@ -80,7 +80,7 @@ namespace Avalonia.Controls.Primitives
         {
             return new TreeDataGridCellAutomationPeer(this);
         }
- 
+
         protected internal void BeginEdit()
         {
             if (!IsEditing)
