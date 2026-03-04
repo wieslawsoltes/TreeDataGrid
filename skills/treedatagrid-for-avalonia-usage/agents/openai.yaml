@@ -1,0 +1,4 @@
+interface:
+  display_name: "TreeDataGrid Usage"
+  short_description: "Use TreeDataGrid with DocFX-first workflows"
+  default_prompt: "Use $treedatagrid-for-avalonia-usage to implement a TreeDataGrid feature using repository DocFX articles and API docs."
