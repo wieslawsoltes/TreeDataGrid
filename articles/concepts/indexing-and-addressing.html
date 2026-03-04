@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Indexing and Addressing | TreeDataGrid for Avalonia </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Indexing and Addressing | TreeDataGrid for Avalonia ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/docfx/articles/concepts/indexing-and-addressing.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="indexing-and-addressing">Indexing and Addressing</h1>
+
+<p>TreeDataGrid distinguishes between model indexes and visible row indexes.</p>
+<p>Understanding this difference is critical for selection, expansion, sorting, and drag/drop.</p>
+<h2 id="indexpath-hierarchical-model-address"><code>IndexPath</code>: Hierarchical Model Address</h2>
+<p><code>IndexPath</code> identifies a model row in the source hierarchy.</p>
+<p>Examples:</p>
+<ul>
+<li>first root item: <code>new IndexPath(0)</code></li>
+<li>second child of first root: <code>new IndexPath(0, 1)</code></li>
+<li>first grandchild under that child: <code>new IndexPath(0, 1, 0)</code></li>
+</ul>
+<p>Conveniences:</p>
+<ul>
+<li>implicit conversion from <code>int</code> for flat roots (<code>IndexPath p = 3;</code>)</li>
+<li><code>IndexPath.Unselected</code> for empty/no selection</li>
+<li><code>Append(int)</code> to build deeper paths</li>
+</ul>
+<h2 id="cellindex-cell-address"><code>CellIndex</code>: Cell Address</h2>
+<p><code>CellIndex</code> combines:</p>
+<ul>
+<li><code>ColumnIndex</code> (<code>int</code>)</li>
+<li><code>RowIndex</code> (<code>IndexPath</code>)</li>
+</ul>
+<p>It is used by cell selection APIs.</p>
+<p>Example:</p>
+<pre><code class="lang-csharp">var cell = new CellIndex(columnIndex: 2, rowIndex: new IndexPath(0, 1));
+</code></pre>
+<h2 id="model-index-vs-visible-row-index">Model Index vs Visible Row Index</h2>
+<p><code>IndexPath</code> addresses model position. Visible row index addresses current on-screen order.</p>
+<p>They can differ when:</p>
+<ul>
+<li>hierarchical rows are collapsed/expanded</li>
+<li>sorting is active</li>
+<li>virtualization and realization are in effect</li>
+</ul>
+<p>Row collections expose conversion APIs:</p>
+<ul>
+<li><code>IRows.ModelIndexToRowIndex(IndexPath)</code></li>
+<li><code>IRows.RowIndexToModelIndex(int)</code></li>
+</ul>
+<h2 id="practical-rules">Practical Rules</h2>
+<ul>
+<li>Persist selections using <code>IndexPath</code> (model index), not visible row index.</li>
+<li>Convert to visible row index only when targeting UI operations (<code>BringIntoView</code>, <code>TryGetRow</code>).</li>
+<li>After sorting or hierarchy changes, recalculate visible row indexes.</li>
+</ul>
+<h2 id="working-with-hierarchy-paths">Working with Hierarchy Paths</h2>
+<p>Use <code>IndexPath</code> helpers when traversing:</p>
+<ul>
+<li>parent path: <code>path[..^1]</code></li>
+<li>direct child path: <code>path.Append(childIndex)</code></li>
+<li>relationship checks:
+<ul>
+<li><code>parent.IsAncestorOf(child)</code></li>
+<li><code>parent.IsParentOf(child)</code></li>
+</ul>
+</li>
+</ul>
+<h2 id="example-select-and-scroll-a-hierarchical-row">Example: Select and Scroll a Hierarchical Row</h2>
+<pre><code class="lang-csharp">var modelIndex = new IndexPath(0, 1, 0);
+Source.RowSelection!.SelectedIndex = modelIndex;
+
+var rowIndex = Source.Rows.ModelIndexToRowIndex(modelIndex);
+if (rowIndex &gt;= 0)
+    grid.RowsPresenter?.BringIntoView(rowIndex);
+</code></pre>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul>
+<li><p>Feature behavior differs from expectations
+Cause: one or more options in this scenario are configured differently (source type, column options, sort/selection/edit state).
+Fix: compare your setup with the snippet in this article and verify runtime values on <code>Source</code>, <code>Columns</code>, and <code>Selection</code>.</p>
+</li>
+<li><p>Data changes are not visible in UI
+Cause: model or collection notifications are missing, or a replaced collection/source is not re-bound.
+Fix: ensure <code>INotifyPropertyChanged</code>/<code>INotifyCollectionChanged</code> flow is active and reassign <code>Source</code> after replacing underlying collections.</p>
+</li>
+</ul>
+<h2 id="api-coverage-checklist">API Coverage Checklist</h2>
+<ul>
+<li><a class="xref" href="../../api/Avalonia.Controls.CellIndex.html">CellIndex</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.IndexPath.html">IndexPath</a></li>
+</ul>
+<h2 id="related">Related</h2>
+<ul>
+<li><a href="selection-models.html">Selection Models</a></li>
+<li><a href="../guides/selection-row.html">Row Selection Guide</a></li>
+<li><a href="../guides/selection-cell.html">Cell Selection Guide</a></li>
+<li><a href="glossary.html">TreeDataGrid Glossary</a></li>
+<li><a href="../guides/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/docfx/articles/concepts/indexing-and-addressing.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Quickstart: Hierarchical TreeDataGrid | TreeDataGrid for Avalonia </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Quickstart: Hierarchical TreeDataGrid | TreeDataGrid for Avalonia ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/docfx/articles/getting-started/quickstart-hierarchical.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="quickstart-hierarchical-treedatagrid">Quickstart: Hierarchical TreeDataGrid</h1>
+
+<p>This quickstart builds a complete hierarchical TreeDataGrid with expandable rows.</p>
+<h2 id="goal">Goal</h2>
+<p>Create a parent/child dataset where each row can expand to show children.</p>
+<h2 id="1-data-model">1. Data Model</h2>
+<p>Create <code>Person.cs</code>:</p>
+<pre><code class="lang-csharp">using System.Collections.ObjectModel;
+
+public class Person
+{
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+    public int Age { get; set; }
+    public ObservableCollection&lt;Person&gt; Children { get; } = new();
+}
+</code></pre>
+<h2 id="2-view-model-with-hierarchical-source">2. View Model with Hierarchical Source</h2>
+<p>Create <code>MainWindowViewModel.cs</code>:</p>
+<pre><code class="lang-csharp">using System.Collections.ObjectModel;
+using Avalonia.Controls;
+using Avalonia.Controls.Models.TreeDataGrid;
+
+public class MainWindowViewModel
+{
+    private readonly ObservableCollection&lt;Person&gt; _people = new()
+    {
+        new Person
+        {
+            FirstName = &quot;Eleanor&quot;,
+            LastName = &quot;Pope&quot;,
+            Age = 32,
+            Children =
+            {
+                new Person { FirstName = &quot;Marcel&quot;, LastName = &quot;Gutierrez&quot;, Age = 4 },
+            }
+        },
+        new Person
+        {
+            FirstName = &quot;Jeremy&quot;,
+            LastName = &quot;Navarro&quot;,
+            Age = 74,
+            Children =
+            {
+                new Person
+                {
+                    FirstName = &quot;Jane&quot;,
+                    LastName = &quot;Navarro&quot;,
+                    Age = 42,
+                    Children =
+                    {
+                        new Person { FirstName = &quot;Lailah&quot;, LastName = &quot;Velazquez&quot;, Age = 16 },
+                    }
+                }
+            }
+        },
+    };
+
+    public MainWindowViewModel()
+    {
+        Source = new HierarchicalTreeDataGridSource&lt;Person&gt;(_people)
+        {
+            Columns =
+            {
+                new HierarchicalExpanderColumn&lt;Person&gt;(
+                    new TextColumn&lt;Person, string&gt;(&quot;First Name&quot;, x =&gt; x.FirstName),
+                    x =&gt; x.Children),
+                new TextColumn&lt;Person, string&gt;(&quot;Last Name&quot;, x =&gt; x.LastName),
+                new TextColumn&lt;Person, int&gt;(&quot;Age&quot;, x =&gt; x.Age),
+            },
+        };
+
+        // Optional: expand first root row at startup.
+        Source.Expand(new IndexPath(0));
+    }
+
+    public HierarchicalTreeDataGridSource&lt;Person&gt; Source { get; }
+}
+</code></pre>
+<p>Important:</p>
+<ul>
+<li>Hierarchical sources require exactly one expander column.</li>
+<li><code>HierarchicalExpanderColumn&lt;TModel&gt;</code> wraps an inner column and child selector.</li>
+</ul>
+<h2 id="3-bind-in-xaml">3. Bind in XAML</h2>
+<pre><code class="lang-xml">&lt;Window xmlns=&quot;https://github.com/avaloniaui&quot;
+        xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
+        x:Class=&quot;AvaloniaApplication.MainWindow&quot;&gt;
+  &lt;TreeDataGrid Source=&quot;{Binding Source}&quot; /&gt;
+&lt;/Window&gt;
+</code></pre>
+<h2 id="4-set-datacontext">4. Set DataContext</h2>
+<pre><code class="lang-csharp">public partial class MainWindow : Window
+{
+    public MainWindow()
+    {
+        InitializeComponent();
+        DataContext = new MainWindowViewModel();
+    }
+}
+</code></pre>
+<h2 id="5-run">5. Run</h2>
+<p>Verify expansion behavior:</p>
+<p><img src="../../images/get-started-hierarchical-1.png" alt="Simple TreeDataGrid"></p>
+<h2 id="what-you-have-now">What You Have Now</h2>
+<ul>
+<li>A bound hierarchical source</li>
+<li>Expand/collapse row behavior</li>
+<li>Multiple columns in hierarchical mode</li>
+</ul>
+<h2 id="common-next-steps">Common Next Steps</h2>
+<ul>
+<li>Handle expansion events (<code>RowExpanding</code>, <code>RowExpanded</code>)</li>
+<li>Programmatically expand/collapse ranges</li>
+<li>Add custom cell templates</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul>
+<li><p>Feature behavior differs from expectations
+Cause: one or more options in this scenario are configured differently (source type, column options, sort/selection/edit state).
+Fix: compare your setup with the snippet in this article and verify runtime values on <code>Source</code>, <code>Columns</code>, and <code>Selection</code>.</p>
+</li>
+<li><p>Data changes are not visible in UI
+Cause: model or collection notifications are missing, or a replaced collection/source is not re-bound.
+Fix: ensure <code>INotifyPropertyChanged</code>/<code>INotifyCollectionChanged</code> flow is active and reassign <code>Source</code> after replacing underlying collections.</p>
+</li>
+</ul>
+<h2 id="api-coverage-checklist">API Coverage Checklist</h2>
+<ul>
+<li><a class="xref" href="../../api/Avalonia.Controls.TreeDataGrid.html">TreeDataGrid</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.HierarchicalTreeDataGridSource-1.html">HierarchicalTreeDataGridSource&lt;TModel&gt;</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Models.TreeDataGrid.HierarchicalExpanderColumn-1.html">HierarchicalExpanderColumn&lt;TModel&gt;</a></li>
+</ul>
+<h2 id="related">Related</h2>
+<ul>
+<li><a href="../guides/sources-hierarchical.html">Hierarchical Source Guide</a></li>
+<li><a href="../guides/column-expander.html">Hierarchical Expander Column Guide</a></li>
+<li><a href="../guides/validation-snippets.html">Validation Snippets</a></li>
+<li><a href="../guides/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/docfx/articles/getting-started/quickstart-hierarchical.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

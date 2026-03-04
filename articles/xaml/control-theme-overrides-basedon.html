@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>ControlTheme Overrides with BasedOn | TreeDataGrid for Avalonia </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="ControlTheme Overrides with BasedOn | TreeDataGrid for Avalonia ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/docfx/articles/xaml/control-theme-overrides-basedon.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="controltheme-overrides-with-basedon">ControlTheme Overrides with BasedOn</h1>
+
+<p>This guide shows how to customize TreeDataGrid visuals by deriving from shipped <code>ControlTheme</code> definitions using <code>BasedOn</code>.</p>
+<p>Use this approach when resource-key overrides are not enough but you still want to inherit the default control templates and behavior.</p>
+<h2 id="when-to-use-basedon">When to Use <code>BasedOn</code></h2>
+<p>Prefer <code>BasedOn</code> when you need:</p>
+<ul>
+<li>different sizing, padding, alignment, or border values</li>
+<li>custom pointer/pressed visual states on existing templates</li>
+<li>scoped look changes for one grid or one application theme</li>
+</ul>
+<p>Use full template replacement only when you need a different visual tree or behavior contract.</p>
+<h2 id="global-override-pattern">Global Override Pattern</h2>
+<p>This pattern derives from built-in themes keyed by control type and applies the derived themes through <code>Theme</code> setters.</p>
+<pre><code class="lang-xml">&lt;Application xmlns=&quot;https://github.com/avaloniaui&quot;
+             xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;&gt;
+  &lt;Application.Styles&gt;
+    &lt;FluentTheme/&gt;
+    &lt;StyleInclude Source=&quot;avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml&quot;/&gt;
+
+    &lt;Style Selector=&quot;TreeDataGrid&quot;&gt;
+      &lt;Setter Property=&quot;Theme&quot; Value=&quot;{DynamicResource BrandTreeDataGridTheme}&quot; /&gt;
+    &lt;/Style&gt;
+    &lt;Style Selector=&quot;TreeDataGridColumnHeader&quot;&gt;
+      &lt;Setter Property=&quot;Theme&quot; Value=&quot;{DynamicResource BrandTreeDataGridColumnHeaderTheme}&quot; /&gt;
+    &lt;/Style&gt;
+    &lt;Style Selector=&quot;TreeDataGridTextCell&quot;&gt;
+      &lt;Setter Property=&quot;Theme&quot; Value=&quot;{DynamicResource BrandTreeDataGridTextCellTheme}&quot; /&gt;
+    &lt;/Style&gt;
+  &lt;/Application.Styles&gt;
+
+  &lt;Application.Resources&gt;
+    &lt;ControlTheme x:Key=&quot;BrandTreeDataGridTheme&quot;
+                  TargetType=&quot;TreeDataGrid&quot;
+                  BasedOn=&quot;{StaticResource {x:Type TreeDataGrid}}&quot;&gt;
+      &lt;Setter Property=&quot;CornerRadius&quot; Value=&quot;6&quot; /&gt;
+      &lt;Setter Property=&quot;BorderThickness&quot; Value=&quot;1&quot; /&gt;
+    &lt;/ControlTheme&gt;
+
+    &lt;ControlTheme x:Key=&quot;BrandTreeDataGridColumnHeaderTheme&quot;
+                  TargetType=&quot;TreeDataGridColumnHeader&quot;
+                  BasedOn=&quot;{StaticResource {x:Type TreeDataGridColumnHeader}}&quot;&gt;
+      &lt;Setter Property=&quot;MinHeight&quot; Value=&quot;32&quot; /&gt;
+      &lt;Setter Property=&quot;Padding&quot; Value=&quot;10 4&quot; /&gt;
+      &lt;Style Selector=&quot;^:pointerover /template/ Border#DataGridBorder&quot;&gt;
+        &lt;Setter Property=&quot;Background&quot; Value=&quot;#1A0A84FF&quot; /&gt;
+        &lt;Setter Property=&quot;BorderBrush&quot; Value=&quot;#660A84FF&quot; /&gt;
+        &lt;Setter Property=&quot;TextBlock.Foreground&quot; Value=&quot;White&quot; /&gt;
+      &lt;/Style&gt;
+    &lt;/ControlTheme&gt;
+
+    &lt;ControlTheme x:Key=&quot;BrandTreeDataGridTextCellTheme&quot;
+                  TargetType=&quot;TreeDataGridTextCell&quot;
+                  BasedOn=&quot;{StaticResource {x:Type TreeDataGridTextCell}}&quot;&gt;
+      &lt;Setter Property=&quot;Padding&quot; Value=&quot;8 3&quot; /&gt;
+    &lt;/ControlTheme&gt;
+  &lt;/Application.Resources&gt;
+&lt;/Application&gt;
+</code></pre>
+<h2 id="scoped-override-for-one-grid">Scoped Override for One Grid</h2>
+<p>Use this when only one TreeDataGrid instance should look different.</p>
+<pre><code class="lang-xml">&lt;TreeDataGrid Source=&quot;{Binding Source}&quot;&gt;
+  &lt;TreeDataGrid.Resources&gt;
+    &lt;ControlTheme x:Key=&quot;DenseTextCellTheme&quot;
+                  TargetType=&quot;TreeDataGridTextCell&quot;
+                  BasedOn=&quot;{StaticResource {x:Type TreeDataGridTextCell}}&quot;&gt;
+      &lt;Setter Property=&quot;Padding&quot; Value=&quot;2 1&quot; /&gt;
+    &lt;/ControlTheme&gt;
+  &lt;/TreeDataGrid.Resources&gt;
+
+  &lt;TreeDataGrid.Styles&gt;
+    &lt;Style Selector=&quot;TreeDataGridTextCell&quot;&gt;
+      &lt;Setter Property=&quot;Theme&quot; Value=&quot;{StaticResource DenseTextCellTheme}&quot; /&gt;
+    &lt;/Style&gt;
+  &lt;/TreeDataGrid.Styles&gt;
+&lt;/TreeDataGrid&gt;
+</code></pre>
+<h2 id="common-override-targets">Common Override Targets</h2>
+<ul>
+<li><code>{x:Type TreeDataGrid}</code>: shell border, corner radius, background</li>
+<li><code>{x:Type TreeDataGridColumnHeader}</code>: header spacing and pointer/pressed visuals</li>
+<li><code>{x:Type TreeDataGridRow}</code>: row-level template and selected state style</li>
+<li><code>{x:Type TreeDataGridTextCell}</code>: text-cell padding/editing template defaults</li>
+<li><code>{x:Type TreeDataGridTemplateCell}</code>: template-host padding and editing presenter styling</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul>
+<li><p><code>BasedOn</code> theme is ignored
+Cause: derived theme exists, but no style sets <code>Theme</code> for matching controls.
+Fix: add a matching style selector with <code>Theme</code> setter.</p>
+</li>
+<li><p>Override works globally but not for one grid
+Cause: resource scope mismatch.
+Fix: place the derived <code>ControlTheme</code> in <code>TreeDataGrid.Resources</code> for local use.</p>
+</li>
+<li><p>Sorting icon or resize behavior changed unexpectedly
+Cause: nested <code>Style</code> selectors in a derived header theme changed template state visuals.
+Fix: review selectors against <code>TreeDataGridColumnHeader</code> defaults and keep sort/resize selectors intact.</p>
+</li>
+<li><p><code>BasedOn</code> cannot resolve <code>{x:Type TreeDataGrid...}</code> key
+Cause: TreeDataGrid theme file was not included before derived themes are declared.
+Fix: include <code>Fluent.axaml</code>/<code>Generic.axaml</code> in <code>Application.Styles</code> before custom <code>ControlTheme</code> definitions.</p>
+</li>
+</ul>
+<h2 id="api-coverage-checklist">API Coverage Checklist</h2>
+<ul>
+<li><a class="xref" href="../../api/Avalonia.Controls.TreeDataGrid.html">TreeDataGrid</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Primitives.TreeDataGridColumnHeader.html">TreeDataGridColumnHeader</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Primitives.TreeDataGridRow.html">TreeDataGridRow</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Primitives.TreeDataGridTextCell.html">TreeDataGridTextCell</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Primitives.TreeDataGridTemplateCell.html">TreeDataGridTemplateCell</a></li>
+</ul>
+<h2 id="related">Related</h2>
+<ul>
+<li><a href="theme-usage.html">Theme Usage</a></li>
+<li><a href="theme-customization.html">Theme Customization</a></li>
+<li><a href="control-theme-full-replacement.html">ControlTheme Full Replacement</a></li>
+<li><a href="theme-resource-keys-reference.html">Theme Resource Keys Reference</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/docfx/articles/xaml/control-theme-overrides-basedon.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

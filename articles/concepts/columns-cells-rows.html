@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Columns, Cells, and Rows | TreeDataGrid for Avalonia </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Columns, Cells, and Rows | TreeDataGrid for Avalonia ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/docfx/articles/concepts/columns-cells-rows.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="columns-cells-and-rows">Columns, Cells, and Rows</h1>
+
+<p>TreeDataGrid uses explicit column/row/cell model abstractions instead of directly binding visuals to raw data.</p>
+<h2 id="column-model">Column Model</h2>
+<p>Main contracts:</p>
+<ul>
+<li><code>IColumn</code> and <code>IColumn&lt;TModel&gt;</code></li>
+<li><code>IColumns</code></li>
+</ul>
+<p>Built-in column types:</p>
+<ul>
+<li><code>TextColumn&lt;TModel, TValue&gt;</code></li>
+<li><code>CheckBoxColumn&lt;TModel&gt;</code></li>
+<li><code>TemplateColumn&lt;TModel&gt;</code></li>
+<li><code>HierarchicalExpanderColumn&lt;TModel&gt;</code></li>
+</ul>
+<p>Column responsibilities:</p>
+<ul>
+<li>map model values into cell models (<code>CreateCell</code>)</li>
+<li>provide sorting comparison (<code>GetComparison</code>)</li>
+<li>expose sizing metadata (<code>Width</code>, <code>ActualWidth</code>)</li>
+</ul>
+<h2 id="row-model">Row Model</h2>
+<p>Main contracts:</p>
+<ul>
+<li><code>IRow</code> and <code>IRow&lt;TModel&gt;</code></li>
+<li><code>IRows</code></li>
+</ul>
+<p>Row responsibilities:</p>
+<ul>
+<li>expose model instance for each visible row</li>
+<li>map between model indexes (<code>IndexPath</code>) and visible indexes (<code>int</code>)</li>
+<li>realize/unrealize cell models for presenters</li>
+</ul>
+<p>Hierarchical row models additionally track:</p>
+<ul>
+<li>expand/collapse state</li>
+<li>indentation depth</li>
+<li>child row collections</li>
+</ul>
+<h2 id="cell-model">Cell Model</h2>
+<p>Main contracts:</p>
+<ul>
+<li><code>ICell</code></li>
+<li><code>ITextCell</code></li>
+<li><code>IExpanderCell</code></li>
+</ul>
+<p>Cell responsibilities:</p>
+<ul>
+<li>expose current value</li>
+<li>describe edit capability (<code>CanEdit</code>, <code>EditGestures</code>)</li>
+<li>propagate value changes back to model when editable</li>
+</ul>
+<h2 id="column-options-and-editing">Column Options and Editing</h2>
+<p>Common options come from <code>ColumnOptions&lt;TModel&gt;</code>:</p>
+<ul>
+<li>sorting behavior and custom comparers</li>
+<li>width constraints</li>
+<li>edit gestures (<code>BeginEditGestures</code>)</li>
+</ul>
+<p>Specialized options:</p>
+<ul>
+<li><code>TextColumnOptions&lt;TModel&gt;</code>: format, wrapping, trimming, alignment, text-search</li>
+<li><code>TemplateColumnOptions&lt;TModel&gt;</code>: text-search selector</li>
+</ul>
+<h2 id="realization-lifecycle-important">Realization Lifecycle (Important)</h2>
+<p>The UI does not create a permanent visual for every row/cell.</p>
+<ul>
+<li>Presenters request row/cell models for visible range.</li>
+<li>Controls are realized and recycled as you scroll.</li>
+<li>Lifecycle hooks (<code>CellPrepared</code>, <code>CellClearing</code>, <code>RowPrepared</code>, <code>RowClearing</code>) let you integrate custom behavior safely.</li>
+</ul>
+<p>Treat visuals as ephemeral; treat source/model state as canonical.</p>
+<h2 id="user-facing-vs-infrastructure-apis">User-Facing vs Infrastructure APIs</h2>
+<p>Typically app code uses:</p>
+<ul>
+<li>source types (<code>FlatTreeDataGridSource</code>, <code>HierarchicalTreeDataGridSource</code>)</li>
+<li>built-in column types</li>
+<li>selection models</li>
+</ul>
+<p>Infrastructure-level contracts are still public and useful for advanced customization:</p>
+<ul>
+<li><code>IUpdateColumnLayout</code></li>
+<li>presenter primitives and element factory</li>
+<li>custom row/cell pipelines</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul>
+<li><p>Feature behavior differs from expectations
+Cause: one or more options in this scenario are configured differently (source type, column options, sort/selection/edit state).
+Fix: compare your setup with the snippet in this article and verify runtime values on <code>Source</code>, <code>Columns</code>, and <code>Selection</code>.</p>
+</li>
+<li><p>Data changes are not visible in UI
+Cause: model or collection notifications are missing, or a replaced collection/source is not re-bound.
+Fix: ensure <code>INotifyPropertyChanged</code>/<code>INotifyCollectionChanged</code> flow is active and reassign <code>Source</code> after replacing underlying collections.</p>
+</li>
+</ul>
+<h2 id="api-coverage-checklist">API Coverage Checklist</h2>
+<ul>
+<li><a class="xref" href="../../api/Avalonia.Controls.Models.TreeDataGrid.CheckBoxCell.html">CheckBoxCell</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Models.TreeDataGrid.ColumnBase-1.html">ColumnBase&lt;TModel&gt;</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Models.TreeDataGrid.ColumnBase-2.html">ColumnBase&lt;TModel, TValue&gt;</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Models.TreeDataGrid.ColumnList-1.html">ColumnList&lt;TModel&gt;</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Models.TreeDataGrid.ExpanderCell-1.html">ExpanderCell&lt;TModel&gt;</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Models.TreeDataGrid.ICell.html">ICell</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Models.TreeDataGrid.IColumn-1.html">IColumn&lt;TModel&gt;</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Models.TreeDataGrid.IColumn.html">IColumn</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Models.TreeDataGrid.IColumns.html">IColumns</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Models.TreeDataGrid.IIndentedRow.html">IIndentedRow</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Models.TreeDataGrid.IModelIndexableRow.html">IModelIndexableRow</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Models.TreeDataGrid.IRow-1.html">IRow&lt;TModel&gt;</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Models.TreeDataGrid.IRow.html">IRow</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Models.TreeDataGrid.IRows.html">IRows</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Models.TreeDataGrid.ITextCell.html">ITextCell</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Models.TreeDataGrid.ITextSearchableColumn-1.html">ITextSearchableColumn&lt;TModel&gt;</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Models.TreeDataGrid.IUpdateColumnLayout.html">IUpdateColumnLayout</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Models.TreeDataGrid.TemplateCell.html">TemplateCell</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Models.TreeDataGrid.TextCell-1.html">TextCell&lt;T&gt;</a></li>
+</ul>
+<h2 id="related">Related</h2>
+<ul>
+<li><a href="../guides/column-text.html">Text Column</a></li>
+<li><a href="../guides/column-checkbox.html">CheckBox Column</a></li>
+<li><a href="../guides/column-template.html">Template Column</a></li>
+<li><a href="../guides/column-expander.html">Hierarchical Expander Column</a></li>
+<li><a href="../guides/sorting-and-column-widths.html">Sorting and Column Widths</a></li>
+<li><a href="glossary.html">TreeDataGrid Glossary</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/docfx/articles/concepts/columns-cells-rows.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

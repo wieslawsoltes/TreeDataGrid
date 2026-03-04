@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Selection Internals and Batch Update | TreeDataGrid for Avalonia </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Selection Internals and Batch Update | TreeDataGrid for Avalonia ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/docfx/articles/advanced/selection-internals-and-batch-update.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="selection-internals-and-batch-update">Selection Internals and Batch Update</h1>
+
+<p>This article explains TreeDataGrid selection contracts below the basic row/cell usage layer.</p>
+<h2 id="selection-stack">Selection Stack</h2>
+<p>The internal stack has three levels:</p>
+<ol>
+<li>Data model contracts:
+<ul>
+<li><a class="xref" href="../../api/Avalonia.Controls.Selection.ITreeDataGridSelection.html">ITreeDataGridSelection</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Selection.ITreeSelectionModel.html">ITreeSelectionModel</a></li>
+</ul>
+</li>
+<li>Interaction adapter between control input and selection state:
+<ul>
+<li><a class="xref" href="../../api/Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction.html">ITreeDataGridSelectionInteraction</a></li>
+</ul>
+</li>
+<li>Concrete models:
+<ul>
+<li><a class="xref" href="../../api/Avalonia.Controls.Selection.TreeSelectionModelBase-1.html"><code>TreeSelectionModelBase&lt;T&gt;</code></a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Selection.TreeDataGridColumnSelectionModel.html">TreeDataGridColumnSelectionModel</a></li>
+</ul>
+</li>
+</ol>
+<h2 id="batch-update-semantics">Batch Update Semantics</h2>
+<p>Use batching when applying many selection changes.</p>
+<p>Two public patterns:</p>
+<ul>
+<li><code>BeginBatchUpdate()</code> / <code>EndBatchUpdate()</code> on <a class="xref" href="../../api/Avalonia.Controls.Selection.ITreeSelectionModel.html">ITreeSelectionModel</a></li>
+<li>disposable <a class="xref" href="../../api/Avalonia.Controls.Selection.TreeSelectionModelBase-1.BatchUpdateOperation.html"><code>TreeSelectionModelBase&lt;T&gt;.BatchUpdateOperation</code></a> from <code>BatchUpdate()</code> on concrete model</li>
+</ul>
+<h3 id="example-bulk-row-selection">Example: Bulk Row Selection</h3>
+<pre><code class="lang-csharp">using Avalonia.Controls;
+using Avalonia.Controls.Selection;
+
+if (source.RowSelection is TreeDataGridRowSelectionModel&lt;Person&gt; rows)
+{
+    using var update = rows.BatchUpdate();
+
+    rows.Clear();
+    rows.Select(new IndexPath(0));
+    rows.Select(new IndexPath(2));
+    rows.Select(new IndexPath(4));
+}
+</code></pre>
+<p>Batching delays expensive notifications and keeps selection-change events coherent.</p>
+<h2 id="index-and-source-change-events">Index and Source Change Events</h2>
+<p>Key event args:</p>
+<ul>
+<li><a class="xref" href="../../api/Avalonia.Controls.Selection.TreeSelectionModelIndexesChangedEventArgs.html">TreeSelectionModelIndexesChangedEventArgs</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Selection.TreeSelectionModelSelectionChangedEventArgs.html">TreeSelectionModelSelectionChangedEventArgs</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Selection.TreeSelectionModelSelectionChangedEventArgs-1.html"><code>TreeSelectionModelSelectionChangedEventArgs&lt;T&gt;</code></a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Selection.TreeSelectionModelSourceResetEventArgs.html">TreeSelectionModelSourceResetEventArgs</a></li>
+</ul>
+<p>Important behavior:</p>
+<ul>
+<li><code>SelectionChanged</code> can be skipped by source <code>Reset</code> semantics in <code>INotifyCollectionChanged</code> providers.</li>
+<li>Always pair <code>SelectionChanged</code> handling with <code>SourceReset</code> when you need durable consistency.</li>
+</ul>
+<h2 id="node-level-infrastructure">Node-Level Infrastructure</h2>
+<p><a class="xref" href="../../api/Avalonia.Controls.Selection.SelectionNodeBase-1.html"><code>SelectionNodeBase&lt;T&gt;</code></a> manages range state for each tree level and updates selection ranges on source changes.</p>
+<p>You usually do not instantiate it directly, but it is the core reason hierarchical selection remains stable across add/remove/replace operations.</p>
+<h2 id="column-selection-model">Column Selection Model</h2>
+<p><a class="xref" href="../../api/Avalonia.Controls.Selection.ITreeDataGridColumnSelectionModel.html">ITreeDataGridColumnSelectionModel</a> and <a class="xref" href="../../api/Avalonia.Controls.Selection.TreeDataGridColumnSelectionModel.html">TreeDataGridColumnSelectionModel</a> represent selected columns and are composed by cell-selection logic.</p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul>
+<li><p>Duplicate or noisy selection events
+Cause: batch boundaries are missing during grouped updates.</p>
+</li>
+<li><p>Selection disappears after source reset
+Cause: consumer listens only to <code>SelectionChanged</code> and ignores <code>SourceReset</code>.</p>
+</li>
+<li><p>Keyboard/pointer behavior differs after custom selection assignment
+Cause: assigned selection does not implement <a class="xref" href="../../api/Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction.html">ITreeDataGridSelectionInteraction</a>.</p>
+</li>
+</ul>
+<h2 id="api-coverage-checklist">API Coverage Checklist</h2>
+<ul>
+<li><a class="xref" href="../../api/Avalonia.Controls.Selection.ITreeDataGridColumnSelectionModel.html">ITreeDataGridColumnSelectionModel</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Selection.ITreeDataGridSelection.html">ITreeDataGridSelection</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction.html">ITreeDataGridSelectionInteraction</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Selection.ITreeSelectionModel.html">ITreeSelectionModel</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Selection.SelectionNodeBase-1.html">SelectionNodeBase&lt;T&gt;</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Selection.TreeDataGridColumnSelectionModel.html">TreeDataGridColumnSelectionModel</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Selection.TreeSelectionModelBase-1.html">TreeSelectionModelBase&lt;T&gt;</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Selection.TreeSelectionModelBase-1.BatchUpdateOperation.html">TreeSelectionModelBase&lt;T&gt;.BatchUpdateOperation</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Selection.TreeSelectionModelIndexesChangedEventArgs.html">TreeSelectionModelIndexesChangedEventArgs</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Selection.TreeSelectionModelSelectionChangedEventArgs.html">TreeSelectionModelSelectionChangedEventArgs</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Selection.TreeSelectionModelSelectionChangedEventArgs-1.html">TreeSelectionModelSelectionChangedEventArgs&lt;T&gt;</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Selection.TreeSelectionModelSourceResetEventArgs.html">TreeSelectionModelSourceResetEventArgs</a></li>
+</ul>
+<h2 id="related">Related</h2>
+<ul>
+<li><a href="../guides/selection-row.html">Selection Row</a></li>
+<li><a href="../guides/selection-cell.html">Selection Cell</a></li>
+<li><a href="../concepts/selection-models.html">Selection Models</a></li>
+<li><a href="../guides/troubleshooting.html">Troubleshooting Guide</a></li>
+<li><a href="../reference/namespace-selection.html">Namespace: Avalonia.Controls.Selection</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/docfx/articles/advanced/selection-internals-and-batch-update.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Getting Started with TreeDataGrid | TreeDataGrid for Avalonia </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Getting Started with TreeDataGrid | TreeDataGrid for Avalonia ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/docfx/articles/getting-started/overview.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="getting-started-with-treedatagrid">Getting Started with TreeDataGrid</h1>
+
+<p>TreeDataGrid is an Avalonia control that combines:</p>
+<ul>
+<li>DataGrid-style columns</li>
+<li>Tree-style hierarchical expansion</li>
+<li>Strongly typed source and column models</li>
+</ul>
+<p>Use TreeDataGrid when you need column-based presentation with optional parent/child data and large datasets.</p>
+<h2 id="what-you-will-build">What You Will Build</h2>
+<p>By the end of Getting Started, you will have:</p>
+<ul>
+<li>A working <code>TreeDataGrid</code> in XAML</li>
+<li>A view model exposing a <code>FlatTreeDataGridSource&lt;TModel&gt;</code> or <code>HierarchicalTreeDataGridSource&lt;TModel&gt;</code></li>
+<li>Strongly typed columns (<code>TextColumn</code>, <code>TemplateColumn</code>, <code>CheckBoxColumn</code>, <code>HierarchicalExpanderColumn</code>)</li>
+<li>Working row or cell selection</li>
+</ul>
+<h2 id="learning-path">Learning Path</h2>
+<ol>
+<li><a href="installation.html">Installation</a></li>
+<li><a href="quickstart-flat.html">Quickstart: Flat TreeDataGrid</a></li>
+<li><a href="quickstart-hierarchical.html">Quickstart: Hierarchical TreeDataGrid</a></li>
+<li><a href="../concepts/architecture-and-data-flow.html">Architecture and Data Flow</a></li>
+<li><a href="../concepts/columns-cells-rows.html">Columns, Cells, and Rows</a></li>
+<li><a href="../concepts/selection-models.html">Selection Models</a></li>
+<li><a href="../concepts/glossary.html">TreeDataGrid Glossary</a></li>
+</ol>
+<h2 id="flat-vs-hierarchical">Flat vs Hierarchical</h2>
+<p>Choose your source type first:</p>
+<ul>
+<li><code>FlatTreeDataGridSource&lt;TModel&gt;</code>: table-like data, no children</li>
+<li><code>HierarchicalTreeDataGridSource&lt;TModel&gt;</code>: rows may contain nested children</li>
+</ul>
+<p>You can still use multiple columns in both modes.</p>
+<h2 id="key-idea">Key Idea</h2>
+<p>TreeDataGrid separates what to show from how to show it:</p>
+<ul>
+<li>Source model (<code>ITreeDataGridSource</code>) defines rows, columns, selection, sorting</li>
+<li><code>TreeDataGrid</code> control realizes models into visual rows/cells with virtualization</li>
+</ul>
+<p>This keeps view models strongly typed and UI behavior predictable.</p>
+<h2 id="next">Next</h2>
+<ul>
+<li>Start with <a href="installation.html">Installation</a></li>
+<li>If package/theme are already configured, jump directly to <a href="quickstart-flat.html">Quickstart: Flat TreeDataGrid</a></li>
+<li>Use <a href="../guides/troubleshooting.html">Troubleshooting Guide</a> if setup diverges from expected behavior.</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul>
+<li><p>Feature behavior differs from expectations
+Cause: one or more options in this scenario are configured differently (source type, column options, sort/selection/edit state).
+Fix: compare your setup with the snippet in this article and verify runtime values on <code>Source</code>, <code>Columns</code>, and <code>Selection</code>.</p>
+</li>
+<li><p>Data changes are not visible in UI
+Cause: model or collection notifications are missing, or a replaced collection/source is not re-bound.
+Fix: ensure <code>INotifyPropertyChanged</code>/<code>INotifyCollectionChanged</code> flow is active and reassign <code>Source</code> after replacing underlying collections.</p>
+</li>
+</ul>
+<h2 id="api-coverage-checklist">API Coverage Checklist</h2>
+<ul>
+<li><a class="xref" href="../../api/Avalonia.Controls.TreeDataGrid.html">TreeDataGrid</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.FlatTreeDataGridSource-1.html">FlatTreeDataGridSource&lt;TModel&gt;</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.HierarchicalTreeDataGridSource-1.html">HierarchicalTreeDataGridSource&lt;TModel&gt;</a></li>
+</ul>
+<h2 id="related">Related</h2>
+<ul>
+<li><a href="installation.html">Installation</a></li>
+<li><a href="quickstart-flat.html">Quickstart: Flat TreeDataGrid</a></li>
+<li><a href="quickstart-hierarchical.html">Quickstart: Hierarchical TreeDataGrid</a></li>
+<li><a href="../concepts/glossary.html">TreeDataGrid Glossary</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/docfx/articles/getting-started/overview.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

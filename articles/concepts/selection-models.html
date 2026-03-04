@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Selection Models | TreeDataGrid for Avalonia </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Selection Models | TreeDataGrid for Avalonia ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/docfx/articles/concepts/selection-models.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="selection-models">Selection Models</h1>
+
+<p>TreeDataGrid supports two primary selection modes:</p>
+<ul>
+<li>row selection</li>
+<li>cell selection</li>
+</ul>
+<p>The active behavior comes from <code>ITreeDataGridSource.Selection</code>.</p>
+<h2 id="default-behavior">Default Behavior</h2>
+<p>If you do not assign <code>Selection</code> explicitly:</p>
+<ul>
+<li>sources create a row selection model by default</li>
+<li>selection is single-select by default</li>
+</ul>
+<p>This makes basic keyboard/mouse selection work immediately.</p>
+<h2 id="row-selection-model">Row Selection Model</h2>
+<p>Main API:</p>
+<ul>
+<li><code>TreeDataGridRowSelectionModel&lt;TModel&gt;</code></li>
+<li><code>ITreeDataGridRowSelectionModel&lt;TModel&gt;</code></li>
+</ul>
+<p>Common operations:</p>
+<ul>
+<li>set <code>SelectedIndex</code> (<code>IndexPath</code>)</li>
+<li>inspect <code>SelectedIndexes</code>, <code>SelectedItem</code>, <code>SelectedItems</code></li>
+<li>enable multi-select via <code>SingleSelect = false</code></li>
+</ul>
+<p>Example:</p>
+<pre><code class="lang-csharp">Source.RowSelection!.SingleSelect = false;
+Source.RowSelection.SelectedIndex = new IndexPath(0, 1);
+</code></pre>
+<h2 id="cell-selection-model">Cell Selection Model</h2>
+<p>Main API:</p>
+<ul>
+<li><code>TreeDataGridCellSelectionModel&lt;TModel&gt;</code></li>
+<li><code>ITreeDataGridCellSelectionModel&lt;TModel&gt;</code></li>
+</ul>
+<p>Common operations:</p>
+<ul>
+<li>set <code>SelectedIndex</code> (<code>CellIndex</code>)</li>
+<li>inspect <code>SelectedIndexes</code></li>
+<li>select ranges via <code>SetSelectedRange(...)</code></li>
+</ul>
+<p>Example:</p>
+<pre><code class="lang-csharp">Source.Selection = new TreeDataGridCellSelectionModel&lt;Person&gt;(Source)
+{
+    SingleSelect = false,
+};
+</code></pre>
+<h2 id="switching-modes-at-runtime">Switching Modes at Runtime</h2>
+<p>Switch by replacing <code>Source.Selection</code>:</p>
+<pre><code class="lang-csharp">if (useCellSelection)
+    Source.Selection = new TreeDataGridCellSelectionModel&lt;Person&gt;(Source);
+else
+    Source.Selection = new TreeDataGridRowSelectionModel&lt;Person&gt;(Source);
+</code></pre>
+<p>Requirement: assigned selection model must point to the same <code>Items</code> source.</p>
+<h2 id="base-contracts-and-advanced-behavior">Base Contracts and Advanced Behavior</h2>
+<p>Core contracts:</p>
+<ul>
+<li><code>ITreeSelectionModel</code></li>
+<li><code>ITreeDataGridSelection</code></li>
+<li><code>ITreeDataGridSelectionInteraction</code></li>
+</ul>
+<p>Advanced events from selection base model:</p>
+<ul>
+<li><code>SelectionChanged</code></li>
+<li><code>IndexesChanged</code></li>
+<li><code>SourceReset</code></li>
+</ul>
+<p><code>SourceReset</code> is important when source collections raise reset notifications.</p>
+<h2 id="anchors-and-ranges">Anchors and Ranges</h2>
+<p>For keyboard/range logic, selection models track:</p>
+<ul>
+<li><code>AnchorIndex</code></li>
+<li><code>RangeAnchorIndex</code></li>
+</ul>
+<p>This supports shift-range operations and consistent keyboard navigation behavior.</p>
+<h2 id="practical-recommendations">Practical Recommendations</h2>
+<ul>
+<li>Prefer row selection for list-style workflows and commands on full records.</li>
+<li>Prefer cell selection for spreadsheet-like editing.</li>
+<li>Persist model addresses (<code>IndexPath</code>, <code>CellIndex</code>) rather than visible row numbers.</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul>
+<li><p>Feature behavior differs from expectations
+Cause: one or more options in this scenario are configured differently (source type, column options, sort/selection/edit state).
+Fix: compare your setup with the snippet in this article and verify runtime values on <code>Source</code>, <code>Columns</code>, and <code>Selection</code>.</p>
+</li>
+<li><p>Data changes are not visible in UI
+Cause: model or collection notifications are missing, or a replaced collection/source is not re-bound.
+Fix: ensure <code>INotifyPropertyChanged</code>/<code>INotifyCollectionChanged</code> flow is active and reassign <code>Source</code> after replacing underlying collections.</p>
+</li>
+</ul>
+<h2 id="api-coverage-checklist">API Coverage Checklist</h2>
+<ul>
+<li><a class="xref" href="../../api/Avalonia.Controls.Selection.ITreeDataGridSelection.html">ITreeDataGridSelection</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Selection.ITreeDataGridRowSelectionModel-1.html">ITreeDataGridRowSelectionModel&lt;T&gt;</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Selection.ITreeDataGridCellSelectionModel-1.html">ITreeDataGridCellSelectionModel&lt;T&gt;</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Selection.ITreeSelectionModel.html">ITreeSelectionModel</a></li>
+</ul>
+<h2 id="related">Related</h2>
+<ul>
+<li><a href="indexing-and-addressing.html">Indexing and Addressing</a></li>
+<li><a href="../guides/selection-row.html">Row Selection Guide</a></li>
+<li><a href="../guides/selection-cell.html">Cell Selection Guide</a></li>
+<li><a href="../advanced/selection-internals-and-batch-update.html">Selection Internals and Batch Update</a></li>
+<li><a href="glossary.html">TreeDataGrid Glossary</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/docfx/articles/concepts/selection-models.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

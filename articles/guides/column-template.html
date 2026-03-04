@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Template Column Guide | TreeDataGrid for Avalonia </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Template Column Guide | TreeDataGrid for Avalonia ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/docfx/articles/guides/column-template.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="template-column-guide">Template Column Guide</h1>
+
+<p><code>TemplateColumn&lt;TModel&gt;</code> renders cells through <code>DataTemplate</code> and optional editing template.</p>
+<p>Use it when <code>TextColumn</code>/<code>CheckBoxColumn</code> are not enough.</p>
+<h2 id="constructor-options">Constructor Options</h2>
+<p>Choose one of the following constructor families based on how templates are provided.</p>
+<h2 id="1-template-objects">1. Template Objects</h2>
+<pre><code class="lang-csharp">new TemplateColumn&lt;Person&gt;(
+    header: &quot;Selected&quot;,
+    cellTemplate: new FuncDataTemplate&lt;Person&gt;((_, _) =&gt; new CheckBox
+    {
+        [!CheckBox.IsCheckedProperty] = new Binding(&quot;IsSelected&quot;),
+    }))
+</code></pre>
+<h2 id="2-template-resource-keys">2. Template Resource Keys</h2>
+<pre><code class="lang-csharp">new TemplateColumn&lt;Person&gt;(&quot;Region&quot;, &quot;RegionCell&quot;, &quot;RegionEditCell&quot;)
+</code></pre>
+<p>This resolves templates from control resources at runtime.</p>
+<h2 id="xaml-template-example">XAML Template Example</h2>
+<pre><code class="lang-xml">&lt;TreeDataGrid Source=&quot;{Binding Source}&quot;&gt;
+  &lt;TreeDataGrid.Resources&gt;
+    &lt;DataTemplate x:Key=&quot;RegionCell&quot;&gt;
+      &lt;TextBlock Text=&quot;{Binding Region}&quot;/&gt;
+    &lt;/DataTemplate&gt;
+
+    &lt;DataTemplate x:Key=&quot;RegionEditCell&quot;&gt;
+      &lt;ComboBox ItemsSource=&quot;{x:Static m:Countries.Regions}&quot;
+                SelectedItem=&quot;{Binding Region}&quot;/&gt;
+    &lt;/DataTemplate&gt;
+  &lt;/TreeDataGrid.Resources&gt;
+&lt;/TreeDataGrid&gt;
+</code></pre>
+<h2 id="editing-support">Editing Support</h2>
+<p>A template column is editable only if editing template is provided.</p>
+<ul>
+<li>if <code>cellEditingTemplate</code> is null: read-only</li>
+<li>if provided: editing can start via configured gestures</li>
+</ul>
+<h2 id="options">Options</h2>
+<p><code>TemplateColumnOptions&lt;TModel&gt;</code> supports:</p>
+<ul>
+<li><code>IsTextSearchEnabled</code></li>
+<li><code>TextSearchValueSelector</code></li>
+<li>inherited <code>ColumnOptions&lt;TModel&gt;</code> (sorting, width, edit gestures, etc.)</li>
+</ul>
+<p>Example with text search and custom sort:</p>
+<pre><code class="lang-csharp">new TemplateColumn&lt;FileNode&gt;(
+    &quot;Name&quot;,
+    &quot;FileNameCell&quot;,
+    &quot;FileNameEditCell&quot;,
+    GridLength.Star,
+    new TemplateColumnOptions&lt;FileNode&gt;
+    {
+        IsTextSearchEnabled = true,
+        TextSearchValueSelector = x =&gt; x.Name,
+        CompareAscending = (a, b) =&gt; string.Compare(a?.Name, b?.Name, StringComparison.OrdinalIgnoreCase),
+        CompareDescending = (a, b) =&gt; string.Compare(b?.Name, a?.Name, StringComparison.OrdinalIgnoreCase),
+    })
+</code></pre>
+<h2 id="runtime-resolution-errors">Runtime Resolution Errors</h2>
+<p>If resource key is missing, template lookup throws <code>KeyNotFoundException</code>.</p>
+<p>Recommendation:</p>
+<ul>
+<li>keep template keys as constants</li>
+<li>define templates near the grid using them</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul>
+<li><p>Feature behavior differs from expectations
+Cause: one or more options in this scenario are configured differently (source type, column options, sort/selection/edit state).
+Fix: compare your setup with the snippet in this article and verify runtime values on <code>Source</code>, <code>Columns</code>, and <code>Selection</code>.</p>
+</li>
+<li><p>Data changes are not visible in UI
+Cause: model or collection notifications are missing, or a replaced collection/source is not re-bound.
+Fix: ensure <code>INotifyPropertyChanged</code>/<code>INotifyCollectionChanged</code> flow is active and reassign <code>Source</code> after replacing underlying collections.</p>
+</li>
+</ul>
+<h2 id="api-coverage-checklist">API Coverage Checklist</h2>
+<ul>
+<li><a class="xref" href="../../api/Avalonia.Controls.Models.TreeDataGrid.TemplateColumn-1.html">TemplateColumn&lt;TModel&gt;</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Models.TreeDataGrid.TemplateColumnOptions-1.html">TemplateColumnOptions&lt;TModel&gt;</a></li>
+</ul>
+<h2 id="related">Related</h2>
+<ul>
+<li><a href="templates-and-styling.html">Templates and Styling</a></li>
+<li><a href="editing-and-begin-edit-gestures.html">Editing and Begin Edit Gestures</a></li>
+<li><a href="sorting-and-column-widths.html">Sorting and Column Widths</a></li>
+<li><a href="troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/docfx/articles/guides/column-template.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

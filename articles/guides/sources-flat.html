@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Flat Source Guide | TreeDataGrid for Avalonia </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Flat Source Guide | TreeDataGrid for Avalonia ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/docfx/articles/guides/sources-flat.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="flat-source-guide">Flat Source Guide</h1>
+
+<p>Use <code>FlatTreeDataGridSource&lt;TModel&gt;</code> for non-hierarchical tabular data.</p>
+<p>This is the default choice when rows do not contain children and you want DataGrid-like behavior with typed columns.</p>
+<h2 id="when-to-use-flat-source">When to Use Flat Source</h2>
+<p>Use flat source when:</p>
+<ul>
+<li>your data is a single-level list (<code>IEnumerable&lt;TModel&gt;</code>)</li>
+<li>row index is enough (or <code>IndexPath</code> depth is always 1)</li>
+<li>you do not need expand/collapse behavior</li>
+</ul>
+<p>Use hierarchical source when each row can expose child collections.</p>
+<h2 id="basic-setup">Basic Setup</h2>
+<pre><code class="lang-csharp">using System.Collections.ObjectModel;
+using Avalonia.Controls;
+using Avalonia.Controls.Models.TreeDataGrid;
+
+public class PeopleViewModel
+{
+    private readonly ObservableCollection&lt;Person&gt; _people = new()
+    {
+        new Person { FirstName = &quot;Eleanor&quot;, LastName = &quot;Pope&quot;, Age = 32 },
+        new Person { FirstName = &quot;Jeremy&quot;, LastName = &quot;Navarro&quot;, Age = 74 },
+        new Person { FirstName = &quot;Lailah&quot;, LastName = &quot;Velazquez&quot;, Age = 16 },
+    };
+
+    public PeopleViewModel()
+    {
+        Source = new FlatTreeDataGridSource&lt;Person&gt;(_people)
+        {
+            Columns =
+            {
+                new TextColumn&lt;Person, string&gt;(&quot;First Name&quot;, x =&gt; x.FirstName),
+                new TextColumn&lt;Person, string&gt;(&quot;Last Name&quot;, x =&gt; x.LastName),
+                new TextColumn&lt;Person, int&gt;(&quot;Age&quot;, x =&gt; x.Age),
+            },
+        };
+    }
+
+    public FlatTreeDataGridSource&lt;Person&gt; Source { get; }
+}
+</code></pre>
+<pre><code class="lang-xml">&lt;TreeDataGrid Source=&quot;{Binding Source}&quot; /&gt;
+</code></pre>
+<h2 id="core-apis">Core APIs</h2>
+<ul>
+<li><code>Items</code>: collection currently used by the source</li>
+<li><code>Columns</code>: strongly typed <code>ColumnList&lt;TModel&gt;</code></li>
+<li><code>Rows</code>: flattened row model collection</li>
+<li><code>Selection</code>: active selection model (row by default)</li>
+<li><code>RowSelection</code> / <code>CellSelection</code>: typed helpers when matching selection mode</li>
+<li><code>SortBy(...)</code>: requests sorting by column</li>
+<li><code>IsSorted</code>: indicates active sort comparer</li>
+<li><code>Sorted</code>: event raised after sorting</li>
+</ul>
+<h2 id="changing-items-at-runtime">Changing Items at Runtime</h2>
+<p>You can swap the items collection by assigning <code>Items</code>:</p>
+<pre><code class="lang-csharp">Source.Items = new ObservableCollection&lt;Person&gt;(nextPage);
+</code></pre>
+<p>Behavior:</p>
+<ul>
+<li>row pipeline is rebound to new items</li>
+<li>existing selection model source is updated to new <code>Items</code> (when selection is present)</li>
+</ul>
+<h2 id="selection-modes">Selection Modes</h2>
+<p>Default is row selection.</p>
+<pre><code class="lang-csharp">Source.RowSelection!.SingleSelect = false;
+</code></pre>
+<p>Switch to cell selection:</p>
+<pre><code class="lang-csharp">using Avalonia.Controls.Selection;
+
+Source.Selection = new TreeDataGridCellSelectionModel&lt;Person&gt;(Source)
+{
+    SingleSelect = false,
+};
+</code></pre>
+<p>Important: assigned selection model must use the same underlying <code>Items</code> source.</p>
+<h2 id="sorting">Sorting</h2>
+<p>Sorting can be requested by UI header click or directly via source.</p>
+<pre><code class="lang-csharp">using System.ComponentModel;
+
+var sorted = Source.SortBy(Source.Columns[0], ListSortDirection.Ascending);
+</code></pre>
+<p>Notes:</p>
+<ul>
+<li>sorting works only if column provides a comparison</li>
+<li><code>SortDirection</code> indicator is updated on columns by the source</li>
+<li>drag/drop row move is disabled while sorted</li>
+</ul>
+<h2 id="row-drag-and-drop-semantics">Row Drag and Drop Semantics</h2>
+<p><code>FlatTreeDataGridSource&lt;TModel&gt;</code> supports move-only row reordering through <code>ITreeDataGridSource.DragDropRows(...)</code>.</p>
+<p>Constraints:</p>
+<ul>
+<li>effects must be <code>Move</code></li>
+<li>source must not be sorted</li>
+<li>source indexes must be single-segment (<code>IndexPath</code> depth 1)</li>
+<li><code>Items</code> must implement <code>IList&lt;TModel&gt;</code></li>
+</ul>
+<p>If these constraints are violated, the source throws.</p>
+<h2 id="error-cases-to-expect">Error Cases to Expect</h2>
+<ul>
+<li>assigning a selection model with different source: <code>InvalidOperationException</code></li>
+<li>drag/drop with non-list source: <code>InvalidOperationException</code></li>
+<li>drag/drop while sorted: <code>NotSupportedException</code></li>
+</ul>
+<h2 id="recommended-pattern">Recommended Pattern</h2>
+<ul>
+<li>store mutable data in <code>ObservableCollection&lt;TModel&gt;</code></li>
+<li>create columns once in source constructor/init</li>
+<li>keep sorting and selection logic in view model, not code-behind</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul>
+<li><p>Feature behavior differs from expectations
+Cause: one or more options in this scenario are configured differently (source type, column options, sort/selection/edit state).
+Fix: compare your setup with the snippet in this article and verify runtime values on <code>Source</code>, <code>Columns</code>, and <code>Selection</code>.</p>
+</li>
+<li><p>Data changes are not visible in UI
+Cause: model or collection notifications are missing, or a replaced collection/source is not re-bound.
+Fix: ensure <code>INotifyPropertyChanged</code>/<code>INotifyCollectionChanged</code> flow is active and reassign <code>Source</code> after replacing underlying collections.</p>
+</li>
+</ul>
+<h2 id="api-coverage-checklist">API Coverage Checklist</h2>
+<ul>
+<li><a class="xref" href="../../api/Avalonia.Controls.FlatTreeDataGridSource-1.html">FlatTreeDataGridSource&lt;TModel&gt;</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.ITreeDataGridSource-1.html">ITreeDataGridSource&lt;TModel&gt;</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.ITreeDataGridSource.html">ITreeDataGridSource</a></li>
+</ul>
+<h2 id="related">Related</h2>
+<ul>
+<li><a href="sources-hierarchical.html">Hierarchical Source Guide</a></li>
+<li><a href="selection-row.html">Selection Row</a></li>
+<li><a href="selection-cell.html">Selection Cell</a></li>
+<li><a href="sorting-and-column-widths.html">Sorting and Column Widths</a></li>
+<li><a href="troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/docfx/articles/guides/sources-flat.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

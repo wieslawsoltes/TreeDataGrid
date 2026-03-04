@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>XAML Samples Walkthrough | TreeDataGrid for Avalonia </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="XAML Samples Walkthrough | TreeDataGrid for Avalonia ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/docfx/articles/xaml/samples-walkthrough.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="xaml-samples-walkthrough">XAML Samples Walkthrough</h1>
+
+<p>This article explains the TreeDataGrid XAML patterns used in <code>samples/TreeDataGridDemo</code>.</p>
+<h2 id="application-level-theme-include">Application-Level Theme Include</h2>
+<p><code>App.axaml</code> configures Fluent theme and TreeDataGrid styles:</p>
+<pre><code class="lang-xml">&lt;Application.Styles&gt;
+  &lt;FluentTheme/&gt;
+  &lt;StyleInclude Source=&quot;avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml&quot;/&gt;
+&lt;/Application.Styles&gt;
+</code></pre>
+<p>The sample also includes commented resource overrides for TreeDataGrid-specific brush keys.</p>
+<h2 id="window-level-xaml-and-compiled-bindings">Window-Level XAML and Compiled Bindings</h2>
+<p><code>MainWindow.axaml</code> enables typed compiled bindings:</p>
+<pre><code class="lang-xml">&lt;Window x:CompileBindings=&quot;True&quot;
+        x:DataType=&quot;vm:MainWindowViewModel&quot;&gt;
+</code></pre>
+<p>This keeps XAML bindings strongly typed and easier to refactor.</p>
+<h2 id="per-grid-template-resources">Per-Grid Template Resources</h2>
+<p>Sample tabs define <code>TreeDataGrid.Resources</code> with keyed templates:</p>
+<pre><code class="lang-xml">&lt;TreeDataGrid.Resources&gt;
+  &lt;DataTemplate x:Key=&quot;RegionCell&quot; DataType=&quot;m:Country&quot;&gt;
+    &lt;TextBlock Text=&quot;{Binding Region}&quot;/&gt;
+  &lt;/DataTemplate&gt;
+  &lt;DataTemplate x:Key=&quot;RegionEditCell&quot; DataType=&quot;m:Country&quot;&gt;
+    &lt;ComboBox ItemsSource=&quot;{x:Static m:Countries.Regions}&quot;
+              SelectedItem=&quot;{Binding Region}&quot;/&gt;
+  &lt;/DataTemplate&gt;
+&lt;/TreeDataGrid.Resources&gt;
+</code></pre>
+<p>View models use the same keys through <code>TemplateColumn&lt;TModel&gt;</code> constructors.</p>
+<h2 id="per-grid-styles-and-selectors">Per-Grid Styles and Selectors</h2>
+<p>The sample applies style selectors in <code>TreeDataGrid.Styles</code> to:</p>
+<ul>
+<li>stripe rows</li>
+<li>make a specific cell column bold</li>
+<li>style a specific header column</li>
+</ul>
+<p>This is useful for local visual behavior without replacing global control themes.</p>
+<h2 id="xaml-interaction-wiring">XAML Interaction Wiring</h2>
+<p>The sample declares interaction options in markup:</p>
+<pre><code class="lang-xml">&lt;TreeDataGrid AutoDragDropRows=&quot;True&quot;
+              RowDragStarted=&quot;DragDrop_RowDragStarted&quot;
+              RowDragOver=&quot;DragDrop_RowDragOver&quot;/&gt;
+</code></pre>
+<h2 id="resource-keys-from-model-layer">Resource Keys from Model Layer</h2>
+<p>Sample view models pass template key names into columns:</p>
+<pre><code class="lang-csharp">new TemplateColumn&lt;Country&gt;(&quot;Region&quot;, &quot;RegionCell&quot;, &quot;RegionEditCell&quot;)
+</code></pre>
+<p>This key is resolved at runtime using the realized template-cell control as the
+resource lookup anchor (within the grid's logical/resource scope).</p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul>
+<li><p>DataTemplate key exists but still not found
+Cause: key is not visible in the lookup scope of the grid/cell anchor.
+Fix: place template in <code>TreeDataGrid.Resources</code>, parent logical resources, or application resources.</p>
+</li>
+<li><p>Template renders but data is empty
+Cause: template <code>DataType</code> or binding path does not match model shape.
+Fix: verify model type and binding members against the row model used by the column.</p>
+</li>
+<li><p>Editing starts and throws template-key exception
+Cause: editing template key was provided in model code but corresponding
+<code>DataTemplate</code> key is missing in resources.
+Fix: add the keyed editing template or use the non-editing constructor path.</p>
+</li>
+</ul>
+<h2 id="api-coverage-checklist">API Coverage Checklist</h2>
+<ul>
+<li><a class="xref" href="../../api/Avalonia.Controls.TreeDataGrid.html">TreeDataGrid</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.Models.TreeDataGrid.TemplateColumn-1.html">TemplateColumn&lt;TModel&gt;</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.TreeDataGridRowDragStartedEventArgs.html">TreeDataGridRowDragStartedEventArgs</a></li>
+<li><a class="xref" href="../../api/Avalonia.Controls.TreeDataGridRowDragEventArgs.html">TreeDataGridRowDragEventArgs</a></li>
+</ul>
+<h2 id="related">Related</h2>
+<ul>
+<li><a href="overview.html">XAML Usage Overview</a></li>
+<li><a href="template-resource-keys-from-model.html">Template Resource Keys from Model</a></li>
+<li><a href="../guides/drag-and-drop-rows.html">Drag and Drop Rows</a></li>
+<li><a href="../guides/events-and-user-interaction.html">Events and User Interaction</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/docfx/articles/xaml/samples-walkthrough.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -2,9 +2,9 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Selection | TreeDataGrid for Avalonia </title>
+      <title>Article Moved | TreeDataGrid for Avalonia </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Selection | TreeDataGrid for Avalonia ">
+      <meta name="title" content="Article Moved | TreeDataGrid for Avalonia ">
       
       
       <link rel="icon" href="../favicon.ico">
@@ -81,72 +81,14 @@
         </div>
 
         <article data-uid="">
-<h1 id="selection">Selection</h1>
+<h1 id="article-moved">Article Moved</h1>
 
-<p>Two selection modes are supported:</p>
+<p>This article has been split into:</p>
 <ul>
-<li>Row selection allows the user to select whole rows</li>
-<li>Cell selection allows the user to select individual cells</li>
+<li><a href="concepts/selection-models.html">Selection Models (Concept)</a></li>
+<li><a href="guides/selection-row.html">Row Selection Guide</a></li>
+<li><a href="guides/selection-cell.html">Cell Selection Guide</a></li>
 </ul>
-<p>Both selection types support either single or multiple selection. The default selection type is single row selection.</p>
-<h2 id="index-paths">Index Paths</h2>
-<p>Because <code>TreeDataGrid</code> supports hierarchical data, using a simple index to identify a row in the data source isn't enough. Instead indexes are represented using the <code>IndexPath</code> struct.</p>
-<p>An <code>IndexPath</code> is essentially an array of indexes, each element of which specifies the index at a successively deeper level in the hierarchy of the data.</p>
-<p>Consider the following data source:</p>
-<pre><code>|- A
-|  |- B
-|  |- C
-|     |- D
-|- E
-</code></pre>
-<ul>
-<li><code>A</code> has an index path of <code>0</code> as it's the first item at the root of the hierarchy</li>
-<li><code>B</code> has an index path of <code>0,0</code> as it's the first child of the first item</li>
-<li><code>C</code> has an index path of <code>0,1</code> as it's the second child of the first item</li>
-<li><code>D</code> has an index path of <code>0,1,0</code> as it's the first child of <code>C</code></li>
-<li><code>E</code> has an index path of <code>1</code> as it's the second item in the root</li>
-</ul>
-<p><code>IndexPath</code> is an immutable struct which is constructed with an array of integers, e.g.: <code>new IndexPath(0, 1, 0)</code>. There is also an implicit conversion from <code>int</code> for when working with a flat data source.</p>
-<h2 id="row-selection">Row Selection</h2>
-<p>Row selection is the default and is exposed via the <code>RowSelection</code> property on the <code>FlatTreeDataGridSource&lt;TModel&gt;</code> and <code>HierarchicalTreeDataGridSource&lt;TModel&gt;</code> classes when enabled. Row selection is stored in an instance of the <code>TreeDataGridRowSelectionModel&lt;TModel&gt;</code> class.</p>
-<p>By default, selection is single-select. To enable multiple selection set the <code>SingleSelect</code> property to <code>false</code>, e.g.:</p>
-<pre><code class="lang-csharp">Source = new FlatTreeDataGridSource&lt;Person&gt;(_people)
-{
-    Columns =
-    {
-        new TextColumn&lt;Person, string&gt;(&quot;First Name&quot;, x =&gt; x.FirstName),
-        new TextColumn&lt;Person, string&gt;(&quot;Last Name&quot;, x =&gt; x.LastName),
-        new TextColumn&lt;Person, int&gt;(&quot;Age&quot;, x =&gt; x.Age),
-    },
-};
-
-Source.RowSelection!.SingleSelect = false;
-</code></pre>
-<p>The properties on <code>ITreeDataGridRowSelectionModel&lt;TModel&gt;</code> can be used to manipulate the selection, e.g.:</p>
-<pre><code class="lang-csharp">Source.RowSelection!.SelectedIndex = 1;
-</code></pre>
-<p>Or</p>
-<pre><code class="lang-csharp">Source.RowSelection!.SelectedIndex = new IndexPath(0, 1);
-</code></pre>
-<h2 id="cell-selection">Cell Selection</h2>
-<p>To enable cell selection for a <code>TreeDataGridSource</code>, assign an instance of <code>TreeDataGridCellSelectionModel&lt;TModel&gt;</code> to the source's <code>Selection</code> property:</p>
-<pre><code class="lang-csharp">Source = new FlatTreeDataGridSource&lt;Person&gt;(_people)
-{
-    Columns =
-    {
-        new TextColumn&lt;Person, string&gt;(&quot;First Name&quot;, x =&gt; x.FirstName),
-        new TextColumn&lt;Person, string&gt;(&quot;Last Name&quot;, x =&gt; x.LastName),
-        new TextColumn&lt;Person, int&gt;(&quot;Age&quot;, x =&gt; x.Age),
-    },
-};
-
-Source.Selection = new TreeDataGridCellSelectionModel&lt;Person&gt;(Source);
-</code></pre>
-<p>Or for multiple cell selection:</p>
-<pre><code class="lang-csharp">Source.Selection = new TreeDataGridCellSelectionModel&lt;Person&gt;(Source) { SingleSelect = false };
-</code></pre>
-<p>Cell selection is exposed via the <code>CellSelection</code> property on the <code>FlatTreeDataGridSource&lt;TModel&gt;</code> and <code>HierarchicalTreeDataGridSource&lt;TModel&gt;</code> classes when enabled.</p>
-<p>The <code>CellIndex</code> struct identifies an individual cell by combining an integer column index and an <code>IndexPath</code> row index.</p>
 
 </article>
 

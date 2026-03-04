@@ -2,9 +2,9 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Creating a Flat TreeDataGrid | TreeDataGrid for Avalonia </title>
+      <title>Article Moved | TreeDataGrid for Avalonia </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Creating a Flat TreeDataGrid | TreeDataGrid for Avalonia ">
+      <meta name="title" content="Article Moved | TreeDataGrid for Avalonia ">
       
       
       <link rel="icon" href="../favicon.ico">
@@ -81,79 +81,9 @@
         </div>
 
         <article data-uid="">
-<h1 id="creating-a-flat-treedatagrid">Creating a Flat TreeDataGrid</h1>
+<h1 id="article-moved">Article Moved</h1>
 
-<p>There are two parts to any <code>TreeDataGrid</code>:</p>
-<ul>
-<li>The &quot;Source&quot; which is defined in code and describes how your data model will map to the rows and columns of the <code>TreeDataGrid</code></li>
-<li>The control which can be instantiated from XAML or from code and describes how the <code>TreeDataGrid</code> will appear</li>
-</ul>
-<p>The source is usually defined at the view model layer if you're using the MVVM pattern but can also be defined in code-behind. This introduction will assume that you're using the MVVM pattern.</p>
-<p>This article assumes that you are using C# 10 and have <a href="https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references">nullable reference types</a> enabled.</p>
-<h2 id="installation">Installation</h2>
-<p>First follow the <a href="installation.html">installation</a> instructions, ensuring that you add the theme to your <code>App.axaml</code> file.</p>
-<h2 id="the-data-model">The Data Model</h2>
-<p>The data model is your &quot;source&quot; data that will be displayed in the <code>TreeDataGrid</code> and will be specific to your application. For this introduction we will be using a very simple <code>Person</code> class:</p>
-<pre><code class="lang-csharp">public class Person
-{
-    public string? FirstName { get; set; }
-    public string? LastName { get; set; }
-    public int Age { get; set; }
-}
-</code></pre>
-<p>First we create a <code>MainWindowViewModel</code> containing our simple dataset:</p>
-<pre><code class="lang-csharp">using System.Collections.ObjectModel;
-using Avalonia.Controls;
-using Avalonia.Controls.Models.TreeDataGrid;
-
-public class MainWindowViewModel
-{
-    private ObservableCollection&lt;Person&gt; _people = new()
-    {
-        new Person { FirstName = &quot;Eleanor&quot;, LastName = &quot;Pope&quot;, Age = 32 },
-        new Person { FirstName = &quot;Jeremy&quot;, LastName = &quot;Navarro&quot;, Age = 74 },
-        new Person { FirstName = &quot;Lailah &quot;, LastName = &quot;Velazquez&quot;, Age = 16 },
-        new Person { FirstName = &quot;Jazmine&quot;, LastName = &quot;Schroeder&quot;, Age = 52 },
-    };
-}
-</code></pre>
-<p>We store the data in an <a href="https://docs.microsoft.com/en-us/dotnet/api/system.collections.objectmodel.observablecollection-1?view=net-6.0"><code>ObservableCollection&lt;T&gt;</code></a> which will allow the <code>TreeDataGrid</code> to listen for changes in the data and automatically update the UI.</p>
-<h2 id="the-treedatagrid-source">The <code>TreeDataGrid</code> source</h2>
-<p>The source defines how to map the data model to rows and columns. Because we're displaying non-hierarchical data, we'll use a <code>FlatTreeDataGridSource&lt;Person&gt;</code>. <code>FlatTreeDataGridSource</code> is a generic class where the type parameter represents the data model type, in this case <code>Person</code>.</p>
-<p>The constructor to <code>FlatTreeDataGridSource</code> accepts a collection of type <code>IEnumerable&lt;T&gt;</code> to which we'll pass our data set.</p>
-<p>We'll create the source in the <code>MainWindowViewModel</code> constructor, add three columns, and expose the source in a property:</p>
-<pre><code class="lang-csharp">public class MainWindowViewModel
-{
-    private ObservableCollection&lt;Person&gt; _people = /* defined earlier */
-
-    public MainWindowViewModel()
-    {
-        Source = new FlatTreeDataGridSource&lt;Person&gt;(_people)
-        {
-            Columns =
-            {
-                new TextColumn&lt;Person, string&gt;(&quot;First Name&quot;, x =&gt; x.FirstName),
-                new TextColumn&lt;Person, string&gt;(&quot;Last Name&quot;, x =&gt; x.LastName),
-                new TextColumn&lt;Person, int&gt;(&quot;Age&quot;, x =&gt; x.Age),
-            },
-        };
-    }
-
-    public FlatTreeDataGridSource&lt;Person&gt; Source { get; }
-}
-</code></pre>
-<p>The columns above are defined as <code>TextColumn</code>s - again, <code>TextColumn</code> is a generic class that accepts the data model type and a value type. The first parameter is the header to display in the column and the second parameter is a lambda expression which selects the value to display from the data model.</p>
-<h2 id="the-treedatagrid-control">The <code>TreeDataGrid</code> control</h2>
-<p>It's now time to add the <code>TreeDataGrid</code> control to a window and bind it to the source.</p>
-<pre><code class="lang-xml">&lt;Window xmlns=&quot;https://github.com/avaloniaui&quot;
-        xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
-        x:Class=&quot;AvaloniaApplication.MainWindow&quot;&gt;
-  &lt;TreeDataGrid Source=&quot;{Binding Source}&quot;/&gt;
-&lt;/Window&gt;
-</code></pre>
-<h2 id="run-the-application">Run the Application</h2>
-<p>Run the application and you should see the data appear:</p>
-<p><img src="../images/get-started-flat-1.png" alt="Simple TreeDataGrid"></p>
+<p>This article has moved to <a href="getting-started/quickstart-flat.html">Quickstart: Flat TreeDataGrid</a>.</p>
 
 </article>
 

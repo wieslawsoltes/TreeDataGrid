@@ -1539,6 +1539,76 @@
     },
     {
       "type": "Conceptual",
+      "source_relative_path": "articles/advanced/custom-element-factory.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/advanced/custom-element-factory.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/advanced/custom-rows-columns-pipeline.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/advanced/custom-rows-columns-pipeline.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/advanced/diagnostics-and-testing.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/advanced/diagnostics-and-testing.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/advanced/performance-virtualization-and-realization.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/advanced/performance-virtualization-and-realization.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/advanced/primitives-overview.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/advanced/primitives-overview.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/advanced/selection-internals-and-batch-update.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/advanced/selection-internals-and-batch-update.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/advanced/typed-binding.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/advanced/typed-binding.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
       "source_relative_path": "articles/build-and-package.md",
       "output": {
         ".html": {
@@ -1559,6 +1629,56 @@
     },
     {
       "type": "Conceptual",
+      "source_relative_path": "articles/concepts/architecture-and-data-flow.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/concepts/architecture-and-data-flow.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/concepts/columns-cells-rows.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/concepts/columns-cells-rows.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/concepts/glossary.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/concepts/glossary.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/concepts/indexing-and-addressing.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/concepts/indexing-and-addressing.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/concepts/selection-models.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/concepts/selection-models.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
       "source_relative_path": "articles/get-started-flat.md",
       "output": {
         ".html": {
@@ -1573,6 +1693,216 @@
       "output": {
         ".html": {
           "relative_path": "articles/get-started-hierarchical.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/getting-started/installation.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/getting-started/installation.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/getting-started/overview.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/getting-started/overview.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/getting-started/quickstart-flat.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/getting-started/quickstart-flat.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/getting-started/quickstart-hierarchical.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/getting-started/quickstart-hierarchical.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/guides/column-checkbox.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/guides/column-checkbox.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/guides/column-expander.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/guides/column-expander.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/guides/column-template.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/guides/column-template.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/guides/column-text.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/guides/column-text.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/guides/drag-and-drop-rows.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/guides/drag-and-drop-rows.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/guides/editing-and-begin-edit-gestures.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/guides/editing-and-begin-edit-gestures.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/guides/events-and-user-interaction.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/guides/events-and-user-interaction.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/guides/expansion-and-programmatic-navigation.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/guides/expansion-and-programmatic-navigation.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/guides/selection-cell.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/guides/selection-cell.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/guides/selection-row.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/guides/selection-row.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/guides/sorting-and-column-widths.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/guides/sorting-and-column-widths.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/guides/sources-flat.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/guides/sources-flat.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/guides/sources-hierarchical.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/guides/sources-hierarchical.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/guides/templates-and-styling.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/guides/templates-and-styling.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/guides/troubleshooting.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/guides/troubleshooting.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/guides/validation-snippets.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/guides/validation-snippets.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/guides/working-with-itemssourceview.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/guides/working-with-itemssourceview.html"
         }
       },
       "version": ""
@@ -1609,6 +1939,86 @@
     },
     {
       "type": "Conceptual",
+      "source_relative_path": "articles/reference/api-coverage-index.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/reference/api-coverage-index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/reference/license.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/reference/license.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/reference/namespace-avalonia-controls.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/reference/namespace-avalonia-controls.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/reference/namespace-converters-and-models.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/reference/namespace-converters-and-models.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/reference/namespace-experimental.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/reference/namespace-experimental.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/reference/namespace-models-treedatagrid.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/reference/namespace-models-treedatagrid.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/reference/namespace-primitives.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/reference/namespace-primitives.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/reference/namespace-selection.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/reference/namespace-selection.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
       "source_relative_path": "articles/samples.md",
       "output": {
         ".html": {
@@ -1636,6 +2046,86 @@
         },
         ".json": {
           "relative_path": "articles/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/xaml/control-theme-full-replacement.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/xaml/control-theme-full-replacement.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/xaml/control-theme-overrides-basedon.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/xaml/control-theme-overrides-basedon.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/xaml/overview.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/xaml/overview.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/xaml/samples-walkthrough.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/xaml/samples-walkthrough.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/xaml/template-resource-keys-from-model.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/xaml/template-resource-keys-from-model.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/xaml/theme-customization.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/xaml/theme-customization.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/xaml/theme-resource-keys-reference.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/xaml/theme-resource-keys-reference.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/xaml/theme-usage.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/xaml/theme-usage.html"
         }
       },
       "version": ""
