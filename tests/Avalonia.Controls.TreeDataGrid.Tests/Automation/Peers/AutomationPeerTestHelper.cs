@@ -4,6 +4,7 @@ using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Selection;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using Xunit;
@@ -25,6 +26,7 @@ namespace Avalonia.Controls.TreeDataGridTests.Automation.Peers
             TestWindow root) CreateFlatTarget(
             bool singleSelect = true,
             int itemCount = 20,
+            bool useCellSelection = false,
             bool runLayout = true)
         {
             var items = new AvaloniaList<FlatRowModel>(
@@ -38,6 +40,11 @@ namespace Avalonia.Controls.TreeDataGridTests.Automation.Peers
             source.RowSelection!.SingleSelect = singleSelect;
             source.Columns.Add(new TextColumn<FlatRowModel, int>("ID", x => x.Id));
             source.Columns.Add(new TextColumn<FlatRowModel, string?>("Title", x => x.Title, (o, v) => o.Title = v));
+
+            if (useCellSelection)
+            {
+                source.Selection = new TreeDataGridCellSelectionModel<FlatRowModel>(source);
+            }
 
             var target = new TreeDataGrid
             {

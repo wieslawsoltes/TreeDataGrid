@@ -33,6 +33,17 @@ namespace Avalonia.Controls.TreeDataGridTests.Automation.Peers
         }
 
         [AvaloniaFact]
+        public void Should_Not_Expose_SelectionProvider_For_CellSelection()
+        {
+            var (target, _, _, _) = AutomationPeerTestHelper.CreateFlatTarget(
+                singleSelect: false,
+                useCellSelection: true);
+            var peer = AutomationPeerTestHelper.CreatePeer<TreeDataGridAutomationPeer>(target);
+
+            Assert.Null(peer.GetProvider<ISelectionProvider>());
+        }
+
+        [AvaloniaFact]
         public void Should_Return_Selected_Row_Peers_For_Realized_Selected_Rows()
         {
             var (target, source, _, root) = AutomationPeerTestHelper.CreateFlatTarget(singleSelect: true);
