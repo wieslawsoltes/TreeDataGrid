@@ -343,3 +343,4 @@ healthchecksdb
 /_site
 docfx/api/*.yml
 docfx/api/*.manifest
+/plan
