@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html data-lunet-theme-mode="system" data-lunet-theme-storage-key="lunet-theme" data-lunet-css-prefix="lunet" lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="lunet 1.0.10.0">
+    <script>(function(){const root=document.documentElement;const key=root.getAttribute("data-lunet-theme-storage-key")||"lunet-theme";const fallback=root.getAttribute("data-lunet-theme-mode")||"system";let stored=null;try{stored=localStorage.getItem(key);}catch(_){stored=null;}const mode=(stored==="light"||stored==="dark"||stored==="system")?stored:fallback;const prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;root.setAttribute("data-lunet-theme-mode",mode);root.setAttribute("data-bs-theme",resolved);}());</script>
+    <link rel='icon' href='/TreeDataGrid/favicon.ico' sizes='32x32'>
+    <title>HierarchicalRows<TModel> Class | TreeDataGrid for Avalonia</title>
+    <link rel="stylesheet" href="/TreeDataGrid/css/lite.css">
+    <script src="/TreeDataGrid/js/lite-defer.js" defer></script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wieslawsoltes">
+<meta name="twitter:title" content="HierarchicalRows<TModel> Class | TreeDataGrid for Avalonia">
+<meta name="twitter:description" content="HierarchicalRows Class Definition Namespace Avalonia.Controls.Models.TreeDataGrid Assembly Avalonia.Controls.TreeDataGrid.dll Inherits Object → ReadOnlyListBase&lt;T> Implements IReadOnlyList&lt;HierarchicalRow&lt;TModel>>, IReadOnlyCollection&lt;HierarchicalRow&lt;TModel>>, IEnumerable&lt;HierarchicalRow&lt;TModel>>, IList, ICollection, IRows, IReadOnlyList&lt;IRow>, IReadOnlyCollection&lt;IRow>, IEnumerable&lt;IRow>, IEnumerable, INotifyCollectionChanged, IDisposable, IExpanderRowController&lt;TModel> View source Show inherited members (21) Avalonia.Controls.Models.ReadOnlyListBase&lt;T>.System.Collections.IList.Item[System.Int32]...">
+<meta name="twitter:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
+<meta name="twitter:image:alt" content="HierarchicalRows<TModel> Class | TreeDataGrid for Avalonia">
+<meta property="og:title" content="HierarchicalRows<TModel> Class | TreeDataGrid for Avalonia">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wieslawsoltes.github.io/TreeDataGrid">
+<meta property="og:description" content="HierarchicalRows Class Definition Namespace Avalonia.Controls.Models.TreeDataGrid Assembly Avalonia.Controls.TreeDataGrid.dll Inherits Object → ReadOnlyListBase&lt;T> Implements IReadOnlyList&lt;HierarchicalRow&lt;TModel>>, IReadOnlyCollection&lt;HierarchicalRow&lt;TModel>>, IEnumerable&lt;HierarchicalRow&lt;TModel>>, IList, ICollection, IRows, IReadOnlyList&lt;IRow>, IReadOnlyCollection&lt;IRow>, IEnumerable&lt;IRow>, IEnumerable, INotifyCollectionChanged, IDisposable, IExpanderRowController&lt;TModel> View source Show inherited members (21) Avalonia.Controls.Models.ReadOnlyListBase&lt;T>.System.Collections.IList.Item[System.Int32]...">
+<meta property="og:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
+<meta property="og:image:alt" content="HierarchicalRows<TModel> Class | TreeDataGrid for Avalonia">
+  </head>
+  <body>
+
+    <div id="lunet" class="container">
+      <nav class="navbar navbar-expand-md sticky-top">
+        <a class="navbar-brand" href="/TreeDataGrid/">
+          <img class="lunet-logo" src="/TreeDataGrid/images/logo.svg" alt="TreeDataGrid for Avalonia" width="96" height="96">
+          <span class="visually-hidden">Home</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="collapse navbar-collapse justify-content-between">
+<ol id='nav-id-home-0' class='navbar-nav nav-level0 show '>
+  <li id='nav-item-home-1' class='nav-item '>
+    <span class='nav-item-row'><a href='/TreeDataGrid/' class='nav-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a></span>  </li>
+  <li id='nav-item-home-2' class='nav-item '>
+    <span class='nav-item-row'><a href='/TreeDataGrid/articles/' class='nav-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a></span>  </li>
+  <li id='nav-item-home-3' class='nav-item  active'>
+    <span class='nav-item-row'><a href='/TreeDataGrid/api/' class='nav-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a></span>  </li>
+</ol>
+          <ol class="navbar-nav flex-grow-1" style="padding-right: 0.5rem;">
+            <li class="nav-item w-100">
+                <div class="lunet-search dropdown w-100">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="search-input" type="search" class="form-control" placeholder="Search... (Alt+s)" aria-label="Search" aria-controls="search-results" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-search-empty-message="Enter words to search..." data-search-no-results-message="No results found.">
+                    <ul id="search-results" class="dropdown-menu w-100 p-0" style="max-height: 50vh;" role="listbox" aria-labelledby="search-input"></ul>
+                  </div>
+                </div>
+            </li>
+          </ol>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0 navbar-right">
+            <div class="dropdown">
+              <button
+                id="theme-mode-toggle"
+                class="btn btn-outline-secondary btn-sm lunet-theme-toggle dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Theme">
+                <i class="bi bi-circle-half" data-lunet-theme-toggle-icon aria-hidden="true"></i>
+                <span
+                  data-lunet-theme-toggle-label
+                  data-theme-system-label="System"
+                  data-theme-light-label="Light"
+                  data-theme-dark-label="Dark">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-mode-toggle">
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="system"><i class="bi bi-circle-half me-2"></i>System</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="light"><i class="bi bi-sun-fill me-2"></i>Light</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="dark"><i class="bi bi-moon-stars-fill me-2"></i>Dark</button></li>
+              </ul>
+            </div>
+<ol id='nav-id-home2-0' class='navbar-nav nav-level0 show flex-shrink-0'>
+  <li id='nav-item-home2-1' class='nav-item '>
+    <span class='nav-item-row'><a href='https://github.com/wieslawsoltes/TreeDataGrid' class='nav-link  btn btn-info'><i class="bi bi-github"></i> GitHub</a></span>  </li>
+</ol>
+          </div>
+        </div>
+      </nav>
+      <div class="lunet lunet-api">
+        <section data-prismjs-copy="" data-prismjs-copy-success="" data-prismjs-copy-timeout="1200" data-copy-tooltip="Copy to Clipboard." data-copy-tooltip-success="Copied!" data-copy-tooltip-error="Failed to copy!">
+
+<div class="container-xxl">
+  <div class="row">
+      <!-- Left sidebar - responsive offcanvas (offcanvas on mobile, visible sidebar on md+) -->
+      <nav id="docs-sidebar-menu" class="col-md-3 col-lg-3 col-xl-3 col-xxl-3 offcanvas-md offcanvas-start sticky-md-top menu-sidebar align-self-start order-1 order-md-0" tabindex="-1" aria-labelledby="docs-sidebar-menu-label" aria-expanded="true">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="docs-sidebar-menu-label">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <div class='lunet-menu-async' data-lunet-menu-partial='/TreeDataGrid/partials/menus/menu-menu.129744b82600b7778ef1d210156830d7.html' data-lunet-menu-open='menu-id-menu-0,menu-id-menu-533,menu-id-menu-365' data-lunet-menu-active='menu-item-menu-533,menu-item-menu-365,menu-item-menu-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+        </div>
+      </nav>
+      <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
+      <aside id="docs-sidebar-toc" class="col-12 col-xxl-2 sticky-xxl-top menu-sidebar align-self-start order-0 order-xxl-2 collapse d-xxl-block" aria-expanded="true">
+        <h3 class="toc-title">On this page</h3>
+        <nav class="js-toc"></nav>
+      </aside>
+      <!-- Main content column -->
+      <div class="col-12 col-md-9 col-lg-9 col-xl-9 col-xxl-7 order-2 order-md-1 js-toc-content">
+        <ol class='breadcrumb'>
+          <li class='breadcrumb-item '>
+            <a href='/TreeDataGrid/' class='breadcrumb-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/TreeDataGrid/api/' class='breadcrumb-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid/' class='breadcrumb-link  '><i class='bi bi-diagram-3' aria-hidden='true'></i> Avalonia.Controls.Models.TreeDataGrid</a>  </li>
+          <li class='breadcrumb-item  active'>
+            <i class='bi bi-box' aria-hidden='true'></i> HierarchicalRows<TModel>  </li>
+        </ol>
+
+        <p id="lunet-results"></p>
+        <!-- Toggle buttons visible only on small screens -->
+        <div class="d-md-none mb-3">
+          <button
+            class="btn btn-outline-secondary btn-sm me-2"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#docs-sidebar-menu"
+            aria-controls="docs-sidebar-menu"
+            aria-label="Toggle docs menu">
+            Menu
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm d-xxl-none"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#docs-sidebar-toc"
+            aria-controls="docs-sidebar-toc"
+            aria-expanded="false"
+            aria-label="Toggle Table Of Contents">
+            On this page
+          </button>
+        </div>
+<!-- lunet:summarize -->
+<div class="api-dotnet">
+<h1 id="hierarchicalrows-class">HierarchicalRows<TModel> Class</h1>
+<h2 id="definition" class="heading-anchor-hidden">Definition</h2>
+<div class="api-dotnet-definition">
+<div class="api-dotnet-definition-header">
+<div class="api-dotnet-definition-meta">
+<div><span class="api-dotnet-label">Namespace</span> <a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid/">Avalonia.Controls.Models.TreeDataGrid</a></div>
+<div><span class="api-dotnet-label">Assembly</span> Avalonia.Controls.TreeDataGrid.dll</div>
+<div><span class="api-dotnet-label">Inherits</span> <span class="api-dotnet-inline-list"><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object">Object</a> &#x2192; <a href="/TreeDataGrid/api/Avalonia.Controls.Models.ReadOnlyListBase-1/">ReadOnlyListBase&lt;T&gt;</a></span></div>
+<div><span class="api-dotnet-label">Implements</span> <span class="api-dotnet-inline-list"><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Collections.Generic.IReadOnlyList-1">IReadOnlyList&lt;HierarchicalRow&lt;TModel&gt;&gt;</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Collections.Generic.IReadOnlyCollection-1">IReadOnlyCollection&lt;HierarchicalRow&lt;TModel&gt;&gt;</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Collections.Generic.IEnumerable-1">IEnumerable&lt;HierarchicalRow&lt;TModel&gt;&gt;</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Collections.IList">IList</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Collections.ICollection">ICollection</a>, <a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.IRows/">IRows</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Collections.Generic.IReadOnlyList-1">IReadOnlyList&lt;IRow&gt;</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Collections.Generic.IReadOnlyCollection-1">IReadOnlyCollection&lt;IRow&gt;</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Collections.Generic.IEnumerable-1">IEnumerable&lt;IRow&gt;</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Collections.IEnumerable">IEnumerable</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Collections.Specialized.INotifyCollectionChanged">INotifyCollectionChanged</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/System.IDisposable">IDisposable</a>, <a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.IExpanderRowController-1/">IExpanderRowController&lt;TModel&gt;</a></span></div>
+</div>
+<div class="api-dotnet-definition-actions">
+<a class="api-dotnet-action" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/HierarchicalRows.cs#L8" target="_blank" rel="noopener">View source</a>
+</div>
+</div>
+<details class="api-dotnet-inherited">
+<summary>Show inherited members (21)</summary>
+<ul>
+<li><a href="/TreeDataGrid/api/Avalonia.Controls.Models.ReadOnlyListBase-1.System-Collections-IList-Item-System.Int32/">Avalonia.Controls.Models.ReadOnlyListBase&lt;T&gt;.System.Collections.IList.Item[System.Int32]</a></li>
+<li><a href="/TreeDataGrid/api/Avalonia.Controls.Models.ReadOnlyListBase-1.System-Collections-IList-IsFixedSize/">Avalonia.Controls.Models.ReadOnlyListBase&lt;T&gt;.System.Collections.IList.IsFixedSize</a></li>
+<li><a href="/TreeDataGrid/api/Avalonia.Controls.Models.ReadOnlyListBase-1.System-Collections-IList-IsReadOnly/">Avalonia.Controls.Models.ReadOnlyListBase&lt;T&gt;.System.Collections.IList.IsReadOnly</a></li>
+<li><a href="/TreeDataGrid/api/Avalonia.Controls.Models.ReadOnlyListBase-1.System-Collections-ICollection-IsSynchronized/">Avalonia.Controls.Models.ReadOnlyListBase&lt;T&gt;.System.Collections.ICollection.IsSynchronized</a></li>
+<li><a href="/TreeDataGrid/api/Avalonia.Controls.Models.ReadOnlyListBase-1.System-Collections-ICollection-SyncRoot/">Avalonia.Controls.Models.ReadOnlyListBase&lt;T&gt;.System.Collections.ICollection.SyncRoot</a></li>
+<li><a href="/TreeDataGrid/api/Avalonia.Controls.Models.ReadOnlyListBase-1.System-Collections-IList-Add-System.Object/">Avalonia.Controls.Models.ReadOnlyListBase&lt;T&gt;.System.Collections.IList.Add(System.Object?)</a></li>
+<li><a href="/TreeDataGrid/api/Avalonia.Controls.Models.ReadOnlyListBase-1.System-Collections-IList-Clear/">Avalonia.Controls.Models.ReadOnlyListBase&lt;T&gt;.System.Collections.IList.Clear()</a></li>
+<li><a href="/TreeDataGrid/api/Avalonia.Controls.Models.ReadOnlyListBase-1.System-Collections-IList-Insert-System-9deeb7dca442/">Avalonia.Controls.Models.ReadOnlyListBase&lt;T&gt;.System.Collections.IList.Insert(System.Int32, System.Object?)</a></li>
+<li><a href="/TreeDataGrid/api/Avalonia.Controls.Models.ReadOnlyListBase-1.System-Collections-IList-Remove-System.Object/">Avalonia.Controls.Models.ReadOnlyListBase&lt;T&gt;.System.Collections.IList.Remove(System.Object?)</a></li>
+<li><a href="/TreeDataGrid/api/Avalonia.Controls.Models.ReadOnlyListBase-1.System-Collections-IList-RemoveAt-System.Int32/">Avalonia.Controls.Models.ReadOnlyListBase&lt;T&gt;.System.Collections.IList.RemoveAt(System.Int32)</a></li>
+<li><a href="/TreeDataGrid/api/Avalonia.Controls.Models.ReadOnlyListBase-1.System-Collections-IList-Contains-System.Object/">Avalonia.Controls.Models.ReadOnlyListBase&lt;T&gt;.System.Collections.IList.Contains(System.Object?)</a></li>
+<li><a href="/TreeDataGrid/api/Avalonia.Controls.Models.ReadOnlyListBase-1.System-Collections-IEnumerable-GetEnumerator/">Avalonia.Controls.Models.ReadOnlyListBase&lt;T&gt;.System.Collections.IEnumerable.GetEnumerator()</a></li>
+<li><a href="/TreeDataGrid/api/Avalonia.Controls.Models.ReadOnlyListBase-1.System-Collections-ICollection-CopyTo-S-f11a29bed5fd/">Avalonia.Controls.Models.ReadOnlyListBase&lt;T&gt;.System.Collections.ICollection.CopyTo(System.Array, System.Int32)</a></li>
+<li><a href="/TreeDataGrid/api/Avalonia.Controls.Models.ReadOnlyListBase-1.System-Collections-IList-IndexOf-System.Object/">Avalonia.Controls.Models.ReadOnlyListBase&lt;T&gt;.System.Collections.IList.IndexOf(System.Object?)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.Equals-System.Object">System.Object.Equals(System.Object?)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.Equals-System.Object-System.Object">System.Object.Equals(System.Object?, System.Object?)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.GetHashCode">System.Object.GetHashCode()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.GetType">System.Object.GetType()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.MemberwiseClone">System.Object.MemberwiseClone()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.ReferenceEquals-System.Object-System.Object">System.Object.ReferenceEquals(System.Object?, System.Object?)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.ToString">System.Object.ToString()</a></li>
+</ul>
+</details>
+</div>
+<pre><code class="language-csharp">public class HierarchicalRows&lt;TModel&gt; : ReadOnlyListBase&lt;HierarchicalRow&lt;TModel&gt;&gt;, IReadOnlyList&lt;HierarchicalRow&lt;TModel&gt;&gt;, IReadOnlyCollection&lt;HierarchicalRow&lt;TModel&gt;&gt;, IEnumerable&lt;HierarchicalRow&lt;TModel&gt;&gt;, IList, ICollection, IRows, IReadOnlyList&lt;IRow&gt;, IReadOnlyCollection&lt;IRow&gt;, IEnumerable&lt;IRow&gt;, IEnumerable, INotifyCollectionChanged, IDisposable, IExpanderRowController&lt;TModel&gt;
+</code></pre>
+<h3 id="type-parameters">Type parameters</h3>
+<div class="api-dotnet-parameter">
+<dl class="api-dotnet-parameter-list"><dt>TModel</dt><dd></dd></dl>
+</div>
+<div class="api-dotnet-member-filter" data-api-dotnet-filter>
+<div class="api-dotnet-member-filter-row">
+<label class="api-dotnet-member-filter-label" for="api-dotnet-member-filter-avalonia-controls-models-treedatagrid-hierarchicalrows-1">Filter members:</label>
+<input id="api-dotnet-member-filter-avalonia-controls-models-treedatagrid-hierarchicalrows-1" class="form-control form-control-sm api-dotnet-member-filter-input" type="search" placeholder="name, kind, summary (e.g. kind:method)" autocomplete="off" spellcheck="false" />
+<div class="api-dotnet-member-filter-status" aria-live="polite"></div>
+</div>
+<div class="form-text api-dotnet-member-filter-help">Tip: use <code>kind:method</code>, <code>kind:property</code>, <code>kind:ctor</code>. Press <kbd>Esc</kbd> to clear.</div>
+</div>
+<h2 id="constructors">Constructors <span class="api-dotnet-count">(1)</span></h2>
+<div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="constructors">
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Constructor"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.HierarchicalRows-1.-ctor-Avalonia.Controls.Mo-a2b62ce888ca/"><i class="bi bi-hammer api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">HierarchicalRows(IExpanderRowController&lt;TModel&gt;, TreeDataGridItemsSourceView&lt;TModel&gt;, IExpanderColumn&lt;TModel&gt;, Comparison&lt;TModel&gt;?)</code></a></div>
+</div>
+<h2 id="properties">Properties <span class="api-dotnet-count">(3)</span></h2>
+<div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="properties">
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.HierarchicalRows-1.Count/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Count</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.HierarchicalRows-1.Item-System.Int32/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Item[Int32]</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.HierarchicalRows-1.System-Collections-Generic-2c670ae3297d/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">IReadOnlyList&lt;IRow&gt;.Item[Int32]</code></a></div>
+</div>
+<h2 id="methods">Methods <span class="api-dotnet-count">(12)</span></h2>
+<div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="methods">
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.HierarchicalRows-1.Collapse-Avalonia.Controls.IndexPath/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Collapse(IndexPath)</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.HierarchicalRows-1.Dispose/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Dispose()</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.HierarchicalRows-1.Expand-Avalonia.Controls.IndexPath/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Expand(IndexPath)</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.HierarchicalRows-1.GetEnumerator/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">GetEnumerator()</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.HierarchicalRows-1.GetParentRowIndex-Avalonia-17576c6af817/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">GetParentRowIndex(IndexPath)</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.HierarchicalRows-1.GetRowAt-System.Double/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">GetRowAt(Double)</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.HierarchicalRows-1.ModelIndexToRowIndex-Avalo-7a4a2fc87f80/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">ModelIndexToRowIndex(IndexPath)</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.HierarchicalRows-1.RealizeCell-Avalonia.Contr-2ce7bf484648/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">RealizeCell(IColumn, Int32, Int32)</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.HierarchicalRows-1.RowIndexToModelIndex-System.Int32/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">RowIndexToModelIndex(Int32)</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.HierarchicalRows-1.SetItems-Avalonia.Controls-47b066e5928e/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">SetItems(TreeDataGridItemsSourceView&lt;TModel&gt;)</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.HierarchicalRows-1.Sort-System.Comparison--0-/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Sort(Comparison&lt;TModel&gt;?)</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.HierarchicalRows-1.UnrealizeCell-Avalonia.Con-b53f02ff23cc/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">UnrealizeCell(ICell, Int32, Int32)</code></a></div>
+</div>
+<h2 id="events">Events <span class="api-dotnet-count">(1)</span></h2>
+<div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="events">
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Event"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.HierarchicalRows-1.CollectionChanged/"><i class="bi bi-bell api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">CollectionChanged</code></a></div>
+</div>
+<h2 id="explicit-interface-implementation-methods">Explicit Interface Implementation Methods <span class="api-dotnet-count">(4)</span></h2>
+<div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="explicit-interface-implementation-methods">
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="EiiMethod"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.HierarchicalRows-1.Avalonia-Controls-Models-T-0deb7b3279f3/"><i class="bi bi-link-45deg api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">IExpanderRowController&lt;TModel&gt;.OnBeginExpandCollapse(IExpanderRow&lt;TModel&gt;)</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="EiiMethod"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.HierarchicalRows-1.Avalonia-Controls-Models-T-c573210bfe25/"><i class="bi bi-link-45deg api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">IExpanderRowController&lt;TModel&gt;.OnChildCollectionChanged(IExpanderRow&lt;TModel&gt;, NotifyCollectionChangedEventArgs)</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="EiiMethod"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.HierarchicalRows-1.Avalonia-Controls-Models-T-4d403b100963/"><i class="bi bi-link-45deg api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">IExpanderRowController&lt;TModel&gt;.OnEndExpandCollapse(IExpanderRow&lt;TModel&gt;)</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="EiiMethod"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.HierarchicalRows-1.System-Collections-Generic-fc471334a430/"><i class="bi bi-link-45deg api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">IEnumerable&lt;IRow&gt;.GetEnumerator()</code></a></div>
+</div>
+</div>
+
+      </div>
+  </div>
+</div>
+
+        </section>
+        <footer>
+          <hr>
+          <p>Copyright &copy; 2026, Wieslaw Soltes aka <a href="https://github.com/wieslawsoltes">wieslawsoltes</a> - Content licensed under the Creative Commons <a href="http://creativecommons.org/licenses/by/2.5/">CC BY 2.5</a> | Site generated by <a href="https://github.com/lunet-io/lunet">lunet</a> hosted on <a href="https://pages.github.com/">GitHub Pages</a></p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
+</html>

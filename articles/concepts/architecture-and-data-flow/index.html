@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html data-lunet-theme-mode="system" data-lunet-theme-storage-key="lunet-theme" data-lunet-css-prefix="lunet" lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="lunet 1.0.10.0">
+    <script>(function(){const root=document.documentElement;const key=root.getAttribute("data-lunet-theme-storage-key")||"lunet-theme";const fallback=root.getAttribute("data-lunet-theme-mode")||"system";let stored=null;try{stored=localStorage.getItem(key);}catch(_){stored=null;}const mode=(stored==="light"||stored==="dark"||stored==="system")?stored:fallback;const prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;root.setAttribute("data-lunet-theme-mode",mode);root.setAttribute("data-bs-theme",resolved);}());</script>
+    <link rel='icon' href='/TreeDataGrid/favicon.ico' sizes='32x32'>
+    <title>Architecture and Data Flow | TreeDataGrid for Avalonia</title>
+    <link rel="stylesheet" href="/TreeDataGrid/css/lite.css">
+    <script src="/TreeDataGrid/js/lite-defer.js" defer></script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wieslawsoltes">
+<meta name="twitter:title" content="Architecture and Data Flow | TreeDataGrid for Avalonia">
+<meta name="twitter:description" content="Architecture and Data Flow TreeDataGrid is designed around a model-first architecture: Sources define data behavior and interactions Row/column/cell models represent visible state Presenters and primitives realize models into UI Architecture Layers Use these layers to map responsibilities from data source to visual output. 1. Source Layer Primary contracts: ITreeDataGridSource FlatTreeDataGridSource&lt;TModel> HierarchicalTreeDataGridSource&lt;TModel> Responsibilities: expose Columns, Rows, and Selection maintain Items input collection apply sorting (...">
+<meta name="twitter:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
+<meta name="twitter:image:alt" content="Architecture and Data Flow | TreeDataGrid for Avalonia">
+<meta property="og:title" content="Architecture and Data Flow | TreeDataGrid for Avalonia">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wieslawsoltes.github.io/TreeDataGrid">
+<meta property="og:description" content="Architecture and Data Flow TreeDataGrid is designed around a model-first architecture: Sources define data behavior and interactions Row/column/cell models represent visible state Presenters and primitives realize models into UI Architecture Layers Use these layers to map responsibilities from data source to visual output. 1. Source Layer Primary contracts: ITreeDataGridSource FlatTreeDataGridSource&lt;TModel> HierarchicalTreeDataGridSource&lt;TModel> Responsibilities: expose Columns, Rows, and Selection maintain Items input collection apply sorting (...">
+<meta property="og:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
+<meta property="og:image:alt" content="Architecture and Data Flow | TreeDataGrid for Avalonia">
+  </head>
+  <body>
+
+    <div id="lunet" class="container">
+      <nav class="navbar navbar-expand-md sticky-top">
+        <a class="navbar-brand" href="/TreeDataGrid/">
+          <img class="lunet-logo" src="/TreeDataGrid/images/logo.svg" alt="TreeDataGrid for Avalonia" width="96" height="96">
+          <span class="visually-hidden">Home</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="collapse navbar-collapse justify-content-between">
+<ol id='nav-id-home-0' class='navbar-nav nav-level0 show '>
+  <li id='nav-item-home-1' class='nav-item '>
+    <span class='nav-item-row'><a href='/TreeDataGrid/' class='nav-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a></span>  </li>
+  <li id='nav-item-home-2' class='nav-item  active'>
+    <span class='nav-item-row'><a href='/TreeDataGrid/articles/' class='nav-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a></span>  </li>
+  <li id='nav-item-home-3' class='nav-item '>
+    <span class='nav-item-row'><a href='/TreeDataGrid/api/' class='nav-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a></span>  </li>
+</ol>
+          <ol class="navbar-nav flex-grow-1" style="padding-right: 0.5rem;">
+            <li class="nav-item w-100">
+                <div class="lunet-search dropdown w-100">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="search-input" type="search" class="form-control" placeholder="Search... (Alt+s)" aria-label="Search" aria-controls="search-results" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-search-empty-message="Enter words to search..." data-search-no-results-message="No results found.">
+                    <ul id="search-results" class="dropdown-menu w-100 p-0" style="max-height: 50vh;" role="listbox" aria-labelledby="search-input"></ul>
+                  </div>
+                </div>
+            </li>
+          </ol>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0 navbar-right">
+            <div class="dropdown">
+              <button
+                id="theme-mode-toggle"
+                class="btn btn-outline-secondary btn-sm lunet-theme-toggle dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Theme">
+                <i class="bi bi-circle-half" data-lunet-theme-toggle-icon aria-hidden="true"></i>
+                <span
+                  data-lunet-theme-toggle-label
+                  data-theme-system-label="System"
+                  data-theme-light-label="Light"
+                  data-theme-dark-label="Dark">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-mode-toggle">
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="system"><i class="bi bi-circle-half me-2"></i>System</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="light"><i class="bi bi-sun-fill me-2"></i>Light</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="dark"><i class="bi bi-moon-stars-fill me-2"></i>Dark</button></li>
+              </ul>
+            </div>
+<ol id='nav-id-home2-0' class='navbar-nav nav-level0 show flex-shrink-0'>
+  <li id='nav-item-home2-1' class='nav-item '>
+    <span class='nav-item-row'><a href='https://github.com/wieslawsoltes/TreeDataGrid' class='nav-link  btn btn-info'><i class="bi bi-github"></i> GitHub</a></span>  </li>
+</ol>
+          </div>
+        </div>
+      </nav>
+      <div class="lunet lunet-articles">
+        <section data-prismjs-copy="" data-prismjs-copy-success="" data-prismjs-copy-timeout="1200" data-copy-tooltip="Copy to Clipboard." data-copy-tooltip-success="Copied!" data-copy-tooltip-error="Failed to copy!">
+
+<div class="container-xxl">
+  <div class="row">
+      <!-- Left sidebar - responsive offcanvas (offcanvas on mobile, visible sidebar on md+) -->
+      <nav id="docs-sidebar-menu" class="col-md-3 col-lg-3 col-xl-3 col-xxl-2 offcanvas-md offcanvas-start sticky-md-top menu-sidebar align-self-start order-1 order-md-0" tabindex="-1" aria-labelledby="docs-sidebar-menu-label" aria-expanded="true">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="docs-sidebar-menu-label">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <ol id='menu-id-concepts-0' class='menu menu-level0 show '>
+            <li id='menu-item-concepts-1' class='menu-item '>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/concepts/' class='menu-link  '>Concepts</a></span>  </li>
+            <li id='menu-item-concepts-2' class='menu-item  active'>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/concepts/architecture-and-data-flow/' class='menu-link  '>Architecture and Data Flow</a></span>  </li>
+            <li id='menu-item-concepts-3' class='menu-item '>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/concepts/indexing-and-addressing/' class='menu-link  '>Indexing and Addressing</a></span>  </li>
+            <li id='menu-item-concepts-4' class='menu-item '>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/concepts/columns-cells-rows/' class='menu-link  '>Columns, Cells, and Rows</a></span>  </li>
+            <li id='menu-item-concepts-5' class='menu-item '>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/concepts/selection-models/' class='menu-link  '>Selection Models</a></span>  </li>
+            <li id='menu-item-concepts-6' class='menu-item '>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/concepts/glossary/' class='menu-link  '>Glossary</a></span>  </li>
+          </ol>
+
+        </div>
+      </nav>
+      <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
+      <aside id="docs-sidebar-toc" class="col-12 col-xxl-2 sticky-xxl-top menu-sidebar align-self-start order-0 order-xxl-2 collapse d-xxl-block" aria-expanded="true">
+        <h3 class="toc-title">On this page</h3>
+        <nav class="js-toc"></nav>
+      </aside>
+      <!-- Main content column -->
+      <div class="col-12 col-md-9 col-lg-9 col-xl-9 col-xxl-8 order-2 order-md-1 js-toc-content">
+        <ol class='breadcrumb'>
+          <li class='breadcrumb-item '>
+            <a href='/TreeDataGrid/' class='breadcrumb-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/TreeDataGrid/articles/' class='breadcrumb-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/TreeDataGrid/articles/concepts/' class='breadcrumb-link  '>Concepts</a>  </li>
+          <li class='breadcrumb-item  active'>
+            Architecture and Data Flow  </li>
+        </ol>
+
+        <p id="lunet-results"></p>
+        <!-- Toggle buttons visible only on small screens -->
+        <div class="d-md-none mb-3">
+          <button
+            class="btn btn-outline-secondary btn-sm me-2"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#docs-sidebar-menu"
+            aria-controls="docs-sidebar-menu"
+            aria-label="Toggle docs menu">
+            Menu
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm d-xxl-none"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#docs-sidebar-toc"
+            aria-controls="docs-sidebar-toc"
+            aria-expanded="false"
+            aria-label="Toggle Table Of Contents">
+            On this page
+          </button>
+        </div>
+<!-- lunet:summarize -->
+<h1 id="architecture-and-data-flow">Architecture and Data Flow</h1>
+<p>TreeDataGrid is designed around a model-first architecture:</p>
+<ul>
+<li>Sources define data behavior and interactions</li>
+<li>Row/column/cell models represent visible state</li>
+<li>Presenters and primitives realize models into UI</li>
+</ul>
+<h2 id="architecture-layers">Architecture Layers</h2>
+<p>Use these layers to map responsibilities from data source to visual output.</p>
+<h2 id="1-source-layer">1. Source Layer</h2>
+<p>Primary contracts:</p>
+<ul>
+<li><code>ITreeDataGridSource</code></li>
+<li><code>FlatTreeDataGridSource&lt;TModel&gt;</code></li>
+<li><code>HierarchicalTreeDataGridSource&lt;TModel&gt;</code></li>
+</ul>
+<p>Responsibilities:</p>
+<ul>
+<li>expose <code>Columns</code>, <code>Rows</code>, and <code>Selection</code></li>
+<li>maintain <code>Items</code> input collection</li>
+<li>apply sorting (<code>SortBy</code>)</li>
+<li>perform row drag/drop (<code>DragDropRows</code>)</li>
+</ul>
+<h2 id="2-data-model-layer">2. Data Model Layer</h2>
+<p>Primary contracts:</p>
+<ul>
+<li>columns: <code>IColumns</code>, <code>IColumn</code>, <code>IColumn&lt;TModel&gt;</code></li>
+<li>rows: <code>IRows</code>, <code>IRow</code>, <code>IRow&lt;TModel&gt;</code></li>
+<li>cells: <code>ICell</code>, <code>ITextCell</code>, <code>IExpanderCell</code></li>
+</ul>
+<p>Responsibilities:</p>
+<ul>
+<li>type-safe value projection from model to cells</li>
+<li>edit behavior and edit gestures</li>
+<li>width measurement and column layout</li>
+<li>row index translation between model index and visible index</li>
+</ul>
+<h2 id="3-control--realization-layer">3. Control / Realization Layer</h2>
+<p>Primary types:</p>
+<ul>
+<li><code>TreeDataGrid</code></li>
+<li>presenters (<code>TreeDataGridRowsPresenter</code>, <code>TreeDataGridCellsPresenter</code>, <code>TreeDataGridColumnHeadersPresenter</code>)</li>
+<li>primitives (<code>TreeDataGridRow</code>, <code>TreeDataGridCell</code>, specialized cell controls)</li>
+</ul>
+<p>Responsibilities:</p>
+<ul>
+<li>virtualize visual elements for current viewport</li>
+<li>realize and recycle row/cell controls through element factory</li>
+<li>route user input to selection interaction models</li>
+<li>raise lifecycle events (<code>CellPrepared</code>, <code>RowPrepared</code>, <code>CellClearing</code>, <code>RowClearing</code>)</li>
+</ul>
+<h2 id="end-to-end-data-flow">End-to-End Data Flow</h2>
+<ol>
+<li>App provides <code>Items</code> to source.</li>
+<li>Source wraps items (<code>TreeDataGridItemsSourceView</code>) and exposes row/column model collections.</li>
+<li>Control binds to source and listens for model/property changes.</li>
+<li>Presenters realize only visible rows/cells.</li>
+<li>User actions (sort/select/edit/expand/drag) update source or selection model.</li>
+<li>Model notifications trigger UI updates.</li>
+</ol>
+<h2 id="sorting-and-selection-interaction">Sorting and Selection Interaction</h2>
+<ul>
+<li>Sorting is requested by <code>TreeDataGrid</code> (header click) via <code>ITreeDataGridSource.SortBy(...)</code>.</li>
+<li>Selection behavior depends on current <code>Selection</code> object:
+<ul>
+<li>row selection model</li>
+<li>cell selection model</li>
+</ul>
+</li>
+<li><code>TreeDataGrid</code> delegates input handling to <code>ITreeDataGridSelectionInteraction</code>.</li>
+</ul>
+<h2 id="why-this-matters">Why This Matters</h2>
+<p>This separation keeps concerns clear:</p>
+<ul>
+<li>View models stay strongly typed and testable.</li>
+<li>UI layer can virtualize aggressively.</li>
+<li>Behavior (sorting/selection/editing) is centralized in models instead of ad-hoc UI code.</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul>
+<li><p>Feature behavior differs from expectations
+Cause: one or more options in this scenario are configured differently (source type, column options, sort/selection/edit state).
+Fix: compare your setup with the snippet in this article and verify runtime values on <code>Source</code>, <code>Columns</code>, and <code>Selection</code>.</p>
+</li>
+<li><p>Data changes are not visible in UI
+Cause: model or collection notifications are missing, or a replaced collection/source is not re-bound.
+Fix: ensure <code>INotifyPropertyChanged</code>/<code>INotifyCollectionChanged</code> flow is active and reassign <code>Source</code> after replacing underlying collections.</p>
+</li>
+</ul>
+<h2 id="api-coverage-checklist">API Coverage Checklist</h2>
+<ul>
+<li><a href="/TreeDataGrid/api/Avalonia.Controls.ITreeDataGridSource/" title="ITreeDataGridSource">ITreeDataGridSource</a></li>
+<li><a href="/TreeDataGrid/api/Avalonia.Controls.TreeDataGrid/" title="TreeDataGrid">TreeDataGrid</a></li>
+<li><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.IColumns/" title="IColumns">IColumns</a></li>
+<li><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.IRows/" title="IRows">IRows</a></li>
+</ul>
+<h2 id="related">Related</h2>
+<ul>
+<li><a href="/TreeDataGrid/articles/concepts/columns-cells-rows">Columns, Cells, and Rows</a></li>
+<li><a href="/TreeDataGrid/articles/concepts/selection-models">Selection Models</a></li>
+<li><a href="/TreeDataGrid/articles/concepts/indexing-and-addressing">Indexing and Addressing</a></li>
+<li><a href="/TreeDataGrid/articles/concepts/glossary">TreeDataGrid Glossary</a></li>
+<li><a href="/TreeDataGrid/articles/guides/troubleshooting">Troubleshooting Guide</a></li>
+</ul>
+
+      </div>
+  </div>
+</div>
+
+        </section>
+        <footer>
+          <hr>
+          <p>Copyright &copy; 2026, Wieslaw Soltes aka <a href="https://github.com/wieslawsoltes">wieslawsoltes</a> - Content licensed under the Creative Commons <a href="http://creativecommons.org/licenses/by/2.5/">CC BY 2.5</a> | Site generated by <a href="https://github.com/lunet-io/lunet">lunet</a> hosted on <a href="https://pages.github.com/">GitHub Pages</a></p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
+</html>

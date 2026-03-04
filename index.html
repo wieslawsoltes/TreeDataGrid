@@ -1,120 +1,165 @@
 <!DOCTYPE html>
-<html>
+<html data-lunet-theme-mode="system" data-lunet-theme-storage-key="lunet-theme" data-lunet-css-prefix="lunet" lang="en" itemscope itemtype="http://schema.org/WebPage">
   <head>
     <meta charset="utf-8">
-      <title>TreeDataGrid for Avalonia | TreeDataGrid for Avalonia </title>
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="TreeDataGrid for Avalonia | TreeDataGrid for Avalonia ">
-      
-      
-      <link rel="icon" href="favicon.ico">
-      <link rel="stylesheet" href="public/docfx.min.css">
-      <link rel="stylesheet" href="public/main.css">
-      <meta name="docfx:navrel" content="toc.html">
-      <meta name="docfx:tocrel" content="toc.html">
-      
-      
-      
-      
-      <meta name="docfx:docurl" content="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/docfx/index.md/#L1">
-      <meta name="loc:inThisArticle" content="In this article">
-      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
-      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
-      <meta name="loc:tocFilter" content="Filter by title">
-      <meta name="loc:nextArticle" content="Next">
-      <meta name="loc:prevArticle" content="Previous">
-      <meta name="loc:themeLight" content="Light">
-      <meta name="loc:themeDark" content="Dark">
-      <meta name="loc:themeAuto" content="Auto">
-      <meta name="loc:changeTheme" content="Change theme">
-      <meta name="loc:copy" content="Copy">
-      <meta name="loc:downloadPdf" content="Download PDF">
-
-      <script type="module" src="./public/docfx.min.js"></script>
-
-      <script>
-        const theme = localStorage.getItem('theme') || 'auto'
-        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
-      </script>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="lunet 1.0.10.0">
+    <script>(function(){const root=document.documentElement;const key=root.getAttribute("data-lunet-theme-storage-key")||"lunet-theme";const fallback=root.getAttribute("data-lunet-theme-mode")||"system";let stored=null;try{stored=localStorage.getItem(key);}catch(_){stored=null;}const mode=(stored==="light"||stored==="dark"||stored==="system")?stored:fallback;const prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;root.setAttribute("data-lunet-theme-mode",mode);root.setAttribute("data-bs-theme",resolved);}());</script>
+    <link rel='icon' href='/TreeDataGrid/favicon.ico' sizes='32x32'>
+    <title>TreeDataGrid for Avalonia | TreeDataGrid for Avalonia</title>
+    <link rel="stylesheet" href="/TreeDataGrid/css/lite.css">
+    <script src="/TreeDataGrid/js/lite-defer.js" defer></script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wieslawsoltes">
+<meta name="twitter:title" content="TreeDataGrid for Avalonia | TreeDataGrid for Avalonia">
+<meta name="twitter:description" content="Avalonia Control Library TreeDataGrid for Avalonia TreeDataGrid combines DataGrid-style columns with hierarchical row expansion. It is designed for large data sets, strong typing, and predictable MVVM workflows. Start Getting Started Browse API GitHub Repository Start Here Getting Started Overview Understand the control model and choose the right source type first. Installation Package setup, theme requirements, and first integration checks. Quickstart (Flat) Build a flat row-source TreeDataGrid with typed columns....">
+<meta name="twitter:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
+<meta name="twitter:image:alt" content="TreeDataGrid for Avalonia | TreeDataGrid for Avalonia">
+<meta property="og:title" content="TreeDataGrid for Avalonia | TreeDataGrid for Avalonia">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://wieslawsoltes.github.io/TreeDataGrid">
+<meta property="og:description" content="Avalonia Control Library TreeDataGrid for Avalonia TreeDataGrid combines DataGrid-style columns with hierarchical row expansion. It is designed for large data sets, strong typing, and predictable MVVM workflows. Start Getting Started Browse API GitHub Repository Start Here Getting Started Overview Understand the control model and choose the right source type first. Installation Package setup, theme requirements, and first integration checks. Quickstart (Flat) Build a flat row-source TreeDataGrid with typed columns....">
+<meta property="og:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
+<meta property="og:image:alt" content="TreeDataGrid for Avalonia | TreeDataGrid for Avalonia">
   </head>
+  <body>
 
-  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
-    <header class="bg-body border-bottom">
-      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
-        <div class="container-xxl flex-nowrap">
-          <a class="navbar-brand" href="index.html">
-            <img id="logo" class="svg" src="images/logo.svg" alt="">
-            
-          </a>
-          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
-            <i class="bi bi-three-dots"></i>
-          </button>
-          <div class="collapse navbar-collapse" id="navpanel">
-            <div id="navbar">
+    <div id="lunet" class="container">
+      <nav class="navbar navbar-expand-md ">
+        <a class="navbar-brand" href="/TreeDataGrid/">
+          <img class="lunet-logo" src="/TreeDataGrid/images/logo.svg" alt="TreeDataGrid for Avalonia" width="96" height="96">
+          <span class="visually-hidden">Home</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="collapse navbar-collapse justify-content-between">
+<ol id='nav-id-home-0' class='navbar-nav nav-level0 show '>
+  <li id='nav-item-home-1' class='nav-item  active'>
+    <span class='nav-item-row'><a href='/TreeDataGrid/' class='nav-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a></span>  </li>
+  <li id='nav-item-home-2' class='nav-item '>
+    <span class='nav-item-row'><a href='/TreeDataGrid/articles/' class='nav-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a></span>  </li>
+  <li id='nav-item-home-3' class='nav-item '>
+    <span class='nav-item-row'><a href='/TreeDataGrid/api/' class='nav-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a></span>  </li>
+</ol>
+          <ol class="navbar-nav flex-grow-1" style="padding-right: 0.5rem;">
+            <li class="nav-item w-100">
+                <div class="lunet-search dropdown w-100">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="search-input" type="search" class="form-control" placeholder="Search... (Alt+s)" aria-label="Search" aria-controls="search-results" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-search-empty-message="Enter words to search..." data-search-no-results-message="No results found.">
+                    <ul id="search-results" class="dropdown-menu w-100 p-0" style="max-height: 50vh;" role="listbox" aria-labelledby="search-input"></ul>
+                  </div>
+                </div>
+            </li>
+          </ol>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0 navbar-right">
+            <div class="dropdown">
+              <button
+                id="theme-mode-toggle"
+                class="btn btn-outline-secondary btn-sm lunet-theme-toggle dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Theme">
+                <i class="bi bi-circle-half" data-lunet-theme-toggle-icon aria-hidden="true"></i>
+                <span
+                  data-lunet-theme-toggle-label
+                  data-theme-system-label="System"
+                  data-theme-light-label="Light"
+                  data-theme-dark-label="Dark">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-mode-toggle">
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="system"><i class="bi bi-circle-half me-2"></i>System</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="light"><i class="bi bi-sun-fill me-2"></i>Light</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="dark"><i class="bi bi-moon-stars-fill me-2"></i>Dark</button></li>
+              </ul>
             </div>
+<ol id='nav-id-home2-0' class='navbar-nav nav-level0 show flex-shrink-0'>
+  <li id='nav-item-home2-1' class='nav-item '>
+    <span class='nav-item-row'><a href='https://github.com/wieslawsoltes/TreeDataGrid' class='nav-link  btn btn-info'><i class="bi bi-github"></i> GitHub</a></span>  </li>
+</ol>
           </div>
         </div>
       </nav>
-    </header>
+      <div class="lunet lunet-home">
+        <section data-prismjs-copy="" data-prismjs-copy-success="" data-prismjs-copy-timeout="1200" data-copy-tooltip="Copy to Clipboard." data-copy-tooltip-success="Copied!" data-copy-tooltip-error="Failed to copy!">
 
-    <main class="container-xxl">
-
-      <div class="content">
-        <div class="actionbar">
-
-          <nav id="breadcrumb"></nav>
-        </div>
-
-        <article data-uid="">
-<h1 id="treedatagrid-for-avalonia">TreeDataGrid for Avalonia</h1>
-
-<p><strong>TreeDataGrid</strong> is an Avalonia control for tabular and hierarchical data in a single view. It combines DataGrid-style columns with tree expansion behavior.</p>
+<div class="container">
+<!-- lunet:summarize -->
+<div class="tdg-hero">
+  <div class="tdg-eyebrow"><i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i> Avalonia Control Library</div>
+  <h1>TreeDataGrid for Avalonia</h1>
+  <p class="lead"><strong>TreeDataGrid</strong> combines DataGrid-style columns with hierarchical row expansion. It is designed for large data sets, strong typing, and predictable MVVM workflows.</p>
+  <div class="tdg-hero-actions">
+    <a class="btn btn-primary btn-lg" href="articles/getting-started/overview"><i class="bi bi-rocket-takeoff" aria-hidden="true"></i> Start Getting Started</a>
+    <a class="btn btn-outline-secondary btn-lg" href="api"><i class="bi bi-braces" aria-hidden="true"></i> Browse API</a>
+    <a class="btn btn-outline-secondary btn-lg" href="https://github.com/wieslawsoltes/TreeDataGrid"><i class="bi bi-github" aria-hidden="true"></i> GitHub Repository</a>
+  </div>
+</div>
 <h2 id="start-here">Start Here</h2>
-<ul>
-<li><a href="articles/getting-started/overview.html">Getting Started Overview</a></li>
-<li><a href="articles/getting-started/installation.html">Installation</a></li>
-<li><a href="articles/getting-started/quickstart-flat.html">Quickstart (Flat)</a></li>
-<li><a href="articles/getting-started/quickstart-hierarchical.html">Quickstart (Hierarchical)</a></li>
-</ul>
+<div class="tdg-link-grid">
+  <a class="tdg-link-card" href="articles/getting-started/overview">
+    <span class="tdg-link-card-title"><i class="bi bi-signpost-split" aria-hidden="true"></i> Getting Started Overview</span>
+    <p>Understand the control model and choose the right source type first.</p>
+  </a>
+  <a class="tdg-link-card" href="articles/getting-started/installation">
+    <span class="tdg-link-card-title"><i class="bi bi-download" aria-hidden="true"></i> Installation</span>
+    <p>Package setup, theme requirements, and first integration checks.</p>
+  </a>
+  <a class="tdg-link-card" href="articles/getting-started/quickstart-flat">
+    <span class="tdg-link-card-title"><i class="bi bi-table" aria-hidden="true"></i> Quickstart (Flat)</span>
+    <p>Build a flat row-source TreeDataGrid with typed columns.</p>
+  </a>
+  <a class="tdg-link-card" href="articles/getting-started/quickstart-hierarchical">
+    <span class="tdg-link-card-title"><i class="bi bi-diagram-3" aria-hidden="true"></i> Quickstart (Hierarchical)</span>
+    <p>Create parent-child rows with expand/collapse behavior.</p>
+  </a>
+</div>
 <h2 id="documentation-sections">Documentation Sections</h2>
-<ul>
-<li><a href="articles/concepts/architecture-and-data-flow.html">Concepts</a></li>
-<li><a href="articles/guides/sources-flat.html">Guides</a></li>
-<li><a href="articles/xaml/overview.html">XAML Usage</a></li>
-<li><a href="articles/concepts/glossary.html">Glossary</a></li>
-<li><a href="articles/guides/troubleshooting.html">Troubleshooting</a></li>
-<li><a href="articles/advanced/performance-virtualization-and-realization.html">Advanced</a></li>
-<li><a href="articles/reference/api-coverage-index.html">Reference</a></li>
-<li><a href="api/index.html">API Documentation</a></li>
-</ul>
+<div class="tdg-link-grid tdg-link-grid--wide">
+  <a class="tdg-link-card" href="articles/concepts">
+    <span class="tdg-link-card-title"><i class="bi bi-lightbulb" aria-hidden="true"></i> Concepts</span>
+    <p>Architecture, indexing, row/cell structure, and selection mental model.</p>
+  </a>
+  <a class="tdg-link-card" href="articles/guides">
+    <span class="tdg-link-card-title"><i class="bi bi-journal-code" aria-hidden="true"></i> Guides</span>
+    <p>Scenario-driven recipes for columns, editing, sorting, selection, and styling.</p>
+  </a>
+  <a class="tdg-link-card" href="articles/xaml">
+    <span class="tdg-link-card-title"><i class="bi bi-filetype-xaml" aria-hidden="true"></i> XAML Usage</span>
+    <p>Theme usage, template resource keys, and customization references.</p>
+  </a>
+  <a class="tdg-link-card" href="articles/advanced">
+    <span class="tdg-link-card-title"><i class="bi bi-speedometer2" aria-hidden="true"></i> Advanced</span>
+    <p>Performance, internals, diagnostics, and typed binding patterns.</p>
+  </a>
+  <a class="tdg-link-card" href="articles/reference">
+    <span class="tdg-link-card-title"><i class="bi bi-collection" aria-hidden="true"></i> Reference</span>
+    <p>Namespace maps, API coverage, pipeline details, and licensing.</p>
+  </a>
+  <a class="tdg-link-card" href="api">
+    <span class="tdg-link-card-title"><i class="bi bi-braces-asterisk" aria-hidden="true"></i> API Documentation</span>
+    <p>Generated .NET API pages with member navigation and filtering.</p>
+  </a>
+</div>
 <h2 id="repository">Repository</h2>
 <ul>
 <li>Source code and issues: <a href="https://github.com/wieslawsoltes/TreeDataGrid">github.com/wieslawsoltes/TreeDataGrid</a></li>
 </ul>
 
-</article>
-
-        <div class="contribution d-print-none">
-          <a href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/docfx/index.md/#L1" class="edit-link">Edit this page</a>
-        </div>
-
-        <div class="next-article d-print-none border-top" id="nextArticle"></div>
-
+</div>
+        </section>
+        <footer>
+          <hr>
+          <p>Copyright &copy; 2026, Wieslaw Soltes aka <a href="https://github.com/wieslawsoltes">wieslawsoltes</a> - Content licensed under the Creative Commons <a href="http://creativecommons.org/licenses/by/2.5/">CC BY 2.5</a> | Site generated by <a href="https://github.com/lunet-io/lunet">lunet</a> hosted on <a href="https://pages.github.com/">GitHub Pages</a></p>
+        </footer>
       </div>
+    </div>
 
-      <div class="affix">
-        <nav id="affix"></nav>
-      </div>
-    </main>
-
-
-    <footer class="border-top text-secondary">
-      <div class="container-xxl">
-        <div class="flex-fill">
-          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
-        </div>
-      </div>
-    </footer>
   </body>
 </html>

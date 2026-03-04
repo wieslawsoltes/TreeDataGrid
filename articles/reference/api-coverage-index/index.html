@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html data-lunet-theme-mode="system" data-lunet-theme-storage-key="lunet-theme" data-lunet-css-prefix="lunet" lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="lunet 1.0.10.0">
+    <script>(function(){const root=document.documentElement;const key=root.getAttribute("data-lunet-theme-storage-key")||"lunet-theme";const fallback=root.getAttribute("data-lunet-theme-mode")||"system";let stored=null;try{stored=localStorage.getItem(key);}catch(_){stored=null;}const mode=(stored==="light"||stored==="dark"||stored==="system")?stored:fallback;const prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;root.setAttribute("data-lunet-theme-mode",mode);root.setAttribute("data-bs-theme",resolved);}());</script>
+    <link rel='icon' href='/TreeDataGrid/favicon.ico' sizes='32x32'>
+    <title>API Coverage Index | TreeDataGrid for Avalonia</title>
+    <link rel="stylesheet" href="/TreeDataGrid/css/lite.css">
+    <script src="/TreeDataGrid/js/lite-defer.js" defer></script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wieslawsoltes">
+<meta name="twitter:title" content="API Coverage Index | TreeDataGrid for Avalonia">
+<meta name="twitter:description" content="API Coverage Index This index tracks article-layer coverage for the complete public API surface. Coverage Summary public API types in package: 99 namespaces covered in article reference pages: 9 target for Phase 4: each public type linked and mapped to at least one primary article Namespace Entry Points Namespace: Avalonia.Controls Namespace: Avalonia.Controls.Models.TreeDataGrid Namespace: Avalonia.Controls.Selection Namespace: Avalonia.Controls.Primitives Namespace: Avalonia.Experimental.Data / Avalonia.Experimental.Data.Core...">
+<meta name="twitter:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
+<meta name="twitter:image:alt" content="API Coverage Index | TreeDataGrid for Avalonia">
+<meta property="og:title" content="API Coverage Index | TreeDataGrid for Avalonia">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wieslawsoltes.github.io/TreeDataGrid">
+<meta property="og:description" content="API Coverage Index This index tracks article-layer coverage for the complete public API surface. Coverage Summary public API types in package: 99 namespaces covered in article reference pages: 9 target for Phase 4: each public type linked and mapped to at least one primary article Namespace Entry Points Namespace: Avalonia.Controls Namespace: Avalonia.Controls.Models.TreeDataGrid Namespace: Avalonia.Controls.Selection Namespace: Avalonia.Controls.Primitives Namespace: Avalonia.Experimental.Data / Avalonia.Experimental.Data.Core...">
+<meta property="og:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
+<meta property="og:image:alt" content="API Coverage Index | TreeDataGrid for Avalonia">
+  </head>
+  <body>
+
+    <div id="lunet" class="container">
+      <nav class="navbar navbar-expand-md sticky-top">
+        <a class="navbar-brand" href="/TreeDataGrid/">
+          <img class="lunet-logo" src="/TreeDataGrid/images/logo.svg" alt="TreeDataGrid for Avalonia" width="96" height="96">
+          <span class="visually-hidden">Home</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="collapse navbar-collapse justify-content-between">
+<ol id='nav-id-home-0' class='navbar-nav nav-level0 show '>
+  <li id='nav-item-home-1' class='nav-item '>
+    <span class='nav-item-row'><a href='/TreeDataGrid/' class='nav-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a></span>  </li>
+  <li id='nav-item-home-2' class='nav-item  active'>
+    <span class='nav-item-row'><a href='/TreeDataGrid/articles/' class='nav-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a></span>  </li>
+  <li id='nav-item-home-3' class='nav-item '>
+    <span class='nav-item-row'><a href='/TreeDataGrid/api/' class='nav-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a></span>  </li>
+</ol>
+          <ol class="navbar-nav flex-grow-1" style="padding-right: 0.5rem;">
+            <li class="nav-item w-100">
+                <div class="lunet-search dropdown w-100">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="search-input" type="search" class="form-control" placeholder="Search... (Alt+s)" aria-label="Search" aria-controls="search-results" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-search-empty-message="Enter words to search..." data-search-no-results-message="No results found.">
+                    <ul id="search-results" class="dropdown-menu w-100 p-0" style="max-height: 50vh;" role="listbox" aria-labelledby="search-input"></ul>
+                  </div>
+                </div>
+            </li>
+          </ol>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0 navbar-right">
+            <div class="dropdown">
+              <button
+                id="theme-mode-toggle"
+                class="btn btn-outline-secondary btn-sm lunet-theme-toggle dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Theme">
+                <i class="bi bi-circle-half" data-lunet-theme-toggle-icon aria-hidden="true"></i>
+                <span
+                  data-lunet-theme-toggle-label
+                  data-theme-system-label="System"
+                  data-theme-light-label="Light"
+                  data-theme-dark-label="Dark">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-mode-toggle">
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="system"><i class="bi bi-circle-half me-2"></i>System</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="light"><i class="bi bi-sun-fill me-2"></i>Light</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="dark"><i class="bi bi-moon-stars-fill me-2"></i>Dark</button></li>
+              </ul>
+            </div>
+<ol id='nav-id-home2-0' class='navbar-nav nav-level0 show flex-shrink-0'>
+  <li id='nav-item-home2-1' class='nav-item '>
+    <span class='nav-item-row'><a href='https://github.com/wieslawsoltes/TreeDataGrid' class='nav-link  btn btn-info'><i class="bi bi-github"></i> GitHub</a></span>  </li>
+</ol>
+          </div>
+        </div>
+      </nav>
+      <div class="lunet lunet-articles">
+        <section data-prismjs-copy="" data-prismjs-copy-success="" data-prismjs-copy-timeout="1200" data-copy-tooltip="Copy to Clipboard." data-copy-tooltip-success="Copied!" data-copy-tooltip-error="Failed to copy!">
+
+<div class="container-xxl">
+  <div class="row">
+      <!-- Left sidebar - responsive offcanvas (offcanvas on mobile, visible sidebar on md+) -->
+      <nav id="docs-sidebar-menu" class="col-md-3 col-lg-3 col-xl-3 col-xxl-2 offcanvas-md offcanvas-start sticky-md-top menu-sidebar align-self-start order-1 order-md-0" tabindex="-1" aria-labelledby="docs-sidebar-menu-label" aria-expanded="true">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="docs-sidebar-menu-label">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <div class='lunet-menu-async' data-lunet-menu-partial='/TreeDataGrid/partials/menus/menu-reference.9fa7488ccc1ebb957cf752b381ae25d0.html' data-lunet-menu-open='menu-id-reference-0' data-lunet-menu-active='menu-item-reference-2,menu-item-reference-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+        </div>
+      </nav>
+      <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
+      <aside id="docs-sidebar-toc" class="col-12 col-xxl-2 sticky-xxl-top menu-sidebar align-self-start order-0 order-xxl-2 collapse d-xxl-block" aria-expanded="true">
+        <h3 class="toc-title">On this page</h3>
+        <nav class="js-toc"></nav>
+      </aside>
+      <!-- Main content column -->
+      <div class="col-12 col-md-9 col-lg-9 col-xl-9 col-xxl-8 order-2 order-md-1 js-toc-content">
+        <ol class='breadcrumb'>
+          <li class='breadcrumb-item '>
+            <a href='/TreeDataGrid/' class='breadcrumb-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/TreeDataGrid/articles/' class='breadcrumb-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/TreeDataGrid/articles/reference/' class='breadcrumb-link  '>Reference</a>  </li>
+          <li class='breadcrumb-item  active'>
+            API Coverage Index  </li>
+        </ol>
+
+        <p id="lunet-results"></p>
+        <!-- Toggle buttons visible only on small screens -->
+        <div class="d-md-none mb-3">
+          <button
+            class="btn btn-outline-secondary btn-sm me-2"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#docs-sidebar-menu"
+            aria-controls="docs-sidebar-menu"
+            aria-label="Toggle docs menu">
+            Menu
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm d-xxl-none"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#docs-sidebar-toc"
+            aria-controls="docs-sidebar-toc"
+            aria-expanded="false"
+            aria-label="Toggle Table Of Contents">
+            On this page
+          </button>
+        </div>
+<!-- lunet:summarize -->
+<h1 id="api-coverage-index">API Coverage Index</h1>
+<p>This index tracks article-layer coverage for the complete public API surface.</p>
+<h2 id="coverage-summary">Coverage Summary</h2>
+<ul>
+<li>public API types in package: <code>99</code></li>
+<li>namespaces covered in article reference pages: <code>9</code></li>
+<li>target for Phase 4: each public type linked and mapped to at least one primary article</li>
+</ul>
+<h2 id="namespace-entry-points">Namespace Entry Points</h2>
+<ul>
+<li><a href="/TreeDataGrid/articles/reference/namespace-avalonia-controls">Namespace: Avalonia.Controls</a></li>
+<li><a href="/TreeDataGrid/articles/reference/namespace-models-treedatagrid">Namespace: Avalonia.Controls.Models.TreeDataGrid</a></li>
+<li><a href="/TreeDataGrid/articles/reference/namespace-selection">Namespace: Avalonia.Controls.Selection</a></li>
+<li><a href="/TreeDataGrid/articles/reference/namespace-primitives">Namespace: Avalonia.Controls.Primitives</a></li>
+<li><a href="/TreeDataGrid/articles/reference/namespace-experimental">Namespace: Avalonia.Experimental.Data / Avalonia.Experimental.Data.Core</a></li>
+<li><a href="/TreeDataGrid/articles/reference/namespace-converters-and-models">Namespace: Converters and Base Models</a></li>
+</ul>
+<h2 id="complete-public-type-mapping">Complete Public Type Mapping</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Type</th>
+<th>Namespace</th>
+<th>Kind</th>
+<th>Primary Article</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.CellIndex/" title="CellIndex">CellIndex</a></td>
+<td><code>Avalonia.Controls</code></td>
+<td>Struct</td>
+<td><a href="/TreeDataGrid/articles/concepts/indexing-and-addressing">concepts/indexing-and-addressing.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Converters.IndentConverter/" title="IndentConverter">IndentConverter</a></td>
+<td><code>Avalonia.Controls.Converters</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/guides/templates-and-styling">guides/templates-and-styling.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.FlatTreeDataGridSource-1/" title="FlatTreeDataGridSource&lt;TModel&gt;">FlatTreeDataGridSource&lt;TModel&gt;</a></td>
+<td><code>Avalonia.Controls</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/guides/sources-flat">guides/sources-flat.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.HierarchicalTreeDataGridSource-1/" title="HierarchicalTreeDataGridSource&lt;TModel&gt;">HierarchicalTreeDataGridSource&lt;TModel&gt;</a></td>
+<td><code>Avalonia.Controls</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/guides/sources-hierarchical">guides/sources-hierarchical.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.ITreeDataGridSource-1/" title="ITreeDataGridSource&lt;TModel&gt;">ITreeDataGridSource&lt;TModel&gt;</a></td>
+<td><code>Avalonia.Controls</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/guides/sources-flat">guides/sources-flat.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.ITreeDataGridSource/" title="ITreeDataGridSource">ITreeDataGridSource</a></td>
+<td><code>Avalonia.Controls</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/guides/sources-flat">guides/sources-flat.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.IndexPath/" title="IndexPath">IndexPath</a></td>
+<td><code>Avalonia.Controls</code></td>
+<td>Struct</td>
+<td><a href="/TreeDataGrid/articles/concepts/indexing-and-addressing">concepts/indexing-and-addressing.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.NotifyingBase/" title="NotifyingBase">NotifyingBase</a></td>
+<td><code>Avalonia.Controls.Models</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/custom-rows-columns-pipeline">advanced/custom-rows-columns-pipeline.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.NotifyingListBase-1/" title="NotifyingListBase&lt;T&gt;">NotifyingListBase&lt;T&gt;</a></td>
+<td><code>Avalonia.Controls.Models</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/custom-rows-columns-pipeline">advanced/custom-rows-columns-pipeline.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.ReadOnlyListBase-1/" title="ReadOnlyListBase&lt;T&gt;">ReadOnlyListBase&lt;T&gt;</a></td>
+<td><code>Avalonia.Controls.Models</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/custom-rows-columns-pipeline">advanced/custom-rows-columns-pipeline.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.AnonymousSortableRows-1/" title="AnonymousSortableRows&lt;TModel&gt;">AnonymousSortableRows&lt;TModel&gt;</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/custom-rows-columns-pipeline">advanced/custom-rows-columns-pipeline.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.BeginEditGestures/" title="BeginEditGestures">BeginEditGestures</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Enum</td>
+<td><a href="/TreeDataGrid/articles/guides/editing-and-begin-edit-gestures">guides/editing-and-begin-edit-gestures.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.CheckBoxCell/" title="CheckBoxCell">CheckBoxCell</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/concepts/columns-cells-rows">concepts/columns-cells-rows.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.CheckBoxColumn-1/" title="CheckBoxColumn&lt;TModel&gt;">CheckBoxColumn&lt;TModel&gt;</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/guides/column-checkbox">guides/column-checkbox.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.CheckBoxColumnOptions-1/" title="CheckBoxColumnOptions&lt;TModel&gt;">CheckBoxColumnOptions&lt;TModel&gt;</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/guides/column-checkbox">guides/column-checkbox.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.ColumnBase-1/" title="ColumnBase&lt;TModel&gt;">ColumnBase&lt;TModel&gt;</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/concepts/columns-cells-rows">concepts/columns-cells-rows.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.ColumnBase-2/" title="ColumnBase&lt;TModel, TValue&gt;">ColumnBase&lt;TModel, TValue&gt;</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/concepts/columns-cells-rows">concepts/columns-cells-rows.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.ColumnList-1/" title="ColumnList&lt;TModel&gt;">ColumnList&lt;TModel&gt;</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/concepts/columns-cells-rows">concepts/columns-cells-rows.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.ColumnOptions-1/" title="ColumnOptions&lt;TModel&gt;">ColumnOptions&lt;TModel&gt;</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/guides/sorting-and-column-widths">guides/sorting-and-column-widths.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.DragInfo/" title="DragInfo">DragInfo</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/guides/drag-and-drop-rows">guides/drag-and-drop-rows.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.ExpanderCell-1/" title="ExpanderCell&lt;TModel&gt;">ExpanderCell&lt;TModel&gt;</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/concepts/columns-cells-rows">concepts/columns-cells-rows.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.HierarchicalExpanderColumn-1/" title="HierarchicalExpanderColumn&lt;TModel&gt;">HierarchicalExpanderColumn&lt;TModel&gt;</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/guides/column-expander">guides/column-expander.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.HierarchicalRow-1/" title="HierarchicalRow&lt;TModel&gt;">HierarchicalRow&lt;TModel&gt;</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/guides/expansion-and-programmatic-navigation">guides/expansion-and-programmatic-navigation.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.HierarchicalRows-1/" title="HierarchicalRows&lt;TModel&gt;">HierarchicalRows&lt;TModel&gt;</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/guides/expansion-and-programmatic-navigation">guides/expansion-and-programmatic-navigation.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.ICell/" title="ICell">ICell</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/concepts/columns-cells-rows">concepts/columns-cells-rows.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.ICellOptions/" title="ICellOptions">ICellOptions</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/guides/editing-and-begin-edit-gestures">guides/editing-and-begin-edit-gestures.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.IColumn-1/" title="IColumn&lt;TModel&gt;">IColumn&lt;TModel&gt;</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/concepts/columns-cells-rows">concepts/columns-cells-rows.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.IColumn/" title="IColumn">IColumn</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/concepts/columns-cells-rows">concepts/columns-cells-rows.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.IColumns/" title="IColumns">IColumns</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/concepts/columns-cells-rows">concepts/columns-cells-rows.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.IExpander/" title="IExpander">IExpander</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/guides/expansion-and-programmatic-navigation">guides/expansion-and-programmatic-navigation.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.IExpanderCell/" title="IExpanderCell">IExpanderCell</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/guides/expansion-and-programmatic-navigation">guides/expansion-and-programmatic-navigation.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.IExpanderColumn-1/" title="IExpanderColumn&lt;TModel&gt;">IExpanderColumn&lt;TModel&gt;</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/guides/expansion-and-programmatic-navigation">guides/expansion-and-programmatic-navigation.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.IExpanderRow-1/" title="IExpanderRow&lt;TModel&gt;">IExpanderRow&lt;TModel&gt;</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/guides/expansion-and-programmatic-navigation">guides/expansion-and-programmatic-navigation.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.IExpanderRowController-1/" title="IExpanderRowController&lt;TModel&gt;">IExpanderRowController&lt;TModel&gt;</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/guides/expansion-and-programmatic-navigation">guides/expansion-and-programmatic-navigation.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.IIndentedRow/" title="IIndentedRow">IIndentedRow</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/concepts/columns-cells-rows">concepts/columns-cells-rows.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.IModelIndexableRow/" title="IModelIndexableRow">IModelIndexableRow</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/concepts/columns-cells-rows">concepts/columns-cells-rows.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.IRow-1/" title="IRow&lt;TModel&gt;">IRow&lt;TModel&gt;</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/concepts/columns-cells-rows">concepts/columns-cells-rows.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.IRow/" title="IRow">IRow</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/concepts/columns-cells-rows">concepts/columns-cells-rows.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.IRows/" title="IRows">IRows</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/concepts/columns-cells-rows">concepts/columns-cells-rows.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.ITemplateCellOptions/" title="ITemplateCellOptions">ITemplateCellOptions</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/guides/editing-and-begin-edit-gestures">guides/editing-and-begin-edit-gestures.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.ITextCell/" title="ITextCell">ITextCell</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/concepts/columns-cells-rows">concepts/columns-cells-rows.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.ITextCellOptions/" title="ITextCellOptions">ITextCellOptions</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/guides/editing-and-begin-edit-gestures">guides/editing-and-begin-edit-gestures.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.ITextSearchableColumn-1/" title="ITextSearchableColumn&lt;TModel&gt;">ITextSearchableColumn&lt;TModel&gt;</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/concepts/columns-cells-rows">concepts/columns-cells-rows.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.IUpdateColumnLayout/" title="IUpdateColumnLayout">IUpdateColumnLayout</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/concepts/columns-cells-rows">concepts/columns-cells-rows.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.RowEventArgs-1/" title="RowEventArgs&lt;TRow&gt;">RowEventArgs&lt;TRow&gt;</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/guides/expansion-and-programmatic-navigation">guides/expansion-and-programmatic-navigation.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.RowEventArgs/" title="RowEventArgs">RowEventArgs</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/guides/expansion-and-programmatic-navigation">guides/expansion-and-programmatic-navigation.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.SortableRowsBase-2/" title="SortableRowsBase&lt;TModel, TRow&gt;">SortableRowsBase&lt;TModel, TRow&gt;</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/custom-rows-columns-pipeline">advanced/custom-rows-columns-pipeline.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.TemplateCell/" title="TemplateCell">TemplateCell</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/concepts/columns-cells-rows">concepts/columns-cells-rows.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.TemplateColumn-1/" title="TemplateColumn&lt;TModel&gt;">TemplateColumn&lt;TModel&gt;</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/guides/column-template">guides/column-template.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.TemplateColumnOptions-1/" title="TemplateColumnOptions&lt;TModel&gt;">TemplateColumnOptions&lt;TModel&gt;</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/guides/column-template">guides/column-template.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.TextCell-1/" title="TextCell&lt;T&gt;">TextCell&lt;T&gt;</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/concepts/columns-cells-rows">concepts/columns-cells-rows.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.TextColumn-2/" title="TextColumn&lt;TModel, TValue&gt;">TextColumn&lt;TModel, TValue&gt;</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/guides/column-text">guides/column-text.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.TextColumnOptions-1/" title="TextColumnOptions&lt;TModel&gt;">TextColumnOptions&lt;TModel&gt;</a></td>
+<td><code>Avalonia.Controls.Models.TreeDataGrid</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/guides/column-text">guides/column-text.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Primitives.TreeDataGridCell/" title="TreeDataGridCell">TreeDataGridCell</a></td>
+<td><code>Avalonia.Controls.Primitives</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/primitives-overview">advanced/primitives-overview.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Primitives.TreeDataGridCellsPresenter/" title="TreeDataGridCellsPresenter">TreeDataGridCellsPresenter</a></td>
+<td><code>Avalonia.Controls.Primitives</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/performance-virtualization-and-realization">advanced/performance-virtualization-and-realization.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Primitives.TreeDataGridCheckBoxCell/" title="TreeDataGridCheckBoxCell">TreeDataGridCheckBoxCell</a></td>
+<td><code>Avalonia.Controls.Primitives</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/primitives-overview">advanced/primitives-overview.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Primitives.TreeDataGridColumnHeader/" title="TreeDataGridColumnHeader">TreeDataGridColumnHeader</a></td>
+<td><code>Avalonia.Controls.Primitives</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/primitives-overview">advanced/primitives-overview.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Primitives.TreeDataGridColumnHeadersPresenter/" title="TreeDataGridColumnHeadersPresenter">TreeDataGridColumnHeadersPresenter</a></td>
+<td><code>Avalonia.Controls.Primitives</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/performance-virtualization-and-realization">advanced/performance-virtualization-and-realization.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Primitives.TreeDataGridColumnarPresenterBase-1/" title="TreeDataGridColumnarPresenterBase&lt;TItem&gt;">TreeDataGridColumnarPresenterBase&lt;TItem&gt;</a></td>
+<td><code>Avalonia.Controls.Primitives</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/performance-virtualization-and-realization">advanced/performance-virtualization-and-realization.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Primitives.TreeDataGridElementFactory/" title="TreeDataGridElementFactory">TreeDataGridElementFactory</a></td>
+<td><code>Avalonia.Controls.Primitives</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/custom-element-factory">advanced/custom-element-factory.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Primitives.TreeDataGridExpanderCell/" title="TreeDataGridExpanderCell">TreeDataGridExpanderCell</a></td>
+<td><code>Avalonia.Controls.Primitives</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/primitives-overview">advanced/primitives-overview.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Primitives.TreeDataGridPresenterBase-1/" title="TreeDataGridPresenterBase&lt;TItem&gt;">TreeDataGridPresenterBase&lt;TItem&gt;</a></td>
+<td><code>Avalonia.Controls.Primitives</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/performance-virtualization-and-realization">advanced/performance-virtualization-and-realization.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Primitives.TreeDataGridRow/" title="TreeDataGridRow">TreeDataGridRow</a></td>
+<td><code>Avalonia.Controls.Primitives</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/primitives-overview">advanced/primitives-overview.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Primitives.TreeDataGridRowsPresenter/" title="TreeDataGridRowsPresenter">TreeDataGridRowsPresenter</a></td>
+<td><code>Avalonia.Controls.Primitives</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/performance-virtualization-and-realization">advanced/performance-virtualization-and-realization.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Primitives.TreeDataGridTemplateCell/" title="TreeDataGridTemplateCell">TreeDataGridTemplateCell</a></td>
+<td><code>Avalonia.Controls.Primitives</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/primitives-overview">advanced/primitives-overview.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Primitives.TreeDataGridTextCell/" title="TreeDataGridTextCell">TreeDataGridTextCell</a></td>
+<td><code>Avalonia.Controls.Primitives</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/primitives-overview">advanced/primitives-overview.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Selection.ITreeDataGridCellSelectionModel-1/" title="ITreeDataGridCellSelectionModel&lt;T&gt;">ITreeDataGridCellSelectionModel&lt;T&gt;</a></td>
+<td><code>Avalonia.Controls.Selection</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/guides/selection-cell">guides/selection-cell.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Selection.ITreeDataGridCellSelectionModel/" title="ITreeDataGridCellSelectionModel">ITreeDataGridCellSelectionModel</a></td>
+<td><code>Avalonia.Controls.Selection</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/guides/selection-cell">guides/selection-cell.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Selection.ITreeDataGridColumnSelectionModel/" title="ITreeDataGridColumnSelectionModel">ITreeDataGridColumnSelectionModel</a></td>
+<td><code>Avalonia.Controls.Selection</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/advanced/selection-internals-and-batch-update">advanced/selection-internals-and-batch-update.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Selection.ITreeDataGridRowSelectionModel-1/" title="ITreeDataGridRowSelectionModel&lt;T&gt;">ITreeDataGridRowSelectionModel&lt;T&gt;</a></td>
+<td><code>Avalonia.Controls.Selection</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/guides/selection-row">guides/selection-row.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Selection.ITreeDataGridRowSelectionModel/" title="ITreeDataGridRowSelectionModel">ITreeDataGridRowSelectionModel</a></td>
+<td><code>Avalonia.Controls.Selection</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/guides/selection-row">guides/selection-row.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Selection.ITreeDataGridSelection/" title="ITreeDataGridSelection">ITreeDataGridSelection</a></td>
+<td><code>Avalonia.Controls.Selection</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/advanced/selection-internals-and-batch-update">advanced/selection-internals-and-batch-update.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction/" title="ITreeDataGridSelectionInteraction">ITreeDataGridSelectionInteraction</a></td>
+<td><code>Avalonia.Controls.Selection</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/advanced/selection-internals-and-batch-update">advanced/selection-internals-and-batch-update.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Selection.ITreeSelectionModel/" title="ITreeSelectionModel">ITreeSelectionModel</a></td>
+<td><code>Avalonia.Controls.Selection</code></td>
+<td>Interface</td>
+<td><a href="/TreeDataGrid/articles/advanced/selection-internals-and-batch-update">advanced/selection-internals-and-batch-update.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Selection.SelectionNodeBase-1/" title="SelectionNodeBase&lt;T&gt;">SelectionNodeBase&lt;T&gt;</a></td>
+<td><code>Avalonia.Controls.Selection</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/selection-internals-and-batch-update">advanced/selection-internals-and-batch-update.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Selection.TreeDataGridCellSelectionChangedEventArgs-1/" title="TreeDataGridCellSelectionChangedEventArgs&lt;T&gt;">TreeDataGridCellSelectionChangedEventArgs&lt;T&gt;</a></td>
+<td><code>Avalonia.Controls.Selection</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/guides/selection-cell">guides/selection-cell.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Selection.TreeDataGridCellSelectionChangedEventArgs/" title="TreeDataGridCellSelectionChangedEventArgs">TreeDataGridCellSelectionChangedEventArgs</a></td>
+<td><code>Avalonia.Controls.Selection</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/guides/selection-cell">guides/selection-cell.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Selection.TreeDataGridCellSelectionModel-1/" title="TreeDataGridCellSelectionModel&lt;TModel&gt;">TreeDataGridCellSelectionModel&lt;TModel&gt;</a></td>
+<td><code>Avalonia.Controls.Selection</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/guides/selection-cell">guides/selection-cell.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Selection.TreeDataGridColumnSelectionModel/" title="TreeDataGridColumnSelectionModel">TreeDataGridColumnSelectionModel</a></td>
+<td><code>Avalonia.Controls.Selection</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/selection-internals-and-batch-update">advanced/selection-internals-and-batch-update.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Selection.TreeDataGridRowSelectionModel-1/" title="TreeDataGridRowSelectionModel&lt;TModel&gt;">TreeDataGridRowSelectionModel&lt;TModel&gt;</a></td>
+<td><code>Avalonia.Controls.Selection</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/guides/selection-row">guides/selection-row.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Selection.TreeSelectionModelBase-1.BatchUpdateOperation/" title="TreeSelectionModelBase&lt;T&gt;.BatchUpdateOperation">TreeSelectionModelBase&lt;T&gt;.BatchUpdateOperation</a></td>
+<td><code>Avalonia.Controls.Selection</code></td>
+<td>Struct</td>
+<td><a href="/TreeDataGrid/articles/advanced/selection-internals-and-batch-update">advanced/selection-internals-and-batch-update.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Selection.TreeSelectionModelBase-1/" title="TreeSelectionModelBase&lt;T&gt;">TreeSelectionModelBase&lt;T&gt;</a></td>
+<td><code>Avalonia.Controls.Selection</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/selection-internals-and-batch-update">advanced/selection-internals-and-batch-update.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Selection.TreeSelectionModelIndexesChangedEventArgs/" title="TreeSelectionModelIndexesChangedEventArgs">TreeSelectionModelIndexesChangedEventArgs</a></td>
+<td><code>Avalonia.Controls.Selection</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/selection-internals-and-batch-update">advanced/selection-internals-and-batch-update.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Selection.TreeSelectionModelSelectionChangedEventArgs-1/" title="TreeSelectionModelSelectionChangedEventArgs&lt;T&gt;">TreeSelectionModelSelectionChangedEventArgs&lt;T&gt;</a></td>
+<td><code>Avalonia.Controls.Selection</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/selection-internals-and-batch-update">advanced/selection-internals-and-batch-update.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Selection.TreeSelectionModelSelectionChangedEventArgs/" title="TreeSelectionModelSelectionChangedEventArgs">TreeSelectionModelSelectionChangedEventArgs</a></td>
+<td><code>Avalonia.Controls.Selection</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/selection-internals-and-batch-update">advanced/selection-internals-and-batch-update.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.Selection.TreeSelectionModelSourceResetEventArgs/" title="TreeSelectionModelSourceResetEventArgs">TreeSelectionModelSourceResetEventArgs</a></td>
+<td><code>Avalonia.Controls.Selection</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/selection-internals-and-batch-update">advanced/selection-internals-and-batch-update.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.TreeDataGrid/" title="TreeDataGrid">TreeDataGrid</a></td>
+<td><code>Avalonia.Controls</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/guides/events-and-user-interaction">guides/events-and-user-interaction.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.TreeDataGridCellEventArgs/" title="TreeDataGridCellEventArgs">TreeDataGridCellEventArgs</a></td>
+<td><code>Avalonia.Controls</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/guides/events-and-user-interaction">guides/events-and-user-interaction.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.TreeDataGridItemsSourceView-1/" title="TreeDataGridItemsSourceView&lt;T&gt;">TreeDataGridItemsSourceView&lt;T&gt;</a></td>
+<td><code>Avalonia.Controls</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/guides/working-with-itemssourceview">guides/working-with-itemssourceview.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.TreeDataGridItemsSourceView/" title="TreeDataGridItemsSourceView">TreeDataGridItemsSourceView</a></td>
+<td><code>Avalonia.Controls</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/guides/working-with-itemssourceview">guides/working-with-itemssourceview.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.TreeDataGridRowDragEventArgs/" title="TreeDataGridRowDragEventArgs">TreeDataGridRowDragEventArgs</a></td>
+<td><code>Avalonia.Controls</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/guides/drag-and-drop-rows">guides/drag-and-drop-rows.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.TreeDataGridRowDragStartedEventArgs/" title="TreeDataGridRowDragStartedEventArgs">TreeDataGridRowDragStartedEventArgs</a></td>
+<td><code>Avalonia.Controls</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/guides/drag-and-drop-rows">guides/drag-and-drop-rows.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.TreeDataGridRowDropPosition/" title="TreeDataGridRowDropPosition">TreeDataGridRowDropPosition</a></td>
+<td><code>Avalonia.Controls</code></td>
+<td>Enum</td>
+<td><a href="/TreeDataGrid/articles/guides/drag-and-drop-rows">guides/drag-and-drop-rows.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Controls.TreeDataGridRowEventArgs/" title="TreeDataGridRowEventArgs">TreeDataGridRowEventArgs</a></td>
+<td><code>Avalonia.Controls</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/guides/events-and-user-interaction">guides/events-and-user-interaction.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Data.Core.Parsers.ExpressionChainVisitor-1/" title="ExpressionChainVisitor&lt;TIn&gt;">ExpressionChainVisitor&lt;TIn&gt;</a></td>
+<td><code>Avalonia.Data.Core.Parsers</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/typed-binding">advanced/typed-binding.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Experimental.Data.Core.LightweightObservableBase-1/" title="LightweightObservableBase&lt;T&gt;">LightweightObservableBase&lt;T&gt;</a></td>
+<td><code>Avalonia.Experimental.Data.Core</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/typed-binding">advanced/typed-binding.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Experimental.Data.Core.TypedBindingExpression-2/" title="TypedBindingExpression&lt;TIn, TOut&gt;">TypedBindingExpression&lt;TIn, TOut&gt;</a></td>
+<td><code>Avalonia.Experimental.Data.Core</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/typed-binding">advanced/typed-binding.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Experimental.Data.TypedBinding-1/" title="TypedBinding&lt;TIn&gt;">TypedBinding&lt;TIn&gt;</a></td>
+<td><code>Avalonia.Experimental.Data</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/typed-binding">advanced/typed-binding.md</a></td>
+</tr>
+<tr>
+<td><a href="/TreeDataGrid/api/Avalonia.Experimental.Data.TypedBinding-2/" title="TypedBinding&lt;TIn, TOut&gt;">TypedBinding&lt;TIn, TOut&gt;</a></td>
+<td><code>Avalonia.Experimental.Data</code></td>
+<td>Class</td>
+<td><a href="/TreeDataGrid/articles/advanced/typed-binding">advanced/typed-binding.md</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="notes">Notes</h2>
+<ul>
+<li>&quot;Primary article&quot; identifies the canonical narrative doc for each type.</li>
+<li>Generated API pages remain the authoritative member-level reference.</li>
+<li>This index complements, but does not replace, <a href="/TreeDataGrid/api/index.md">API Documentation</a>.</li>
+</ul>
+<h2 id="related">Related</h2>
+<ul>
+<li><a href="/TreeDataGrid/articles/reference/namespace-avalonia-controls">Namespace: Avalonia.Controls</a></li>
+<li><a href="/TreeDataGrid/articles/advanced/diagnostics-and-testing">Advanced: Diagnostics and Testing</a></li>
+<li><a href="/TreeDataGrid/articles/concepts/glossary">TreeDataGrid Glossary</a></li>
+<li><a href="/TreeDataGrid/articles/guides/troubleshooting">Troubleshooting Guide</a></li>
+</ul>
+
+      </div>
+  </div>
+</div>
+
+        </section>
+        <footer>
+          <hr>
+          <p>Copyright &copy; 2026, Wieslaw Soltes aka <a href="https://github.com/wieslawsoltes">wieslawsoltes</a> - Content licensed under the Creative Commons <a href="http://creativecommons.org/licenses/by/2.5/">CC BY 2.5</a> | Site generated by <a href="https://github.com/lunet-io/lunet">lunet</a> hosted on <a href="https://pages.github.com/">GitHub Pages</a></p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
+</html>

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html data-lunet-theme-mode="system" data-lunet-theme-storage-key="lunet-theme" data-lunet-css-prefix="lunet" lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="lunet 1.0.10.0">
+    <script>(function(){const root=document.documentElement;const key=root.getAttribute("data-lunet-theme-storage-key")||"lunet-theme";const fallback=root.getAttribute("data-lunet-theme-mode")||"system";let stored=null;try{stored=localStorage.getItem(key);}catch(_){stored=null;}const mode=(stored==="light"||stored==="dark"||stored==="system")?stored:fallback;const prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;root.setAttribute("data-lunet-theme-mode",mode);root.setAttribute("data-bs-theme",resolved);}());</script>
+    <link rel='icon' href='/TreeDataGrid/favicon.ico' sizes='32x32'>
+    <title>ControlTheme Full Replacement | TreeDataGrid for Avalonia</title>
+    <link rel="stylesheet" href="/TreeDataGrid/css/lite.css">
+    <script src="/TreeDataGrid/js/lite-defer.js" defer></script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wieslawsoltes">
+<meta name="twitter:title" content="ControlTheme Full Replacement | TreeDataGrid for Avalonia">
+<meta name="twitter:description" content="ControlTheme Full Replacement This guide covers advanced TreeDataGrid theming where you replace built-in ControlTheme templates with fully new templates. Use this when BasedOn overrides cannot express the visual tree or interaction behavior you need. Required Template Parts When replacing templates, preserve required part names used by control code. Control Required part(s) TreeDataGrid PART_HeaderScrollViewer, PART_ColumnHeadersPresenter, PART_ScrollViewer, PART_RowsPresenter TreeDataGridColumnHeader PART_Resizer TreeDataGridRow PART_CellsPresenter TreeDataGridExpanderCell PART_Content TreeDataGridTextCell PART_Edit (editing template) TreeDataGridTemplateCell PART_EditingContentPresenter...">
+<meta name="twitter:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
+<meta name="twitter:image:alt" content="ControlTheme Full Replacement | TreeDataGrid for Avalonia">
+<meta property="og:title" content="ControlTheme Full Replacement | TreeDataGrid for Avalonia">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wieslawsoltes.github.io/TreeDataGrid">
+<meta property="og:description" content="ControlTheme Full Replacement This guide covers advanced TreeDataGrid theming where you replace built-in ControlTheme templates with fully new templates. Use this when BasedOn overrides cannot express the visual tree or interaction behavior you need. Required Template Parts When replacing templates, preserve required part names used by control code. Control Required part(s) TreeDataGrid PART_HeaderScrollViewer, PART_ColumnHeadersPresenter, PART_ScrollViewer, PART_RowsPresenter TreeDataGridColumnHeader PART_Resizer TreeDataGridRow PART_CellsPresenter TreeDataGridExpanderCell PART_Content TreeDataGridTextCell PART_Edit (editing template) TreeDataGridTemplateCell PART_EditingContentPresenter...">
+<meta property="og:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
+<meta property="og:image:alt" content="ControlTheme Full Replacement | TreeDataGrid for Avalonia">
+  </head>
+  <body>
+
+    <div id="lunet" class="container">
+      <nav class="navbar navbar-expand-md sticky-top">
+        <a class="navbar-brand" href="/TreeDataGrid/">
+          <img class="lunet-logo" src="/TreeDataGrid/images/logo.svg" alt="TreeDataGrid for Avalonia" width="96" height="96">
+          <span class="visually-hidden">Home</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="collapse navbar-collapse justify-content-between">
+<ol id='nav-id-home-0' class='navbar-nav nav-level0 show '>
+  <li id='nav-item-home-1' class='nav-item '>
+    <span class='nav-item-row'><a href='/TreeDataGrid/' class='nav-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a></span>  </li>
+  <li id='nav-item-home-2' class='nav-item  active'>
+    <span class='nav-item-row'><a href='/TreeDataGrid/articles/' class='nav-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a></span>  </li>
+  <li id='nav-item-home-3' class='nav-item '>
+    <span class='nav-item-row'><a href='/TreeDataGrid/api/' class='nav-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a></span>  </li>
+</ol>
+          <ol class="navbar-nav flex-grow-1" style="padding-right: 0.5rem;">
+            <li class="nav-item w-100">
+                <div class="lunet-search dropdown w-100">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="search-input" type="search" class="form-control" placeholder="Search... (Alt+s)" aria-label="Search" aria-controls="search-results" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-search-empty-message="Enter words to search..." data-search-no-results-message="No results found.">
+                    <ul id="search-results" class="dropdown-menu w-100 p-0" style="max-height: 50vh;" role="listbox" aria-labelledby="search-input"></ul>
+                  </div>
+                </div>
+            </li>
+          </ol>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0 navbar-right">
+            <div class="dropdown">
+              <button
+                id="theme-mode-toggle"
+                class="btn btn-outline-secondary btn-sm lunet-theme-toggle dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Theme">
+                <i class="bi bi-circle-half" data-lunet-theme-toggle-icon aria-hidden="true"></i>
+                <span
+                  data-lunet-theme-toggle-label
+                  data-theme-system-label="System"
+                  data-theme-light-label="Light"
+                  data-theme-dark-label="Dark">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-mode-toggle">
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="system"><i class="bi bi-circle-half me-2"></i>System</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="light"><i class="bi bi-sun-fill me-2"></i>Light</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="dark"><i class="bi bi-moon-stars-fill me-2"></i>Dark</button></li>
+              </ul>
+            </div>
+<ol id='nav-id-home2-0' class='navbar-nav nav-level0 show flex-shrink-0'>
+  <li id='nav-item-home2-1' class='nav-item '>
+    <span class='nav-item-row'><a href='https://github.com/wieslawsoltes/TreeDataGrid' class='nav-link  btn btn-info'><i class="bi bi-github"></i> GitHub</a></span>  </li>
+</ol>
+          </div>
+        </div>
+      </nav>
+      <div class="lunet lunet-articles">
+        <section data-prismjs-copy="" data-prismjs-copy-success="" data-prismjs-copy-timeout="1200" data-copy-tooltip="Copy to Clipboard." data-copy-tooltip-success="Copied!" data-copy-tooltip-error="Failed to copy!">
+
+<div class="container-xxl">
+  <div class="row">
+      <!-- Left sidebar - responsive offcanvas (offcanvas on mobile, visible sidebar on md+) -->
+      <nav id="docs-sidebar-menu" class="col-md-3 col-lg-3 col-xl-3 col-xxl-2 offcanvas-md offcanvas-start sticky-md-top menu-sidebar align-self-start order-1 order-md-0" tabindex="-1" aria-labelledby="docs-sidebar-menu-label" aria-expanded="true">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="docs-sidebar-menu-label">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <ol id='menu-id-xaml-0' class='menu menu-level0 show '>
+            <li id='menu-item-xaml-1' class='menu-item '>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/xaml/' class='menu-link  '>XAML Usage</a></span>  </li>
+            <li id='menu-item-xaml-2' class='menu-item '>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/xaml/overview/' class='menu-link  '>Overview</a></span>  </li>
+            <li id='menu-item-xaml-3' class='menu-item '>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/xaml/samples-walkthrough/' class='menu-link  '>Samples Walkthrough</a></span>  </li>
+            <li id='menu-item-xaml-4' class='menu-item '>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/xaml/theme-usage/' class='menu-link  '>Theme Usage</a></span>  </li>
+            <li id='menu-item-xaml-5' class='menu-item '>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/xaml/theme-customization/' class='menu-link  '>Theme Customization</a></span>  </li>
+            <li id='menu-item-xaml-6' class='menu-item '>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/xaml/control-theme-overrides-basedon/' class='menu-link  '>ControlTheme Overrides with BasedOn</a></span>  </li>
+            <li id='menu-item-xaml-7' class='menu-item  active'>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/xaml/control-theme-full-replacement/' class='menu-link  '>ControlTheme Full Replacement</a></span>  </li>
+            <li id='menu-item-xaml-8' class='menu-item '>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/xaml/template-resource-keys-from-model/' class='menu-link  '>Template Resource Keys from Model</a></span>  </li>
+            <li id='menu-item-xaml-9' class='menu-item '>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/xaml/theme-resource-keys-reference/' class='menu-link  '>Theme Resource Keys Reference</a></span>  </li>
+          </ol>
+
+        </div>
+      </nav>
+      <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
+      <aside id="docs-sidebar-toc" class="col-12 col-xxl-2 sticky-xxl-top menu-sidebar align-self-start order-0 order-xxl-2 collapse d-xxl-block" aria-expanded="true">
+        <h3 class="toc-title">On this page</h3>
+        <nav class="js-toc"></nav>
+      </aside>
+      <!-- Main content column -->
+      <div class="col-12 col-md-9 col-lg-9 col-xl-9 col-xxl-8 order-2 order-md-1 js-toc-content">
+        <ol class='breadcrumb'>
+          <li class='breadcrumb-item '>
+            <a href='/TreeDataGrid/' class='breadcrumb-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/TreeDataGrid/articles/' class='breadcrumb-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/TreeDataGrid/articles/xaml/' class='breadcrumb-link  '>XAML Usage</a>  </li>
+          <li class='breadcrumb-item  active'>
+            ControlTheme Full Replacement  </li>
+        </ol>
+
+        <p id="lunet-results"></p>
+        <!-- Toggle buttons visible only on small screens -->
+        <div class="d-md-none mb-3">
+          <button
+            class="btn btn-outline-secondary btn-sm me-2"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#docs-sidebar-menu"
+            aria-controls="docs-sidebar-menu"
+            aria-label="Toggle docs menu">
+            Menu
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm d-xxl-none"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#docs-sidebar-toc"
+            aria-controls="docs-sidebar-toc"
+            aria-expanded="false"
+            aria-label="Toggle Table Of Contents">
+            On this page
+          </button>
+        </div>
+<!-- lunet:summarize -->
+<h1 id="controltheme-full-replacement">ControlTheme Full Replacement</h1>
+<p>This guide covers advanced TreeDataGrid theming where you replace built-in <code>ControlTheme</code> templates with fully new templates.</p>
+<p>Use this when <code>BasedOn</code> overrides cannot express the visual tree or interaction behavior you need.</p>
+<h2 id="required-template-parts">Required Template Parts</h2>
+<p>When replacing templates, preserve required part names used by control code.</p>
+<table class="table">
+<thead>
+<tr>
+<th>Control</th>
+<th>Required part(s)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TreeDataGrid</code></td>
+<td><code>PART_HeaderScrollViewer</code>, <code>PART_ColumnHeadersPresenter</code>, <code>PART_ScrollViewer</code>, <code>PART_RowsPresenter</code></td>
+</tr>
+<tr>
+<td><code>TreeDataGridColumnHeader</code></td>
+<td><code>PART_Resizer</code></td>
+</tr>
+<tr>
+<td><code>TreeDataGridRow</code></td>
+<td><code>PART_CellsPresenter</code></td>
+</tr>
+<tr>
+<td><code>TreeDataGridExpanderCell</code></td>
+<td><code>PART_Content</code></td>
+</tr>
+<tr>
+<td><code>TreeDataGridTextCell</code></td>
+<td><code>PART_Edit</code> (editing template)</td>
+</tr>
+<tr>
+<td><code>TreeDataGridTemplateCell</code></td>
+<td><code>PART_EditingContentPresenter</code> (editing template)</td>
+</tr>
+</tbody>
+</table>
+<p>If a required part is missing, features such as resizing, editing focus, realization, or expansion content rendering will break.</p>
+<h2 id="example-fully-new-column-header-theme">Example: Fully New Column Header Theme</h2>
+<p>This example replaces the entire <code>TreeDataGridColumnHeader</code> theme and keeps sorting and resize behavior by preserving <code>SortIcon</code> and <code>PART_Resizer</code>.</p>
+<pre><code class="language-xml">&lt;Application xmlns=&quot;https://github.com/avaloniaui&quot;
+             xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;&gt;
+  &lt;Application.Resources&gt;
+    &lt;ControlTheme x:Key=&quot;NeoTreeDataGridColumnHeaderTheme&quot;
+                  TargetType=&quot;TreeDataGridColumnHeader&quot;&gt;
+      &lt;Setter Property=&quot;Padding&quot; Value=&quot;12 6&quot; /&gt;
+      &lt;Setter Property=&quot;Template&quot;&gt;
+        &lt;ControlTemplate&gt;
+          &lt;Border Name=&quot;DataGridBorder&quot;
+                  Background=&quot;{TemplateBinding Background}&quot;
+                  BorderBrush=&quot;{TemplateBinding BorderBrush}&quot;
+                  BorderThickness=&quot;{TemplateBinding BorderThickness}&quot;&gt;
+            &lt;Grid ColumnDefinitions=&quot;*,Auto,Auto&quot;&gt;
+              &lt;ContentPresenter Name=&quot;PART_ContentPresenter&quot;
+                                Grid.Column=&quot;0&quot;
+                                Content=&quot;{TemplateBinding Header}&quot;
+                                ContentTemplate=&quot;{TemplateBinding ContentTemplate}&quot;
+                                Padding=&quot;{TemplateBinding Padding}&quot;
+                                VerticalContentAlignment=&quot;{TemplateBinding VerticalContentAlignment}&quot; /&gt;
+
+              &lt;Path Name=&quot;SortIcon&quot;
+                    Grid.Column=&quot;1&quot;
+                    Margin=&quot;6 0&quot;
+                    Width=&quot;10&quot;
+                    Height=&quot;10&quot;
+                    IsVisible=&quot;False&quot;
+                    Fill=&quot;{TemplateBinding Foreground}&quot;
+                    Stretch=&quot;Uniform&quot; /&gt;
+
+              &lt;Thumb Name=&quot;PART_Resizer&quot;
+                     Grid.Column=&quot;2&quot;
+                     Width=&quot;6&quot;
+                     Background=&quot;Transparent&quot;
+                     Cursor=&quot;SizeWestEast&quot;
+                     IsVisible=&quot;{TemplateBinding CanUserResize}&quot; /&gt;
+            &lt;/Grid&gt;
+          &lt;/Border&gt;
+        &lt;/ControlTemplate&gt;
+      &lt;/Setter&gt;
+
+      &lt;Style Selector=&quot;^:pointerover /template/ Border#DataGridBorder&quot;&gt;
+        &lt;Setter Property=&quot;Background&quot; Value=&quot;#22000000&quot; /&gt;
+      &lt;/Style&gt;
+
+      &lt;Style Selector=&quot;^:pressed /template/ Border#DataGridBorder&quot;&gt;
+        &lt;Setter Property=&quot;Background&quot; Value=&quot;#44000000&quot; /&gt;
+      &lt;/Style&gt;
+
+      &lt;Style Selector=&quot;^[SortDirection=Ascending] /template/ Path#SortIcon&quot;&gt;
+        &lt;Setter Property=&quot;IsVisible&quot; Value=&quot;True&quot; /&gt;
+        &lt;Setter Property=&quot;Data&quot; Value=&quot;{DynamicResource TreeDataGridSortIconAscendingPath}&quot; /&gt;
+      &lt;/Style&gt;
+
+      &lt;Style Selector=&quot;^[SortDirection=Descending] /template/ Path#SortIcon&quot;&gt;
+        &lt;Setter Property=&quot;IsVisible&quot; Value=&quot;True&quot; /&gt;
+        &lt;Setter Property=&quot;Data&quot; Value=&quot;{DynamicResource TreeDataGridSortIconDescendingPath}&quot; /&gt;
+      &lt;/Style&gt;
+    &lt;/ControlTheme&gt;
+  &lt;/Application.Resources&gt;
+
+  &lt;Application.Styles&gt;
+    &lt;FluentTheme/&gt;
+    &lt;StyleInclude Source=&quot;avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml&quot;/&gt;
+
+    &lt;Style Selector=&quot;TreeDataGridColumnHeader&quot;&gt;
+      &lt;Setter Property=&quot;Theme&quot; Value=&quot;{DynamicResource NeoTreeDataGridColumnHeaderTheme}&quot; /&gt;
+    &lt;/Style&gt;
+  &lt;/Application.Styles&gt;
+&lt;/Application&gt;
+</code></pre>
+<h2 id="example-fully-new-text-cell-theme-with-editing">Example: Fully New Text Cell Theme with Editing</h2>
+<p>When replacing <code>TreeDataGridTextCell</code>, keep a dedicated editing template with <code>PART_Edit</code> so edit activation and initial selection still work.</p>
+<pre><code class="language-xml">&lt;Application xmlns=&quot;https://github.com/avaloniaui&quot;
+             xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;&gt;
+  &lt;Application.Resources&gt;
+    &lt;ControlTheme x:Key=&quot;NeoTreeDataGridTextCellTheme&quot;
+                  TargetType=&quot;TreeDataGridTextCell&quot;&gt;
+      &lt;Setter Property=&quot;Padding&quot; Value=&quot;8 4&quot; /&gt;
+      &lt;Setter Property=&quot;Template&quot;&gt;
+        &lt;ControlTemplate&gt;
+          &lt;Border Background=&quot;{TemplateBinding Background}&quot;
+                  BorderBrush=&quot;{TemplateBinding BorderBrush}&quot;
+                  BorderThickness=&quot;{TemplateBinding BorderThickness}&quot;
+                  Padding=&quot;{TemplateBinding Padding}&quot;&gt;
+            &lt;TextBlock Text=&quot;{TemplateBinding Value}&quot;
+                       TextTrimming=&quot;{TemplateBinding TextTrimming}&quot;
+                       TextWrapping=&quot;{TemplateBinding TextWrapping}&quot;
+                       TextAlignment=&quot;{TemplateBinding TextAlignment}&quot;
+                       VerticalAlignment=&quot;Center&quot; /&gt;
+          &lt;/Border&gt;
+        &lt;/ControlTemplate&gt;
+      &lt;/Setter&gt;
+
+      &lt;Style Selector=&quot;^:editing&quot;&gt;
+        &lt;Setter Property=&quot;Template&quot;&gt;
+          &lt;ControlTemplate&gt;
+            &lt;Border Background=&quot;{TemplateBinding Background}&quot;
+                    BorderBrush=&quot;{TemplateBinding BorderBrush}&quot;
+                    BorderThickness=&quot;{TemplateBinding BorderThickness}&quot;
+                    Padding=&quot;{TemplateBinding Padding}&quot;&gt;
+              &lt;TextBox Name=&quot;PART_Edit&quot;
+                       Text=&quot;{TemplateBinding Value, Mode=TwoWay}&quot; /&gt;
+            &lt;/Border&gt;
+          &lt;/ControlTemplate&gt;
+        &lt;/Setter&gt;
+      &lt;/Style&gt;
+    &lt;/ControlTheme&gt;
+  &lt;/Application.Resources&gt;
+
+  &lt;Application.Styles&gt;
+    &lt;FluentTheme/&gt;
+    &lt;StyleInclude Source=&quot;avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml&quot;/&gt;
+
+    &lt;Style Selector=&quot;TreeDataGridTextCell&quot;&gt;
+      &lt;Setter Property=&quot;Theme&quot; Value=&quot;{DynamicResource NeoTreeDataGridTextCellTheme}&quot; /&gt;
+    &lt;/Style&gt;
+  &lt;/Application.Styles&gt;
+&lt;/Application&gt;
+</code></pre>
+<h2 id="replacement-strategy">Replacement Strategy</h2>
+<ol>
+<li>Start from shipped <code>Generic.axaml</code> templates and copy only the control(s) you need to replace.</li>
+<li>Keep required part names unchanged.</li>
+<li>Preserve state selectors (<code>:editing</code>, <code>SortDirection=...</code>) for behavior-critical visuals.</li>
+<li>Validate pointer, keyboard, sorting, resizing, expansion, and editing interactions.</li>
+</ol>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul>
+<li><p>Column header resize no longer works
+Cause: <code>PART_Resizer</code> missing or renamed.
+Fix: restore <code>Thumb Name=&quot;PART_Resizer&quot;</code> in the header template.</p>
+</li>
+<li><p>Text editing starts but focus is not inside editor
+Cause: editing template does not include <code>TextBox Name=&quot;PART_Edit&quot;</code>.
+Fix: restore <code>PART_Edit</code> in <code>:editing</code> template.</p>
+</li>
+<li><p>Expander cell content disappears
+Cause: <code>TreeDataGridExpanderCell</code> template is missing <code>Decorator Name=&quot;PART_Content&quot;</code>.
+Fix: restore <code>PART_Content</code> host in the expander cell template.</p>
+</li>
+</ul>
+<h2 id="api-coverage-checklist">API Coverage Checklist</h2>
+<ul>
+<li><a href="/TreeDataGrid/api/Avalonia.Controls.TreeDataGrid/" title="TreeDataGrid">TreeDataGrid</a></li>
+<li><a href="/TreeDataGrid/api/Avalonia.Controls.Primitives.TreeDataGridColumnHeader/" title="TreeDataGridColumnHeader">TreeDataGridColumnHeader</a></li>
+<li><a href="/TreeDataGrid/api/Avalonia.Controls.Primitives.TreeDataGridRow/" title="TreeDataGridRow">TreeDataGridRow</a></li>
+<li><a href="/TreeDataGrid/api/Avalonia.Controls.Primitives.TreeDataGridExpanderCell/" title="TreeDataGridExpanderCell">TreeDataGridExpanderCell</a></li>
+<li><a href="/TreeDataGrid/api/Avalonia.Controls.Primitives.TreeDataGridTextCell/" title="TreeDataGridTextCell">TreeDataGridTextCell</a></li>
+<li><a href="/TreeDataGrid/api/Avalonia.Controls.Primitives.TreeDataGridTemplateCell/" title="TreeDataGridTemplateCell">TreeDataGridTemplateCell</a></li>
+</ul>
+<h2 id="related">Related</h2>
+<ul>
+<li><a href="/TreeDataGrid/articles/xaml/theme-usage">Theme Usage</a></li>
+<li><a href="/TreeDataGrid/articles/xaml/theme-customization">Theme Customization</a></li>
+<li><a href="/TreeDataGrid/articles/xaml/control-theme-overrides-basedon">ControlTheme Overrides with BasedOn</a></li>
+<li><a href="/TreeDataGrid/articles/advanced/primitives-overview">Primitives Overview</a></li>
+</ul>
+
+      </div>
+  </div>
+</div>
+
+        </section>
+        <footer>
+          <hr>
+          <p>Copyright &copy; 2026, Wieslaw Soltes aka <a href="https://github.com/wieslawsoltes">wieslawsoltes</a> - Content licensed under the Creative Commons <a href="http://creativecommons.org/licenses/by/2.5/">CC BY 2.5</a> | Site generated by <a href="https://github.com/lunet-io/lunet">lunet</a> hosted on <a href="https://pages.github.com/">GitHub Pages</a></p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
+</html>

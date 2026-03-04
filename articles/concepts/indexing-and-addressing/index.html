@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html data-lunet-theme-mode="system" data-lunet-theme-storage-key="lunet-theme" data-lunet-css-prefix="lunet" lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="lunet 1.0.10.0">
+    <script>(function(){const root=document.documentElement;const key=root.getAttribute("data-lunet-theme-storage-key")||"lunet-theme";const fallback=root.getAttribute("data-lunet-theme-mode")||"system";let stored=null;try{stored=localStorage.getItem(key);}catch(_){stored=null;}const mode=(stored==="light"||stored==="dark"||stored==="system")?stored:fallback;const prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;root.setAttribute("data-lunet-theme-mode",mode);root.setAttribute("data-bs-theme",resolved);}());</script>
+    <link rel='icon' href='/TreeDataGrid/favicon.ico' sizes='32x32'>
+    <title>Indexing and Addressing | TreeDataGrid for Avalonia</title>
+    <link rel="stylesheet" href="/TreeDataGrid/css/lite.css">
+    <script src="/TreeDataGrid/js/lite-defer.js" defer></script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wieslawsoltes">
+<meta name="twitter:title" content="Indexing and Addressing | TreeDataGrid for Avalonia">
+<meta name="twitter:description" content="Indexing and Addressing TreeDataGrid distinguishes between model indexes and visible row indexes. Understanding this difference is critical for selection, expansion, sorting, and drag/drop. IndexPath: Hierarchical Model Address IndexPath identifies a model row in the source hierarchy. Examples: first root item: new IndexPath(0) second child of first root: new IndexPath(0, 1) first grandchild under that child: new IndexPath(0, 1, 0) Conveniences: implicit conversion from int for flat roots (...">
+<meta name="twitter:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
+<meta name="twitter:image:alt" content="Indexing and Addressing | TreeDataGrid for Avalonia">
+<meta property="og:title" content="Indexing and Addressing | TreeDataGrid for Avalonia">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wieslawsoltes.github.io/TreeDataGrid">
+<meta property="og:description" content="Indexing and Addressing TreeDataGrid distinguishes between model indexes and visible row indexes. Understanding this difference is critical for selection, expansion, sorting, and drag/drop. IndexPath: Hierarchical Model Address IndexPath identifies a model row in the source hierarchy. Examples: first root item: new IndexPath(0) second child of first root: new IndexPath(0, 1) first grandchild under that child: new IndexPath(0, 1, 0) Conveniences: implicit conversion from int for flat roots (...">
+<meta property="og:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
+<meta property="og:image:alt" content="Indexing and Addressing | TreeDataGrid for Avalonia">
+  </head>
+  <body>
+
+    <div id="lunet" class="container">
+      <nav class="navbar navbar-expand-md sticky-top">
+        <a class="navbar-brand" href="/TreeDataGrid/">
+          <img class="lunet-logo" src="/TreeDataGrid/images/logo.svg" alt="TreeDataGrid for Avalonia" width="96" height="96">
+          <span class="visually-hidden">Home</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="collapse navbar-collapse justify-content-between">
+<ol id='nav-id-home-0' class='navbar-nav nav-level0 show '>
+  <li id='nav-item-home-1' class='nav-item '>
+    <span class='nav-item-row'><a href='/TreeDataGrid/' class='nav-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a></span>  </li>
+  <li id='nav-item-home-2' class='nav-item  active'>
+    <span class='nav-item-row'><a href='/TreeDataGrid/articles/' class='nav-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a></span>  </li>
+  <li id='nav-item-home-3' class='nav-item '>
+    <span class='nav-item-row'><a href='/TreeDataGrid/api/' class='nav-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a></span>  </li>
+</ol>
+          <ol class="navbar-nav flex-grow-1" style="padding-right: 0.5rem;">
+            <li class="nav-item w-100">
+                <div class="lunet-search dropdown w-100">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="search-input" type="search" class="form-control" placeholder="Search... (Alt+s)" aria-label="Search" aria-controls="search-results" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-search-empty-message="Enter words to search..." data-search-no-results-message="No results found.">
+                    <ul id="search-results" class="dropdown-menu w-100 p-0" style="max-height: 50vh;" role="listbox" aria-labelledby="search-input"></ul>
+                  </div>
+                </div>
+            </li>
+          </ol>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0 navbar-right">
+            <div class="dropdown">
+              <button
+                id="theme-mode-toggle"
+                class="btn btn-outline-secondary btn-sm lunet-theme-toggle dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Theme">
+                <i class="bi bi-circle-half" data-lunet-theme-toggle-icon aria-hidden="true"></i>
+                <span
+                  data-lunet-theme-toggle-label
+                  data-theme-system-label="System"
+                  data-theme-light-label="Light"
+                  data-theme-dark-label="Dark">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-mode-toggle">
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="system"><i class="bi bi-circle-half me-2"></i>System</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="light"><i class="bi bi-sun-fill me-2"></i>Light</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="dark"><i class="bi bi-moon-stars-fill me-2"></i>Dark</button></li>
+              </ul>
+            </div>
+<ol id='nav-id-home2-0' class='navbar-nav nav-level0 show flex-shrink-0'>
+  <li id='nav-item-home2-1' class='nav-item '>
+    <span class='nav-item-row'><a href='https://github.com/wieslawsoltes/TreeDataGrid' class='nav-link  btn btn-info'><i class="bi bi-github"></i> GitHub</a></span>  </li>
+</ol>
+          </div>
+        </div>
+      </nav>
+      <div class="lunet lunet-articles">
+        <section data-prismjs-copy="" data-prismjs-copy-success="" data-prismjs-copy-timeout="1200" data-copy-tooltip="Copy to Clipboard." data-copy-tooltip-success="Copied!" data-copy-tooltip-error="Failed to copy!">
+
+<div class="container-xxl">
+  <div class="row">
+      <!-- Left sidebar - responsive offcanvas (offcanvas on mobile, visible sidebar on md+) -->
+      <nav id="docs-sidebar-menu" class="col-md-3 col-lg-3 col-xl-3 col-xxl-2 offcanvas-md offcanvas-start sticky-md-top menu-sidebar align-self-start order-1 order-md-0" tabindex="-1" aria-labelledby="docs-sidebar-menu-label" aria-expanded="true">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="docs-sidebar-menu-label">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <ol id='menu-id-concepts-0' class='menu menu-level0 show '>
+            <li id='menu-item-concepts-1' class='menu-item '>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/concepts/' class='menu-link  '>Concepts</a></span>  </li>
+            <li id='menu-item-concepts-2' class='menu-item '>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/concepts/architecture-and-data-flow/' class='menu-link  '>Architecture and Data Flow</a></span>  </li>
+            <li id='menu-item-concepts-3' class='menu-item  active'>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/concepts/indexing-and-addressing/' class='menu-link  '>Indexing and Addressing</a></span>  </li>
+            <li id='menu-item-concepts-4' class='menu-item '>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/concepts/columns-cells-rows/' class='menu-link  '>Columns, Cells, and Rows</a></span>  </li>
+            <li id='menu-item-concepts-5' class='menu-item '>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/concepts/selection-models/' class='menu-link  '>Selection Models</a></span>  </li>
+            <li id='menu-item-concepts-6' class='menu-item '>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/concepts/glossary/' class='menu-link  '>Glossary</a></span>  </li>
+          </ol>
+
+        </div>
+      </nav>
+      <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
+      <aside id="docs-sidebar-toc" class="col-12 col-xxl-2 sticky-xxl-top menu-sidebar align-self-start order-0 order-xxl-2 collapse d-xxl-block" aria-expanded="true">
+        <h3 class="toc-title">On this page</h3>
+        <nav class="js-toc"></nav>
+      </aside>
+      <!-- Main content column -->
+      <div class="col-12 col-md-9 col-lg-9 col-xl-9 col-xxl-8 order-2 order-md-1 js-toc-content">
+        <ol class='breadcrumb'>
+          <li class='breadcrumb-item '>
+            <a href='/TreeDataGrid/' class='breadcrumb-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/TreeDataGrid/articles/' class='breadcrumb-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/TreeDataGrid/articles/concepts/' class='breadcrumb-link  '>Concepts</a>  </li>
+          <li class='breadcrumb-item  active'>
+            Indexing and Addressing  </li>
+        </ol>
+
+        <p id="lunet-results"></p>
+        <!-- Toggle buttons visible only on small screens -->
+        <div class="d-md-none mb-3">
+          <button
+            class="btn btn-outline-secondary btn-sm me-2"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#docs-sidebar-menu"
+            aria-controls="docs-sidebar-menu"
+            aria-label="Toggle docs menu">
+            Menu
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm d-xxl-none"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#docs-sidebar-toc"
+            aria-controls="docs-sidebar-toc"
+            aria-expanded="false"
+            aria-label="Toggle Table Of Contents">
+            On this page
+          </button>
+        </div>
+<!-- lunet:summarize -->
+<h1 id="indexing-and-addressing">Indexing and Addressing</h1>
+<p>TreeDataGrid distinguishes between model indexes and visible row indexes.</p>
+<p>Understanding this difference is critical for selection, expansion, sorting, and drag/drop.</p>
+<h2 id="indexpath-hierarchical-model-address"><code>IndexPath</code>: Hierarchical Model Address</h2>
+<p><code>IndexPath</code> identifies a model row in the source hierarchy.</p>
+<p>Examples:</p>
+<ul>
+<li>first root item: <code>new IndexPath(0)</code></li>
+<li>second child of first root: <code>new IndexPath(0, 1)</code></li>
+<li>first grandchild under that child: <code>new IndexPath(0, 1, 0)</code></li>
+</ul>
+<p>Conveniences:</p>
+<ul>
+<li>implicit conversion from <code>int</code> for flat roots (<code>IndexPath p = 3;</code>)</li>
+<li><code>IndexPath.Unselected</code> for empty/no selection</li>
+<li><code>Append(int)</code> to build deeper paths</li>
+</ul>
+<h2 id="cellindex-cell-address"><code>CellIndex</code>: Cell Address</h2>
+<p><code>CellIndex</code> combines:</p>
+<ul>
+<li><code>ColumnIndex</code> (<code>int</code>)</li>
+<li><code>RowIndex</code> (<code>IndexPath</code>)</li>
+</ul>
+<p>It is used by cell selection APIs.</p>
+<p>Example:</p>
+<pre><code class="language-csharp">var cell = new CellIndex(columnIndex: 2, rowIndex: new IndexPath(0, 1));
+</code></pre>
+<h2 id="model-index-vs-visible-row-index">Model Index vs Visible Row Index</h2>
+<p><code>IndexPath</code> addresses model position. Visible row index addresses current on-screen order.</p>
+<p>They can differ when:</p>
+<ul>
+<li>hierarchical rows are collapsed/expanded</li>
+<li>sorting is active</li>
+<li>virtualization and realization are in effect</li>
+</ul>
+<p>Row collections expose conversion APIs:</p>
+<ul>
+<li><code>IRows.ModelIndexToRowIndex(IndexPath)</code></li>
+<li><code>IRows.RowIndexToModelIndex(int)</code></li>
+</ul>
+<h2 id="practical-rules">Practical Rules</h2>
+<ul>
+<li>Persist selections using <code>IndexPath</code> (model index), not visible row index.</li>
+<li>Convert to visible row index only when targeting UI operations (<code>BringIntoView</code>, <code>TryGetRow</code>).</li>
+<li>After sorting or hierarchy changes, recalculate visible row indexes.</li>
+</ul>
+<h2 id="working-with-hierarchy-paths">Working with Hierarchy Paths</h2>
+<p>Use <code>IndexPath</code> helpers when traversing:</p>
+<ul>
+<li>parent path: <code>path[..^1]</code></li>
+<li>direct child path: <code>path.Append(childIndex)</code></li>
+<li>relationship checks:
+<ul>
+<li><code>parent.IsAncestorOf(child)</code></li>
+<li><code>parent.IsParentOf(child)</code></li>
+</ul>
+</li>
+</ul>
+<h2 id="example-select-and-scroll-a-hierarchical-row">Example: Select and Scroll a Hierarchical Row</h2>
+<pre><code class="language-csharp">var modelIndex = new IndexPath(0, 1, 0);
+Source.RowSelection!.SelectedIndex = modelIndex;
+
+var rowIndex = Source.Rows.ModelIndexToRowIndex(modelIndex);
+if (rowIndex &gt;= 0)
+    grid.RowsPresenter?.BringIntoView(rowIndex);
+</code></pre>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul>
+<li><p>Feature behavior differs from expectations
+Cause: one or more options in this scenario are configured differently (source type, column options, sort/selection/edit state).
+Fix: compare your setup with the snippet in this article and verify runtime values on <code>Source</code>, <code>Columns</code>, and <code>Selection</code>.</p>
+</li>
+<li><p>Data changes are not visible in UI
+Cause: model or collection notifications are missing, or a replaced collection/source is not re-bound.
+Fix: ensure <code>INotifyPropertyChanged</code>/<code>INotifyCollectionChanged</code> flow is active and reassign <code>Source</code> after replacing underlying collections.</p>
+</li>
+</ul>
+<h2 id="api-coverage-checklist">API Coverage Checklist</h2>
+<ul>
+<li><a href="/TreeDataGrid/api/Avalonia.Controls.CellIndex/" title="CellIndex">CellIndex</a></li>
+<li><a href="/TreeDataGrid/api/Avalonia.Controls.IndexPath/" title="IndexPath">IndexPath</a></li>
+</ul>
+<h2 id="related">Related</h2>
+<ul>
+<li><a href="/TreeDataGrid/articles/concepts/selection-models">Selection Models</a></li>
+<li><a href="/TreeDataGrid/articles/guides/selection-row">Row Selection Guide</a></li>
+<li><a href="/TreeDataGrid/articles/guides/selection-cell">Cell Selection Guide</a></li>
+<li><a href="/TreeDataGrid/articles/concepts/glossary">TreeDataGrid Glossary</a></li>
+<li><a href="/TreeDataGrid/articles/guides/troubleshooting">Troubleshooting Guide</a></li>
+</ul>
+
+      </div>
+  </div>
+</div>
+
+        </section>
+        <footer>
+          <hr>
+          <p>Copyright &copy; 2026, Wieslaw Soltes aka <a href="https://github.com/wieslawsoltes">wieslawsoltes</a> - Content licensed under the Creative Commons <a href="http://creativecommons.org/licenses/by/2.5/">CC BY 2.5</a> | Site generated by <a href="https://github.com/lunet-io/lunet">lunet</a> hosted on <a href="https://pages.github.com/">GitHub Pages</a></p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
+</html>

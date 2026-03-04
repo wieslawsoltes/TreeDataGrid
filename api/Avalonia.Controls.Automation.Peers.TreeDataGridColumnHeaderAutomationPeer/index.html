@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html data-lunet-theme-mode="system" data-lunet-theme-storage-key="lunet-theme" data-lunet-css-prefix="lunet" lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="lunet 1.0.10.0">
+    <script>(function(){const root=document.documentElement;const key=root.getAttribute("data-lunet-theme-storage-key")||"lunet-theme";const fallback=root.getAttribute("data-lunet-theme-mode")||"system";let stored=null;try{stored=localStorage.getItem(key);}catch(_){stored=null;}const mode=(stored==="light"||stored==="dark"||stored==="system")?stored:fallback;const prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;root.setAttribute("data-lunet-theme-mode",mode);root.setAttribute("data-bs-theme",resolved);}());</script>
+    <link rel='icon' href='/TreeDataGrid/favicon.ico' sizes='32x32'>
+    <title>TreeDataGridColumnHeaderAutomationPeer Class | TreeDataGrid for Avalonia</title>
+    <link rel="stylesheet" href="/TreeDataGrid/css/lite.css">
+    <script src="/TreeDataGrid/js/lite-defer.js" defer></script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wieslawsoltes">
+<meta name="twitter:title" content="TreeDataGridColumnHeaderAutomationPeer Class | TreeDataGrid for Avalonia">
+<meta name="twitter:description" content="TreeDataGridColumnHeaderAutomationPeer Class Definition Namespace Avalonia.Controls.Automation.Peers Assembly Avalonia.Controls.TreeDataGrid.dll Inherits Object → Avalonia.Automation.Peers.AutomationPeer → Avalonia.Automation.Peers.ControlAutomationPeer → Avalonia.Automation.Peers.ContentControlAutomationPeer View source Show inherited members (75) Avalonia.Automation.Peers.ContentControlAutomationPeer.GetNameCore Avalonia.Automation.Peers.ControlAutomationPeer.GetOrCreate(Avalonia.Controls.Control) Avalonia.Automation.Peers.ControlAutomationPeer.CreatePeerForElement(Avalonia.Controls.Control) Avalonia.Automation.Peers.ControlAutomationPeer.FromElement(Avalonia.Controls.Control) Avalonia.Automation.Peers.ControlAutomationPeer.BringIntoViewCore Avalonia.Automation.Peers.ControlAutomationPeer.GetOrCreateChildrenCore...">
+<meta name="twitter:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
+<meta name="twitter:image:alt" content="TreeDataGridColumnHeaderAutomationPeer Class | TreeDataGrid for Avalonia">
+<meta property="og:title" content="TreeDataGridColumnHeaderAutomationPeer Class | TreeDataGrid for Avalonia">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wieslawsoltes.github.io/TreeDataGrid">
+<meta property="og:description" content="TreeDataGridColumnHeaderAutomationPeer Class Definition Namespace Avalonia.Controls.Automation.Peers Assembly Avalonia.Controls.TreeDataGrid.dll Inherits Object → Avalonia.Automation.Peers.AutomationPeer → Avalonia.Automation.Peers.ControlAutomationPeer → Avalonia.Automation.Peers.ContentControlAutomationPeer View source Show inherited members (75) Avalonia.Automation.Peers.ContentControlAutomationPeer.GetNameCore Avalonia.Automation.Peers.ControlAutomationPeer.GetOrCreate(Avalonia.Controls.Control) Avalonia.Automation.Peers.ControlAutomationPeer.CreatePeerForElement(Avalonia.Controls.Control) Avalonia.Automation.Peers.ControlAutomationPeer.FromElement(Avalonia.Controls.Control) Avalonia.Automation.Peers.ControlAutomationPeer.BringIntoViewCore Avalonia.Automation.Peers.ControlAutomationPeer.GetOrCreateChildrenCore...">
+<meta property="og:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
+<meta property="og:image:alt" content="TreeDataGridColumnHeaderAutomationPeer Class | TreeDataGrid for Avalonia">
+  </head>
+  <body>
+
+    <div id="lunet" class="container">
+      <nav class="navbar navbar-expand-md sticky-top">
+        <a class="navbar-brand" href="/TreeDataGrid/">
+          <img class="lunet-logo" src="/TreeDataGrid/images/logo.svg" alt="TreeDataGrid for Avalonia" width="96" height="96">
+          <span class="visually-hidden">Home</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="collapse navbar-collapse justify-content-between">
+<ol id='nav-id-home-0' class='navbar-nav nav-level0 show '>
+  <li id='nav-item-home-1' class='nav-item '>
+    <span class='nav-item-row'><a href='/TreeDataGrid/' class='nav-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a></span>  </li>
+  <li id='nav-item-home-2' class='nav-item '>
+    <span class='nav-item-row'><a href='/TreeDataGrid/articles/' class='nav-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a></span>  </li>
+  <li id='nav-item-home-3' class='nav-item  active'>
+    <span class='nav-item-row'><a href='/TreeDataGrid/api/' class='nav-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a></span>  </li>
+</ol>
+          <ol class="navbar-nav flex-grow-1" style="padding-right: 0.5rem;">
+            <li class="nav-item w-100">
+                <div class="lunet-search dropdown w-100">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="search-input" type="search" class="form-control" placeholder="Search... (Alt+s)" aria-label="Search" aria-controls="search-results" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-search-empty-message="Enter words to search..." data-search-no-results-message="No results found.">
+                    <ul id="search-results" class="dropdown-menu w-100 p-0" style="max-height: 50vh;" role="listbox" aria-labelledby="search-input"></ul>
+                  </div>
+                </div>
+            </li>
+          </ol>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0 navbar-right">
+            <div class="dropdown">
+              <button
+                id="theme-mode-toggle"
+                class="btn btn-outline-secondary btn-sm lunet-theme-toggle dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Theme">
+                <i class="bi bi-circle-half" data-lunet-theme-toggle-icon aria-hidden="true"></i>
+                <span
+                  data-lunet-theme-toggle-label
+                  data-theme-system-label="System"
+                  data-theme-light-label="Light"
+                  data-theme-dark-label="Dark">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-mode-toggle">
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="system"><i class="bi bi-circle-half me-2"></i>System</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="light"><i class="bi bi-sun-fill me-2"></i>Light</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="dark"><i class="bi bi-moon-stars-fill me-2"></i>Dark</button></li>
+              </ul>
+            </div>
+<ol id='nav-id-home2-0' class='navbar-nav nav-level0 show flex-shrink-0'>
+  <li id='nav-item-home2-1' class='nav-item '>
+    <span class='nav-item-row'><a href='https://github.com/wieslawsoltes/TreeDataGrid' class='nav-link  btn btn-info'><i class="bi bi-github"></i> GitHub</a></span>  </li>
+</ol>
+          </div>
+        </div>
+      </nav>
+      <div class="lunet lunet-api">
+        <section data-prismjs-copy="" data-prismjs-copy-success="" data-prismjs-copy-timeout="1200" data-copy-tooltip="Copy to Clipboard." data-copy-tooltip-success="Copied!" data-copy-tooltip-error="Failed to copy!">
+
+<div class="container-xxl">
+  <div class="row">
+      <!-- Left sidebar - responsive offcanvas (offcanvas on mobile, visible sidebar on md+) -->
+      <nav id="docs-sidebar-menu" class="col-md-3 col-lg-3 col-xl-3 col-xxl-3 offcanvas-md offcanvas-start sticky-md-top menu-sidebar align-self-start order-1 order-md-0" tabindex="-1" aria-labelledby="docs-sidebar-menu-label" aria-expanded="true">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="docs-sidebar-menu-label">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <div class='lunet-menu-async' data-lunet-menu-partial='/TreeDataGrid/partials/menus/menu-menu.129744b82600b7778ef1d210156830d7.html' data-lunet-menu-open='menu-id-menu-0,menu-id-menu-272,menu-id-menu-241' data-lunet-menu-active='menu-item-menu-272,menu-item-menu-241,menu-item-menu-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+        </div>
+      </nav>
+      <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
+      <aside id="docs-sidebar-toc" class="col-12 col-xxl-2 sticky-xxl-top menu-sidebar align-self-start order-0 order-xxl-2 collapse d-xxl-block" aria-expanded="true">
+        <h3 class="toc-title">On this page</h3>
+        <nav class="js-toc"></nav>
+      </aside>
+      <!-- Main content column -->
+      <div class="col-12 col-md-9 col-lg-9 col-xl-9 col-xxl-7 order-2 order-md-1 js-toc-content">
+        <ol class='breadcrumb'>
+          <li class='breadcrumb-item '>
+            <a href='/TreeDataGrid/' class='breadcrumb-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/TreeDataGrid/api/' class='breadcrumb-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/TreeDataGrid/api/Avalonia.Controls.Automation.Peers/' class='breadcrumb-link  '><i class='bi bi-diagram-3' aria-hidden='true'></i> Avalonia.Controls.Automation.Peers</a>  </li>
+          <li class='breadcrumb-item  active'>
+            <i class='bi bi-box' aria-hidden='true'></i> TreeDataGridColumnHeaderAutomationPeer  </li>
+        </ol>
+
+        <p id="lunet-results"></p>
+        <!-- Toggle buttons visible only on small screens -->
+        <div class="d-md-none mb-3">
+          <button
+            class="btn btn-outline-secondary btn-sm me-2"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#docs-sidebar-menu"
+            aria-controls="docs-sidebar-menu"
+            aria-label="Toggle docs menu">
+            Menu
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm d-xxl-none"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#docs-sidebar-toc"
+            aria-controls="docs-sidebar-toc"
+            aria-expanded="false"
+            aria-label="Toggle Table Of Contents">
+            On this page
+          </button>
+        </div>
+<!-- lunet:summarize -->
+<div class="api-dotnet">
+<h1 id="treedatagridcolumnheaderautomationpeer-class">TreeDataGridColumnHeaderAutomationPeer Class</h1>
+<h2 id="definition" class="heading-anchor-hidden">Definition</h2>
+<div class="api-dotnet-definition">
+<div class="api-dotnet-definition-header">
+<div class="api-dotnet-definition-meta">
+<div><span class="api-dotnet-label">Namespace</span> <a href="/TreeDataGrid/api/Avalonia.Controls.Automation.Peers/">Avalonia.Controls.Automation.Peers</a></div>
+<div><span class="api-dotnet-label">Assembly</span> Avalonia.Controls.TreeDataGrid.dll</div>
+<div><span class="api-dotnet-label">Inherits</span> <span class="api-dotnet-inline-list"><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object">Object</a> &#x2192; <a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer/">Avalonia.Automation.Peers.AutomationPeer</a> &#x2192; <a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer/">Avalonia.Automation.Peers.ControlAutomationPeer</a> &#x2192; <a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ContentControlAutomationPeer/">Avalonia.Automation.Peers.ContentControlAutomationPeer</a></span></div>
+</div>
+<div class="api-dotnet-definition-actions">
+<a class="api-dotnet-action" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Automation/Peers/TreeDataGridColumnHeaderAutomationPeer.cs#L8" target="_blank" rel="noopener">View source</a>
+</div>
+</div>
+<details class="api-dotnet-inherited">
+<summary>Show inherited members (75)</summary>
+<ul>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ContentControlAutomationPeer.GetNameCore/">Avalonia.Automation.Peers.ContentControlAutomationPeer.GetNameCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.GetOrCreate-Avalonia.Controls.Control/">Avalonia.Automation.Peers.ControlAutomationPeer.GetOrCreate(Avalonia.Controls.Control)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.CreatePeerForElement-Avalonia.Controls.Control/">Avalonia.Automation.Peers.ControlAutomationPeer.CreatePeerForElement(Avalonia.Controls.Control)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.FromElement-Avalonia.Controls.Control/">Avalonia.Automation.Peers.ControlAutomationPeer.FromElement(Avalonia.Controls.Control)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.BringIntoViewCore/">Avalonia.Automation.Peers.ControlAutomationPeer.BringIntoViewCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.GetOrCreateChildrenCore/">Avalonia.Automation.Peers.ControlAutomationPeer.GetOrCreateChildrenCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.GetChildrenCore/">Avalonia.Automation.Peers.ControlAutomationPeer.GetChildrenCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.GetLabeledByCore/">Avalonia.Automation.Peers.ControlAutomationPeer.GetLabeledByCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.GetHelpTextCore/">Avalonia.Automation.Peers.ControlAutomationPeer.GetHelpTextCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.GetLandmarkTypeCore/">Avalonia.Automation.Peers.ControlAutomationPeer.GetLandmarkTypeCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.GetHeadingLevelCore/">Avalonia.Automation.Peers.ControlAutomationPeer.GetHeadingLevelCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.GetParentCore/">Avalonia.Automation.Peers.ControlAutomationPeer.GetParentCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.GetVisualRootCore/">Avalonia.Automation.Peers.ControlAutomationPeer.GetVisualRootCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.InvalidateChildren/">Avalonia.Automation.Peers.ControlAutomationPeer.InvalidateChildren</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.InvalidateParent/">Avalonia.Automation.Peers.ControlAutomationPeer.InvalidateParent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.ShowContextMenuCore/">Avalonia.Automation.Peers.ControlAutomationPeer.ShowContextMenuCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.GetLiveSettingCore/">Avalonia.Automation.Peers.ControlAutomationPeer.GetLiveSettingCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.TrySetParent-Avalonia.Automation.Pe-7c58168b8ec5/">Avalonia.Automation.Peers.ControlAutomationPeer.TrySetParent(Avalonia.Automation.Peers.AutomationPeer)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.GetAcceleratorKeyCore/">Avalonia.Automation.Peers.ControlAutomationPeer.GetAcceleratorKeyCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.GetAccessKeyCore/">Avalonia.Automation.Peers.ControlAutomationPeer.GetAccessKeyCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.GetAutomationIdCore/">Avalonia.Automation.Peers.ControlAutomationPeer.GetAutomationIdCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.GetBoundingRectangleCore/">Avalonia.Automation.Peers.ControlAutomationPeer.GetBoundingRectangleCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.GetClassNameCore/">Avalonia.Automation.Peers.ControlAutomationPeer.GetClassNameCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.GetItemStatusCore/">Avalonia.Automation.Peers.ControlAutomationPeer.GetItemStatusCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.GetItemTypeCore/">Avalonia.Automation.Peers.ControlAutomationPeer.GetItemTypeCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.HasKeyboardFocusCore/">Avalonia.Automation.Peers.ControlAutomationPeer.HasKeyboardFocusCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.IsEnabledCore/">Avalonia.Automation.Peers.ControlAutomationPeer.IsEnabledCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.IsKeyboardFocusableCore/">Avalonia.Automation.Peers.ControlAutomationPeer.IsKeyboardFocusableCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.SetFocusCore/">Avalonia.Automation.Peers.ControlAutomationPeer.SetFocusCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.GetControlTypeOverrideCore/">Avalonia.Automation.Peers.ControlAutomationPeer.GetControlTypeOverrideCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.IsContentElementOverrideCore/">Avalonia.Automation.Peers.ControlAutomationPeer.IsContentElementOverrideCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.IsControlElementOverrideCore/">Avalonia.Automation.Peers.ControlAutomationPeer.IsControlElementOverrideCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.ControlAutomationPeer.IsOffscreenCore/">Avalonia.Automation.Peers.ControlAutomationPeer.IsOffscreenCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.BringIntoView/">Avalonia.Automation.Peers.AutomationPeer.BringIntoView</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.GetAcceleratorKey/">Avalonia.Automation.Peers.AutomationPeer.GetAcceleratorKey</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.GetAccessKey/">Avalonia.Automation.Peers.AutomationPeer.GetAccessKey</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.GetAutomationControlType/">Avalonia.Automation.Peers.AutomationPeer.GetAutomationControlType</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.GetAutomationId/">Avalonia.Automation.Peers.AutomationPeer.GetAutomationId</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.GetBoundingRectangle/">Avalonia.Automation.Peers.AutomationPeer.GetBoundingRectangle</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.GetChildren/">Avalonia.Automation.Peers.AutomationPeer.GetChildren</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.GetClassName/">Avalonia.Automation.Peers.AutomationPeer.GetClassName</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.GetLabeledBy/">Avalonia.Automation.Peers.AutomationPeer.GetLabeledBy</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.GetLocalizedControlType/">Avalonia.Automation.Peers.AutomationPeer.GetLocalizedControlType</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.GetName/">Avalonia.Automation.Peers.AutomationPeer.GetName</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.GetHelpText/">Avalonia.Automation.Peers.AutomationPeer.GetHelpText</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.GetLandmarkType/">Avalonia.Automation.Peers.AutomationPeer.GetLandmarkType</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.GetHeadingLevel/">Avalonia.Automation.Peers.AutomationPeer.GetHeadingLevel</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.GetItemType/">Avalonia.Automation.Peers.AutomationPeer.GetItemType</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.GetItemStatus/">Avalonia.Automation.Peers.AutomationPeer.GetItemStatus</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.GetParent/">Avalonia.Automation.Peers.AutomationPeer.GetParent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.GetVisualRoot/">Avalonia.Automation.Peers.AutomationPeer.GetVisualRoot</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.HasKeyboardFocus/">Avalonia.Automation.Peers.AutomationPeer.HasKeyboardFocus</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.IsContentElement/">Avalonia.Automation.Peers.AutomationPeer.IsContentElement</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.IsControlElement/">Avalonia.Automation.Peers.AutomationPeer.IsControlElement</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.IsEnabled/">Avalonia.Automation.Peers.AutomationPeer.IsEnabled</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.IsKeyboardFocusable/">Avalonia.Automation.Peers.AutomationPeer.IsKeyboardFocusable</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.IsOffscreen/">Avalonia.Automation.Peers.AutomationPeer.IsOffscreen</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.SetFocus/">Avalonia.Automation.Peers.AutomationPeer.SetFocus</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.ShowContextMenu/">Avalonia.Automation.Peers.AutomationPeer.ShowContextMenu</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.GetLiveSetting/">Avalonia.Automation.Peers.AutomationPeer.GetLiveSetting</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.GetProvider--1/">Avalonia.Automation.Peers.AutomationPeer.GetProvider``1</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.RaiseChildrenChangedEvent/">Avalonia.Automation.Peers.AutomationPeer.RaiseChildrenChangedEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.RaisePropertyChangedEvent-Avalonia.Automat-2c1228c77c3a/">Avalonia.Automation.Peers.AutomationPeer.RaisePropertyChangedEvent(Avalonia.Automation.AutomationProperty,System.Object,System.Object)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.GetLocalizedControlTypeCore/">Avalonia.Automation.Peers.AutomationPeer.GetLocalizedControlTypeCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.GetProviderCore-System.Type/">Avalonia.Automation.Peers.AutomationPeer.GetProviderCore(System.Type)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.EnsureEnabled/">Avalonia.Automation.Peers.AutomationPeer.EnsureEnabled</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.ChildrenChanged/">Avalonia.Automation.Peers.AutomationPeer.ChildrenChanged</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Automation.Peers.AutomationPeer.PropertyChanged/">Avalonia.Automation.Peers.AutomationPeer.PropertyChanged</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.Equals-System.Object">System.Object.Equals(System.Object?)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.Equals-System.Object-System.Object">System.Object.Equals(System.Object?, System.Object?)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.GetHashCode">System.Object.GetHashCode()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.GetType">System.Object.GetType()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.MemberwiseClone">System.Object.MemberwiseClone()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.ReferenceEquals-System.Object-System.Object">System.Object.ReferenceEquals(System.Object?, System.Object?)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.ToString">System.Object.ToString()</a></li>
+</ul>
+</details>
+</div>
+<pre><code class="language-csharp">public class TreeDataGridColumnHeaderAutomationPeer : ContentControlAutomationPeer
+</code></pre>
+<div class="api-dotnet-member-filter" data-api-dotnet-filter>
+<div class="api-dotnet-member-filter-row">
+<label class="api-dotnet-member-filter-label" for="api-dotnet-member-filter-avalonia-controls-automation-peers-treedatagridcolumnheaderautomationpeer">Filter members:</label>
+<input id="api-dotnet-member-filter-avalonia-controls-automation-peers-treedatagridcolumnheaderautomationpeer" class="form-control form-control-sm api-dotnet-member-filter-input" type="search" placeholder="name, kind, summary (e.g. kind:method)" autocomplete="off" spellcheck="false" />
+<div class="api-dotnet-member-filter-status" aria-live="polite"></div>
+</div>
+<div class="form-text api-dotnet-member-filter-help">Tip: use <code>kind:method</code>, <code>kind:property</code>, <code>kind:ctor</code>. Press <kbd>Esc</kbd> to clear.</div>
+</div>
+<h2 id="constructors">Constructors <span class="api-dotnet-count">(1)</span></h2>
+<div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="constructors">
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Constructor"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Controls.Automation.Peers.TreeDataGridColumnHeaderAutomationPeer.-ctor-Ava-7927c80b500b/"><i class="bi bi-hammer api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">TreeDataGridColumnHeaderAutomationPeer(TreeDataGridColumnHeader)</code></a></div>
+</div>
+<h2 id="properties">Properties <span class="api-dotnet-count">(1)</span></h2>
+<div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="properties">
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Controls.Automation.Peers.TreeDataGridColumnHeaderAutomationPeer.Owner/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Owner</code></a></div>
+</div>
+<h2 id="methods">Methods <span class="api-dotnet-count">(3)</span></h2>
+<div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="methods">
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Controls.Automation.Peers.TreeDataGridColumnHeaderAutomationPeer.GetAutoma-c393e84c5a56/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">GetAutomationControlTypeCore()</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Controls.Automation.Peers.TreeDataGridColumnHeaderAutomationPeer.IsContentElementCore/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">IsContentElementCore()</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Controls.Automation.Peers.TreeDataGridColumnHeaderAutomationPeer.IsControlElementCore/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">IsControlElementCore()</code></a></div>
+</div>
+</div>
+
+      </div>
+  </div>
+</div>
+
+        </section>
+        <footer>
+          <hr>
+          <p>Copyright &copy; 2026, Wieslaw Soltes aka <a href="https://github.com/wieslawsoltes">wieslawsoltes</a> - Content licensed under the Creative Commons <a href="http://creativecommons.org/licenses/by/2.5/">CC BY 2.5</a> | Site generated by <a href="https://github.com/lunet-io/lunet">lunet</a> hosted on <a href="https://pages.github.com/">GitHub Pages</a></p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
+</html>

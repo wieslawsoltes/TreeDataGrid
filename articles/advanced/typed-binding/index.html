@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html data-lunet-theme-mode="system" data-lunet-theme-storage-key="lunet-theme" data-lunet-css-prefix="lunet" lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="lunet 1.0.10.0">
+    <script>(function(){const root=document.documentElement;const key=root.getAttribute("data-lunet-theme-storage-key")||"lunet-theme";const fallback=root.getAttribute("data-lunet-theme-mode")||"system";let stored=null;try{stored=localStorage.getItem(key);}catch(_){stored=null;}const mode=(stored==="light"||stored==="dark"||stored==="system")?stored:fallback;const prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;root.setAttribute("data-lunet-theme-mode",mode);root.setAttribute("data-bs-theme",resolved);}());</script>
+    <link rel='icon' href='/TreeDataGrid/favicon.ico' sizes='32x32'>
+    <title>Typed Binding | TreeDataGrid for Avalonia</title>
+    <link rel="stylesheet" href="/TreeDataGrid/css/lite.css">
+    <script src="/TreeDataGrid/js/lite-defer.js" defer></script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wieslawsoltes">
+<meta name="twitter:title" content="Typed Binding | TreeDataGrid for Avalonia">
+<meta name="twitter:description" content="Typed Binding TreeDataGrid exposes typed-binding APIs for strongly typed read/write delegates and lower boxing overhead than untyped bindings. Public Typed-Binding Surface TypedBinding&lt;TIn>: factory methods (OneWay, TwoWay, Default, OneTime). TypedBinding&lt;TIn,TOut>: binding definition and bind/instance methods. TypedBindingExpression&lt;TIn,TOut>: instantiated observable expression. ExpressionChainVisitor&lt;TIn>: expression-chain link extraction. LightweightObservableBase&lt;T>: low-allocation observable base used by expression pipeline. Typical Usage in Columns...">
+<meta name="twitter:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
+<meta name="twitter:image:alt" content="Typed Binding | TreeDataGrid for Avalonia">
+<meta property="og:title" content="Typed Binding | TreeDataGrid for Avalonia">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wieslawsoltes.github.io/TreeDataGrid">
+<meta property="og:description" content="Typed Binding TreeDataGrid exposes typed-binding APIs for strongly typed read/write delegates and lower boxing overhead than untyped bindings. Public Typed-Binding Surface TypedBinding&lt;TIn>: factory methods (OneWay, TwoWay, Default, OneTime). TypedBinding&lt;TIn,TOut>: binding definition and bind/instance methods. TypedBindingExpression&lt;TIn,TOut>: instantiated observable expression. ExpressionChainVisitor&lt;TIn>: expression-chain link extraction. LightweightObservableBase&lt;T>: low-allocation observable base used by expression pipeline. Typical Usage in Columns...">
+<meta property="og:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
+<meta property="og:image:alt" content="Typed Binding | TreeDataGrid for Avalonia">
+  </head>
+  <body>
+
+    <div id="lunet" class="container">
+      <nav class="navbar navbar-expand-md sticky-top">
+        <a class="navbar-brand" href="/TreeDataGrid/">
+          <img class="lunet-logo" src="/TreeDataGrid/images/logo.svg" alt="TreeDataGrid for Avalonia" width="96" height="96">
+          <span class="visually-hidden">Home</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="collapse navbar-collapse justify-content-between">
+<ol id='nav-id-home-0' class='navbar-nav nav-level0 show '>
+  <li id='nav-item-home-1' class='nav-item '>
+    <span class='nav-item-row'><a href='/TreeDataGrid/' class='nav-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a></span>  </li>
+  <li id='nav-item-home-2' class='nav-item  active'>
+    <span class='nav-item-row'><a href='/TreeDataGrid/articles/' class='nav-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a></span>  </li>
+  <li id='nav-item-home-3' class='nav-item '>
+    <span class='nav-item-row'><a href='/TreeDataGrid/api/' class='nav-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a></span>  </li>
+</ol>
+          <ol class="navbar-nav flex-grow-1" style="padding-right: 0.5rem;">
+            <li class="nav-item w-100">
+                <div class="lunet-search dropdown w-100">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="search-input" type="search" class="form-control" placeholder="Search... (Alt+s)" aria-label="Search" aria-controls="search-results" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-search-empty-message="Enter words to search..." data-search-no-results-message="No results found.">
+                    <ul id="search-results" class="dropdown-menu w-100 p-0" style="max-height: 50vh;" role="listbox" aria-labelledby="search-input"></ul>
+                  </div>
+                </div>
+            </li>
+          </ol>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0 navbar-right">
+            <div class="dropdown">
+              <button
+                id="theme-mode-toggle"
+                class="btn btn-outline-secondary btn-sm lunet-theme-toggle dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Theme">
+                <i class="bi bi-circle-half" data-lunet-theme-toggle-icon aria-hidden="true"></i>
+                <span
+                  data-lunet-theme-toggle-label
+                  data-theme-system-label="System"
+                  data-theme-light-label="Light"
+                  data-theme-dark-label="Dark">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-mode-toggle">
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="system"><i class="bi bi-circle-half me-2"></i>System</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="light"><i class="bi bi-sun-fill me-2"></i>Light</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="dark"><i class="bi bi-moon-stars-fill me-2"></i>Dark</button></li>
+              </ul>
+            </div>
+<ol id='nav-id-home2-0' class='navbar-nav nav-level0 show flex-shrink-0'>
+  <li id='nav-item-home2-1' class='nav-item '>
+    <span class='nav-item-row'><a href='https://github.com/wieslawsoltes/TreeDataGrid' class='nav-link  btn btn-info'><i class="bi bi-github"></i> GitHub</a></span>  </li>
+</ol>
+          </div>
+        </div>
+      </nav>
+      <div class="lunet lunet-articles">
+        <section data-prismjs-copy="" data-prismjs-copy-success="" data-prismjs-copy-timeout="1200" data-copy-tooltip="Copy to Clipboard." data-copy-tooltip-success="Copied!" data-copy-tooltip-error="Failed to copy!">
+
+<div class="container-xxl">
+  <div class="row">
+      <!-- Left sidebar - responsive offcanvas (offcanvas on mobile, visible sidebar on md+) -->
+      <nav id="docs-sidebar-menu" class="col-md-3 col-lg-3 col-xl-3 col-xxl-2 offcanvas-md offcanvas-start sticky-md-top menu-sidebar align-self-start order-1 order-md-0" tabindex="-1" aria-labelledby="docs-sidebar-menu-label" aria-expanded="true">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="docs-sidebar-menu-label">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <ol id='menu-id-advanced-0' class='menu menu-level0 show '>
+            <li id='menu-item-advanced-1' class='menu-item '>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/advanced/' class='menu-link  '>Advanced</a></span>  </li>
+            <li id='menu-item-advanced-2' class='menu-item '>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/advanced/performance-virtualization-and-realization/' class='menu-link  '>Performance, Virtualization, and Realization</a></span>  </li>
+            <li id='menu-item-advanced-3' class='menu-item '>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/advanced/primitives-overview/' class='menu-link  '>Primitives Overview</a></span>  </li>
+            <li id='menu-item-advanced-4' class='menu-item '>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/advanced/custom-element-factory/' class='menu-link  '>Custom Element Factory</a></span>  </li>
+            <li id='menu-item-advanced-5' class='menu-item '>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/advanced/custom-rows-columns-pipeline/' class='menu-link  '>Custom Rows/Columns Pipeline</a></span>  </li>
+            <li id='menu-item-advanced-6' class='menu-item '>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/advanced/selection-internals-and-batch-update/' class='menu-link  '>Selection Internals and Batch Update</a></span>  </li>
+            <li id='menu-item-advanced-7' class='menu-item  active'>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/advanced/typed-binding/' class='menu-link  '>Typed Binding</a></span>  </li>
+            <li id='menu-item-advanced-8' class='menu-item '>
+              <span class='menu-item-row'><a href='/TreeDataGrid/articles/advanced/diagnostics-and-testing/' class='menu-link  '>Diagnostics and Testing</a></span>  </li>
+          </ol>
+
+        </div>
+      </nav>
+      <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
+      <aside id="docs-sidebar-toc" class="col-12 col-xxl-2 sticky-xxl-top menu-sidebar align-self-start order-0 order-xxl-2 collapse d-xxl-block" aria-expanded="true">
+        <h3 class="toc-title">On this page</h3>
+        <nav class="js-toc"></nav>
+      </aside>
+      <!-- Main content column -->
+      <div class="col-12 col-md-9 col-lg-9 col-xl-9 col-xxl-8 order-2 order-md-1 js-toc-content">
+        <ol class='breadcrumb'>
+          <li class='breadcrumb-item '>
+            <a href='/TreeDataGrid/' class='breadcrumb-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/TreeDataGrid/articles/' class='breadcrumb-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/TreeDataGrid/articles/advanced/' class='breadcrumb-link  '>Advanced</a>  </li>
+          <li class='breadcrumb-item  active'>
+            Typed Binding  </li>
+        </ol>
+
+        <p id="lunet-results"></p>
+        <!-- Toggle buttons visible only on small screens -->
+        <div class="d-md-none mb-3">
+          <button
+            class="btn btn-outline-secondary btn-sm me-2"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#docs-sidebar-menu"
+            aria-controls="docs-sidebar-menu"
+            aria-label="Toggle docs menu">
+            Menu
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm d-xxl-none"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#docs-sidebar-toc"
+            aria-controls="docs-sidebar-toc"
+            aria-expanded="false"
+            aria-label="Toggle Table Of Contents">
+            On this page
+          </button>
+        </div>
+<!-- lunet:summarize -->
+<h1 id="typed-binding">Typed Binding</h1>
+<p>TreeDataGrid exposes typed-binding APIs for strongly typed read/write delegates and lower boxing overhead than untyped bindings.</p>
+<h2 id="public-typed-binding-surface">Public Typed-Binding Surface</h2>
+<ul>
+<li><a href="/TreeDataGrid/api/Avalonia.Experimental.Data.TypedBinding-1/"><code>TypedBinding&lt;TIn&gt;</code></a>: factory methods (<code>OneWay</code>, <code>TwoWay</code>, <code>Default</code>, <code>OneTime</code>).</li>
+<li><a href="/TreeDataGrid/api/Avalonia.Experimental.Data.TypedBinding-2/"><code>TypedBinding&lt;TIn,TOut&gt;</code></a>: binding definition and bind/instance methods.</li>
+<li><a href="/TreeDataGrid/api/Avalonia.Experimental.Data.Core.TypedBindingExpression-2/"><code>TypedBindingExpression&lt;TIn,TOut&gt;</code></a>: instantiated observable expression.</li>
+<li><a href="/TreeDataGrid/api/Avalonia.Data.Core.Parsers.ExpressionChainVisitor-1/"><code>ExpressionChainVisitor&lt;TIn&gt;</code></a>: expression-chain link extraction.</li>
+<li><a href="/TreeDataGrid/api/Avalonia.Experimental.Data.Core.LightweightObservableBase-1/"><code>LightweightObservableBase&lt;T&gt;</code></a>: low-allocation observable base used by expression pipeline.</li>
+</ul>
+<h2 id="typical-usage-in-columns">Typical Usage in Columns</h2>
+<p>TreeDataGrid column bases use typed bindings to connect model properties to cell models and edits.</p>
+<pre><code class="language-csharp">using Avalonia.Experimental.Data;
+
+var oneWay = TypedBinding&lt;Person&gt;.OneWay(x =&gt; x.Name);
+var twoWay = TypedBinding&lt;Person&gt;.TwoWay(x =&gt; x.Name);
+</code></pre>
+<p>You can also provide explicit read/write delegates:</p>
+<pre><code class="language-csharp">var custom = TypedBinding&lt;Person&gt;.TwoWay(
+    read: x =&gt; x.Name,
+    write: (x, v) =&gt; x.Name = v ?? string.Empty);
+</code></pre>
+<h2 id="expression-chain-behavior">Expression Chain Behavior</h2>
+<p><code>ExpressionChainVisitor&lt;TIn&gt;.Build(...)</code> extracts intermediate objects from the lambda chain, for example from <code>x =&gt; x.Address.City.Name</code>.</p>
+<p>The chain is used to subscribe weakly to relevant property/collection changes and republish current binding value.</p>
+<h2 id="binding-modes-and-write-requirement">Binding Modes and Write Requirement</h2>
+<p>In <a href="/TreeDataGrid/api/Avalonia.Experimental.Data.TypedBinding-2/"><code>TypedBinding&lt;TIn,TOut&gt;</code></a>:</p>
+<ul>
+<li><code>OneWay</code> requires <code>Read</code> and <code>Links</code></li>
+<li><code>TwoWay</code> also requires <code>Write</code></li>
+<li><code>Default</code> resolves from target property metadata</li>
+</ul>
+<p>If two-way mode is requested without <code>Write</code>, binding creation fails by design.</p>
+<h2 id="caveats">Caveats</h2>
+<ul>
+<li>APIs are in <code>Avalonia.Experimental.Data*</code>; treat as advanced and version-sensitive.</li>
+<li><code>OneWayToSource</code> and <code>OneTime</code> paths are not fully implemented for all targets in this package.</li>
+<li>Complex expression chains should be profiled under high-frequency updates.</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul>
+<li><p>Binding returns fallback unexpectedly
+Cause: null root or broken expression chain path.</p>
+</li>
+<li><p>Two-way updates do nothing
+Cause: <code>Write</code> delegate is missing or binding mode is not two-way.</p>
+</li>
+<li><p>Too many change notifications
+Cause: expression chain includes frequently changing collections/objects.</p>
+</li>
+</ul>
+<h2 id="api-coverage-checklist">API Coverage Checklist</h2>
+<ul>
+<li><a href="/TreeDataGrid/api/Avalonia.Data.Core.Parsers.ExpressionChainVisitor-1/" title="ExpressionChainVisitor&lt;TIn&gt;">ExpressionChainVisitor&lt;TIn&gt;</a></li>
+<li><a href="/TreeDataGrid/api/Avalonia.Experimental.Data.Core.LightweightObservableBase-1/" title="LightweightObservableBase&lt;T&gt;">LightweightObservableBase&lt;T&gt;</a></li>
+<li><a href="/TreeDataGrid/api/Avalonia.Experimental.Data.Core.TypedBindingExpression-2/" title="TypedBindingExpression&lt;TIn, TOut&gt;">TypedBindingExpression&lt;TIn, TOut&gt;</a></li>
+<li><a href="/TreeDataGrid/api/Avalonia.Experimental.Data.TypedBinding-1/" title="TypedBinding&lt;TIn&gt;">TypedBinding&lt;TIn&gt;</a></li>
+<li><a href="/TreeDataGrid/api/Avalonia.Experimental.Data.TypedBinding-2/" title="TypedBinding&lt;TIn, TOut&gt;">TypedBinding&lt;TIn, TOut&gt;</a></li>
+</ul>
+<h2 id="related">Related</h2>
+<ul>
+<li><a href="/TreeDataGrid/articles/guides/column-text">Column Text</a></li>
+<li><a href="/TreeDataGrid/articles/guides/column-template">Column Template</a></li>
+<li><a href="/TreeDataGrid/articles/guides/troubleshooting">Troubleshooting Guide</a></li>
+<li><a href="/TreeDataGrid/articles/reference/namespace-experimental">Namespace: Avalonia.Experimental.Data / Avalonia.Experimental.Data.Core</a></li>
+</ul>
+
+      </div>
+  </div>
+</div>
+
+        </section>
+        <footer>
+          <hr>
+          <p>Copyright &copy; 2026, Wieslaw Soltes aka <a href="https://github.com/wieslawsoltes">wieslawsoltes</a> - Content licensed under the Creative Commons <a href="http://creativecommons.org/licenses/by/2.5/">CC BY 2.5</a> | Site generated by <a href="https://github.com/lunet-io/lunet">lunet</a> hosted on <a href="https://pages.github.com/">GitHub Pages</a></p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
+</html>

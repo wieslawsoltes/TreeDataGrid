@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html data-lunet-theme-mode="system" data-lunet-theme-storage-key="lunet-theme" data-lunet-css-prefix="lunet" lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="lunet 1.0.10.0">
+    <script>(function(){const root=document.documentElement;const key=root.getAttribute("data-lunet-theme-storage-key")||"lunet-theme";const fallback=root.getAttribute("data-lunet-theme-mode")||"system";let stored=null;try{stored=localStorage.getItem(key);}catch(_){stored=null;}const mode=(stored==="light"||stored==="dark"||stored==="system")?stored:fallback;const prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;root.setAttribute("data-lunet-theme-mode",mode);root.setAttribute("data-bs-theme",resolved);}());</script>
+    <link rel='icon' href='/TreeDataGrid/favicon.ico' sizes='32x32'>
+    <title>ExpressionChainVisitor<TIn> Class | TreeDataGrid for Avalonia</title>
+    <link rel="stylesheet" href="/TreeDataGrid/css/lite.css">
+    <script src="/TreeDataGrid/js/lite-defer.js" defer></script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wieslawsoltes">
+<meta name="twitter:title" content="ExpressionChainVisitor<TIn> Class | TreeDataGrid for Avalonia">
+<meta name="twitter:description" content="ExpressionChainVisitor Class Definition Namespace Avalonia.Data.Core.Parsers Assembly Avalonia.Controls.TreeDataGrid.dll Inherits Object → ExpressionVisitor View source Show inherited members (41) System.Linq.Expressions.ExpressionVisitor.Visit(System.Collections.ObjectModel.ReadOnlyCollection&lt;System.Linq.Expressions.Expression>) System.Linq.Expressions.ExpressionVisitor.Visit(System.Linq.Expressions.Expression?) System.Linq.Expressions.ExpressionVisitor.VisitAndConvert&lt;T>(System.Collections.ObjectModel.ReadOnlyCollection&lt;T>, System.String?) System.Linq.Expressions.ExpressionVisitor.VisitAndConvert&lt;T>(T, System.String?)...">
+<meta name="twitter:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
+<meta name="twitter:image:alt" content="ExpressionChainVisitor<TIn> Class | TreeDataGrid for Avalonia">
+<meta property="og:title" content="ExpressionChainVisitor<TIn> Class | TreeDataGrid for Avalonia">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wieslawsoltes.github.io/TreeDataGrid">
+<meta property="og:description" content="ExpressionChainVisitor Class Definition Namespace Avalonia.Data.Core.Parsers Assembly Avalonia.Controls.TreeDataGrid.dll Inherits Object → ExpressionVisitor View source Show inherited members (41) System.Linq.Expressions.ExpressionVisitor.Visit(System.Collections.ObjectModel.ReadOnlyCollection&lt;System.Linq.Expressions.Expression>) System.Linq.Expressions.ExpressionVisitor.Visit(System.Linq.Expressions.Expression?) System.Linq.Expressions.ExpressionVisitor.VisitAndConvert&lt;T>(System.Collections.ObjectModel.ReadOnlyCollection&lt;T>, System.String?) System.Linq.Expressions.ExpressionVisitor.VisitAndConvert&lt;T>(T, System.String?)...">
+<meta property="og:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
+<meta property="og:image:alt" content="ExpressionChainVisitor<TIn> Class | TreeDataGrid for Avalonia">
+  </head>
+  <body>
+
+    <div id="lunet" class="container">
+      <nav class="navbar navbar-expand-md sticky-top">
+        <a class="navbar-brand" href="/TreeDataGrid/">
+          <img class="lunet-logo" src="/TreeDataGrid/images/logo.svg" alt="TreeDataGrid for Avalonia" width="96" height="96">
+          <span class="visually-hidden">Home</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="collapse navbar-collapse justify-content-between">
+<ol id='nav-id-home-0' class='navbar-nav nav-level0 show '>
+  <li id='nav-item-home-1' class='nav-item '>
+    <span class='nav-item-row'><a href='/TreeDataGrid/' class='nav-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a></span>  </li>
+  <li id='nav-item-home-2' class='nav-item '>
+    <span class='nav-item-row'><a href='/TreeDataGrid/articles/' class='nav-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a></span>  </li>
+  <li id='nav-item-home-3' class='nav-item  active'>
+    <span class='nav-item-row'><a href='/TreeDataGrid/api/' class='nav-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a></span>  </li>
+</ol>
+          <ol class="navbar-nav flex-grow-1" style="padding-right: 0.5rem;">
+            <li class="nav-item w-100">
+                <div class="lunet-search dropdown w-100">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="search-input" type="search" class="form-control" placeholder="Search... (Alt+s)" aria-label="Search" aria-controls="search-results" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-search-empty-message="Enter words to search..." data-search-no-results-message="No results found.">
+                    <ul id="search-results" class="dropdown-menu w-100 p-0" style="max-height: 50vh;" role="listbox" aria-labelledby="search-input"></ul>
+                  </div>
+                </div>
+            </li>
+          </ol>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0 navbar-right">
+            <div class="dropdown">
+              <button
+                id="theme-mode-toggle"
+                class="btn btn-outline-secondary btn-sm lunet-theme-toggle dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Theme">
+                <i class="bi bi-circle-half" data-lunet-theme-toggle-icon aria-hidden="true"></i>
+                <span
+                  data-lunet-theme-toggle-label
+                  data-theme-system-label="System"
+                  data-theme-light-label="Light"
+                  data-theme-dark-label="Dark">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-mode-toggle">
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="system"><i class="bi bi-circle-half me-2"></i>System</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="light"><i class="bi bi-sun-fill me-2"></i>Light</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="dark"><i class="bi bi-moon-stars-fill me-2"></i>Dark</button></li>
+              </ul>
+            </div>
+<ol id='nav-id-home2-0' class='navbar-nav nav-level0 show flex-shrink-0'>
+  <li id='nav-item-home2-1' class='nav-item '>
+    <span class='nav-item-row'><a href='https://github.com/wieslawsoltes/TreeDataGrid' class='nav-link  btn btn-info'><i class="bi bi-github"></i> GitHub</a></span>  </li>
+</ol>
+          </div>
+        </div>
+      </nav>
+      <div class="lunet lunet-api">
+        <section data-prismjs-copy="" data-prismjs-copy-success="" data-prismjs-copy-timeout="1200" data-copy-tooltip="Copy to Clipboard." data-copy-tooltip-success="Copied!" data-copy-tooltip-error="Failed to copy!">
+
+<div class="container-xxl">
+  <div class="row">
+      <!-- Left sidebar - responsive offcanvas (offcanvas on mobile, visible sidebar on md+) -->
+      <nav id="docs-sidebar-menu" class="col-md-3 col-lg-3 col-xl-3 col-xxl-3 offcanvas-md offcanvas-start sticky-md-top menu-sidebar align-self-start order-1 order-md-0" tabindex="-1" aria-labelledby="docs-sidebar-menu-label" aria-expanded="true">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="docs-sidebar-menu-label">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <div class='lunet-menu-async' data-lunet-menu-partial='/TreeDataGrid/partials/menus/menu-menu.129744b82600b7778ef1d210156830d7.html' data-lunet-menu-open='menu-id-menu-0,menu-id-menu-1217,menu-id-menu-1216' data-lunet-menu-active='menu-item-menu-1217,menu-item-menu-1216,menu-item-menu-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+        </div>
+      </nav>
+      <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
+      <aside id="docs-sidebar-toc" class="col-12 col-xxl-2 sticky-xxl-top menu-sidebar align-self-start order-0 order-xxl-2 collapse d-xxl-block" aria-expanded="true">
+        <h3 class="toc-title">On this page</h3>
+        <nav class="js-toc"></nav>
+      </aside>
+      <!-- Main content column -->
+      <div class="col-12 col-md-9 col-lg-9 col-xl-9 col-xxl-7 order-2 order-md-1 js-toc-content">
+        <ol class='breadcrumb'>
+          <li class='breadcrumb-item '>
+            <a href='/TreeDataGrid/' class='breadcrumb-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/TreeDataGrid/api/' class='breadcrumb-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/TreeDataGrid/api/Avalonia.Data.Core.Parsers/' class='breadcrumb-link  '><i class='bi bi-diagram-3' aria-hidden='true'></i> Avalonia.Data.Core.Parsers</a>  </li>
+          <li class='breadcrumb-item  active'>
+            <i class='bi bi-box' aria-hidden='true'></i> ExpressionChainVisitor<TIn>  </li>
+        </ol>
+
+        <p id="lunet-results"></p>
+        <!-- Toggle buttons visible only on small screens -->
+        <div class="d-md-none mb-3">
+          <button
+            class="btn btn-outline-secondary btn-sm me-2"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#docs-sidebar-menu"
+            aria-controls="docs-sidebar-menu"
+            aria-label="Toggle docs menu">
+            Menu
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm d-xxl-none"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#docs-sidebar-toc"
+            aria-controls="docs-sidebar-toc"
+            aria-expanded="false"
+            aria-label="Toggle Table Of Contents">
+            On this page
+          </button>
+        </div>
+<!-- lunet:summarize -->
+<div class="api-dotnet">
+<h1 id="expressionchainvisitor-class">ExpressionChainVisitor<TIn> Class</h1>
+<h2 id="definition" class="heading-anchor-hidden">Definition</h2>
+<div class="api-dotnet-definition">
+<div class="api-dotnet-definition-header">
+<div class="api-dotnet-definition-meta">
+<div><span class="api-dotnet-label">Namespace</span> <a href="/TreeDataGrid/api/Avalonia.Data.Core.Parsers/">Avalonia.Data.Core.Parsers</a></div>
+<div><span class="api-dotnet-label">Assembly</span> Avalonia.Controls.TreeDataGrid.dll</div>
+<div><span class="api-dotnet-label">Inherits</span> <span class="api-dotnet-inline-list"><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object">Object</a> &#x2192; <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor">ExpressionVisitor</a></span></div>
+</div>
+<div class="api-dotnet-definition-actions">
+<a class="api-dotnet-action" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Experimental/Data/Core/Parsers/ExpressionChainVisitor.cs#L8" target="_blank" rel="noopener">View source</a>
+</div>
+</div>
+<details class="api-dotnet-inherited">
+<summary>Show inherited members (41)</summary>
+<ul>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.Visit-System.Collections.ObjectModel.ReadOnlyCollection-System.Linq.Expressions.Expression-">System.Linq.Expressions.ExpressionVisitor.Visit(System.Collections.ObjectModel.ReadOnlyCollection&lt;System.Linq.Expressions.Expression&gt;)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.Visit-System.Linq.Expressions.Expression">System.Linq.Expressions.ExpressionVisitor.Visit(System.Linq.Expressions.Expression?)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitAndConvert--1-System.Collections.ObjectModel.ReadOnlyCollection---0--System.String">System.Linq.Expressions.ExpressionVisitor.VisitAndConvert&lt;T&gt;(System.Collections.ObjectModel.ReadOnlyCollection&lt;T&gt;, System.String?)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitAndConvert--1---0-System.String">System.Linq.Expressions.ExpressionVisitor.VisitAndConvert&lt;T&gt;(T, System.String?)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitBlock-System.Linq.Expressions.BlockExpression">System.Linq.Expressions.ExpressionVisitor.VisitBlock(System.Linq.Expressions.BlockExpression)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitCatchBlock-System.Linq.Expressions.CatchBlock">System.Linq.Expressions.ExpressionVisitor.VisitCatchBlock(System.Linq.Expressions.CatchBlock)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitConditional-System.Linq.Expressions.ConditionalExpression">System.Linq.Expressions.ExpressionVisitor.VisitConditional(System.Linq.Expressions.ConditionalExpression)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitConstant-System.Linq.Expressions.ConstantExpression">System.Linq.Expressions.ExpressionVisitor.VisitConstant(System.Linq.Expressions.ConstantExpression)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitDebugInfo-System.Linq.Expressions.DebugInfoExpression">System.Linq.Expressions.ExpressionVisitor.VisitDebugInfo(System.Linq.Expressions.DebugInfoExpression)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitDefault-System.Linq.Expressions.DefaultExpression">System.Linq.Expressions.ExpressionVisitor.VisitDefault(System.Linq.Expressions.DefaultExpression)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitDynamic-System.Linq.Expressions.DynamicExpression">System.Linq.Expressions.ExpressionVisitor.VisitDynamic(System.Linq.Expressions.DynamicExpression)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitElementInit-System.Linq.Expressions.ElementInit">System.Linq.Expressions.ExpressionVisitor.VisitElementInit(System.Linq.Expressions.ElementInit)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitExtension-System.Linq.Expressions.Expression">System.Linq.Expressions.ExpressionVisitor.VisitExtension(System.Linq.Expressions.Expression)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitGoto-System.Linq.Expressions.GotoExpression">System.Linq.Expressions.ExpressionVisitor.VisitGoto(System.Linq.Expressions.GotoExpression)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitIndex-System.Linq.Expressions.IndexExpression">System.Linq.Expressions.ExpressionVisitor.VisitIndex(System.Linq.Expressions.IndexExpression)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitInvocation-System.Linq.Expressions.InvocationExpression">System.Linq.Expressions.ExpressionVisitor.VisitInvocation(System.Linq.Expressions.InvocationExpression)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitLabel-System.Linq.Expressions.LabelExpression">System.Linq.Expressions.ExpressionVisitor.VisitLabel(System.Linq.Expressions.LabelExpression)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitLabelTarget-System.Linq.Expressions.LabelTarget">System.Linq.Expressions.ExpressionVisitor.VisitLabelTarget(System.Linq.Expressions.LabelTarget?)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitLambda--1-System.Linq.Expressions.Expression---0-">System.Linq.Expressions.ExpressionVisitor.VisitLambda&lt;T&gt;(System.Linq.Expressions.Expression&lt;T&gt;)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitListInit-System.Linq.Expressions.ListInitExpression">System.Linq.Expressions.ExpressionVisitor.VisitListInit(System.Linq.Expressions.ListInitExpression)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitLoop-System.Linq.Expressions.LoopExpression">System.Linq.Expressions.ExpressionVisitor.VisitLoop(System.Linq.Expressions.LoopExpression)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitMemberAssignment-System.Linq.Expressions.MemberAssignment">System.Linq.Expressions.ExpressionVisitor.VisitMemberAssignment(System.Linq.Expressions.MemberAssignment)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitMemberBinding-System.Linq.Expressions.MemberBinding">System.Linq.Expressions.ExpressionVisitor.VisitMemberBinding(System.Linq.Expressions.MemberBinding)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitMemberInit-System.Linq.Expressions.MemberInitExpression">System.Linq.Expressions.ExpressionVisitor.VisitMemberInit(System.Linq.Expressions.MemberInitExpression)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitMemberListBinding-System.Linq.Expressions.MemberListBinding">System.Linq.Expressions.ExpressionVisitor.VisitMemberListBinding(System.Linq.Expressions.MemberListBinding)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitMemberMemberBinding-System.Linq.Expressions.MemberMemberBinding">System.Linq.Expressions.ExpressionVisitor.VisitMemberMemberBinding(System.Linq.Expressions.MemberMemberBinding)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitNew-System.Linq.Expressions.NewExpression">System.Linq.Expressions.ExpressionVisitor.VisitNew(System.Linq.Expressions.NewExpression)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitNewArray-System.Linq.Expressions.NewArrayExpression">System.Linq.Expressions.ExpressionVisitor.VisitNewArray(System.Linq.Expressions.NewArrayExpression)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitRuntimeVariables-System.Linq.Expressions.RuntimeVariablesExpression">System.Linq.Expressions.ExpressionVisitor.VisitRuntimeVariables(System.Linq.Expressions.RuntimeVariablesExpression)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitSwitch-System.Linq.Expressions.SwitchExpression">System.Linq.Expressions.ExpressionVisitor.VisitSwitch(System.Linq.Expressions.SwitchExpression)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitSwitchCase-System.Linq.Expressions.SwitchCase">System.Linq.Expressions.ExpressionVisitor.VisitSwitchCase(System.Linq.Expressions.SwitchCase)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitTry-System.Linq.Expressions.TryExpression">System.Linq.Expressions.ExpressionVisitor.VisitTry(System.Linq.Expressions.TryExpression)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.VisitTypeBinary-System.Linq.Expressions.TypeBinaryExpression">System.Linq.Expressions.ExpressionVisitor.VisitTypeBinary(System.Linq.Expressions.TypeBinaryExpression)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Linq.Expressions.ExpressionVisitor.Visit--1-System.Collections.ObjectModel.ReadOnlyCollection---0--System.Func---0---0-">System.Linq.Expressions.ExpressionVisitor.Visit&lt;T&gt;(System.Collections.ObjectModel.ReadOnlyCollection&lt;T&gt;, System.Func&lt;T, T&gt;)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.Equals-System.Object">System.Object.Equals(System.Object?)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.Equals-System.Object-System.Object">System.Object.Equals(System.Object?, System.Object?)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.GetHashCode">System.Object.GetHashCode()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.GetType">System.Object.GetType()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.MemberwiseClone">System.Object.MemberwiseClone()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.ReferenceEquals-System.Object-System.Object">System.Object.ReferenceEquals(System.Object?, System.Object?)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.ToString">System.Object.ToString()</a></li>
+</ul>
+</details>
+</div>
+<pre><code class="language-csharp">public class ExpressionChainVisitor&lt;TIn&gt; : ExpressionVisitor
+</code></pre>
+<h3 id="type-parameters">Type parameters</h3>
+<div class="api-dotnet-parameter">
+<dl class="api-dotnet-parameter-list"><dt>TIn</dt><dd></dd></dl>
+</div>
+<div class="api-dotnet-member-filter" data-api-dotnet-filter>
+<div class="api-dotnet-member-filter-row">
+<label class="api-dotnet-member-filter-label" for="api-dotnet-member-filter-avalonia-data-core-parsers-expressionchainvisitor-1">Filter members:</label>
+<input id="api-dotnet-member-filter-avalonia-data-core-parsers-expressionchainvisitor-1" class="form-control form-control-sm api-dotnet-member-filter-input" type="search" placeholder="name, kind, summary (e.g. kind:method)" autocomplete="off" spellcheck="false" />
+<div class="api-dotnet-member-filter-status" aria-live="polite"></div>
+</div>
+<div class="form-text api-dotnet-member-filter-help">Tip: use <code>kind:method</code>, <code>kind:property</code>, <code>kind:ctor</code>. Press <kbd>Esc</kbd> to clear.</div>
+</div>
+<h2 id="constructors">Constructors <span class="api-dotnet-count">(1)</span></h2>
+<div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="constructors">
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Constructor"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Data.Core.Parsers.ExpressionChainVisitor-1.-ctor-System.Linq.Expressions.L-3d09eeb38b60/"><i class="bi bi-hammer api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">ExpressionChainVisitor(LambdaExpression)</code></a></div>
+</div>
+<h2 id="methods">Methods <span class="api-dotnet-count">(6)</span></h2>
+<div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="methods">
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Data.Core.Parsers.ExpressionChainVisitor-1.Build-1-System.Linq.Expressions-3770c680fc88/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Build&lt;TOut&gt;(Expression&lt;Func&lt;TIn, TOut&gt;&gt;)</code></a><span class="api-dotnet-member-summary">Builds an array of delegates which return the intermediate objects in the expression chain. <example> For example, if the expression is <code>x => x.Foo.Bar.Baz</code> then the links will be: <pre><code> - x => x  - x => x.Foo  - x => x.Foo.Bar</code></pre> There is no delegate for the final property of the expression <code>x => x.Foo.Bar.Baz</code>. </example></span></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Data.Core.Parsers.ExpressionChainVisitor-1.VisitBinary-System.Linq.Express-02a3058b3139/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">VisitBinary(BinaryExpression)</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Data.Core.Parsers.ExpressionChainVisitor-1.VisitMember-System.Linq.Express-f463539c4145/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">VisitMember(MemberExpression)</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Data.Core.Parsers.ExpressionChainVisitor-1.VisitMethodCall-System.Linq.Exp-1c48fde86b6d/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">VisitMethodCall(MethodCallExpression)</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Data.Core.Parsers.ExpressionChainVisitor-1.VisitParameter-System.Linq.Expr-6c4f7b4a44b2/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">VisitParameter(ParameterExpression)</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/TreeDataGrid/api/Avalonia.Data.Core.Parsers.ExpressionChainVisitor-1.VisitUnary-System.Linq.Expressi-f87626956bcf/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">VisitUnary(UnaryExpression)</code></a></div>
+</div>
+</div>
+
+      </div>
+  </div>
+</div>
+
+        </section>
+        <footer>
+          <hr>
+          <p>Copyright &copy; 2026, Wieslaw Soltes aka <a href="https://github.com/wieslawsoltes">wieslawsoltes</a> - Content licensed under the Creative Commons <a href="http://creativecommons.org/licenses/by/2.5/">CC BY 2.5</a> | Site generated by <a href="https://github.com/lunet-io/lunet">lunet</a> hosted on <a href="https://pages.github.com/">GitHub Pages</a></p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
+</html>
