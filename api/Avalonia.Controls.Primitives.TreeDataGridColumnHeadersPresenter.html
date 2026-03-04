@@ -85,7 +85,7 @@
 
 
   <h1 id="Avalonia_Controls_Primitives_TreeDataGridColumnHeadersPresenter" data-uid="Avalonia.Controls.Primitives.TreeDataGridColumnHeadersPresenter" class="text-break">
-Class TreeDataGridColumnHeadersPresenter  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridColumnHeadersPresenter.cs/#L9"><i class="bi bi-code-slash"></i></a>
+Class TreeDataGridColumnHeadersPresenter  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridColumnHeadersPresenter.cs/#L11"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
@@ -330,9 +330,6 @@ Class TreeDataGridColumnHeadersPresenter  <a class="header-action link-secondary
     </div>
     <div>
       <span class="xref">Control.OnLostFocus(RoutedEventArgs)</span>
-    </div>
-    <div>
-      <span class="xref">Control.OnCreateAutomationPeer()</span>
     </div>
     <div>
       <span class="xref">Control.OnPointerReleased(PointerReleasedEventArgs)</span>
@@ -1117,7 +1114,7 @@ Class TreeDataGridColumnHeadersPresenter  <a class="header-action link-secondary
 
   <h3 id="Avalonia_Controls_Primitives_TreeDataGridColumnHeadersPresenter_Orientation" data-uid="Avalonia.Controls.Primitives.TreeDataGridColumnHeadersPresenter.Orientation">
   Orientation
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridColumnHeadersPresenter.cs/#L13"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridColumnHeadersPresenter.cs/#L15"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1152,7 +1149,7 @@ Class TreeDataGridColumnHeadersPresenter  <a class="header-action link-secondary
 
   <h3 id="Avalonia_Controls_Primitives_TreeDataGridColumnHeadersPresenter_ArrangeOverride_Avalonia_Size_" data-uid="Avalonia.Controls.Primitives.TreeDataGridColumnHeadersPresenter.ArrangeOverride(Avalonia.Size)">
   ArrangeOverride(Size)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridColumnHeadersPresenter.cs/#L15"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridColumnHeadersPresenter.cs/#L22"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Arranges the control's child.</p>
@@ -1191,7 +1188,7 @@ Class TreeDataGridColumnHeadersPresenter  <a class="header-action link-secondary
 
   <h3 id="Avalonia_Controls_Primitives_TreeDataGridColumnHeadersPresenter_GetChildIndex_Avalonia_LogicalTree_ILogical_" data-uid="Avalonia.Controls.Primitives.TreeDataGridColumnHeadersPresenter.GetChildIndex(Avalonia.LogicalTree.ILogical)">
   GetChildIndex(ILogical)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridColumnHeadersPresenter.cs/#L67"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridColumnHeadersPresenter.cs/#L74"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Gets child's actual index in order of the original source.</p>
@@ -1230,7 +1227,7 @@ Class TreeDataGridColumnHeadersPresenter  <a class="header-action link-secondary
 
   <h3 id="Avalonia_Controls_Primitives_TreeDataGridColumnHeadersPresenter_MeasureElement_System_Int32_Avalonia_Controls_Control_Avalonia_Size_" data-uid="Avalonia.Controls.Primitives.TreeDataGridColumnHeadersPresenter.MeasureElement(System.Int32,Avalonia.Controls.Control,Avalonia.Size)">
   MeasureElement(int, Control, Size)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridColumnHeadersPresenter.cs/#L21"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridColumnHeadersPresenter.cs/#L28"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1266,11 +1263,44 @@ Class TreeDataGridColumnHeadersPresenter  <a class="header-action link-secondary
 
 
 
+  <a id="Avalonia_Controls_Primitives_TreeDataGridColumnHeadersPresenter_OnCreateAutomationPeer_" data-uid="Avalonia.Controls.Primitives.TreeDataGridColumnHeadersPresenter.OnCreateAutomationPeer*"></a>
+
+  <h3 id="Avalonia_Controls_Primitives_TreeDataGridColumnHeadersPresenter_OnCreateAutomationPeer" data-uid="Avalonia.Controls.Primitives.TreeDataGridColumnHeadersPresenter.OnCreateAutomationPeer">
+  OnCreateAutomationPeer()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridColumnHeadersPresenter.cs/#L17"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns a new, type-specific <span class="xref">Avalonia.Automation.Peers.AutomationPeer</span> implementation for the control.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override AutomationPeer OnCreateAutomationPeer()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><span class="xref">AutomationPeer</span></dt>
+    <dd><p>The type-specific <span class="xref">Avalonia.Automation.Peers.AutomationPeer</span> implementation.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
   <a id="Avalonia_Controls_Primitives_TreeDataGridColumnHeadersPresenter_OnPropertyChanged_" data-uid="Avalonia.Controls.Primitives.TreeDataGridColumnHeadersPresenter.OnPropertyChanged*"></a>
 
   <h3 id="Avalonia_Controls_Primitives_TreeDataGridColumnHeadersPresenter_OnPropertyChanged_Avalonia_AvaloniaPropertyChangedEventArgs_" data-uid="Avalonia.Controls.Primitives.TreeDataGridColumnHeadersPresenter.OnPropertyChanged(Avalonia.AvaloniaPropertyChangedEventArgs)">
   OnPropertyChanged(AvaloniaPropertyChangedEventArgs)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridColumnHeadersPresenter.cs/#L46"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridColumnHeadersPresenter.cs/#L53"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Called when a avalonia property changes on the object.</p>
@@ -1303,7 +1333,7 @@ Class TreeDataGridColumnHeadersPresenter  <a class="header-action link-secondary
 
   <h3 id="Avalonia_Controls_Primitives_TreeDataGridColumnHeadersPresenter_RealizeElement_Avalonia_Controls_Control_Avalonia_Controls_Models_TreeDataGrid_IColumn_System_Int32_" data-uid="Avalonia.Controls.Primitives.TreeDataGridColumnHeadersPresenter.RealizeElement(Avalonia.Controls.Control,Avalonia.Controls.Models.TreeDataGrid.IColumn,System.Int32)">
   RealizeElement(Control, IColumn, int)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridColumnHeadersPresenter.cs/#L28"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridColumnHeadersPresenter.cs/#L35"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1338,7 +1368,7 @@ Class TreeDataGridColumnHeadersPresenter  <a class="header-action link-secondary
 
   <h3 id="Avalonia_Controls_Primitives_TreeDataGridColumnHeadersPresenter_TryGetTotalCount_System_Int32__" data-uid="Avalonia.Controls.Primitives.TreeDataGridColumnHeadersPresenter.TryGetTotalCount(System.Int32@)">
   TryGetTotalCount(out int)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridColumnHeadersPresenter.cs/#L76"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridColumnHeadersPresenter.cs/#L83"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Total children count or null if source is infinite.
@@ -1376,7 +1406,7 @@ Some Avalonia features might not work if <a class="xref" href="https://learn.mic
 
   <h3 id="Avalonia_Controls_Primitives_TreeDataGridColumnHeadersPresenter_UnrealizeElement_Avalonia_Controls_Control_" data-uid="Avalonia.Controls.Primitives.TreeDataGridColumnHeadersPresenter.UnrealizeElement(Avalonia.Controls.Control)">
   UnrealizeElement(Control)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridColumnHeadersPresenter.cs/#L40"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridColumnHeadersPresenter.cs/#L47"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1407,7 +1437,7 @@ Some Avalonia features might not work if <a class="xref" href="https://learn.mic
 
   <h3 id="Avalonia_Controls_Primitives_TreeDataGridColumnHeadersPresenter_UpdateElementIndex_Avalonia_Controls_Control_System_Int32_System_Int32_" data-uid="Avalonia.Controls.Primitives.TreeDataGridColumnHeadersPresenter.UpdateElementIndex(Avalonia.Controls.Control,System.Int32,System.Int32)">
   UpdateElementIndex(Control, int, int)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridColumnHeadersPresenter.cs/#L34"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridColumnHeadersPresenter.cs/#L41"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -1445,7 +1475,7 @@ Some Avalonia features might not work if <a class="xref" href="https://learn.mic
 
   <h3 id="Avalonia_Controls_Primitives_TreeDataGridColumnHeadersPresenter_ChildIndexChanged" data-uid="Avalonia.Controls.Primitives.TreeDataGridColumnHeadersPresenter.ChildIndexChanged">
   ChildIndexChanged
-  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridColumnHeadersPresenter.cs/#L11"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridColumnHeadersPresenter.cs/#L13"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Notifies subscriber when a child's index was changed.</p>
@@ -1477,7 +1507,7 @@ Some Avalonia features might not work if <a class="xref" href="https://learn.mic
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridColumnHeadersPresenter.cs/#L9" class="edit-link">Edit this page</a>
+          <a href="https://github.com/wieslawsoltes/TreeDataGrid/blob/master/src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridColumnHeadersPresenter.cs/#L11" class="edit-link">Edit this page</a>
         </div>
 
 

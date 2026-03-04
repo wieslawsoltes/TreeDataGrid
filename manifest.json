@@ -4,6 +4,104 @@
   "files": [
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Avalonia.Controls.Automation.Peers.TreeDataGridAutomationPeer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Avalonia.Controls.Automation.Peers.TreeDataGridAutomationPeer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Avalonia.Controls.Automation.Peers.TreeDataGridAutomationPeer",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Avalonia.Controls.Automation.Peers.TreeDataGridCellAutomationPeer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Avalonia.Controls.Automation.Peers.TreeDataGridCellAutomationPeer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Avalonia.Controls.Automation.Peers.TreeDataGridCellAutomationPeer",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Avalonia.Controls.Automation.Peers.TreeDataGridCheckBoxCellAutomationPeer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Avalonia.Controls.Automation.Peers.TreeDataGridCheckBoxCellAutomationPeer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Avalonia.Controls.Automation.Peers.TreeDataGridCheckBoxCellAutomationPeer",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Avalonia.Controls.Automation.Peers.TreeDataGridColumnHeaderAutomationPeer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Avalonia.Controls.Automation.Peers.TreeDataGridColumnHeaderAutomationPeer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Avalonia.Controls.Automation.Peers.TreeDataGridColumnHeaderAutomationPeer",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Avalonia.Controls.Automation.Peers.TreeDataGridColumnHeadersPresenterAutomationPeer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Avalonia.Controls.Automation.Peers.TreeDataGridColumnHeadersPresenterAutomationPeer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Avalonia.Controls.Automation.Peers.TreeDataGridColumnHeadersPresenterAutomationPeer",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Avalonia.Controls.Automation.Peers.TreeDataGridRowAutomationPeer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Avalonia.Controls.Automation.Peers.TreeDataGridRowAutomationPeer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Avalonia.Controls.Automation.Peers.TreeDataGridRowAutomationPeer",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Avalonia.Controls.Automation.Peers.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Avalonia.Controls.Automation.Peers.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Avalonia.Controls.Automation.Peers",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Avalonia.Controls.CellIndex.yml",
       "output": {
         ".html": {
