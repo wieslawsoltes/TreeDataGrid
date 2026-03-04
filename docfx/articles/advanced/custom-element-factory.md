@@ -101,7 +101,7 @@ Cause: recycle key prevents effective pooling.
 
 ## API Coverage Checklist
 
-- [TreeDataGridElementFactory](xref:Avalonia.Controls.Primitives.TreeDataGridElementFactory)
+- <xref:Avalonia.Controls.Primitives.TreeDataGridElementFactory>
 
 ## Troubleshooting
 

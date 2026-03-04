@@ -66,13 +66,13 @@ Cause: pointer movement exceeds drag threshold while selection gestures are acti
 
 ## API Coverage Checklist
 
-- [TreeDataGridRow](xref:Avalonia.Controls.Primitives.TreeDataGridRow)
-- [TreeDataGridCell](xref:Avalonia.Controls.Primitives.TreeDataGridCell)
-- [TreeDataGridTextCell](xref:Avalonia.Controls.Primitives.TreeDataGridTextCell)
-- [TreeDataGridCheckBoxCell](xref:Avalonia.Controls.Primitives.TreeDataGridCheckBoxCell)
-- [TreeDataGridTemplateCell](xref:Avalonia.Controls.Primitives.TreeDataGridTemplateCell)
-- [TreeDataGridExpanderCell](xref:Avalonia.Controls.Primitives.TreeDataGridExpanderCell)
-- [TreeDataGridColumnHeader](xref:Avalonia.Controls.Primitives.TreeDataGridColumnHeader)
+- <xref:Avalonia.Controls.Primitives.TreeDataGridRow>
+- <xref:Avalonia.Controls.Primitives.TreeDataGridCell>
+- <xref:Avalonia.Controls.Primitives.TreeDataGridTextCell>
+- <xref:Avalonia.Controls.Primitives.TreeDataGridCheckBoxCell>
+- <xref:Avalonia.Controls.Primitives.TreeDataGridTemplateCell>
+- <xref:Avalonia.Controls.Primitives.TreeDataGridExpanderCell>
+- <xref:Avalonia.Controls.Primitives.TreeDataGridColumnHeader>
 
 ## Related
 

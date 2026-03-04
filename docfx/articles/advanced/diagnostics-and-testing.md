@@ -70,9 +70,9 @@ Cause: unresolved links or xrefs after API/article refactor.
 
 ## API Coverage Checklist
 
-- [TreeDataGrid](xref:Avalonia.Controls.TreeDataGrid)
-- [TreeDataGridCellEventArgs](xref:Avalonia.Controls.TreeDataGridCellEventArgs)
-- [TreeDataGridRowEventArgs](xref:Avalonia.Controls.TreeDataGridRowEventArgs)
+- <xref:Avalonia.Controls.TreeDataGrid>
+- <xref:Avalonia.Controls.TreeDataGridCellEventArgs>
+- <xref:Avalonia.Controls.TreeDataGridRowEventArgs>
 
 ## Related
 

@@ -80,18 +80,18 @@ Cause: assigned selection does not implement [ITreeDataGridSelectionInteraction]
 
 ## API Coverage Checklist
 
-- [ITreeDataGridColumnSelectionModel](xref:Avalonia.Controls.Selection.ITreeDataGridColumnSelectionModel)
-- [ITreeDataGridSelection](xref:Avalonia.Controls.Selection.ITreeDataGridSelection)
-- [ITreeDataGridSelectionInteraction](xref:Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction)
-- [ITreeSelectionModel](xref:Avalonia.Controls.Selection.ITreeSelectionModel)
-- [`SelectionNodeBase<T>`](xref:Avalonia.Controls.Selection.SelectionNodeBase`1)
-- [TreeDataGridColumnSelectionModel](xref:Avalonia.Controls.Selection.TreeDataGridColumnSelectionModel)
-- [`TreeSelectionModelBase<T>`](xref:Avalonia.Controls.Selection.TreeSelectionModelBase`1)
-- [`TreeSelectionModelBase<T>.BatchUpdateOperation`](xref:Avalonia.Controls.Selection.TreeSelectionModelBase`1.BatchUpdateOperation)
-- [TreeSelectionModelIndexesChangedEventArgs](xref:Avalonia.Controls.Selection.TreeSelectionModelIndexesChangedEventArgs)
-- [TreeSelectionModelSelectionChangedEventArgs](xref:Avalonia.Controls.Selection.TreeSelectionModelSelectionChangedEventArgs)
-- [`TreeSelectionModelSelectionChangedEventArgs<T>`](xref:Avalonia.Controls.Selection.TreeSelectionModelSelectionChangedEventArgs`1)
-- [TreeSelectionModelSourceResetEventArgs](xref:Avalonia.Controls.Selection.TreeSelectionModelSourceResetEventArgs)
+- <xref:Avalonia.Controls.Selection.ITreeDataGridColumnSelectionModel>
+- <xref:Avalonia.Controls.Selection.ITreeDataGridSelection>
+- <xref:Avalonia.Controls.Selection.ITreeDataGridSelectionInteraction>
+- <xref:Avalonia.Controls.Selection.ITreeSelectionModel>
+- <xref:Avalonia.Controls.Selection.SelectionNodeBase`1>
+- <xref:Avalonia.Controls.Selection.TreeDataGridColumnSelectionModel>
+- <xref:Avalonia.Controls.Selection.TreeSelectionModelBase`1>
+- <xref:Avalonia.Controls.Selection.TreeSelectionModelBase`1.BatchUpdateOperation>
+- <xref:Avalonia.Controls.Selection.TreeSelectionModelIndexesChangedEventArgs>
+- <xref:Avalonia.Controls.Selection.TreeSelectionModelSelectionChangedEventArgs>
+- <xref:Avalonia.Controls.Selection.TreeSelectionModelSelectionChangedEventArgs`1>
+- <xref:Avalonia.Controls.Selection.TreeSelectionModelSourceResetEventArgs>
 
 ## Related
 

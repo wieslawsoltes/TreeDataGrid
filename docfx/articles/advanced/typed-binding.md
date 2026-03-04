@@ -64,11 +64,11 @@ Cause: expression chain includes frequently changing collections/objects.
 
 ## API Coverage Checklist
 
-- [`ExpressionChainVisitor<TIn>`](xref:Avalonia.Data.Core.Parsers.ExpressionChainVisitor`1)
-- [`LightweightObservableBase<T>`](xref:Avalonia.Experimental.Data.Core.LightweightObservableBase`1)
-- [`TypedBindingExpression<TIn,TOut>`](xref:Avalonia.Experimental.Data.Core.TypedBindingExpression`2)
-- [`TypedBinding<TIn>`](xref:Avalonia.Experimental.Data.TypedBinding`1)
-- [`TypedBinding<TIn,TOut>`](xref:Avalonia.Experimental.Data.TypedBinding`2)
+- <xref:Avalonia.Data.Core.Parsers.ExpressionChainVisitor`1>
+- <xref:Avalonia.Experimental.Data.Core.LightweightObservableBase`1>
+- <xref:Avalonia.Experimental.Data.Core.TypedBindingExpression`2>
+- <xref:Avalonia.Experimental.Data.TypedBinding`1>
+- <xref:Avalonia.Experimental.Data.TypedBinding`2>
 
 ## Related
 

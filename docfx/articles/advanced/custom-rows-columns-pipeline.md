@@ -116,11 +116,11 @@ Cause: sorted and model indexes are mixed without conversion.
 
 ## API Coverage Checklist
 
-- [NotifyingBase](xref:Avalonia.Controls.Models.NotifyingBase)
-- [`NotifyingListBase<T>`](xref:Avalonia.Controls.Models.NotifyingListBase`1)
-- [`ReadOnlyListBase<T>`](xref:Avalonia.Controls.Models.ReadOnlyListBase`1)
-- [`SortableRowsBase<TModel,TRow>`](xref:Avalonia.Controls.Models.TreeDataGrid.SortableRowsBase`2)
-- [`AnonymousSortableRows<TModel>`](xref:Avalonia.Controls.Models.TreeDataGrid.AnonymousSortableRows`1)
+- <xref:Avalonia.Controls.Models.NotifyingBase>
+- <xref:Avalonia.Controls.Models.NotifyingListBase`1>
+- <xref:Avalonia.Controls.Models.ReadOnlyListBase`1>
+- <xref:Avalonia.Controls.Models.TreeDataGrid.SortableRowsBase`2>
+- <xref:Avalonia.Controls.Models.TreeDataGrid.AnonymousSortableRows`1>
 
 ## Related
 

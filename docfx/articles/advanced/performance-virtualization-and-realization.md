@@ -66,11 +66,11 @@ Cause: custom column implementation does not correctly implement layout update c
 
 ## API Coverage Checklist
 
-- [`TreeDataGridPresenterBase<TItem>`](xref:Avalonia.Controls.Primitives.TreeDataGridPresenterBase`1)
-- [`TreeDataGridColumnarPresenterBase<TItem>`](xref:Avalonia.Controls.Primitives.TreeDataGridColumnarPresenterBase`1)
-- [TreeDataGridRowsPresenter](xref:Avalonia.Controls.Primitives.TreeDataGridRowsPresenter)
-- [TreeDataGridCellsPresenter](xref:Avalonia.Controls.Primitives.TreeDataGridCellsPresenter)
-- [TreeDataGridColumnHeadersPresenter](xref:Avalonia.Controls.Primitives.TreeDataGridColumnHeadersPresenter)
+- <xref:Avalonia.Controls.Primitives.TreeDataGridPresenterBase`1>
+- <xref:Avalonia.Controls.Primitives.TreeDataGridColumnarPresenterBase`1>
+- <xref:Avalonia.Controls.Primitives.TreeDataGridRowsPresenter>
+- <xref:Avalonia.Controls.Primitives.TreeDataGridCellsPresenter>
+- <xref:Avalonia.Controls.Primitives.TreeDataGridColumnHeadersPresenter>
 
 ## Troubleshooting
 
