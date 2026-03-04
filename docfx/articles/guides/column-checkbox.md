@@ -84,8 +84,8 @@ Fix: ensure `INotifyPropertyChanged`/`INotifyCollectionChanged` flow is active a
 
 ## API Coverage Checklist
 
-- [Avalonia.Controls.Models.TreeDataGrid.CheckBoxColumn`1](xref:Avalonia.Controls.Models.TreeDataGrid.CheckBoxColumn`1)
-- [Avalonia.Controls.Models.TreeDataGrid.CheckBoxColumnOptions`1](xref:Avalonia.Controls.Models.TreeDataGrid.CheckBoxColumnOptions`1)
+- <xref:Avalonia.Controls.Models.TreeDataGrid.CheckBoxColumn`1>
+- <xref:Avalonia.Controls.Models.TreeDataGrid.CheckBoxColumnOptions`1>
 
 ## Related
 

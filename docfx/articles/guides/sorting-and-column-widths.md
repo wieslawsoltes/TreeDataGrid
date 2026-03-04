@@ -107,7 +107,7 @@ Review `MinWidth`, `MaxWidth`, and template measure behavior.
 
 ## API Coverage Checklist
 
-- [Avalonia.Controls.Models.TreeDataGrid.ColumnOptions`1](xref:Avalonia.Controls.Models.TreeDataGrid.ColumnOptions`1)
+- <xref:Avalonia.Controls.Models.TreeDataGrid.ColumnOptions`1>
 
 ## Related
 

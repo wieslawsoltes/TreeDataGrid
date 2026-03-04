@@ -88,11 +88,11 @@ Fix: ensure `INotifyPropertyChanged`/`INotifyCollectionChanged` flow is active a
 
 ## API Coverage Checklist
 
-- [Avalonia.Controls.Selection.ITreeDataGridCellSelectionModel`1](xref:Avalonia.Controls.Selection.ITreeDataGridCellSelectionModel`1)
-- [Avalonia.Controls.Selection.ITreeDataGridCellSelectionModel](xref:Avalonia.Controls.Selection.ITreeDataGridCellSelectionModel)
-- [Avalonia.Controls.Selection.TreeDataGridCellSelectionChangedEventArgs`1](xref:Avalonia.Controls.Selection.TreeDataGridCellSelectionChangedEventArgs`1)
-- [Avalonia.Controls.Selection.TreeDataGridCellSelectionChangedEventArgs](xref:Avalonia.Controls.Selection.TreeDataGridCellSelectionChangedEventArgs)
-- [Avalonia.Controls.Selection.TreeDataGridCellSelectionModel`1](xref:Avalonia.Controls.Selection.TreeDataGridCellSelectionModel`1)
+- <xref:Avalonia.Controls.Selection.ITreeDataGridCellSelectionModel`1>
+- <xref:Avalonia.Controls.Selection.ITreeDataGridCellSelectionModel>
+- <xref:Avalonia.Controls.Selection.TreeDataGridCellSelectionChangedEventArgs`1>
+- <xref:Avalonia.Controls.Selection.TreeDataGridCellSelectionChangedEventArgs>
+- <xref:Avalonia.Controls.Selection.TreeDataGridCellSelectionModel`1>
 
 ## Related
 

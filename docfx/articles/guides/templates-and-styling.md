@@ -79,7 +79,7 @@ Fix: ensure `INotifyPropertyChanged`/`INotifyCollectionChanged` flow is active a
 
 ## API Coverage Checklist
 
-- [Avalonia.Controls.Converters.IndentConverter](xref:Avalonia.Controls.Converters.IndentConverter)
+- <xref:Avalonia.Controls.Converters.IndentConverter>
 
 ## Related
 

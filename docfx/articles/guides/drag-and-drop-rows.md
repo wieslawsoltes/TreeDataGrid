@@ -95,10 +95,10 @@ Fix: ensure `INotifyPropertyChanged`/`INotifyCollectionChanged` flow is active a
 
 ## API Coverage Checklist
 
-- [Avalonia.Controls.Models.TreeDataGrid.DragInfo](xref:Avalonia.Controls.Models.TreeDataGrid.DragInfo)
-- [Avalonia.Controls.TreeDataGridRowDragEventArgs](xref:Avalonia.Controls.TreeDataGridRowDragEventArgs)
-- [Avalonia.Controls.TreeDataGridRowDragStartedEventArgs](xref:Avalonia.Controls.TreeDataGridRowDragStartedEventArgs)
-- [Avalonia.Controls.TreeDataGridRowDropPosition](xref:Avalonia.Controls.TreeDataGridRowDropPosition)
+- <xref:Avalonia.Controls.Models.TreeDataGrid.DragInfo>
+- <xref:Avalonia.Controls.TreeDataGridRowDragEventArgs>
+- <xref:Avalonia.Controls.TreeDataGridRowDragStartedEventArgs>
+- <xref:Avalonia.Controls.TreeDataGridRowDropPosition>
 
 ## Related
 

@@ -66,7 +66,7 @@ Fix: ensure `INotifyPropertyChanged`/`INotifyCollectionChanged` flow is active a
 
 ## API Coverage Checklist
 
-- [Avalonia.Controls.Models.TreeDataGrid.HierarchicalExpanderColumn`1](xref:Avalonia.Controls.Models.TreeDataGrid.HierarchicalExpanderColumn`1)
+- <xref:Avalonia.Controls.Models.TreeDataGrid.HierarchicalExpanderColumn`1>
 
 ## Related
 

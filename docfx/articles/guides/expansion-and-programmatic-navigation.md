@@ -88,15 +88,15 @@ Fix: ensure `INotifyPropertyChanged`/`INotifyCollectionChanged` flow is active a
 
 ## API Coverage Checklist
 
-- [Avalonia.Controls.Models.TreeDataGrid.HierarchicalRow`1](xref:Avalonia.Controls.Models.TreeDataGrid.HierarchicalRow`1)
-- [Avalonia.Controls.Models.TreeDataGrid.HierarchicalRows`1](xref:Avalonia.Controls.Models.TreeDataGrid.HierarchicalRows`1)
-- [Avalonia.Controls.Models.TreeDataGrid.IExpander](xref:Avalonia.Controls.Models.TreeDataGrid.IExpander)
-- [Avalonia.Controls.Models.TreeDataGrid.IExpanderCell](xref:Avalonia.Controls.Models.TreeDataGrid.IExpanderCell)
-- [Avalonia.Controls.Models.TreeDataGrid.IExpanderColumn`1](xref:Avalonia.Controls.Models.TreeDataGrid.IExpanderColumn`1)
-- [Avalonia.Controls.Models.TreeDataGrid.IExpanderRow`1](xref:Avalonia.Controls.Models.TreeDataGrid.IExpanderRow`1)
-- [Avalonia.Controls.Models.TreeDataGrid.IExpanderRowController`1](xref:Avalonia.Controls.Models.TreeDataGrid.IExpanderRowController`1)
-- [Avalonia.Controls.Models.TreeDataGrid.RowEventArgs`1](xref:Avalonia.Controls.Models.TreeDataGrid.RowEventArgs`1)
-- [Avalonia.Controls.Models.TreeDataGrid.RowEventArgs](xref:Avalonia.Controls.Models.TreeDataGrid.RowEventArgs)
+- <xref:Avalonia.Controls.Models.TreeDataGrid.HierarchicalRow`1>
+- <xref:Avalonia.Controls.Models.TreeDataGrid.HierarchicalRows`1>
+- <xref:Avalonia.Controls.Models.TreeDataGrid.IExpander>
+- <xref:Avalonia.Controls.Models.TreeDataGrid.IExpanderCell>
+- <xref:Avalonia.Controls.Models.TreeDataGrid.IExpanderColumn`1>
+- <xref:Avalonia.Controls.Models.TreeDataGrid.IExpanderRow`1>
+- <xref:Avalonia.Controls.Models.TreeDataGrid.IExpanderRowController`1>
+- <xref:Avalonia.Controls.Models.TreeDataGrid.RowEventArgs`1>
+- <xref:Avalonia.Controls.Models.TreeDataGrid.RowEventArgs>
 
 ## Related
 

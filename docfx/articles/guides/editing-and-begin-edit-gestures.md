@@ -76,10 +76,10 @@ Fix: ensure `INotifyPropertyChanged`/`INotifyCollectionChanged` flow is active a
 
 ## API Coverage Checklist
 
-- [Avalonia.Controls.Models.TreeDataGrid.BeginEditGestures](xref:Avalonia.Controls.Models.TreeDataGrid.BeginEditGestures)
-- [Avalonia.Controls.Models.TreeDataGrid.ICellOptions](xref:Avalonia.Controls.Models.TreeDataGrid.ICellOptions)
-- [Avalonia.Controls.Models.TreeDataGrid.ITemplateCellOptions](xref:Avalonia.Controls.Models.TreeDataGrid.ITemplateCellOptions)
-- [Avalonia.Controls.Models.TreeDataGrid.ITextCellOptions](xref:Avalonia.Controls.Models.TreeDataGrid.ITextCellOptions)
+- <xref:Avalonia.Controls.Models.TreeDataGrid.BeginEditGestures>
+- <xref:Avalonia.Controls.Models.TreeDataGrid.ICellOptions>
+- <xref:Avalonia.Controls.Models.TreeDataGrid.ITemplateCellOptions>
+- <xref:Avalonia.Controls.Models.TreeDataGrid.ITextCellOptions>
 
 ## Related
 

@@ -129,9 +129,9 @@ Fix: validate using the snippets page and minimal source setup.
 
 ## API Coverage Checklist
 
-- [Avalonia.Controls.TreeDataGrid](xref:Avalonia.Controls.TreeDataGrid)
-- [Avalonia.Controls.ITreeDataGridSource](xref:Avalonia.Controls.ITreeDataGridSource)
-- [Avalonia.Controls.IndexPath](xref:Avalonia.Controls.IndexPath)
+- <xref:Avalonia.Controls.TreeDataGrid>
+- <xref:Avalonia.Controls.ITreeDataGridSource>
+- <xref:Avalonia.Controls.IndexPath>
 
 ## Related
 

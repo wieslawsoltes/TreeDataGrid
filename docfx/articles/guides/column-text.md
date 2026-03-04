@@ -127,8 +127,8 @@ Fix: ensure `INotifyPropertyChanged`/`INotifyCollectionChanged` flow is active a
 
 ## API Coverage Checklist
 
-- [Avalonia.Controls.Models.TreeDataGrid.TextColumn`2](xref:Avalonia.Controls.Models.TreeDataGrid.TextColumn`2)
-- [Avalonia.Controls.Models.TreeDataGrid.TextColumnOptions`1](xref:Avalonia.Controls.Models.TreeDataGrid.TextColumnOptions`1)
+- <xref:Avalonia.Controls.Models.TreeDataGrid.TextColumn`2>
+- <xref:Avalonia.Controls.Models.TreeDataGrid.TextColumnOptions`1>
 
 ## Related
 
