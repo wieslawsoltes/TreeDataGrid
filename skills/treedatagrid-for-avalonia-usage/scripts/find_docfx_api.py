@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import pathlib
 import re
 import sys
@@ -33,12 +34,38 @@ def _strip_quotes(value: str) -> str:
 
 
 def _default_api_dir() -> pathlib.Path:
+    env_docs_root = os.environ.get("TREE_DATAGRID_DOCS_ROOT")
+    if env_docs_root:
+        env_path = pathlib.Path(env_docs_root).expanduser().resolve()
+        if (env_path / "docfx" / "api").exists():
+            return env_path / "docfx" / "api"
+        if env_path.name == "docfx" and (env_path / "api").exists():
+            return env_path / "api"
+
     script_path = pathlib.Path(__file__).resolve()
-    # Expected layout: <repo>/skills/<skill>/scripts/find_docfx_api.py
+
+    # Expected layout in repository: <repo>/skills/<skill>/scripts/find_docfx_api.py
     if len(script_path.parents) >= 4:
         repo_root = script_path.parents[3]
-        return repo_root / "docfx" / "api"
-    return pathlib.Path.cwd() / "docfx" / "api"
+        repo_api_dir = repo_root / "docfx" / "api"
+        if repo_api_dir.exists():
+            return repo_api_dir
+
+    cwd_api_dir = pathlib.Path.cwd() / "docfx" / "api"
+    if cwd_api_dir.exists():
+        return cwd_api_dir
+
+    codex_home = pathlib.Path(
+        os.environ.get("CODEX_HOME", str(pathlib.Path.home() / ".codex"))
+    ).expanduser()
+    cached_api_dir = codex_home / "cache" / "treedatagrid-docfx" / "docfx" / "api"
+    if cached_api_dir.exists():
+        return cached_api_dir
+
+    # Fall back to repo-style path even when missing; caller prints the error.
+    if len(script_path.parents) >= 4:
+        return script_path.parents[3] / "docfx" / "api"
+    return cwd_api_dir
 
 
 def _resolve_api_dir(api_dir_arg: str | None) -> pathlib.Path:
