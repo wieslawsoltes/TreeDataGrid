@@ -21,7 +21,6 @@ jobs:
           dotnet-version: |
             10.0.x
             8.0.x
-            6.0.x
 
       - name: Restore local tools
         run: dotnet tool restore
@@ -35,4 +34,4 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./_site
+          publish_dir: ./site/.lunet/build/www

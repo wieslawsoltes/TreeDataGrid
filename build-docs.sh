@@ -1,4 +1,6 @@
 #!/bin/bash
-export IsDocFx=true
+set -euo pipefail
+
 dotnet tool restore
-dotnet docfx docfx/docfx.json
+cd site
+dotnet tool run lunet --stacktrace build

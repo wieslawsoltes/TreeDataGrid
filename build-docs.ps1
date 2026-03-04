@@ -1,3 +1,10 @@
-$env:IsDocFx = 'true'
+$ErrorActionPreference = 'Stop'
+
 dotnet tool restore
-dotnet docfx docfx/docfx.json
+Push-Location site
+try {
+    dotnet tool run lunet --stacktrace build
+}
+finally {
+    Pop-Location
+}
