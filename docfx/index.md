@@ -13,6 +13,7 @@
 
 - [Concepts](articles/concepts/architecture-and-data-flow.md)
 - [Guides](articles/guides/sources-flat.md)
+- [XAML Usage](articles/xaml/overview.md)
 - [Glossary](articles/concepts/glossary.md)
 - [Troubleshooting](articles/guides/troubleshooting.md)
 - [Advanced](articles/advanced/performance-virtualization-and-realization.md)

@@ -56,6 +56,24 @@
     href: guides/validation-snippets.md
   - name: Troubleshooting Guide
     href: guides/troubleshooting.md
+- name: XAML Usage
+  items:
+  - name: Overview
+    href: xaml/overview.md
+  - name: Samples Walkthrough
+    href: xaml/samples-walkthrough.md
+  - name: Theme Usage
+    href: xaml/theme-usage.md
+  - name: Theme Customization
+    href: xaml/theme-customization.md
+  - name: ControlTheme Overrides with BasedOn
+    href: xaml/control-theme-overrides-basedon.md
+  - name: ControlTheme Full Replacement
+    href: xaml/control-theme-full-replacement.md
+  - name: Template Resource Keys From Model
+    href: xaml/template-resource-keys-from-model.md
+  - name: Theme Resource Keys Reference
+    href: xaml/theme-resource-keys-reference.md
 - name: Advanced
   items:
   - name: Performance Virtualization And Realization
