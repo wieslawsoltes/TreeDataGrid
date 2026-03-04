@@ -19,10 +19,11 @@ public class TreeDataGridRowAutomationPeer : ControlAutomationPeer, IToggleProvi
     {
         get
         {
-            if (Owner.DataContext is IExpander expander)
+            if (GetToggleExpanderOrNull() is { } expander)
             {
                 return expander.IsExpanded ? ToggleState.On : ToggleState.Off;
             }
+
             return ToggleState.Indeterminate;
         }
     }
@@ -48,7 +49,9 @@ public class TreeDataGridRowAutomationPeer : ControlAutomationPeer, IToggleProvi
 
     public void Toggle()
     {
-        if (Owner.DataContext is IExpander expander)
+        EnsureEnabled();
+
+        if (GetToggleExpanderOrNull() is { } expander)
         {
             expander.IsExpanded = !expander.IsExpanded;
         }
@@ -56,6 +59,34 @@ public class TreeDataGridRowAutomationPeer : ControlAutomationPeer, IToggleProvi
 
     public void SetValue(string? value)
     {
-        throw new InvalidOperationException("TreeDataGrid rows are read-only.");
+        throw new NotSupportedException("TreeDataGrid rows are read-only.");
+    }
+
+    protected override object? GetProviderCore(Type providerType)
+    {
+        if (providerType == typeof(IToggleProvider) && GetToggleExpanderOrNull() is null)
+        {
+            return null;
+        }
+
+        return base.GetProviderCore(providerType);
+    }
+
+    private IExpander? GetToggleExpanderOrNull()
+    {
+        var rows = Owner.Rows;
+        var rowIndex = Owner.RowIndex;
+
+        if (rows is null || rowIndex < 0 || rowIndex >= rows.Count)
+        {
+            return null;
+        }
+
+        if (rows[rowIndex] is IExpander { ShowExpander: true } expander)
+        {
+            return expander;
+        }
+
+        return null;
     }
 }
