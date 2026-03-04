@@ -7,12 +7,34 @@ description: Implement, troubleshoot, and review TreeDataGrid usage in this repo
 
 ## Quick Start
 
+- Run preflight and export docs root (repo-local skill path):
+
+```bash
+eval "$(python3 skills/treedatagrid-for-avalonia-usage/scripts/ensure_docfx_docs.py --print-export)"
+```
+
+- If the skill is installed in `$CODEX_HOME`, run:
+
+```bash
+eval "$(python3 "${CODEX_HOME:-$HOME/.codex}/skills/treedatagrid-for-avalonia-usage/scripts/ensure_docfx_docs.py" --print-export)"
+```
+
 - Route the request with [`references/docfx-navigation.md`](references/docfx-navigation.md).
-- Read narrative guidance from `docfx/articles/**` before editing code.
-- Resolve member-level behavior from `docfx/api/*.yml` before finalizing implementation details.
+- Read narrative guidance from `$TREE_DATAGRID_DOCS_ROOT/docfx/articles/**` before editing code.
+- Resolve member-level behavior from `$TREE_DATAGRID_DOCS_ROOT/docfx/api/*.yml` before finalizing implementation details.
 - Include exact article paths and API UIDs in the final response.
 
 ## Workflow
+
+### 0. Ensure DocFX docs are available
+
+- Run `scripts/ensure_docfx_docs.py` before opening docs.
+- Preflight behavior:
+- Reuse local docs when `docfx/articles/toc.yml` and `docfx/api/toc.yml` already exist.
+- Otherwise sparse-clone docs and source into `$CODEX_HOME/cache/treedatagrid-docfx`, then generate API YAML when needed.
+- Export `TREE_DATAGRID_DOCS_ROOT` for all subsequent article/API lookups.
+- Pin docs with `TREE_DATAGRID_DOCS_REF=<branch|tag|sha>` when deterministic versioning is required.
+- Preflight requires `git` and `docfx` (or `dotnet tool run docfx`) when API YAML generation is needed.
 
 ### 1. Route Request to the Right Article Set
 
@@ -35,10 +57,16 @@ description: Implement, troubleshoot, and review TreeDataGrid usage in this repo
 - Start with `docfx/articles/reference/api-coverage-index.md` to map a type to its primary article.
 - Traverse `docfx/api/toc.yml` to confirm namespace and symbol names.
 - Inspect `docfx/api/<type>.yml` for signatures, members, and inherited APIs.
-- Run:
+- Run (repo-local skill path):
 
 ```bash
 python3 skills/treedatagrid-for-avalonia-usage/scripts/find_docfx_api.py <uid-or-fragment>
+```
+
+- If the skill is installed in `$CODEX_HOME`, run:
+
+```bash
+python3 "${CODEX_HOME:-$HOME/.codex}/skills/treedatagrid-for-avalonia-usage/scripts/find_docfx_api.py" <uid-or-fragment>
 ```
 
 - Use `--exact` when the UID is known and deterministic lookup is required.
@@ -46,7 +74,7 @@ python3 skills/treedatagrid-for-avalonia-usage/scripts/find_docfx_api.py <uid-or
 - For generic UIDs that contain backticks, quote the argument:
 
 ```bash
-python3 skills/treedatagrid-for-avalonia-usage/scripts/find_docfx_api.py 'Avalonia.Controls.Models.TreeDataGrid.TextColumn`2' --exact
+python3 "${CODEX_HOME:-$HOME/.codex}/skills/treedatagrid-for-avalonia-usage/scripts/find_docfx_api.py" 'Avalonia.Controls.Models.TreeDataGrid.TextColumn`2' --exact
 ```
 
 ### 4. Implement and Verify
@@ -65,6 +93,7 @@ python3 skills/treedatagrid-for-avalonia-usage/scripts/find_docfx_api.py 'Avalon
 
 ## High-Value Entry Points
 
+- Paths below are relative to `$TREE_DATAGRID_DOCS_ROOT`.
 - `docfx/articles/toc.yml`
 - `docfx/articles/reference/api-coverage-index.md`
 - `docfx/articles/reference/namespace-avalonia-controls.md`
@@ -78,6 +107,7 @@ python3 skills/treedatagrid-for-avalonia-usage/scripts/find_docfx_api.py 'Avalon
 
 ### scripts/
 
+- `scripts/ensure_docfx_docs.py`: Ensure TreeDataGrid docs exist locally; sparse-fetch required paths into cache and generate API YAML when needed.
 - `scripts/find_docfx_api.py`: Query `docfx/api/*.yml` for exact and fuzzy UID matches with file/line output.
 
 ### references/

@@ -1,12 +1,31 @@
 # TreeDataGrid DocFX Navigation
 
 ## Table of Contents
+- [Preflight](#preflight)
 - [Primary Entry Points](#primary-entry-points)
 - [Task Routing Matrix](#task-routing-matrix)
 - [Namespace Reference Pages](#namespace-reference-pages)
 - [API YAML Lookup Workflow](#api-yaml-lookup-workflow)
 - [Fast Search Commands](#fast-search-commands)
 - [Legacy Article Stubs](#legacy-article-stubs)
+
+## Preflight
+
+Before opening docs, ensure they are available and export the docs root:
+
+```bash
+eval "$(python3 skills/treedatagrid-for-avalonia-usage/scripts/ensure_docfx_docs.py --print-export)"
+```
+
+If the skill is installed in `$CODEX_HOME`:
+
+```bash
+eval "$(python3 "${CODEX_HOME:-$HOME/.codex}/skills/treedatagrid-for-avalonia-usage/scripts/ensure_docfx_docs.py" --print-export)"
+```
+
+All `docfx/...` paths in this file are relative to `$TREE_DATAGRID_DOCS_ROOT`.
+If API YAML is missing in the fetched checkout, preflight generates it with `docfx metadata`.
+Preflight generation requires `git` and `docfx` (or `dotnet tool run docfx`).
 
 ## Primary Entry Points
 
@@ -71,12 +90,18 @@ Use `docfx/articles/reference/api-coverage-index.md` to map any public type to a
    python3 skills/treedatagrid-for-avalonia-usage/scripts/find_docfx_api.py <query>
    ```
 
+   If the skill is installed in `$CODEX_HOME`:
+
+   ```bash
+   python3 "${CODEX_HOME:-$HOME/.codex}/skills/treedatagrid-for-avalonia-usage/scripts/find_docfx_api.py" <query>
+   ```
+
    Include `--include-toc` only when you need `docfx/api/toc.yml` matches.
 
    For generic UIDs containing backticks, quote the value:
 
    ```bash
-   python3 skills/treedatagrid-for-avalonia-usage/scripts/find_docfx_api.py 'Avalonia.Controls.Models.TreeDataGrid.TextColumn`2' --exact
+   python3 "${CODEX_HOME:-$HOME/.codex}/skills/treedatagrid-for-avalonia-usage/scripts/find_docfx_api.py" 'Avalonia.Controls.Models.TreeDataGrid.TextColumn`2' --exact
    ```
 
 2. Open the returned `docfx/api/*.yml` file.
@@ -93,10 +118,10 @@ If generic types are involved, remember:
 Use these when you need ad-hoc discovery:
 
 ```bash
-rg -n "TreeDataGrid|FlatTreeDataGridSource|HierarchicalTreeDataGridSource" docfx/articles
-rg -n "^# " docfx/articles/guides docfx/articles/advanced docfx/articles/xaml
-rg -n "uid: .*TreeDataGrid" docfx/api
-rg -n "BeginEditGestures|TreeDataGridRowDropPosition|TreeSelectionModelBase" docfx/api
+rg -n "TreeDataGrid|FlatTreeDataGridSource|HierarchicalTreeDataGridSource" "$TREE_DATAGRID_DOCS_ROOT/docfx/articles"
+rg -n "^# " "$TREE_DATAGRID_DOCS_ROOT/docfx/articles/guides" "$TREE_DATAGRID_DOCS_ROOT/docfx/articles/advanced" "$TREE_DATAGRID_DOCS_ROOT/docfx/articles/xaml"
+rg -n "uid: .*TreeDataGrid" "$TREE_DATAGRID_DOCS_ROOT/docfx/api"
+rg -n "BeginEditGestures|TreeDataGridRowDropPosition|TreeSelectionModelBase" "$TREE_DATAGRID_DOCS_ROOT/docfx/api"
 ```
 
 ## Legacy Article Stubs
