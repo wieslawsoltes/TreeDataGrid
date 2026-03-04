@@ -19,9 +19,6 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         /// Method called by a row when it finishes expanding or collapsing.
         /// </summary>
         /// <param name="row">The row.</param>
-        /// <param name="oldValue">
-        /// The old value for <see cref="IExpander.IsExpanded"/>
-        /// </param>
         /// <remarks>
         /// This method should always be called, even if expanding the row failed due to there
         /// being no children.

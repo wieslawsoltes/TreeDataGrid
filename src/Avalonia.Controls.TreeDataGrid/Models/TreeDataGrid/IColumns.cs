@@ -21,7 +21,6 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         /// </summary>
         /// <param name="columnIndex">The cell column index or -1 for a row header.</param>
         /// <param name="rowIndex">The cell row index or -1 for a column header.</param>
-        /// <param name="availableSize">The measure constraint.</param>
         /// <param name="size">The measured size.</param>
         /// <returns>
         /// The desired size of the cell after column sizing has been applied.

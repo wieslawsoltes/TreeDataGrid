@@ -26,7 +26,7 @@
         /// <summary>
         /// Gets a value indicating whether the column is a star-width column and its width
         /// was constrained by its min/max width in the last call to
-        /// <see cref="CalculateStarWidth(double, double))"/>.
+        /// <see cref="CalculateStarWidth(double, double)"/>.
         /// </summary>
         bool StarWidthWasConstrained { get; }
 

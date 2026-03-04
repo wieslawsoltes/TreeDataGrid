@@ -37,7 +37,6 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         /// <param name="isExpandedSelector">
         /// Selects a read/write boolean property which stores the expanded state for the row.
         /// </param>
-        /// <param name="width">The column width.</param>
         public HierarchicalExpanderColumn(
             IColumn<TModel> inner,
             Func<TModel, IEnumerable<TModel>?> childSelector,
