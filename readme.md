@@ -13,11 +13,11 @@ The control has two modes of operation:
 
 An example of `TreeDataGrid` displaying hierarchical data:
 
-![TreeDataGrid in hierarchical mode](docfx/images/files.png)
+![TreeDataGrid in hierarchical mode](site/images/files.png)
 
 An example of `TreeDataGrid` displaying flat data:
 
-![TreeDataGrid in flat mode](docfx/images/countries.png)
+![TreeDataGrid in flat mode](site/images/countries.png)
 
 ## Current Status
 
@@ -162,15 +162,20 @@ Serve docs locally:
 ./serve-docs.sh
 ```
 
-Generated docs output is written to `_site`.
+Default local URL: `http://127.0.0.1:8080`  
+Override host/port with `DOCS_HOST` and `DOCS_PORT`.
+
+Generated docs output is written to `site/.lunet/build/www`.
 
 ## Getting Started
 
-- [Installation](docfx/articles/installation.md)
-- [Creating a flat `TreeDataGrid`](docfx/articles/get-started-flat.md)
-- [Creating a hierarchical `TreeDataGrid`](docfx/articles/get-started-hierarchical.md)
-- [Supported column types](docfx/articles/column-types.md)
-- [Selection](docfx/articles/selection.md)
+- [Articles Home](site/articles/readme.md)
+- [Installation](site/articles/getting-started/installation.md)
+- [Quickstart Flat](site/articles/getting-started/quickstart-flat.md)
+- [Quickstart Hierarchical](site/articles/getting-started/quickstart-hierarchical.md)
+- [Columns, Cells, and Rows](site/articles/concepts/columns-cells-rows.md)
+- [Selection Models](site/articles/concepts/selection-models.md)
+- [Troubleshooting](site/articles/guides/troubleshooting.md)
 
 ## License
 

@@ -1,0 +1,94 @@
+# Use the Lunet default templates for docs navigation, layout, and API rendering.
+extend "lunet-io/templates"
+
+template_theme_default_mode = "system"
+
+site_project_baseurl = "https://wieslawsoltes.github.io"
+site_project_basepath = environment == "dev" ? "" : "/TreeDataGrid"
+site_project_name = "TreeDataGrid for Avalonia"
+site_project_description = "TreeDataGrid is an Avalonia control for tabular and hierarchical data together in a single view."
+site_project_logo_path = "/images/logo.svg"
+site_project_social_banner_path = "/images/logo.svg"
+site_project_package_id = "Avalonia.Controls.TreeDataGrid"
+site_project_github_user = "wieslawsoltes"
+site_project_github_repo = "TreeDataGrid"
+site_project_owner_name = "Wieslaw Soltes"
+site_project_owner_alias = "wieslawsoltes"
+site_project_owner_url = "https://github.com/wieslawsoltes"
+site_project_twitter_user = "wieslawsoltes"
+
+site_project_init
+
+# macOS 15 + lunet 1.0.10 has a Dart Sass platform detection bug.
+# Use a custom precompiled bundle until SCSS processing is fixed upstream.
+with bundle "lite"
+
+    bootstrap = resource "npm:bootstrap" "5.3.8"
+    bootstrap_icons = resource "npm:bootstrap-icons" "1.13.1"
+    tocbot = resource "npm:tocbot" "4.36.4"
+    anchorjs = resource "npm:anchor-js" "5.0.0"
+    prismjs = resource "npm:prismjs" "1.30.0"
+
+    css tocbot "/dist/tocbot.css"
+    css "/css/prism.css"
+    css "/css/template-main.css"
+    css "/css/site-overrides.css"
+
+    js "/modules/menus/lunet-menu-async.js"
+    js "/modules/api/dotnet/lunet-api-dotnet-ui.js"
+    js bootstrap "/dist/js/bootstrap.bundle.min.js"
+    js anchorjs "/anchor.min.js"
+    js tocbot "/dist/tocbot.min.js"
+    js prismjs "/prism.js"
+    js prismjs "/plugins/autoloader/prism-autoloader.min.js"
+    js prismjs "/plugins/toolbar/prism-toolbar.min.js"
+    js prismjs "/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"
+    js prismjs "/plugins/show-language/prism-show-language.min.js"
+    js "/js/prism-scriban.js"
+    js "/js/main.js"
+
+    for path in template_prism_components
+        content prismjs "components/" + path "/js/components/"
+    end
+
+    content bootstrap_icons "/font/fonts/bootstrap-icons.*" "/fonts/"
+
+    concat = true
+    minify = false
+end
+
+with attributes
+    match "/**/*.md" {
+        bundle: "lite"
+    }
+end
+
+with api.dotnet
+    title = "TreeDataGrid .NET API Reference"
+    path = "/api"
+    menu_name = "api"
+    menu_title = "API Reference"
+    config = "Release"
+    properties = {
+        TargetFramework: "net8.0"
+    }
+    projects = [
+        {
+            name: "TreeDataGrid",
+            path: "../src/Avalonia.Controls.TreeDataGrid/Avalonia.Controls.TreeDataGrid.csproj"
+        }
+    ]
+    external_apis = [
+        { assembly: "Avalonia", url: "https://api-docs.avaloniaui.net/docs" },
+        { assembly: "Avalonia.Base", url: "https://api-docs.avaloniaui.net/docs" },
+        { assembly: "Avalonia.Controls", url: "https://api-docs.avaloniaui.net/docs" },
+        { assembly: "Avalonia.DesignerSupport", url: "https://api-docs.avaloniaui.net/docs" },
+        { assembly: "Avalonia.Dialogs", url: "https://api-docs.avaloniaui.net/docs" },
+        { assembly: "Avalonia.Markup", url: "https://api-docs.avaloniaui.net/docs" },
+        { assembly: "Avalonia.Markup.Xaml", url: "https://api-docs.avaloniaui.net/docs" },
+        { assembly: "Avalonia.Metal", url: "https://api-docs.avaloniaui.net/docs" },
+        { assembly: "Avalonia.MicroCom", url: "https://api-docs.avaloniaui.net/docs" },
+        { assembly: "Avalonia.OpenGL", url: "https://api-docs.avaloniaui.net/docs" },
+        { assembly: "Avalonia.Remote.Protocol", url: "https://api-docs.avaloniaui.net/docs" }
+    ]
+end

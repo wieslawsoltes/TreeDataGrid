@@ -1,0 +1,19 @@
+guides:
+  - {path: readme.md, title: "Guides"}
+  - {path: sources-flat.md, title: "Sources Flat"}
+  - {path: sources-hierarchical.md, title: "Sources Hierarchical"}
+  - {path: column-text.md, title: "Column Text"}
+  - {path: column-checkbox.md, title: "Column Checkbox"}
+  - {path: column-template.md, title: "Column Template"}
+  - {path: column-expander.md, title: "Column Expander"}
+  - {path: sorting-and-column-widths.md, title: "Sorting and Column Widths"}
+  - {path: editing-and-begin-edit-gestures.md, title: "Editing and Begin Edit Gestures"}
+  - {path: selection-row.md, title: "Selection Row"}
+  - {path: selection-cell.md, title: "Selection Cell"}
+  - {path: expansion-and-programmatic-navigation.md, title: "Expansion and Programmatic Navigation"}
+  - {path: drag-and-drop-rows.md, title: "Drag and Drop Rows"}
+  - {path: events-and-user-interaction.md, title: "Events and User Interaction"}
+  - {path: templates-and-styling.md, title: "Templates and Styling"}
+  - {path: working-with-itemssourceview.md, title: "Working with ItemsSourceView"}
+  - {path: validation-snippets.md, title: "Validation Snippets"}
+  - {path: troubleshooting.md, title: "Troubleshooting"}

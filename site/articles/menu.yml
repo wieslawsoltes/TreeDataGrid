@@ -1,0 +1,8 @@
+articles:
+  - {path: readme.md, title: "Articles"}
+  - {path: getting-started/readme.md, title: "Getting Started", folder: true}
+  - {path: concepts/readme.md, title: "Concepts", folder: true}
+  - {path: guides/readme.md, title: "Guides", folder: true}
+  - {path: xaml/readme.md, title: "XAML Usage", folder: true}
+  - {path: advanced/readme.md, title: "Advanced", folder: true}
+  - {path: reference/readme.md, title: "Reference", folder: true}

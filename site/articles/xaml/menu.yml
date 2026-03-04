@@ -1,0 +1,10 @@
+xaml:
+  - {path: readme.md, title: "XAML Usage"}
+  - {path: overview.md, title: "Overview"}
+  - {path: samples-walkthrough.md, title: "Samples Walkthrough"}
+  - {path: theme-usage.md, title: "Theme Usage"}
+  - {path: theme-customization.md, title: "Theme Customization"}
+  - {path: control-theme-overrides-basedon.md, title: "ControlTheme Overrides with BasedOn"}
+  - {path: control-theme-full-replacement.md, title: "ControlTheme Full Replacement"}
+  - {path: template-resource-keys-from-model.md, title: "Template Resource Keys from Model"}
+  - {path: theme-resource-keys-reference.md, title: "Theme Resource Keys Reference"}

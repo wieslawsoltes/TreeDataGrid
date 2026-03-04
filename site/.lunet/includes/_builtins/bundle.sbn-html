@@ -1,0 +1,30 @@
+{{~ # Generates bundle links and works even when page front matter defines `bundle`. ~}}
+{{~ $bundle_name = page.bundle ?? "lite" ~}}
+{{~ $bundle_links = null ~}}
+{{~ for $b in site.bundles ~}}
+    {{~ if $b.name == $bundle_name ~}}
+        {{~ $bundle_links = $b.links ~}}
+        {{~ break ~}}
+    {{~ end ~}}
+{{~ end ~}}
+{{~ if $bundle_links == null ~}}
+    {{~ for $b in site.bundles ~}}
+        {{~ if $b.name == "lite" ~}}
+            {{~ $bundle_links = $b.links ~}}
+            {{~ break ~}}
+        {{~ end ~}}
+    {{~ end ~}}
+{{~ end ~}}
+{{~ if $bundle_links == null ~}}
+    {{~ ret ~}}
+{{~ end ~}}
+{{~ for $link in $bundle_links ~}}
+    {{~ if $link.type == "css" ~}}
+    <link rel="stylesheet" href="{{$link.url ?? $link.path}}">
+    {{~ end ~}}
+{{~ end ~}}
+{{~ for $link in $bundle_links ~}}
+    {{~ if $link.type == "js" ~}}
+    <script src="{{$link.url ?? $link.path}}" {{if $link.mode != ""; $link.mode; end }}></script>
+    {{~ end ~}}
+{{~ end ~}}

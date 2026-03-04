@@ -1,0 +1,7 @@
++++
+layout = site.api.dotnet.layout ?? site.layout ?? "_default"
+layout_type = site.api.dotnet.layout_type ?? "api-dotnet-base"
+bundle = "lite"
++++
+{{~ $members_class = site.api.dotnet.members_class ?? site.api.dotnet.table_class ?? "api-dotnet-members list-group list-group-flush" }}
+{{ api_dotnet_members_render api "namespaces" "Namespaces" $members_class }}

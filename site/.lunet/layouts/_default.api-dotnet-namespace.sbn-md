@@ -1,0 +1,37 @@
++++
+layout = site.api.dotnet.layout ?? site.layout ?? "_default"
+layout_type = site.api.dotnet.layout_type ?? "api-dotnet-base"
+bundle = "lite"
++++
+{{~ $members_class = site.api.dotnet.members_class ?? site.api.dotnet.table_class ?? "api-dotnet-members list-group list-group-flush" }}
+# {{ namespace.name }} Namespace
+{{ api_dotnet_resolve_xrefs namespace.summary }}
+
+{{~ $has_any_types = (namespace.classes && namespace.classes.size > 0) || (namespace.structs && namespace.structs.size > 0) || (namespace.interfaces && namespace.interfaces.size > 0) || (namespace.enums && namespace.enums.size > 0) || (namespace.delegates && namespace.delegates.size > 0) ~}}
+{{~ if $has_any_types ~}}
+<div class="api-dotnet-member-filter" data-api-dotnet-filter>
+{{~ $filter_id = "api-dotnet-member-filter-" + (api_dotnet_handleize namespace.name) ~}}
+<div class="api-dotnet-member-filter-row">
+<label class="api-dotnet-member-filter-label" for="{{ $filter_id }}">Filter types:</label>
+<input id="{{ $filter_id }}" class="form-control form-control-sm api-dotnet-member-filter-input" type="search" placeholder="name, kind, summary" autocomplete="off" spellcheck="false" />
+<div class="api-dotnet-member-filter-status" aria-live="polite"></div>
+</div>
+</div>
+{{~ end ~}}
+
+{{ api_dotnet_members_render namespace "classes" "Classes" $members_class }}
+{{ api_dotnet_members_render namespace "structs" "Structs" $members_class }}
+{{ api_dotnet_members_render namespace "interfaces" "Interfaces" $members_class }}
+{{ api_dotnet_members_render namespace "enums" "Enums" $members_class }}
+{{ api_dotnet_members_render namespace "delegates" "Delegates" $members_class }}
+{{~ if namespace.remarks ~}}
+## Remarks
+{{ api_dotnet_resolve_xrefs namespace.remarks }}
+{{~ end ~}}
+{{~ if namespace.example && namespace.example.size > 0 ~}}
+
+## Examples
+{{~ for example in namespace.example ~}}
+{{~ example }}
+{{~ end ~}}
+{{~ end ~}}

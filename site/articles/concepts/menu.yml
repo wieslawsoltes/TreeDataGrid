@@ -1,0 +1,7 @@
+concepts:
+  - {path: readme.md, title: "Concepts"}
+  - {path: architecture-and-data-flow.md, title: "Architecture and Data Flow"}
+  - {path: indexing-and-addressing.md, title: "Indexing and Addressing"}
+  - {path: columns-cells-rows.md, title: "Columns, Cells, and Rows"}
+  - {path: selection-models.md, title: "Selection Models"}
+  - {path: glossary.md, title: "Glossary"}

@@ -1,0 +1,11 @@
+reference:
+  - {path: readme.md, title: "Reference"}
+  - {path: api-coverage-index.md, title: "API Coverage Index"}
+  - {path: namespace-avalonia-controls.md, title: "Namespace Avalonia.Controls"}
+  - {path: namespace-models-treedatagrid.md, title: "Namespace Models.TreeDataGrid"}
+  - {path: namespace-selection.md, title: "Namespace Selection"}
+  - {path: namespace-primitives.md, title: "Namespace Primitives"}
+  - {path: namespace-experimental.md, title: "Namespace Experimental"}
+  - {path: namespace-converters-and-models.md, title: "Namespace Converters and Models"}
+  - {path: lunet-docs-pipeline.md, title: "Lunet Docs Pipeline"}
+  - {path: license.md, title: "License"}

@@ -1,0 +1,9 @@
+advanced:
+  - {path: readme.md, title: "Advanced"}
+  - {path: performance-virtualization-and-realization.md, title: "Performance, Virtualization, and Realization"}
+  - {path: primitives-overview.md, title: "Primitives Overview"}
+  - {path: custom-element-factory.md, title: "Custom Element Factory"}
+  - {path: custom-rows-columns-pipeline.md, title: "Custom Rows/Columns Pipeline"}
+  - {path: selection-internals-and-batch-update.md, title: "Selection Internals and Batch Update"}
+  - {path: typed-binding.md, title: "Typed Binding"}
+  - {path: diagnostics-and-testing.md, title: "Diagnostics and Testing"}
