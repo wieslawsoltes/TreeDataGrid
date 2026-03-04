@@ -1,5 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
+using Avalonia.Automation.Peers;
+using Avalonia.Controls.Automation.Peers;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Selection;
 using Avalonia.Input;
@@ -90,6 +92,11 @@ namespace Avalonia.Controls.Primitives
 
             if (e.PropertyName == nameof(CheckBoxCell.Value) && Model is CheckBoxCell checkBoxCell)
                 Value = checkBoxCell.Value;
+        }
+
+        protected override AutomationPeer OnCreateAutomationPeer()
+        {
+            return new TreeDataGridCheckBoxCellAutomationPeer(this);
         }
 
         protected override void OnPointerPressed(PointerPressedEventArgs e)

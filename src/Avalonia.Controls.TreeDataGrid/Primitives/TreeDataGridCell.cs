@@ -1,5 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
+using Avalonia.Automation.Peers;
+using Avalonia.Controls.Automation.Peers;
 using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Selection;
@@ -72,6 +74,11 @@ namespace Avalonia.Controls.Primitives
             _treeDataGrid?.RaiseCellClearing(this, ColumnIndex, RowIndex);
             ColumnIndex = RowIndex = -1;
             Model = null;
+        }
+
+        protected override AutomationPeer OnCreateAutomationPeer()
+        {
+            return new TreeDataGridCellAutomationPeer(this);
         }
 
         protected internal void BeginEdit()
