@@ -386,7 +386,7 @@ namespace Avalonia.Controls.Selection
         {
             var point = e.GetCurrentPoint(sender);
 
-            var commandModifiers = TopLevel.GetTopLevel(sender)?.PlatformSettings?.HotkeyConfiguration.CommandModifiers;
+            var commandModifiers = sender.GetPlatformSettings()?.HotkeyConfiguration.CommandModifiers;
             var toggleModifier = commandModifiers is not null && e.KeyModifiers.HasFlag(commandModifiers);
             var isRightButton = point.Properties.PointerUpdateKind is PointerUpdateKind.RightButtonPressed or
                 PointerUpdateKind.RightButtonReleased;
