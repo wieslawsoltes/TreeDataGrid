@@ -98,7 +98,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
-          <div class='lunet-menu-async' data-lunet-menu-partial='/TreeDataGrid/partials/menus/menu-reference.9fa7488ccc1ebb957cf752b381ae25d0.html' data-lunet-menu-open='menu-id-reference-0' data-lunet-menu-active='menu-item-reference-9,menu-item-reference-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+          <div class='lunet-menu-async' data-lunet-menu-partial='/TreeDataGrid/partials/menus/menu-reference.689c899ca717ba27741694d04c790609.html' data-lunet-menu-open='menu-id-reference-0' data-lunet-menu-active='menu-item-reference-14,menu-item-reference-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
         </div>
       </nav>
       <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
@@ -161,6 +161,7 @@
 <li><code>site/images/**</code>: Images used by documentation</li>
 <li><code>site/.lunet/css/template-main.css</code>: precompiled template stylesheet (runtime Sass workaround)</li>
 <li><code>site/.lunet/css/site-overrides.css</code>: project-specific UI/UX customizations</li>
+<li><code>src/Avalonia.Controls.TreeDataGrid/apidocs/**</code>: Markdown merged into generated namespace/type API pages</li>
 </ul>
 <h2 id="api-generation">API generation</h2>
 <p>The API reference is generated from:</p>
@@ -172,9 +173,11 @@
 <ul>
 <li><code>TargetFramework: net8.0</code></li>
 <li>local API pages generated under <code>/api</code></li>
+<li>package id advertised by the docs site: <code>TreeDataGrid</code></li>
 <li><code>external_apis</code> mappings for Avalonia assemblies to <code>https://api-docs.avaloniaui.net/docs</code></li>
 </ul>
 <p>This keeps TreeDataGrid APIs local while external Avalonia xrefs resolve to the official Avalonia API site.</p>
+<p>Namespace and selected type summaries are merged from <code>src/Avalonia.Controls.TreeDataGrid/apidocs/**</code> so the generated API pages can carry project-specific narrative text without modifying the Lunet templates.</p>
 <h2 id="styling-pipeline-note">Styling pipeline note</h2>
 <p>Lunet <code>1.0.10</code> on macOS 15 has a Dart Sass platform detection issue.
 To keep the full template visual quality:</p>
@@ -196,7 +199,7 @@ To keep the full template visual quality:</p>
 ./check-docs.sh
 ./serve-docs.sh
 </code></pre>
-<p><code>serve-docs.sh</code> prints the local URL and auto-selects the next free port when <code>DOCS_PORT</code> is already in use.</p>
+<p><code>serve-docs.sh</code> and <code>serve-docs.ps1</code> print the local URL and auto-select the next free port when <code>DOCS_PORT</code> is already in use.</p>
 <p>PowerShell:</p>
 <pre><code class="language-powershell">./build-docs.ps1
 ./serve-docs.ps1

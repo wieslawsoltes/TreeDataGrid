@@ -521,8 +521,11 @@
 </ul>
 </details>
 </div>
+<p>Displays flat or hierarchical tabular data by realizing a typed TreeDataGrid source into virtualized rows, cells, and headers.</p>
 <pre><code class="language-csharp">public class TreeDataGrid : TemplatedControl, IAvaloniaObjectDebug, INotifyPropertyChanged, IDataContextProvider, ILogical, IThemeVariantHost, IResourceHost, IResourceNode, IStyleHost, ISetLogicalParent, ISetInheritanceParent, ISupportInitialize, INamed, IAvaloniaListItemValidator&lt;ILogical&gt;, IAvaloniaListItemValidator&lt;Visual&gt;, IInputElement, IDataTemplateHost, IVisualBrushInitialize, ISetterValue
 </code></pre>
+<h2 id="remarks">Remarks</h2>
+<p>Bind <code>Source</code> to a <code>FlatTreeDataGridSource&lt;TModel&gt;</code> or <code>HierarchicalTreeDataGridSource&lt;TModel&gt;</code>, and include the <code>avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml</code> style so the control template is loaded correctly.</p>
 <div class="api-dotnet-member-filter" data-api-dotnet-filter>
 <div class="api-dotnet-member-filter-row">
 <label class="api-dotnet-member-filter-label" for="api-dotnet-member-filter-avalonia-controls-treedatagrid">Filter members:</label>

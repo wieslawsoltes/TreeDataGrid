@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="IndexPath Struct | TreeDataGrid for Avalonia">
-<meta name="twitter:description" content="IndexPath Struct Definition Namespace Avalonia.Controls Assembly Avalonia.Controls.TreeDataGrid.dll Implements IReadOnlyList&lt;Int32>, IReadOnlyCollection&lt;Int32>, IEnumerable&lt;Int32>, IEnumerable, IComparable&lt;IndexPath>, IEquatable&lt;IndexPath> View source Show inherited members (3) System.Object.Equals(System.Object?, System.Object?) System.Object.GetType() System.Object.ReferenceEquals(System.Object?, System.Object?) public readonly struct IndexPath : IReadOnlyList&lt;int>, IReadOnlyCollection&lt;int>, IEnumerable&lt;int>, IEnumerable, IComparable&lt;IndexPath>, IEquatable&lt;IndexPath>...">
+<meta name="twitter:description" content="IndexPath Struct Definition Namespace Avalonia.Controls Assembly Avalonia.Controls.TreeDataGrid.dll Implements IReadOnlyList&lt;Int32>, IReadOnlyCollection&lt;Int32>, IEnumerable&lt;Int32>, IEnumerable, IComparable&lt;IndexPath>, IEquatable&lt;IndexPath> View source Show inherited members (3) System.Object.Equals(System.Object?, System.Object?) System.Object.GetType() System.Object.ReferenceEquals(System.Object?, System.Object?) Represents a hierarchical model index as a path of integer segments from the root to a specific row. public readonly struct IndexPath : IReadOnlyList&lt;int>, IReadOnlyCollection&lt;int>, IEnumerable&lt;int>, IEnumerable, IComparable&lt;IndexPath>, IEquatable&lt;IndexPath>...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
 <meta name="twitter:image:alt" content="IndexPath Struct | TreeDataGrid for Avalonia">
 <meta property="og:title" content="IndexPath Struct | TreeDataGrid for Avalonia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/TreeDataGrid">
-<meta property="og:description" content="IndexPath Struct Definition Namespace Avalonia.Controls Assembly Avalonia.Controls.TreeDataGrid.dll Implements IReadOnlyList&lt;Int32>, IReadOnlyCollection&lt;Int32>, IEnumerable&lt;Int32>, IEnumerable, IComparable&lt;IndexPath>, IEquatable&lt;IndexPath> View source Show inherited members (3) System.Object.Equals(System.Object?, System.Object?) System.Object.GetType() System.Object.ReferenceEquals(System.Object?, System.Object?) public readonly struct IndexPath : IReadOnlyList&lt;int>, IReadOnlyCollection&lt;int>, IEnumerable&lt;int>, IEnumerable, IComparable&lt;IndexPath>, IEquatable&lt;IndexPath>...">
+<meta property="og:description" content="IndexPath Struct Definition Namespace Avalonia.Controls Assembly Avalonia.Controls.TreeDataGrid.dll Implements IReadOnlyList&lt;Int32>, IReadOnlyCollection&lt;Int32>, IEnumerable&lt;Int32>, IEnumerable, IComparable&lt;IndexPath>, IEquatable&lt;IndexPath> View source Show inherited members (3) System.Object.Equals(System.Object?, System.Object?) System.Object.GetType() System.Object.ReferenceEquals(System.Object?, System.Object?) Represents a hierarchical model index as a path of integer segments from the root to a specific row. public readonly struct IndexPath : IReadOnlyList&lt;int>, IReadOnlyCollection&lt;int>, IEnumerable&lt;int>, IEnumerable, IComparable&lt;IndexPath>, IEquatable&lt;IndexPath>...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
 <meta property="og:image:alt" content="IndexPath Struct | TreeDataGrid for Avalonia">
   </head>
@@ -166,8 +166,11 @@
 </ul>
 </details>
 </div>
+<p>Represents a hierarchical model index as a path of integer segments from the root to a specific row.</p>
 <pre><code class="language-csharp">public readonly struct IndexPath : IReadOnlyList&lt;int&gt;, IReadOnlyCollection&lt;int&gt;, IEnumerable&lt;int&gt;, IEnumerable, IComparable&lt;IndexPath&gt;, IEquatable&lt;IndexPath&gt;
 </code></pre>
+<h2 id="remarks">Remarks</h2>
+<p>Use <code>IndexPath</code> when translating between source-level hierarchy and realized row indexes, especially for selection, expansion, drag and drop, and programmatic navigation.</p>
 <div class="api-dotnet-member-filter" data-api-dotnet-filter>
 <div class="api-dotnet-member-filter-row">
 <label class="api-dotnet-member-filter-label" for="api-dotnet-member-filter-avalonia-controls-indexpath">Filter members:</label>
