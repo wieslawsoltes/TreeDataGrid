@@ -3,6 +3,36 @@ $ErrorActionPreference = 'Stop'
 $hostAddress = if ($env:DOCS_HOST) { $env:DOCS_HOST } else { '127.0.0.1' }
 $port = if ($env:DOCS_PORT) { $env:DOCS_PORT } else { '8080' }
 
+function Get-AvailablePort {
+    param(
+        [string]$HostAddress,
+        [int]$StartPort
+    )
+
+    $port = $StartPort
+    $ipAddress = [System.Net.IPAddress]::Loopback
+    [System.Net.IPAddress]::TryParse($HostAddress, [ref]$ipAddress) | Out-Null
+
+    while ($true) {
+        $listener = [System.Net.Sockets.TcpListener]::new($ipAddress, $port)
+
+        try {
+            $listener.Start()
+            $listener.Stop()
+            return $port
+        }
+        catch {
+            try {
+                $listener.Stop()
+            }
+            catch {
+            }
+
+            $port++
+        }
+    }
+}
+
 dotnet tool restore
 Push-Location site
 try {
@@ -20,6 +50,8 @@ try {
         dotnet tool run lunet --stacktrace serve
         return
     }
+
+    $port = Get-AvailablePort -HostAddress $hostAddress -StartPort ([int]$port)
 
     dotnet tool run lunet --stacktrace build --dev
 

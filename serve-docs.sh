@@ -17,6 +17,33 @@ else
     exit 0
 fi
 
+find_available_port() {
+    local host="$1"
+    local port="$2"
+
+    while ! "$PYTHON_BIN" - "$host" "$port" <<'PY'
+import socket
+import sys
+
+host = sys.argv[1]
+port = int(sys.argv[2])
+
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    try:
+        sock.bind((host, port))
+    except OSError:
+        sys.exit(1)
+PY
+    do
+        port=$((port + 1))
+    done
+
+    printf '%s\n' "$port"
+}
+
+PORT="$(find_available_port "$HOST" "$PORT")"
+
 dotnet tool run lunet --stacktrace build --dev
 
 dotnet tool run lunet --stacktrace build --dev --watch &
