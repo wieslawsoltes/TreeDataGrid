@@ -72,13 +72,26 @@ From repository root:
 ./serve-docs.sh
 ```
 
-`serve-docs.sh` and `serve-docs.ps1` print the local URL and auto-select the next free port when `DOCS_PORT` is already in use.
+`build-docs.sh`/`build-docs.ps1` now clean stale Lunet output and cached `Avalonia.Controls.TreeDataGrid.api.json` artifacts before rebuilding, so API/docs output always comes from the current source tree instead of prior build residue.
+
+`check-docs.sh`/`check-docs.ps1` build the site and then verify:
+
+- required section and compatibility routes exist
+- generated output contains no raw `.md` links or `/readme` routes
+- reference pages do not point at the stale `api/index.md` path
+- the footer uses the project MIT license instead of the template Creative Commons footer
+- the generated TreeDataGrid API page keeps its external Avalonia type links
+
+`serve-docs.sh` and `serve-docs.ps1` print the local URL, auto-select the next free port when `DOCS_PORT` is already in use, and start from a clean docs output directory before entering watch mode.
 
 PowerShell:
 
 ```powershell
 ./build-docs.ps1
+./check-docs.ps1
 ./serve-docs.ps1
 ```
+
+GitHub Actions now use `check-docs.sh` both for PR validation and for the publish workflow, so broken docs links/routes fail before deployment.
 
 All commands run Lunet in `site/` and output to `site/.lunet/build/www`.

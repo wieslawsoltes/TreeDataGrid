@@ -143,7 +143,7 @@ This index tracks article-layer coverage for the complete public API surface.
 - "Primary article" identifies the canonical narrative doc for each type.
 - Generated API pages remain the authoritative member-level reference.
 - Namespace reference pages now mirror the exact public namespace surface rather than grouping unrelated namespaces together.
-- This index complements, but does not replace, [API Documentation](../../api/index.md).
+- This index complements, but does not replace, [API Documentation](../../api/).
 
 ## Related
 

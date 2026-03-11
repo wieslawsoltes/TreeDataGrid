@@ -12,6 +12,7 @@ on:
     branches:
       - master
       - main
+  workflow_dispatch:
       - develop
 
 env:
@@ -101,10 +102,39 @@ jobs:
           reporter: dotnet-trx
           fail-on-empty: false
 
+  docs:
+    name: Docs
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDKs
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            10.0.x
+            8.0.x
+
+      - name: Restore local tools
+        run: dotnet tool restore
+
+      - name: Check docs
+        run: bash ./check-docs.sh
+
+      - name: Upload docs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-site
+          path: site/.lunet/build/www
+          if-no-files-found: error
+          retention-days: 14
+
   pack:
     name: Pack
     runs-on: ubuntu-latest
-    needs: [build, test]
+    needs: [build, test, docs]
     steps:
       - name: Checkout
         uses: actions/checkout@v4

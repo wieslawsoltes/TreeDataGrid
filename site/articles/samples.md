@@ -4,4 +4,8 @@ title: "Article Moved"
 
 # Article Moved
 
-This article has moved to [Diagnostics and Testing](advanced/diagnostics-and-testing.md).
+This legacy page has been split across:
+
+- [Quickstart: Flat TreeDataGrid](getting-started/quickstart-flat/)
+- [Quickstart: Hierarchical TreeDataGrid](getting-started/quickstart-hierarchical/)
+- [XAML Samples Walkthrough](xaml/samples-walkthrough/)

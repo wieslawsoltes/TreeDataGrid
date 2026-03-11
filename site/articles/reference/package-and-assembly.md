@@ -4,7 +4,7 @@ title: "Package and Assembly"
 
 # Package and Assembly
 
-TreeDataGrid ships as a single NuGet package and a single runtime assembly, but they intentionally use different identifiers.
+TreeDataGrid ships as a single NuGet package and a single runtime assembly. This page maps the install identity, assembly name, theme/resource URI root, and generated API route so package setup, XAML theme wiring, and API navigation all point to the same source of truth.
 
 ## Distribution Identity
 
@@ -41,12 +41,12 @@ The current generated API exposes `10` public namespaces and `105` public types.
 
 ## Guidance
 
-- Use [Getting Started: Installation](../getting-started/installation.md) for package installation and theme setup.
-- Use the generated [API Documentation](../../api/index.md) for member-level reference.
+- Use [Getting Started: Installation](../getting-started/installation/) for package installation and theme setup.
+- Use the generated [API Documentation](../../api/) for member-level reference.
 - Use the namespace pages in this section when you want the public surface grouped by responsibility rather than by type name.
 
 ## Related
 
-- [API Coverage Index](api-coverage-index.md)
-- [Lunet Docs Pipeline](lunet-docs-pipeline.md)
-- [Build and Package](../build-and-package.md)
+- [API Coverage Index](api-coverage-index/)
+- [Lunet Docs Pipeline](lunet-docs-pipeline/)
+- [Compatibility page: Build and Package](../build-and-package/)

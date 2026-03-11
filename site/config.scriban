@@ -16,6 +16,9 @@ site_project_owner_name = "Wieslaw Soltes"
 site_project_owner_alias = "wieslawsoltes"
 site_project_owner_url = "https://github.com/wieslawsoltes"
 site_project_twitter_user = "wieslawsoltes"
+site_project_content_license_name = "MIT"
+site_project_content_license_url = "https://github.com/wieslawsoltes/TreeDataGrid/blob/master/licence.md"
+template_footer_content_license_html = $"- Content licensed under the <a href=\"{site_project_content_license_url}\">MIT license</a>"
 
 site_project_init
 

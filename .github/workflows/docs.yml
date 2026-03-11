@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - main
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -26,9 +27,7 @@ jobs:
         run: dotnet tool restore
 
       - name: Build docs
-        run: |
-          chmod +x build-docs.sh
-          ./build-docs.sh
+        run: bash ./check-docs.sh
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4

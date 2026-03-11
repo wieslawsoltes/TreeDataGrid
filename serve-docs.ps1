@@ -3,6 +3,18 @@ $ErrorActionPreference = 'Stop'
 $hostAddress = if ($env:DOCS_HOST) { $env:DOCS_HOST } else { '127.0.0.1' }
 $port = if ($env:DOCS_PORT) { $env:DOCS_PORT } else { '8080' }
 
+function Clear-ServeDocsOutputs {
+    Get-ChildItem (Join-Path $PSScriptRoot 'src') -Filter 'Avalonia.Controls.TreeDataGrid.api.json' -Recurse -File |
+        Where-Object { $_.FullName.Replace('\', '/') -like '*/obj/Release/*' } |
+        Remove-Item -Force
+
+    $apiCache = Join-Path $PSScriptRoot 'site/.lunet/build/cache/api/dotnet'
+    $wwwRoot = Join-Path $PSScriptRoot 'site/.lunet/build/www'
+    foreach ($path in @($apiCache, $wwwRoot)) {
+        Remove-Item $path -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
 function Get-AvailablePort {
     param(
         [string]$HostAddress,
@@ -34,6 +46,7 @@ function Get-AvailablePort {
 }
 
 dotnet tool restore
+Clear-ServeDocsOutputs
 Push-Location site
 try {
     if (Get-Command python3 -ErrorAction SilentlyContinue) {
