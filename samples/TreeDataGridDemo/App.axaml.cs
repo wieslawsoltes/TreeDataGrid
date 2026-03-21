@@ -16,7 +16,13 @@ namespace TreeDataGridDemo
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                desktop.MainWindow = new MainWindow();
+                var mainWindow = new MainWindow();
+                desktop.MainWindow = mainWindow;
+
+                if (AotSmokeTest.IsEnabled(Program.Arguments))
+                {
+                    AotSmokeTest.Attach(mainWindow, desktop);
+                }
             }
 
             base.OnFrameworkInitializationCompleted();

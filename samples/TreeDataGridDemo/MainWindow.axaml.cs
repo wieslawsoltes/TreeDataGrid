@@ -74,6 +74,30 @@ namespace TreeDataGridDemo
             countries.TryGetRow(index)?.Focus();
         }
 
+        public void ClearCountrySortClick(object sender, RoutedEventArgs e)
+        {
+            ((MainWindowViewModel)DataContext!).Countries.ClearSort();
+        }
+
+        public void RefreshCountryFilterClick(object sender, RoutedEventArgs e)
+        {
+            ((MainWindowViewModel)DataContext!).Countries.RefreshFilter();
+        }
+
+        public void People_SelectionChanged(object? sender, TreeDataGridSelectionChangedEventArgs e)
+        {
+            var textBlock = this.FindControl<TextBlock>("peopleSelectionText");
+
+            if (textBlock is null)
+                return;
+
+            var currentSelection = (sender as TreeDataGrid)?.RowSelection?.SelectedItems.OfType<Person>().Select(x => x.Name).ToArray();
+
+            textBlock.Text = currentSelection is { Length: > 0 }
+                ? $"Selection: {string.Join(", ", currentSelection)}"
+                : "Selection: none";
+        }
+
         private void InitializeComponent()
         {
             AvaloniaXamlLoader.Load(this);

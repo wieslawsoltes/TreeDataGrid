@@ -4,6 +4,12 @@
     <IsPackable>False</IsPackable>
     <OutputType>WinExe</OutputType>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(TreeDataGridAotSmokeTest)' == 'true'">
+    <PublishAot>true</PublishAot>
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>partial</TrimMode>
+    <InvariantGlobalization>false</InvariantGlobalization>
+  </PropertyGroup>
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
