@@ -1,6 +1,12 @@
 articles:
   - {path: readme.md, title: "Articles"}
   - {path: getting-started/readme.md, title: "Getting Started", folder: true}
+  - {path: breaking-changes-v12.md, title: "Breaking Changes v12"}
+  - {path: column-types.md, title: "Column Types"}
+  - {path: selection-modes.md, title: "Selection Modes"}
+  - {path: sorting.md, title: "Sorting"}
+  - {path: filtering.md, title: "Filtering"}
+  - {path: expand-and-collapse.md, title: "Expand and Collapse"}
   - {path: concepts/readme.md, title: "Concepts", folder: true}
   - {path: guides/readme.md, title: "Guides", folder: true}
   - {path: xaml/readme.md, title: "XAML Usage", folder: true}
