@@ -20,8 +20,6 @@
             <SolidColorBrush x:Key="TreeDataGridAlternateRowBackgroundBrush" Color="#06000000" />
             <SolidColorBrush x:Key="TreeDataGridSelectedRowBackgroundBrush" Color="#400078D4" />
             <SolidColorBrush x:Key="TreeDataGridSelectedCellBackgroundBrush" Color="#400078D4" />
-            <SolidColorBrush x:Key="TreeDataGridDragIndicatorBrush" Color="#FF0078D4" />
-            <SolidColorBrush x:Key="TreeDataGridDragIndicatorFillBrush" Color="#140078D4" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
             <SolidColorBrush x:Key="TreeDataGridGridLinesBrush" Color="#1AFFFFFF" />
@@ -38,8 +36,6 @@
             <SolidColorBrush x:Key="TreeDataGridAlternateRowBackgroundBrush" Color="#10FFFFFF" />
             <SolidColorBrush x:Key="TreeDataGridSelectedRowBackgroundBrush" Color="#554C9DFF" />
             <SolidColorBrush x:Key="TreeDataGridSelectedCellBackgroundBrush" Color="#554C9DFF" />
-            <SolidColorBrush x:Key="TreeDataGridDragIndicatorBrush" Color="#FF6CB8FF" />
-            <SolidColorBrush x:Key="TreeDataGridDragIndicatorFillBrush" Color="#226CB8FF" />
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 
@@ -106,14 +102,14 @@
                                 <Border x:Name="PART_DragIndicatorLine"
                                         Width="0"
                                         Height="2"
-                                        Background="{ThemeResource TreeDataGridDragIndicatorBrush}"
+                                        Background="{ThemeResource TreeDataGridHeaderForegroundBrush}"
                                         CornerRadius="1"
                                         Visibility="Collapsed" />
                                 <Border x:Name="PART_DragIndicatorBox"
                                         Width="0"
                                         Height="0"
-                                        Background="{ThemeResource TreeDataGridDragIndicatorFillBrush}"
-                                        BorderBrush="{ThemeResource TreeDataGridDragIndicatorBrush}"
+                                        Background="Transparent"
+                                        BorderBrush="{ThemeResource TreeDataGridHeaderForegroundBrush}"
                                         BorderThickness="2"
                                         Visibility="Collapsed" />
                             </Canvas>

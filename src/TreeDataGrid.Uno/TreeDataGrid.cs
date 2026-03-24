@@ -253,6 +253,7 @@ namespace Avalonia.Controls
             _dragIndicatorHost = GetTemplateChild("PART_DragIndicatorHost") as Canvas;
             _dragIndicatorLine = GetTemplateChild("PART_DragIndicatorLine") as Border;
             _dragIndicatorBox = GetTemplateChild("PART_DragIndicatorBox") as Border;
+            ApplyDragIndicatorBrushes();
 
             if (_headerScrollViewer is not null)
                 _headerScrollViewer.ViewChanged += OnHeaderScrollViewerViewChanged;
@@ -329,6 +330,20 @@ namespace Avalonia.Controls
         internal string GetThemeString(string key, string fallback)
         {
             return TryGetResourceValue(key) as string ?? fallback;
+        }
+
+        private void ApplyDragIndicatorBrushes()
+        {
+            var brush = Foreground ?? GetThemeBrush(TreeDataGridThemeResources.HeaderForegroundBrushKey, s_defaultBorderBrush);
+
+            if (_dragIndicatorLine is not null)
+                _dragIndicatorLine.Background = brush;
+
+            if (_dragIndicatorBox is not null)
+            {
+                _dragIndicatorBox.Background = s_transparentBrush;
+                _dragIndicatorBox.BorderBrush = brush;
+            }
         }
 
         private void OnTreeDataGridKeyDown(object sender, KeyRoutedEventArgs e)
@@ -874,6 +889,14 @@ namespace Avalonia.Controls
                 return;
             }
 
+            if (e.DragUIOverride is { } dragUi)
+            {
+                dragUi.Clear();
+                dragUi.IsCaptionVisible = false;
+                dragUi.IsContentVisible = false;
+                dragUi.IsGlyphVisible = false;
+            }
+
             var row = VisualTreeHelpers.FindAncestorOrSelf<TreeDataGridRow>(e.OriginalSource as DependencyObject);
             var autoDrop = CalculateAutoDrop(row, e, out _, out var position);
             var args = new TreeDataGridRowDragEventArgs(row, e)
@@ -1247,6 +1270,7 @@ namespace Avalonia.Controls
 
         private void OnActualThemeChanged(FrameworkElement sender, object args)
         {
+            ApplyDragIndicatorBrushes();
             Rebuild();
         }
 
