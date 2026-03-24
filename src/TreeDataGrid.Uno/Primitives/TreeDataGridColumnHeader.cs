@@ -4,13 +4,15 @@ using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Themes;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Shapes;
 
 namespace Avalonia.Controls.Primitives
 {
     public class TreeDataGridColumnHeader : Button
     {
         private Border? _rootBorder;
-        private TextBlock? _sortGlyph;
+        private Path? _sortAscendingGlyph;
+        private Path? _sortDescendingGlyph;
         private Microsoft.UI.Xaml.Controls.Primitives.Thumb? _resizer;
         private TreeDataGrid? _owner;
         private IColumns? _columns;
@@ -94,7 +96,8 @@ namespace Avalonia.Controls.Primitives
             }
 
             _rootBorder = GetTemplateChild("PART_RootBorder") as Border;
-            _sortGlyph = GetTemplateChild("PART_SortGlyph") as TextBlock;
+            _sortAscendingGlyph = GetTemplateChild("PART_SortAscendingGlyph") as Path;
+            _sortDescendingGlyph = GetTemplateChild("PART_SortDescendingGlyph") as Path;
             _resizer = GetTemplateChild("PART_Resizer") as Microsoft.UI.Xaml.Controls.Primitives.Thumb;
 
             if (_resizer is not null)
@@ -156,17 +159,11 @@ namespace Avalonia.Controls.Primitives
                 _rootBorder.BorderBrush = BorderBrush;
             }
 
-            if (_sortGlyph is not null)
-            {
-                _sortGlyph.Foreground = Foreground;
-                _sortGlyph.Text = SortDirection switch
-                {
-                    ListSortDirection.Ascending => _owner.GetThemeString(TreeDataGridThemeResources.SortAscendingGlyphKey, "▲"),
-                    ListSortDirection.Descending => _owner.GetThemeString(TreeDataGridThemeResources.SortDescendingGlyphKey, "▼"),
-                    _ => string.Empty,
-                };
-                _sortGlyph.Visibility = SortDirection.HasValue ? Visibility.Visible : Visibility.Collapsed;
-            }
+            if (_sortAscendingGlyph is not null)
+                _sortAscendingGlyph.Visibility = SortDirection == ListSortDirection.Ascending ? Visibility.Visible : Visibility.Collapsed;
+
+            if (_sortDescendingGlyph is not null)
+                _sortDescendingGlyph.Visibility = SortDirection == ListSortDirection.Descending ? Visibility.Visible : Visibility.Collapsed;
 
             if (_resizer is not null)
                 _resizer.Visibility = CanUserResize ? Visibility.Visible : Visibility.Collapsed;

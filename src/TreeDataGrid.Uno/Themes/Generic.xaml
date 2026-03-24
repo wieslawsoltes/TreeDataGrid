@@ -46,8 +46,6 @@
     <Thickness x:Key="TreeDataGridHeaderPadding">8,6,8,6</Thickness>
     <Thickness x:Key="TreeDataGridCellPadding">8,4,8,4</Thickness>
     <Thickness x:Key="TreeDataGridHierarchyCellPadding">4,4,8,4</Thickness>
-    <x:String x:Key="TreeDataGridSortAscendingGlyph">▲</x:String>
-    <x:String x:Key="TreeDataGridSortDescendingGlyph">▼</x:String>
     <x:String x:Key="TreeDataGridCollapsedGlyph">▸</x:String>
     <x:String x:Key="TreeDataGridExpandedGlyph">▾</x:String>
 
@@ -149,11 +147,22 @@
                                               HorizontalAlignment="Stretch"
                                               VerticalAlignment="Center"
                                               Content="{TemplateBinding Content}" />
-                            <TextBlock x:Name="PART_SortGlyph"
-                                       Grid.Column="1"
-                                       Margin="0,0,6,0"
-                                       VerticalAlignment="Center"
-                                       Visibility="Collapsed" />
+                            <Grid Grid.Column="1"
+                                  Width="12"
+                                  Height="12"
+                                  Margin="0,0,6,0"
+                                  VerticalAlignment="Center">
+                                <Path x:Name="PART_SortAscendingGlyph"
+                                      Data="M1965 947l-941 -941l-941 941l90 90l787 -787v1798h128v-1798l787 787z"
+                                      Fill="{TemplateBinding Foreground}"
+                                      Stretch="Uniform"
+                                      Visibility="Collapsed" />
+                                <Path x:Name="PART_SortDescendingGlyph"
+                                      Data="M1875 1011l-787 787v-1798h-128v1798l-787 -787l-90 90l941 941l941 -941z"
+                                      Fill="{TemplateBinding Foreground}"
+                                      Stretch="Uniform"
+                                      Visibility="Collapsed" />
+                            </Grid>
                             <Thumb x:Name="PART_Resizer"
                                    Grid.Column="2"
                                    Background="Transparent"
