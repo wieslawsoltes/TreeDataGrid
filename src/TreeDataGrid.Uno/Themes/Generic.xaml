@@ -226,7 +226,9 @@
                             BorderThickness="{TemplateBinding BorderThickness}"
                             Padding="{TemplateBinding Padding}">
                         <CheckBox x:Name="PART_CheckBox"
-                                  HorizontalAlignment="Center"
+                                  MinWidth="0"
+                                  MinHeight="0"
+                                  HorizontalAlignment="Left"
                                   VerticalAlignment="Center" />
                     </Border>
                 </ControlTemplate>
