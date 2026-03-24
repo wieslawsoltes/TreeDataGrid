@@ -23,6 +23,23 @@ An example of `TreeDataGrid` displaying flat data:
 
 We accept all issues and pull requests but we answer and review only pull requests and issues that are high quality and align with project scope.
 
+## Uno Platform source port
+
+This repository now also contains a source port of the current `TreeDataGrid` implementation for Uno Platform:
+
+- library: `src/Uno.Controls.TreeDataGrid/`
+- sample app: `samples/TreeDataGridUnoSample/`
+
+The Uno sample targets Android, iOS, WebAssembly, and desktop. The desktop head can be built and smoke-tested locally with:
+
+```bash
+dotnet build src/Uno.Controls.TreeDataGrid/Uno.Controls.TreeDataGrid.csproj -c Release
+dotnet build samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj -c Release -f net9.0-desktop
+cd samples/TreeDataGridUnoSample && dotnet run -c Release -f net9.0-desktop -- --exit
+```
+
+Building all Uno heads requires the corresponding platform prerequisites to be installed. On this repository, Android builds require a configured Android SDK and WebAssembly builds require the `wasm-tools-net9` workload.
+
 ## Quick Start
 
 Install the package:
@@ -147,6 +164,13 @@ dotnet pack src/Avalonia.Controls.TreeDataGrid/Avalonia.Controls.TreeDataGrid.cs
 ```
 
 Packages are generated in `artifacts/packages` (`.nupkg` and `.snupkg`).
+
+Build the Uno source port and desktop sample:
+
+```bash
+dotnet build src/Uno.Controls.TreeDataGrid/Uno.Controls.TreeDataGrid.csproj -c Release
+dotnet build samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj -c Release -f net9.0-desktop
+```
 
 ## Build Documentation
 
