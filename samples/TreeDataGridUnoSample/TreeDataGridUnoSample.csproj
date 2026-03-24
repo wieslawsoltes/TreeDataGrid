@@ -19,6 +19,6 @@
     </UnoFeatures>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Uno.Controls.TreeDataGrid\Uno.Controls.TreeDataGrid.csproj" />
+    <ProjectReference Include="..\..\src\TreeDataGrid.Uno\TreeDataGrid.Uno.csproj" />
   </ItemGroup>
 </Project>

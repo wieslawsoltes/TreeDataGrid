@@ -122,6 +122,8 @@ namespace Avalonia.Controls
             DragLeave += OnDragLeave;
             Drop += OnDrop;
             AddHandler(KeyDownEvent, new KeyEventHandler(OnTreeDataGridKeyDown), true);
+            AddHandler(PointerPressedEvent, new PointerEventHandler(OnTreeDataGridPointerPressed), true);
+            AddHandler(PointerReleasedEvent, new PointerEventHandler(OnTreeDataGridPointerReleased), true);
             RegisterPropertyChangedCallback(UIElement.VisibilityProperty, OnVisibilityPropertyChanged);
         }
 
@@ -343,6 +345,26 @@ namespace Avalonia.Controls
                 selection.OnKeyDown(this, args);
         }
 
+        private void OnTreeDataGridPointerPressed(object sender, PointerRoutedEventArgs e)
+        {
+            _ = sender;
+
+            if (e.Handled || _source?.Selection is not ITreeDataGridSelectionInteraction selection)
+                return;
+
+            selection.OnPointerPressed(this, e.ToAvaloniaPressed());
+        }
+
+        private void OnTreeDataGridPointerReleased(object sender, PointerRoutedEventArgs e)
+        {
+            _ = sender;
+
+            if (e.Handled || _source?.Selection is not ITreeDataGridSelectionInteraction selection)
+                return;
+
+            selection.OnPointerReleased(this, e.ToAvaloniaReleased());
+        }
+
         internal void RaiseCellPrepared(TreeDataGridCell cell, int columnIndex, int rowIndex)
         {
             CellPrepared?.Invoke(this, new TreeDataGridCellEventArgs(cell, columnIndex, rowIndex));
@@ -378,7 +400,7 @@ namespace Avalonia.Controls
             return RowsPresenter?.TryGetElement(rowIndex);
         }
 
-        public bool TryGetCell(Control? element, [NotNullWhen(true)] out TreeDataGridCell? result)
+        public bool TryGetCell(DependencyObject? element, [NotNullWhen(true)] out TreeDataGridCell? result)
         {
             result = VisualTreeHelpers.FindAncestorOrSelf<TreeDataGridCell>(element);
             if (result is not null && result.ColumnIndex >= 0 && result.RowIndex >= 0)
@@ -388,7 +410,7 @@ namespace Avalonia.Controls
             return false;
         }
 
-        public bool TryGetRow(Control? element, [NotNullWhen(true)] out TreeDataGridRow? result)
+        public bool TryGetRow(DependencyObject? element, [NotNullWhen(true)] out TreeDataGridRow? result)
         {
             result = VisualTreeHelpers.FindAncestorOrSelf<TreeDataGridRow>(element);
             if (result is not null && result.RowIndex >= 0)
@@ -398,7 +420,7 @@ namespace Avalonia.Controls
             return false;
         }
 
-        public bool TryGetRowModel<TModel>(Control element, [NotNullWhen(true)] out TModel? result)
+        public bool TryGetRowModel<TModel>(DependencyObject element, [NotNullWhen(true)] out TModel? result)
             where TModel : notnull
         {
             if (Source is not null &&

@@ -4,7 +4,7 @@
     <Nullable>enable</Nullable>
     <LangVersion>12</LangVersion>
     <RootNamespace>Uno.Controls.TreeDataGrid</RootNamespace>
-    <PackageId>Uno.Controls.TreeDataGrid</PackageId>
+    <PackageId>TreeDataGrid.Uno</PackageId>
     <DefineConstants>$(DefineConstants);TREE_DATAGRID_UNO</DefineConstants>
     <GenerateLibraryLayout>true</GenerateLibraryLayout>
   </PropertyGroup>

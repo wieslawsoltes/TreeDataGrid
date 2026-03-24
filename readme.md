@@ -27,13 +27,13 @@ We accept all issues and pull requests but we answer and review only pull reques
 
 This repository now also contains a source port of the current `TreeDataGrid` implementation for Uno Platform:
 
-- library: `src/Uno.Controls.TreeDataGrid/`
+- library: `src/TreeDataGrid.Uno/`
 - sample app: `samples/TreeDataGridUnoSample/`
 
 The Uno sample targets Android, iOS, WebAssembly, and desktop. The desktop head can be built and smoke-tested locally with:
 
 ```bash
-dotnet build src/Uno.Controls.TreeDataGrid/Uno.Controls.TreeDataGrid.csproj -c Release
+dotnet build src/TreeDataGrid.Uno/TreeDataGrid.Uno.csproj -c Release
 dotnet build samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj -c Release -f net9.0-desktop
 cd samples/TreeDataGridUnoSample && dotnet run -c Release -f net9.0-desktop -- --exit
 ```
@@ -168,7 +168,7 @@ Packages are generated in `artifacts/packages` (`.nupkg` and `.snupkg`).
 Build the Uno source port and desktop sample:
 
 ```bash
-dotnet build src/Uno.Controls.TreeDataGrid/Uno.Controls.TreeDataGrid.csproj -c Release
+dotnet build src/TreeDataGrid.Uno/TreeDataGrid.Uno.csproj -c Release
 dotnet build samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj -c Release -f net9.0-desktop
 ```
 
