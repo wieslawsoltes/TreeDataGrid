@@ -1,0 +1,10 @@
+{
+  "background_color": "#ffffff",
+  "description": "TreeDataGridUnoSample",
+  "display": "standalone",
+  "name": "TreeDataGridUnoSample",
+  "short_name": "TreeDataGridUnoSample",
+  "start_url": "/index.html",
+  "theme_color": "#ffffff",
+  "scope": "/"
+}
