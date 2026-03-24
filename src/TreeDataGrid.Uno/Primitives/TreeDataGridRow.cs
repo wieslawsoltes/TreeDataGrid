@@ -55,6 +55,7 @@ namespace Avalonia.Controls.Primitives
             UpdateSelection();
             UpdateDragState(owner.CanStartRowDrag);
             ApplyTemplate();
+            BindCellsPresenter();
             CellsPresenter?.Realize(rowIndex);
             if (_columnWidths is not null)
                 CellsPresenter?.ApplyColumnWidths(_columnWidths);
@@ -119,10 +120,7 @@ namespace Avalonia.Controls.Primitives
             CellsPresenter = GetTemplateChild("PART_CellsPresenter") as TreeDataGridCellsPresenter;
             if (CellsPresenter is not null)
             {
-                CellsPresenter.Owner = _owner;
-                CellsPresenter.ElementFactory = _elementFactory;
-                CellsPresenter.Items = _columns;
-                CellsPresenter.Rows = _rows;
+                BindCellsPresenter();
 
                 if (_columnWidths is not null)
                     CellsPresenter.ApplyColumnWidths(_columnWidths);
@@ -133,6 +131,17 @@ namespace Avalonia.Controls.Primitives
                 if (_columnWidths is not null)
                     CellsPresenter.ApplyColumnWidths(_columnWidths);
             }
+        }
+
+        private void BindCellsPresenter()
+        {
+            if (CellsPresenter is null)
+                return;
+
+            CellsPresenter.Owner = _owner;
+            CellsPresenter.ElementFactory = _elementFactory;
+            CellsPresenter.Items = _columns;
+            CellsPresenter.Rows = _rows;
         }
 
         private void OnRowTapped(object sender, TappedRoutedEventArgs e)
