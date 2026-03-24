@@ -191,12 +191,22 @@ public class FilesPageViewModel : NotifyingBase
 
     private void ApplySelectionMode()
     {
-        var rowSelection = new TreeDataGridRowSelectionModel<FileTreeNodeModel>(Source)
+        if (_cellSelection)
         {
-            SingleSelect = false,
-        };
-        rowSelection.SelectionChanged += SelectionChanged;
-        Source.Selection = rowSelection;
+            Source.Selection = new TreeDataGridCellSelectionModel<FileTreeNodeModel>(Source)
+            {
+                SingleSelect = false,
+            };
+        }
+        else
+        {
+            var rowSelection = new TreeDataGridRowSelectionModel<FileTreeNodeModel>(Source)
+            {
+                SingleSelect = false,
+            };
+            rowSelection.SelectionChanged += SelectionChanged;
+            Source.Selection = rowSelection;
+        }
     }
 
     private void SetSelectedPath(string? value, bool allowSelectionModeChange = true)

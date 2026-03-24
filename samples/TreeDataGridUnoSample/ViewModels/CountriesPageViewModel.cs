@@ -48,10 +48,9 @@ internal class CountriesPageViewModel : NotifyingBase
             if (!RaiseAndSetIfChanged(ref _cellSelection, value))
                 return;
 
-            Source.Selection = new TreeDataGridRowSelectionModel<Country>(Source)
-            {
-                SingleSelect = false,
-            };
+            Source.Selection = _cellSelection
+                ? new TreeDataGridCellSelectionModel<Country>(Source) { SingleSelect = false }
+                : new TreeDataGridRowSelectionModel<Country>(Source) { SingleSelect = false };
         }
     }
 
