@@ -29,16 +29,21 @@ This repository now also contains a source port of the current `TreeDataGrid` im
 
 - library: `src/TreeDataGrid.Uno/`
 - sample app: `samples/TreeDataGridUnoSample/`
+- activity monitor sample app: `samples/TreeDataGridUnoActivityMonitor/`
 
-The Uno sample targets Android, iOS, WebAssembly, and desktop. The desktop head can be built and smoke-tested locally with:
+The parity sample targets Android, iOS, WebAssembly, and desktop on `net9.0`. The new Activity Monitor sample targets Android, iOS, WebAssembly, and desktop on `net10.0`, uses `TreeDataGrid` for every metric table, renders custom SkiaSharp charts, and switches between a native macOS telemetry provider and a cross-platform demo provider.
+
+Desktop heads can be built and smoke-tested locally with:
 
 ```bash
 dotnet build src/TreeDataGrid.Uno/TreeDataGrid.Uno.csproj -c Release
 dotnet build samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj -c Release -f net9.0-desktop
 cd samples/TreeDataGridUnoSample && dotnet run -c Release -f net9.0-desktop -- --exit
+dotnet build samples/TreeDataGridUnoActivityMonitor/TreeDataGridUnoActivityMonitor.csproj -c Release -f net10.0-desktop
+cd samples/TreeDataGridUnoActivityMonitor && dotnet run -c Release -f net10.0-desktop -- --exit
 ```
 
-Building all Uno heads requires the corresponding platform prerequisites to be installed. On this repository, Android builds require a configured Android SDK and WebAssembly builds require the `wasm-tools-net9` workload.
+Building all Uno heads requires the corresponding platform prerequisites to be installed. On this repository, Android builds require a configured Android SDK. WebAssembly builds require the workload that matches the sample target framework, such as `wasm-tools-net9` for `TreeDataGridUnoSample` and `wasm-tools-net10` for `TreeDataGridUnoActivityMonitor`.
 
 ## Quick Start
 
@@ -165,11 +170,12 @@ dotnet pack src/Avalonia.Controls.TreeDataGrid/Avalonia.Controls.TreeDataGrid.cs
 
 Packages are generated in `artifacts/packages` (`.nupkg` and `.snupkg`).
 
-Build the Uno source port and desktop sample:
+Build the Uno source port and desktop samples:
 
 ```bash
 dotnet build src/TreeDataGrid.Uno/TreeDataGrid.Uno.csproj -c Release
 dotnet build samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj -c Release -f net9.0-desktop
+dotnet build samples/TreeDataGridUnoActivityMonitor/TreeDataGridUnoActivityMonitor.csproj -c Release -f net10.0-desktop
 ```
 
 ## Build Documentation
