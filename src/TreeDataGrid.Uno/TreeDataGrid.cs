@@ -1040,13 +1040,81 @@ namespace Avalonia.Controls
 
         private object? TryGetResourceValue(string key)
         {
-            if (Resources.TryGetValue(key, out var local))
-                return local;
+            return TryGetResourceValue(Resources, key, ActualTheme, out var local)
+                ? local
+                : TryGetResourceValue(Application.Current?.Resources, key, ActualTheme, out var appValue)
+                    ? appValue
+                    : null;
+        }
 
-            if (Application.Current?.Resources.TryGetValue(key, out var appValue) == true)
-                return appValue;
+        private static bool TryGetResourceValue(ResourceDictionary? dictionary, string key, ElementTheme theme, out object? value)
+        {
+            if (dictionary is null)
+            {
+                value = null;
+                return false;
+            }
 
-            return null;
+            if (TryGetDirectResourceValue(dictionary, key, out value))
+                return true;
+
+            if (TryGetThemeDictionaryResourceValue(dictionary, key, theme, out value))
+                return true;
+
+            for (var i = dictionary.MergedDictionaries.Count - 1; i >= 0; i--)
+            {
+                if (TryGetResourceValue(dictionary.MergedDictionaries[i], key, theme, out value))
+                    return true;
+            }
+
+            value = null;
+            return false;
+        }
+
+        private static bool TryGetDirectResourceValue(ResourceDictionary dictionary, string key, out object? value)
+        {
+            foreach (var entry in dictionary)
+            {
+                if (entry.Key is string resourceKey && resourceKey == key)
+                {
+                    value = entry.Value;
+                    return true;
+                }
+            }
+
+            value = null;
+            return false;
+        }
+
+        private static bool TryGetThemeDictionaryResourceValue(ResourceDictionary dictionary, string key, ElementTheme theme, out object? value)
+        {
+            foreach (var themeKey in EnumerateThemeKeys(theme))
+            {
+                if (dictionary.ThemeDictionaries.TryGetValue(themeKey, out var themeValue) &&
+                    themeValue is ResourceDictionary themeDictionary &&
+                    TryGetDirectResourceValue(themeDictionary, key, out value))
+                {
+                    return true;
+                }
+            }
+
+            value = null;
+            return false;
+        }
+
+        private static IEnumerable<string> EnumerateThemeKeys(ElementTheme theme)
+        {
+            switch (theme)
+            {
+                case ElementTheme.Dark:
+                    yield return "Dark";
+                    break;
+                case ElementTheme.Light:
+                    yield return "Light";
+                    break;
+            }
+
+            yield return "Default";
         }
 
         private void ShowDropIndicator(TreeDataGridRow row, TreeDataGridRowDropPosition position)

@@ -138,11 +138,14 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="5" />
                             </Grid.ColumnDefinitions>
-                            <ContentPresenter Grid.Column="0"
+                            <ContentPresenter x:Name="PART_ContentPresenter"
+                                              Grid.Column="0"
                                               Margin="{TemplateBinding Padding}"
                                               HorizontalAlignment="Stretch"
                                               VerticalAlignment="Center"
-                                              Content="{TemplateBinding Content}" />
+                                              Foreground="{TemplateBinding Foreground}"
+                                              Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}" />
                             <Grid Grid.Column="1"
                                   Width="12"
                                   Height="12"
