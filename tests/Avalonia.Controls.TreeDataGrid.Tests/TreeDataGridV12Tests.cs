@@ -51,6 +51,37 @@ namespace Avalonia.Controls.TreeDataGridTests
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void Declarative_ItemsSource_Preserves_Collection_Tracking()
+        {
+            var items = new AvaloniaList<TestRow>
+            {
+                new() { Name = "One" },
+            };
+
+            var target = CreateTarget();
+            target.ItemsSource = items;
+            target.ColumnDefinitions.Add(new TreeDataGridTextColumn { Header = "Name", Binding = new Binding("Name") });
+
+            var root = CreateWindow(target);
+            root.UpdateLayout();
+            Dispatcher.UIThread.RunJobs();
+
+            Assert.Single(target.Rows!);
+
+            items.Add(new TestRow { Name = "Two" });
+            root.UpdateLayout();
+            Dispatcher.UIThread.RunJobs();
+
+            Assert.Equal(2, target.Rows!.Count);
+
+            items.RemoveAt(0);
+            root.UpdateLayout();
+            Dispatcher.UIThread.RunJobs();
+
+            Assert.Single(target.Rows!);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void ItemsSource_Hierarchical_Columns_Create_Hierarchical_Source()
         {
             var items = new AvaloniaList<TestRow>
@@ -368,6 +399,68 @@ namespace Avalonia.Controls.TreeDataGridTests
 
             Assert.Equal("Updated", items[0].Name);
             target.Rows.UnrealizeCell((ICell)expanderCell, 0, 0);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void WithTextColumn_IsReadOnly_Does_Not_Infer_Setter()
+        {
+            var items = new AvaloniaList<TestRow>
+            {
+                new() { Name = "Original" },
+            };
+
+            var source = new FlatTreeDataGridSource<TestRow>(items)
+                .WithTextColumn(x => x.Name, options => options.IsReadOnly = true);
+
+            var column = Assert.IsType<TextColumn<TestRow, string>>(source.Columns[0]);
+            Assert.Null(column.Binding.Write);
+
+            var target = CreateTarget();
+            target.Source = source;
+
+            var root = CreateWindow(target);
+            root.UpdateLayout();
+            Dispatcher.UIThread.RunJobs();
+
+            var cell = Assert.IsAssignableFrom<ITextCell>(target.Rows!.RealizeCell(target.Columns![0], 0, 0));
+
+            Assert.False(cell.CanEdit);
+
+            cell.Text = "Updated";
+
+            Assert.Equal("Original", items[0].Name);
+            target.Rows.UnrealizeCell((ICell)cell, 0, 0);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void WithThreeStateCheckBoxColumn_IsReadOnly_Does_Not_Infer_Setter()
+        {
+            var items = new AvaloniaList<TestRow>
+            {
+                new() { IsOptional = false },
+            };
+
+            var source = new FlatTreeDataGridSource<TestRow>(items)
+                .WithThreeStateCheckBoxColumn(x => x.IsOptional, options => options.IsReadOnly = true);
+
+            var column = Assert.IsType<CheckBoxColumn<TestRow>>(source.Columns[0]);
+            Assert.Null(column.Binding.Write);
+
+            var target = CreateTarget();
+            target.Source = source;
+
+            var root = CreateWindow(target);
+            root.UpdateLayout();
+            Dispatcher.UIThread.RunJobs();
+
+            var cell = Assert.IsType<CheckBoxCell>(target.Rows!.RealizeCell(target.Columns![0], 0, 0));
+
+            Assert.True(cell.IsReadOnly);
+
+            cell.Value = true;
+
+            Assert.False(items[0].IsOptional);
+            target.Rows.UnrealizeCell(cell, 0, 0);
         }
 
         private static TreeDataGrid CreateTarget()

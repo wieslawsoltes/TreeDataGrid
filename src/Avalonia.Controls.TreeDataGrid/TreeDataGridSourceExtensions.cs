@@ -342,7 +342,7 @@ namespace Avalonia.Controls
 
             ApplyCommonOptions(internalOptions, options);
 
-            var setter = TreeDataGridExpressionHelper.TryCreateSetter(getter);
+            var setter = options.IsReadOnly ? null : TreeDataGridExpressionHelper.TryCreateSetter(getter);
             columns.Add(setter is null
                 ? new TextColumn<TModel, TValue>(header, getter, options.Width, internalOptions)
                 : new TextColumn<TModel, TValue>(header, getter, setter, options.Width, internalOptions));
@@ -380,7 +380,7 @@ namespace Avalonia.Controls
             var internalOptions = new CheckBoxColumnOptions<TModel>();
             ApplyCommonOptions(internalOptions, options);
 
-            var setter = TreeDataGridExpressionHelper.TryCreateSetter(getter);
+            var setter = options.IsReadOnly ? null : TreeDataGridExpressionHelper.TryCreateSetter(getter);
             columns.Add(new CheckBoxColumn<TModel>(header, getter, setter, options.Width, internalOptions));
         }
 

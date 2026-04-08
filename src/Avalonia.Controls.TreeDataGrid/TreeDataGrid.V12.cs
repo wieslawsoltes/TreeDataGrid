@@ -67,7 +67,7 @@ namespace Avalonia.Controls
             foreach (var column in ColumnDefinitions)
                 column.InitializeFromSample(sample, modelType);
 
-            var items = EnumerateItems(ItemsSource);
+            var items = GetSourceItems(ItemsSource);
 
             if (ColumnDefinitions.Any(x => x is TreeDataGridHierarchicalExpanderColumn))
             {
@@ -259,6 +259,17 @@ namespace Avalonia.Controls
             }
 
             return null;
+        }
+
+        private static IEnumerable<object> GetSourceItems(IEnumerable items)
+        {
+            if ((items is IList || items is INotifyCollectionChanged) &&
+                items is IEnumerable<object> typedItems)
+            {
+                return typedItems;
+            }
+
+            return EnumerateItems(items);
         }
 
         private static IEnumerable<object> EnumerateItems(IEnumerable items)
