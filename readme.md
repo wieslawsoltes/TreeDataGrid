@@ -92,6 +92,32 @@ public class MainWindowViewModel
 }
 ```
 
+If you prefer to define columns in XAML in Avalonia 12, expose the raw collection instead:
+
+```csharp
+using System.Collections.ObjectModel;
+
+public class MainWindowViewModel
+{
+    public ObservableCollection<Person> People { get; } = new()
+    {
+        new() { FirstName = "Eleanor", LastName = "Pope", Age = 32 },
+        new() { FirstName = "Jeremy", LastName = "Navarro", Age = 74 },
+    };
+}
+```
+
+```xml
+<TreeDataGrid ItemsSource="{Binding People}">
+  <TreeDataGridTextColumn Header="First Name"
+                          Binding="{Binding FirstName}"/>
+  <TreeDataGridTextColumn Header="Last Name"
+                          Binding="{Binding LastName}"/>
+  <TreeDataGridTextColumn Header="Age"
+                          Binding="{Binding Age}"/>
+</TreeDataGrid>
+```
+
 ### Hierarchical mode
 
 ```csharp
@@ -129,7 +155,7 @@ public class MainWindowViewModel
 }
 ```
 
-Bind in XAML (both modes):
+Bind code-defined sources in XAML (both modes):
 
 ```xml
 <TreeDataGrid Source="{Binding Source}" />
