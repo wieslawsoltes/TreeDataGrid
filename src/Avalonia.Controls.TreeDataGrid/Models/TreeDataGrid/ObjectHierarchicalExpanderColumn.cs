@@ -10,8 +10,10 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         private readonly IColumn<object> _inner;
         private readonly Func<object, IEnumerable<object>?> _childSelector;
         private readonly Func<object, bool>? _hasChildrenSelector;
+        private readonly Func<object, object>[]? _hasChildrenLinks;
         private readonly Func<object, bool>? _isExpandedGetter;
         private readonly Action<object, bool>? _isExpandedSetter;
+        private readonly Func<object, object>[]? _isExpandedLinks;
         private double _actualWidth = double.NaN;
 
         public ObjectHierarchicalExpanderColumn(
@@ -19,14 +21,18 @@ namespace Avalonia.Controls.Models.TreeDataGrid
             Func<object, IEnumerable<object>?> childSelector,
             Func<object, bool>? hasChildrenSelector,
             Func<object, bool>? isExpandedGetter,
-            Action<object, bool>? isExpandedSetter)
+            Action<object, bool>? isExpandedSetter,
+            Func<object, object>[]? hasChildrenLinks,
+            Func<object, object>[]? isExpandedLinks)
         {
             _inner = inner;
             _inner.PropertyChanged += OnInnerPropertyChanged;
             _childSelector = childSelector;
             _hasChildrenSelector = hasChildrenSelector;
+            _hasChildrenLinks = hasChildrenLinks;
             _isExpandedGetter = isExpandedGetter;
             _isExpandedSetter = isExpandedSetter;
+            _isExpandedLinks = isExpandedLinks;
             _actualWidth = inner.ActualWidth;
         }
 
@@ -63,11 +69,11 @@ namespace Avalonia.Controls.Models.TreeDataGrid
             {
                 var showExpander = new ShowExpanderObservable<object>(
                     _childSelector,
-                    _hasChildrenSelector is null ? null : CreateBinding(_hasChildrenSelector, null),
+                    _hasChildrenSelector is null ? null : CreateBinding(_hasChildrenSelector, null, _hasChildrenLinks),
                     hierarchicalRow.Model);
                 var isExpanded = _isExpandedGetter is null
                     ? null
-                    : CreateBinding(_isExpandedGetter, _isExpandedSetter).Instance(hierarchicalRow.Model);
+                    : CreateBinding(_isExpandedGetter, _isExpandedSetter, _isExpandedLinks).Instance(hierarchicalRow.Model);
                 return new ExpanderCell<object>(_inner.CreateCell(hierarchicalRow), hierarchicalRow, showExpander, isExpanded);
             }
 
@@ -120,13 +126,16 @@ namespace Avalonia.Controls.Models.TreeDataGrid
                 ActualWidth = width.Value;
         }
 
-        private static TypedBinding<object, bool> CreateBinding(Func<object, bool> read, Action<object, bool>? write)
+        private static TypedBinding<object, bool> CreateBinding(
+            Func<object, bool> read,
+            Action<object, bool>? write,
+            Func<object, object>[]? links)
         {
             return new TypedBinding<object, bool>
             {
                 Read = read,
                 Write = write,
-                Links = new Func<object, object>[] { x => x },
+                Links = links is { Length: > 0 } ? links : new Func<object, object>[] { x => x },
             };
         }
 

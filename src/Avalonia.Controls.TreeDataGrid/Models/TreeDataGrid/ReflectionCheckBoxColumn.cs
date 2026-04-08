@@ -11,10 +11,11 @@ namespace Avalonia.Controls.Models.TreeDataGrid
             object? header,
             Func<object, bool?> getter,
             Action<object, bool?>? setter,
+            Func<object, object>[] links,
             GridLength width,
             CheckBoxColumnOptions<object> options,
             bool isThreeState)
-            : base(header, getter, CreateBinding(getter, setter), width, options)
+            : base(header, getter, CreateBinding(getter, setter, links), width, options)
         {
             _isThreeState = isThreeState;
         }
@@ -26,13 +27,14 @@ namespace Avalonia.Controls.Models.TreeDataGrid
 
         private static TypedBinding<object, bool?> CreateBinding(
             Func<object, bool?> getter,
-            Action<object, bool?>? setter)
+            Action<object, bool?>? setter,
+            Func<object, object>[] links)
         {
             return new TypedBinding<object, bool?>
             {
                 Read = getter,
                 Write = setter,
-                Links = new Func<object, object>[] { x => x },
+                Links = links,
             };
         }
     }

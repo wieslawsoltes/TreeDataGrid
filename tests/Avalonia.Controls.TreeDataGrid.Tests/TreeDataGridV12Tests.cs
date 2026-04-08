@@ -1,5 +1,7 @@
 ﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Avalonia.Collections;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Primitives;
@@ -173,6 +175,81 @@ namespace Avalonia.Controls.TreeDataGridTests
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void Declarative_Text_Column_Tracks_Nested_ReflectionBinding_Notifications()
+        {
+            var items = new AvaloniaList<NotifyingTestRow>
+            {
+                new()
+                {
+                    Customer = new CustomerInfo
+                    {
+                        Address = new AddressInfo
+                        {
+                            City = "Warsaw",
+                        },
+                    },
+                },
+            };
+
+            var target = CreateTarget();
+            target.ItemsSource = items;
+            target.ColumnDefinitions.Add(new TreeDataGridTextColumn { Header = "City", Binding = new Binding("Customer.Address.City") });
+
+            var root = CreateWindow(target);
+            root.UpdateLayout();
+            Dispatcher.UIThread.RunJobs();
+
+            var cell = Assert.IsAssignableFrom<ITextCell>(target.Rows!.RealizeCell(target.Columns![0], 0, 0));
+            Assert.Equal("Warsaw", cell.Text);
+
+            items[0].Customer.Address.City = "Krakow";
+            Dispatcher.UIThread.RunJobs();
+
+            Assert.Equal("Krakow", cell.Text);
+            target.Rows.UnrealizeCell((ICell)cell, 0, 0);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Declarative_Text_Column_Tracks_Nested_CompiledBinding_Notifications()
+        {
+            var items = new AvaloniaList<NotifyingTestRow>
+            {
+                new()
+                {
+                    Customer = new CustomerInfo
+                    {
+                        Address = new AddressInfo
+                        {
+                            City = "Warsaw",
+                        },
+                    },
+                },
+            };
+
+            var target = CreateTarget();
+            target.ItemsSource = items;
+            target.ColumnDefinitions.Add(
+                new TreeDataGridTextColumn
+                {
+                    Header = "City",
+                    Binding = CompiledBinding.Create((NotifyingTestRow x) => x.Customer.Address.City),
+                });
+
+            var root = CreateWindow(target);
+            root.UpdateLayout();
+            Dispatcher.UIThread.RunJobs();
+
+            var cell = Assert.IsAssignableFrom<ITextCell>(target.Rows!.RealizeCell(target.Columns![0], 0, 0));
+            Assert.Equal("Warsaw", cell.Text);
+
+            items[0].Customer.Address.City = "Krakow";
+            Dispatcher.UIThread.RunJobs();
+
+            Assert.Equal("Krakow", cell.Text);
+            target.Rows.UnrealizeCell((ICell)cell, 0, 0);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void Declarative_CheckBox_Column_Writes_Back_Through_Binding_Accessor()
         {
             var items = new AvaloniaList<TestRow>
@@ -194,6 +271,28 @@ namespace Avalonia.Controls.TreeDataGridTests
 
             Assert.False(items[0].IsActive);
             target.Rows.UnrealizeCell(cell, 0, 0);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Declarative_CheckBox_Column_Uses_Nullable_Binding_Type_For_Three_State_When_Source_Is_Empty()
+        {
+            var columnDefinition = new TreeDataGridCheckBoxColumn
+            {
+                Header = "Optional",
+                Binding = new Binding("IsOptional"),
+            };
+            columnDefinition.InitializeFromSample(sampleModel: null, modelType: typeof(TestRow));
+
+            var column = columnDefinition.CreateUntypedColumn();
+            var row = new AnonymousRow<object>().Update(0, new TestRow { IsOptional = false });
+            var cell = Assert.IsType<CheckBoxCell>(column.CreateCell(row));
+
+            Assert.True(cell.IsThreeState);
+
+            cell.Value = null;
+
+            Assert.Null(((TestRow)row.Model).IsOptional);
+            cell.Dispose();
         }
 
         [AvaloniaFact(Timeout = 10000)]
@@ -237,6 +336,40 @@ namespace Avalonia.Controls.TreeDataGridTests
             Assert.True(items[0].IsExpanded);
         }
 
+        [AvaloniaFact(Timeout = 10000)]
+        public void Hierarchical_Expander_Text_Column_Infers_Setter_From_Getter()
+        {
+            var items = new AvaloniaList<TestRow>
+            {
+                new()
+                {
+                    Name = "Root",
+                    Children =
+                    {
+                        new TestRow { Name = "Child" },
+                    },
+                },
+            };
+
+            var source = new HierarchicalTreeDataGridSource<TestRow>(items)
+                .WithHierarchicalExpanderTextColumn(x => x.Name, x => x.Children);
+
+            var target = CreateTarget();
+            target.Source = source;
+
+            var root = CreateWindow(target);
+            root.UpdateLayout();
+            Dispatcher.UIThread.RunJobs();
+
+            var expanderCell = Assert.IsAssignableFrom<IExpanderCell>(target.Rows!.RealizeCell(target.Columns![0], 0, 0));
+            var textCell = Assert.IsAssignableFrom<ITextCell>(expanderCell.Content);
+
+            textCell.Text = "Updated";
+
+            Assert.Equal("Updated", items[0].Name);
+            target.Rows.UnrealizeCell((ICell)expanderCell, 0, 0);
+        }
+
         private static TreeDataGrid CreateTarget()
         {
             return new TreeDataGrid
@@ -274,9 +407,58 @@ namespace Avalonia.Controls.TreeDataGridTests
             public string? Name { get; set; }
             public int Age { get; set; }
             public bool IsActive { get; set; }
+            public bool? IsOptional { get; set; }
             public bool IsExpanded { get; set; }
             public bool HasChildren => Children.Count > 0;
             public ObservableCollection<TestRow> Children { get; } = new();
+        }
+
+        private abstract class NotifyPropertyChangedBase : INotifyPropertyChanged
+        {
+            public event PropertyChangedEventHandler? PropertyChanged;
+
+            protected bool SetAndRaise<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+            {
+                if (Equals(field, value))
+                    return false;
+
+                field = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+                return true;
+            }
+        }
+
+        private class NotifyingTestRow : NotifyPropertyChangedBase
+        {
+            private CustomerInfo _customer = new();
+
+            public CustomerInfo Customer
+            {
+                get => _customer;
+                set => SetAndRaise(ref _customer, value);
+            }
+        }
+
+        private class CustomerInfo : NotifyPropertyChangedBase
+        {
+            private AddressInfo _address = new();
+
+            public AddressInfo Address
+            {
+                get => _address;
+                set => SetAndRaise(ref _address, value);
+            }
+        }
+
+        private class AddressInfo : NotifyPropertyChangedBase
+        {
+            private string? _city;
+
+            public string? City
+            {
+                get => _city;
+                set => SetAndRaise(ref _city, value);
+            }
         }
     }
 }

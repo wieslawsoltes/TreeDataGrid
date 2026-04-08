@@ -1,23 +1,34 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Reflection;
 using Avalonia.Data;
+using Avalonia.Data.Core;
 
 namespace Avalonia.Controls
 {
     internal sealed class TreeDataGridBindingAccessor : IDisposable
     {
+        private static readonly Func<object, object>[] s_selfLinks = new Func<object, object>[] { x => x };
+        private static readonly PropertyInfo? s_compiledBindingPathElementsProperty =
+            typeof(CompiledBindingPath).GetProperty("Elements", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
         private readonly IDisposable _bindingDisposable;
         private readonly BindingExpressionBase? _expression;
         private readonly TreeDataGridBindingProbe _probe = new();
+        private readonly Func<object, object>[] _links;
         private readonly BindingMode _mode;
+        private readonly Type? _declaredType;
         private Type? _inferredType;
         private bool _sampleValueWasNull;
 
-        public TreeDataGridBindingAccessor(BindingBase binding, object? sampleModel = null)
+        public TreeDataGridBindingAccessor(BindingBase binding, object? sampleModel = null, Type? modelType = null)
         {
             _expression = _probe.Bind(TreeDataGridBindingProbe.ValueProperty, binding);
             _bindingDisposable = _expression;
             _mode = GetMode(binding);
+            _links = TryCreateLinks(binding, modelType) ?? s_selfLinks;
+            _declaredType = TryGetValueType(binding, modelType);
 
             if (sampleModel is not null)
             {
@@ -27,7 +38,9 @@ namespace Avalonia.Controls
         }
 
         public bool CanWrite => _mode is BindingMode.TwoWay or BindingMode.OneWayToSource;
+        public Func<object, object>[] Links => _links;
         public bool SampleValueWasNull => _sampleValueWasNull;
+        public Type? ValueType => _declaredType ?? _inferredType;
 
         public static Func<TModel, string?>? TryCreateTextSelector<TModel>(BindingBase? binding)
             where TModel : class
@@ -139,7 +152,7 @@ namespace Avalonia.Controls
             if (value is null)
                 return null;
 
-            var targetType = _inferredType;
+            var targetType = ValueType;
 
             if (targetType is null)
                 return value;
@@ -166,6 +179,218 @@ namespace Avalonia.Controls
         {
             if (!ReferenceEquals(_probe.DataContext, model))
                 _probe.DataContext = model;
+        }
+
+        private static Func<object, object>[]? TryCreateLinks(BindingBase binding, Type? modelType)
+        {
+            return binding switch
+            {
+                CompiledBinding x => TryCreateCompiledBindingLinks(x),
+                ReflectionBinding x => TryCreateReflectionBindingLinks(x, modelType),
+                _ => null,
+            };
+        }
+
+        private static Type? TryGetValueType(BindingBase binding, Type? modelType)
+        {
+            return binding switch
+            {
+                CompiledBinding x => TryGetCompiledBindingValueType(x),
+                ReflectionBinding x => TryGetReflectionBindingValueType(x, modelType),
+                _ => null,
+            };
+        }
+
+        private static Func<object, object>[]? TryCreateCompiledBindingLinks(CompiledBinding binding)
+        {
+            var properties = TryGetCompiledBindingProperties(binding);
+            return properties is not null ? CreateLinks(properties) : null;
+        }
+
+        private static Type? TryGetCompiledBindingValueType(CompiledBinding binding)
+        {
+            var properties = TryGetCompiledBindingProperties(binding);
+            return properties is { Count: > 0 } ? properties[properties.Count - 1].PropertyType : null;
+        }
+
+        private static IReadOnlyList<IPropertyInfo>? TryGetCompiledBindingProperties(CompiledBinding binding)
+        {
+            var elements = s_compiledBindingPathElementsProperty?.GetValue(binding.Path) as IEnumerable;
+
+            if (elements is null)
+                return null;
+
+            var result = new List<IPropertyInfo>();
+
+            foreach (var element in elements)
+            {
+                if (element is null)
+                    continue;
+
+                var property = element.GetType().GetProperty(
+                    "Property",
+                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+                if (property?.GetValue(element) is IPropertyInfo propertyInfo)
+                {
+                    result.Add(propertyInfo);
+                    continue;
+                }
+
+                var typeName = element.GetType().Name;
+
+                if (typeName != "SelfPathElement" &&
+                    typeName != "TypeCastPathElement" &&
+                    !typeName.StartsWith("TypeCastPathElement`", StringComparison.Ordinal))
+                {
+                    return null;
+                }
+            }
+
+            return result;
+        }
+
+        private static Func<object, object>[]? TryCreateReflectionBindingLinks(ReflectionBinding binding, Type? modelType)
+        {
+            if (GetReflectionBindingSource(binding) is not null ||
+                binding.RelativeSource is not null ||
+                !string.IsNullOrEmpty(binding.ElementName))
+            {
+                return null;
+            }
+
+            var members = TryResolveReflectionPath(modelType, binding.Path);
+            return members is not null ? CreateLinks(members) : null;
+        }
+
+        private static Type? TryGetReflectionBindingValueType(ReflectionBinding binding, Type? modelType)
+        {
+            var rootType = GetReflectionBindingSource(binding)?.GetType() ?? modelType;
+            var members = TryResolveReflectionPath(rootType, binding.Path);
+            return members is { Count: > 0 } ? GetMemberType(members[members.Count - 1]) : rootType;
+        }
+
+        private static object? GetReflectionBindingSource(ReflectionBinding binding)
+        {
+            return ReferenceEquals(binding.Source, AvaloniaProperty.UnsetValue) ? null : binding.Source;
+        }
+
+        private static IReadOnlyList<MemberInfo>? TryResolveReflectionPath(Type? rootType, string? path)
+        {
+            if (rootType is null)
+                return null;
+
+            if (string.IsNullOrWhiteSpace(path) || path == ".")
+                return Array.Empty<MemberInfo>();
+
+            var currentType = rootType;
+            var result = new List<MemberInfo>();
+            var parts = path.Split('.');
+
+            foreach (var rawPart in parts)
+            {
+                var part = rawPart.Trim();
+
+                if (part.Length == 0 ||
+                    part.Contains('[') ||
+                    part.Contains('(') ||
+                    part.Contains('!') ||
+                    part.Contains('#') ||
+                    part.Contains('$') ||
+                    part.Contains('/'))
+                {
+                    return null;
+                }
+
+                var member = (MemberInfo?)currentType.GetProperty(
+                        part,
+                        BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                    ?? currentType.GetField(
+                        part,
+                        BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+                if (member is null)
+                    return null;
+
+                result.Add(member);
+                currentType = GetMemberType(member);
+            }
+
+            return result;
+        }
+
+        private static Func<object, object>[] CreateLinks(IReadOnlyList<IPropertyInfo> properties)
+        {
+            if (properties.Count == 0)
+                return s_selfLinks;
+
+            var result = new Func<object, object>[properties.Count];
+            result[0] = s_selfLinks[0];
+
+            for (var i = 1; i < properties.Count; ++i)
+            {
+                var length = i;
+                result[i] = x => EvaluateProperties(x, properties, length);
+            }
+
+            return result;
+        }
+
+        private static Func<object, object>[] CreateLinks(IReadOnlyList<MemberInfo> members)
+        {
+            if (members.Count == 0)
+                return s_selfLinks;
+
+            var result = new Func<object, object>[members.Count];
+            result[0] = s_selfLinks[0];
+
+            for (var i = 1; i < members.Count; ++i)
+            {
+                var length = i;
+                result[i] = x => EvaluateMembers(x, members, length);
+            }
+
+            return result;
+        }
+
+        private static object EvaluateProperties(object model, IReadOnlyList<IPropertyInfo> properties, int length)
+        {
+            object? current = model;
+
+            for (var i = 0; i < length && current is not null; ++i)
+                current = properties[i].Get(current);
+
+            return current!;
+        }
+
+        private static object EvaluateMembers(object model, IReadOnlyList<MemberInfo> members, int length)
+        {
+            object? current = model;
+
+            for (var i = 0; i < length && current is not null; ++i)
+                current = GetMemberValue(members[i], current);
+
+            return current!;
+        }
+
+        private static object? GetMemberValue(MemberInfo member, object target)
+        {
+            return member switch
+            {
+                PropertyInfo property => property.GetValue(target),
+                FieldInfo field => field.GetValue(target),
+                _ => null,
+            };
+        }
+
+        private static Type GetMemberType(MemberInfo member)
+        {
+            return member switch
+            {
+                PropertyInfo property => property.PropertyType,
+                FieldInfo field => field.FieldType,
+                _ => typeof(object),
+            };
         }
     }
 }

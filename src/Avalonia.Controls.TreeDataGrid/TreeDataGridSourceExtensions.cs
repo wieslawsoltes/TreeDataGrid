@@ -342,7 +342,7 @@ namespace Avalonia.Controls
 
             ApplyCommonOptions(internalOptions, options);
 
-            var setter = options.IsReadOnly ? null : TreeDataGridExpressionHelper.TryCreateSetter(getter);
+            var setter = TreeDataGridExpressionHelper.TryCreateSetter(getter);
             columns.Add(setter is null
                 ? new TextColumn<TModel, TValue>(header, getter, options.Width, internalOptions)
                 : new TextColumn<TModel, TValue>(header, getter, setter, options.Width, internalOptions));
@@ -380,7 +380,7 @@ namespace Avalonia.Controls
             var internalOptions = new CheckBoxColumnOptions<TModel>();
             ApplyCommonOptions(internalOptions, options);
 
-            var setter = options.IsReadOnly ? null : TreeDataGridExpressionHelper.TryCreateSetter(getter);
+            var setter = TreeDataGridExpressionHelper.TryCreateSetter(getter);
             columns.Add(new CheckBoxColumn<TModel>(header, getter, setter, options.Width, internalOptions));
         }
 
@@ -432,11 +432,11 @@ namespace Avalonia.Controls
             };
             var internalOptions = new TextColumnOptions<TModel>();
             ApplyCommonOptions(internalOptions, innerOptions);
-            var inner = new TextColumn<TModel, TValue>(
-                header ?? TreeDataGridExpressionHelper.TryGetMemberName(getter) ?? string.Empty,
-                getter,
-                options.Width,
-                internalOptions);
+            var setter = TreeDataGridExpressionHelper.TryCreateSetter(getter);
+            var innerHeader = header ?? TreeDataGridExpressionHelper.TryGetMemberName(getter) ?? string.Empty;
+            var inner = setter is null
+                ? new TextColumn<TModel, TValue>(innerHeader, getter, options.Width, internalOptions)
+                : new TextColumn<TModel, TValue>(innerHeader, getter, setter, options.Width, internalOptions);
             columns.Add(new HierarchicalExpanderColumn<TModel>(inner, childSelector, options.HasChildren, options.IsExpanded));
         }
 

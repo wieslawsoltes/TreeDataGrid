@@ -62,9 +62,10 @@ namespace Avalonia.Controls
             }
 
             var sample = TryGetSampleItem(ItemsSource);
+            var modelType = sample?.GetType() ?? TryGetItemType(ItemsSource);
 
             foreach (var column in ColumnDefinitions)
-                column.InitializeFromSample(sample);
+                column.InitializeFromSample(sample, modelType);
 
             var items = EnumerateItems(ItemsSource);
 
@@ -230,6 +231,31 @@ namespace Avalonia.Controls
             {
                 if (item is not null)
                     return item;
+            }
+
+            return null;
+        }
+
+        private static Type? TryGetItemType(IEnumerable items)
+        {
+            var type = items.GetType();
+
+            if (type.IsArray)
+                return type.GetElementType();
+
+            if (type.IsGenericType &&
+                type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+            {
+                return type.GetGenericArguments()[0];
+            }
+
+            foreach (var iface in type.GetInterfaces())
+            {
+                if (iface.IsGenericType &&
+                    iface.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                {
+                    return iface.GetGenericArguments()[0];
+                }
             }
 
             return null;

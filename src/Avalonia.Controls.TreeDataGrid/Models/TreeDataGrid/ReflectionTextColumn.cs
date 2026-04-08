@@ -13,9 +13,10 @@ namespace Avalonia.Controls.Models.TreeDataGrid
             object? header,
             Func<object, object?> getter,
             Action<object, object?>? setter,
+            Func<object, object>[] links,
             GridLength width,
             TextColumnOptions<object> options)
-            : base(header, getter, CreateBinding(getter, setter), width, options)
+            : base(header, getter, CreateBinding(getter, setter, links), width, options)
         {
             _getter = getter;
             _isTextSearchEnabled = options.IsTextSearchEnabled;
@@ -37,13 +38,14 @@ namespace Avalonia.Controls.Models.TreeDataGrid
 
         private static TypedBinding<object, object?> CreateBinding(
             Func<object, object?> getter,
-            Action<object, object?>? setter)
+            Action<object, object?>? setter,
+            Func<object, object>[] links)
         {
             return new TypedBinding<object, object?>
             {
                 Read = getter,
                 Write = setter,
-                Links = new Func<object, object>[] { x => x },
+                Links = links,
             };
         }
     }

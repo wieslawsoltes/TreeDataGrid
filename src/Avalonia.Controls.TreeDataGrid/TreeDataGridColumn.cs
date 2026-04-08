@@ -23,7 +23,7 @@ namespace Avalonia.Controls
         public BeginEditGestures BeginEditGestures { get; set; } = BeginEditGestures.Default;
 
         internal abstract IColumn<object> CreateUntypedColumn();
-        internal virtual void InitializeFromSample(object? sampleModel)
+        internal virtual void InitializeFromSample(object? sampleModel, Type? modelType)
         {
         }
 
@@ -45,6 +45,7 @@ namespace Avalonia.Controls
     public class TreeDataGridTextColumn : TreeDataGridColumn
     {
         private object? _sampleModel;
+        private Type? _sampleModelType;
 
         [AssignBinding]
         public BindingBase? Binding { get; set; }
@@ -59,7 +60,7 @@ namespace Avalonia.Controls
         internal override IColumn<object> CreateUntypedColumn()
         {
             var accessor = Binding is not null
-                ? new TreeDataGridBindingAccessor(Binding, _sampleModel)
+                ? new TreeDataGridBindingAccessor(Binding, _sampleModel, _sampleModelType)
                 : throw new InvalidOperationException("TreeDataGridTextColumn requires Binding.");
             Func<object, object?> getter = accessor.Read;
             Action<object, object?>? setter = null;
@@ -84,18 +85,20 @@ namespace Avalonia.Controls
                 TextWrapping = TextWrapping,
             };
 
-            return new ReflectionTextColumn(Header, getter, setter, Width, options);
+            return new ReflectionTextColumn(Header, getter, setter, accessor.Links, Width, options);
         }
 
-        internal override void InitializeFromSample(object? sampleModel)
+        internal override void InitializeFromSample(object? sampleModel, Type? modelType)
         {
             _sampleModel = sampleModel;
+            _sampleModelType = modelType;
         }
     }
 
     public class TreeDataGridCheckBoxColumn : TreeDataGridColumn
     {
         private object? _sampleModel;
+        private Type? _sampleModelType;
         private bool _isThreeState;
 
         [AssignBinding]
@@ -106,7 +109,7 @@ namespace Avalonia.Controls
         internal override IColumn<object> CreateUntypedColumn()
         {
             var accessor = Binding is not null
-                ? new TreeDataGridBindingAccessor(Binding, _sampleModel)
+                ? new TreeDataGridBindingAccessor(Binding, _sampleModel, _sampleModelType)
                 : throw new InvalidOperationException("TreeDataGridCheckBoxColumn requires Binding.");
             Func<object, bool?> getter = accessor.ReadAsNullableBoolean;
             Action<object, bool?>? setter = null;
@@ -114,7 +117,7 @@ namespace Avalonia.Controls
             if (!IsReadOnly && accessor.CanWrite)
                 setter = (model, value) => accessor.Write(model, value);
 
-            _isThreeState = IsThreeState ?? accessor.SampleValueWasNull;
+            _isThreeState = IsThreeState ?? accessor.ValueType is { } valueType && Nullable.GetUnderlyingType(valueType) == typeof(bool) || accessor.SampleValueWasNull;
 
             var options = new CheckBoxColumnOptions<object>
             {
@@ -127,12 +130,13 @@ namespace Avalonia.Controls
                 CompareDescending = CompareDescending is null ? null : (a, b) => CompareDescending(a, b),
             };
 
-            return new ReflectionCheckBoxColumn(Header, getter, setter, Width, options, _isThreeState);
+            return new ReflectionCheckBoxColumn(Header, getter, setter, accessor.Links, Width, options, _isThreeState);
         }
 
-        internal override void InitializeFromSample(object? sampleModel)
+        internal override void InitializeFromSample(object? sampleModel, Type? modelType)
         {
             _sampleModel = sampleModel;
+            _sampleModelType = modelType;
             _isThreeState = false;
         }
     }
@@ -218,6 +222,7 @@ namespace Avalonia.Controls
     public class TreeDataGridHierarchicalExpanderColumn : TreeDataGridColumn
     {
         private object? _sampleModel;
+        private Type? _sampleModelType;
 
         [AssignBinding]
         public BindingBase? ChildrenBinding { get; set; }
@@ -234,10 +239,10 @@ namespace Avalonia.Controls
         internal override IColumn<object> CreateUntypedColumn()
         {
             var childrenAccessor = ChildrenBinding is not null
-                ? new TreeDataGridBindingAccessor(ChildrenBinding, _sampleModel)
+                ? new TreeDataGridBindingAccessor(ChildrenBinding, _sampleModel, _sampleModelType)
                 : throw new InvalidOperationException("TreeDataGridHierarchicalExpanderColumn requires ChildrenBinding.");
-            var hasChildrenAccessor = HasChildrenBinding is null ? null : new TreeDataGridBindingAccessor(HasChildrenBinding, _sampleModel);
-            var isExpandedAccessor = IsExpandedBinding is null ? null : new TreeDataGridBindingAccessor(IsExpandedBinding, _sampleModel);
+            var hasChildrenAccessor = HasChildrenBinding is null ? null : new TreeDataGridBindingAccessor(HasChildrenBinding, _sampleModel, _sampleModelType);
+            var isExpandedAccessor = IsExpandedBinding is null ? null : new TreeDataGridBindingAccessor(IsExpandedBinding, _sampleModel, _sampleModelType);
             var inner = InnerColumn?.CreateUntypedColumn()
                 ?? throw new InvalidOperationException("TreeDataGridHierarchicalExpanderColumn requires an inner column.");
 
@@ -250,13 +255,16 @@ namespace Avalonia.Controls
                 isExpandedAccessor is null ? null : model => isExpandedAccessor.ReadAsBoolean(model),
                 isExpandedAccessor is null || !isExpandedAccessor.CanWrite
                     ? null
-                    : (model, value) => isExpandedAccessor.Write(model, value));
+                    : (model, value) => isExpandedAccessor.Write(model, value),
+                hasChildrenAccessor?.Links,
+                isExpandedAccessor?.Links);
         }
 
-        internal override void InitializeFromSample(object? sampleModel)
+        internal override void InitializeFromSample(object? sampleModel, Type? modelType)
         {
             _sampleModel = sampleModel;
-            InnerColumn?.InitializeFromSample(sampleModel);
+            _sampleModelType = modelType;
+            InnerColumn?.InitializeFromSample(sampleModel, modelType);
         }
     }
 }
