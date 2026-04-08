@@ -447,7 +447,7 @@ namespace Avalonia.Controls
             }
         }
 
-        internal void RaiseRowDragStarted(PointerEventArgs trigger)
+        internal void RaiseRowDragStarted(PointerPressedEventArgs trigger)
         {
             if (_source is null || RowSelection is null)
                 return;
@@ -473,7 +473,7 @@ namespace Avalonia.Controls
         }
 
         private static async System.Threading.Tasks.Task DoDragDropAsync(
-            PointerEventArgs trigger,
+            PointerPressedEventArgs trigger,
             DragInfo info,
             DragDropEffects allowedEffects)
         {
