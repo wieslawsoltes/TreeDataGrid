@@ -894,6 +894,45 @@ namespace Avalonia.Controls.TreeDataGridTests
             }
         }
 
+        [AvaloniaFact(Timeout = 10000)]
+        public void Supports_Filtering_Children()
+        {
+            var data = CreateData(2, 2);
+            var target = CreateTarget(data, false);
+
+            target.Filter(x => x.Id % 2 == 0);
+
+            Assert.Single(target.Rows);
+
+            target.Expand(new IndexPath(0));
+
+            Assert.Equal(2, target.Rows.Count);
+            Assert.Equal(0, ((HierarchicalRow<Node>)target.Rows[0]).Model.Id);
+            Assert.Equal(2, ((HierarchicalRow<Node>)target.Rows[1]).Model.Id);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Row_Events_Use_TreeDataGridRowModelEventArgs()
+        {
+            var data = CreateData(1, 1);
+            var target = CreateTarget(data, false);
+            TreeDataGridRowModelEventArgs? expanded = null;
+            TreeDataGridRowModelEventArgs? collapsed = null;
+
+            target.RowExpanded += (_, e) => expanded = e;
+            target.RowCollapsed += (_, e) => collapsed = e;
+
+            target.Expand(new IndexPath(0));
+            target.Collapse(new IndexPath(0));
+
+            Assert.NotNull(expanded);
+            Assert.NotNull(collapsed);
+            Assert.Same(data[0], expanded!.Row.Model);
+            Assert.Equal(new IndexPath(0), expanded.Row.ModelIndexPath);
+            Assert.Same(data[0], collapsed!.Row.Model);
+            Assert.Equal(new IndexPath(0), collapsed.Row.ModelIndexPath);
+        }
+
         private static AvaloniaListDebug<Node> CreateData(int count = 5, int childCount = 5)
         {
             var id = 0;

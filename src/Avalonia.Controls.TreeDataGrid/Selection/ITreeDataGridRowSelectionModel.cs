@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Avalonia.Controls;
 
 namespace Avalonia.Controls.Selection
 {
@@ -11,6 +12,6 @@ namespace Avalonia.Controls.Selection
     {
         new T? SelectedItem { get; }
         new IReadOnlyList<T?> SelectedItems { get; }
-        new event EventHandler<TreeSelectionModelSelectionChangedEventArgs<T>>? SelectionChanged;
+        new event EventHandler<TreeDataGridSelectionChangedEventArgs<T>>? SelectionChanged;
     }
 }

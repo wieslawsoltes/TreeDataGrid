@@ -6,10 +6,16 @@
         private FilesPageViewModel? _files;
         private WikipediaPageViewModel? _wikipedia;
         private DragDropPageViewModel? _dragDrop;
+        private PeopleXamlPageViewModel? _peopleXaml;
 
         public CountriesPageViewModel Countries
         {
             get => _countries ??= new CountriesPageViewModel();
+        }
+
+        public PeopleXamlPageViewModel PeopleXaml
+        {
+            get => _peopleXaml ??= new PeopleXamlPageViewModel();
         }
 
         public FilesPageViewModel Files
