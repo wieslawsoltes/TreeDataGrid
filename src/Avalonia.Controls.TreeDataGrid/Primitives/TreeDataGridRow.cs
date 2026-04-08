@@ -160,7 +160,6 @@ namespace Avalonia.Controls.Primitives
         protected override void OnPointerMoved(PointerEventArgs e)
         {
             base.OnPointerMoved(e);
-
             var currentPoint = e.GetCurrentPoint(this);
             var delta = currentPoint.Position - _mouseDownPosition;
 
