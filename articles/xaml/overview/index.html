@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="XAML Usage Overview | TreeDataGrid for Avalonia">
-<meta name="twitter:description" content="XAML Usage Overview This section documents TreeDataGrid from a XAML-first perspective: declaring controls, wiring templates, loading themes, and customizing visuals. What You Will Learn how sample projects structure TreeDataGrid in XAML how to include and use TreeDataGrid themes how model code (TemplateColumn&lt;TModel>) resolves XAML template resource keys how to customize theme resources and selectors safely Typical XAML-First Setup &lt;Application xmlns=&quot;https://github.com/avaloniaui&quot; xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot; x:Class=&quot;MyApp.App&quot;> &lt;Application.Styles> &lt;FluentTheme/> &lt;StyleInclude Source=&quot;avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml&quot;/> &lt;/Application.Styles> &lt;/Application>...">
+<meta name="twitter:description" content="XAML Usage Overview TreeDataGrid can now be configured directly in XAML with ItemsSource and declarative columns. This is the recommended path when your columns, templates, and bindings naturally belong in markup. Theme Setup &lt;Application xmlns=&quot;https://github.com/avaloniaui&quot; xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot; x:Class=&quot;MyApp.App&quot;> &lt;Application.Styles> &lt;FluentTheme/> &lt;StyleInclude Source=&quot;avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml&quot;/> &lt;/Application.Styles> &lt;/Application>...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
 <meta name="twitter:image:alt" content="XAML Usage Overview | TreeDataGrid for Avalonia">
 <meta property="og:title" content="XAML Usage Overview | TreeDataGrid for Avalonia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/TreeDataGrid">
-<meta property="og:description" content="XAML Usage Overview This section documents TreeDataGrid from a XAML-first perspective: declaring controls, wiring templates, loading themes, and customizing visuals. What You Will Learn how sample projects structure TreeDataGrid in XAML how to include and use TreeDataGrid themes how model code (TemplateColumn&lt;TModel>) resolves XAML template resource keys how to customize theme resources and selectors safely Typical XAML-First Setup &lt;Application xmlns=&quot;https://github.com/avaloniaui&quot; xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot; x:Class=&quot;MyApp.App&quot;> &lt;Application.Styles> &lt;FluentTheme/> &lt;StyleInclude Source=&quot;avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml&quot;/> &lt;/Application.Styles> &lt;/Application>...">
+<meta property="og:description" content="XAML Usage Overview TreeDataGrid can now be configured directly in XAML with ItemsSource and declarative columns. This is the recommended path when your columns, templates, and bindings naturally belong in markup. Theme Setup &lt;Application xmlns=&quot;https://github.com/avaloniaui&quot; xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot; x:Class=&quot;MyApp.App&quot;> &lt;Application.Styles> &lt;FluentTheme/> &lt;StyleInclude Source=&quot;avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml&quot;/> &lt;/Application.Styles> &lt;/Application>...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
 <meta property="og:image:alt" content="XAML Usage Overview | TreeDataGrid for Avalonia">
   </head>
@@ -164,15 +164,8 @@
         </div>
 <!-- lunet:summarize -->
 <h1 id="xaml-usage-overview">XAML Usage Overview</h1>
-<p>This section documents TreeDataGrid from a XAML-first perspective: declaring controls, wiring templates, loading themes, and customizing visuals.</p>
-<h2 id="what-you-will-learn">What You Will Learn</h2>
-<ul>
-<li>how sample projects structure <code>TreeDataGrid</code> in XAML</li>
-<li>how to include and use TreeDataGrid themes</li>
-<li>how model code (<code>TemplateColumn&lt;TModel&gt;</code>) resolves XAML template resource keys</li>
-<li>how to customize theme resources and selectors safely</li>
-</ul>
-<h2 id="typical-xaml-first-setup">Typical XAML-First Setup</h2>
+<p>TreeDataGrid can now be configured directly in XAML with <code>ItemsSource</code> and declarative columns. This is the recommended path when your columns, templates, and bindings naturally belong in markup.</p>
+<h2 id="theme-setup">Theme Setup</h2>
 <pre><code class="language-xml">&lt;Application xmlns=&quot;https://github.com/avaloniaui&quot;
              xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
              x:Class=&quot;MyApp.App&quot;&gt;
@@ -182,41 +175,32 @@
   &lt;/Application.Styles&gt;
 &lt;/Application&gt;
 </code></pre>
-<pre><code class="language-xml">&lt;TreeDataGrid Source=&quot;{Binding Source}&quot;/&gt;
+<pre><code class="language-xml">&lt;TreeDataGrid ItemsSource=&quot;{Binding People}&quot;&gt;
+  &lt;TreeDataGridTextColumn Header=&quot;First Name&quot;
+                          Binding=&quot;{Binding FirstName}&quot;/&gt;
+  &lt;TreeDataGridTextColumn Header=&quot;Last Name&quot;
+                          Binding=&quot;{Binding LastName}&quot;/&gt;
+&lt;/TreeDataGrid&gt;
 </code></pre>
+<h2 id="when-to-use-source-instead">When to Use <code>Source</code> Instead</h2>
+<p>Use the code-behind <code>Source</code> approach when you need:</p>
+<ul>
+<li><code>Filter</code> and <code>RefreshFilter</code></li>
+<li><code>Expand</code>, <code>Collapse</code>, <code>ExpandAll</code>, and <code>CollapseAll</code></li>
+<li>more complex runtime composition of columns</li>
+</ul>
 <h2 id="article-map">Article Map</h2>
 <ul>
-<li><a href="/TreeDataGrid/articles/xaml/samples-walkthrough">XAML Samples Walkthrough</a></li>
+<li><a href="/TreeDataGrid/articles/getting-started/overview">Getting Started Overview</a></li>
+<li><a href="/TreeDataGrid/articles/column-types">Column Types</a></li>
+<li><a href="/TreeDataGrid/articles/selection-modes">Selection Modes</a></li>
+<li><a href="/TreeDataGrid/articles/sorting">Sorting</a></li>
 <li><a href="/TreeDataGrid/articles/xaml/theme-usage">Theme Usage</a></li>
 <li><a href="/TreeDataGrid/articles/xaml/theme-customization">Theme Customization</a></li>
 <li><a href="/TreeDataGrid/articles/xaml/control-theme-overrides-basedon">ControlTheme Overrides with BasedOn</a></li>
 <li><a href="/TreeDataGrid/articles/xaml/control-theme-full-replacement">ControlTheme Full Replacement</a></li>
 <li><a href="/TreeDataGrid/articles/xaml/template-resource-keys-from-model">Template Resource Keys from Model</a></li>
 <li><a href="/TreeDataGrid/articles/xaml/theme-resource-keys-reference">Theme Resource Keys Reference</a></li>
-</ul>
-<h2 id="troubleshooting">Troubleshooting</h2>
-<ul>
-<li><p>Control renders but appears unstyled
-Cause: TreeDataGrid theme include is missing.
-Fix: include <code>Fluent.axaml</code> or <code>Generic.axaml</code> from <code>Avalonia.Controls.TreeDataGrid/Themes</code>.</p>
-</li>
-<li><p>Template column content is blank
-Cause: template key not found or wrong <code>DataType</code>/binding path in XAML template.
-Fix: validate template key names and inspect <a href="/TreeDataGrid/articles/xaml/template-resource-keys-from-model">Template Resource Keys from Model</a>.</p>
-</li>
-</ul>
-<h2 id="api-coverage-checklist">API Coverage Checklist</h2>
-<ul>
-<li><a href="/TreeDataGrid/api/Avalonia.Controls.TreeDataGrid/" title="TreeDataGrid">TreeDataGrid</a></li>
-<li><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.TemplateColumn-1/" title="TemplateColumn&lt;TModel&gt;">TemplateColumn&lt;TModel&gt;</a></li>
-<li><a href="/TreeDataGrid/api/Avalonia.Controls.Primitives.TreeDataGridTemplateCell/" title="TreeDataGridTemplateCell">TreeDataGridTemplateCell</a></li>
-</ul>
-<h2 id="related">Related</h2>
-<ul>
-<li><a href="/TreeDataGrid/articles/getting-started/overview">Getting Started Overview</a></li>
-<li><a href="/TreeDataGrid/articles/guides/column-template">Template Column Guide</a></li>
-<li><a href="/TreeDataGrid/articles/guides/templates-and-styling">Templates and Styling</a></li>
-<li><a href="/TreeDataGrid/articles/guides/troubleshooting">Troubleshooting Guide</a></li>
 </ul>
 
       </div>

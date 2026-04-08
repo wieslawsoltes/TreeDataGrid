@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Quickstart: Hierarchical TreeDataGrid | TreeDataGrid for Avalonia">
-<meta name="twitter:description" content="Quickstart: Hierarchical TreeDataGrid This quickstart builds a complete hierarchical TreeDataGrid with expandable rows. Goal Create a parent/child dataset where each row can expand to show children. 1. Data Model Create Person.cs: using System.Collections.ObjectModel; public class Person { public string? FirstName { get; set; } public string? LastName { get; set; } public int Age { get; set; } public ObservableCollection&lt;Person> Children { get; } = new(); } 2. View Model...">
+<meta name="twitter:description" content="Quickstart: Hierarchical TreeDataGrid This quickstart shows both hierarchical setup styles. The key rule is unchanged: a hierarchical grid needs one expander column. Model using System.Collections.ObjectModel; public class Person { public string? Name { get; set; } public int Age { get; set; } public bool IsExpanded { get; set; } public ObservableCollection&lt;Person> Children { get; } = new(); public bool HasChildren => Children.Count > 0; } XAML ItemsSource Setup &lt;TreeDataGrid...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
 <meta name="twitter:image:alt" content="Quickstart: Hierarchical TreeDataGrid | TreeDataGrid for Avalonia">
 <meta property="og:title" content="Quickstart: Hierarchical TreeDataGrid | TreeDataGrid for Avalonia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/TreeDataGrid">
-<meta property="og:description" content="Quickstart: Hierarchical TreeDataGrid This quickstart builds a complete hierarchical TreeDataGrid with expandable rows. Goal Create a parent/child dataset where each row can expand to show children. 1. Data Model Create Person.cs: using System.Collections.ObjectModel; public class Person { public string? FirstName { get; set; } public string? LastName { get; set; } public int Age { get; set; } public ObservableCollection&lt;Person> Children { get; } = new(); } 2. View Model...">
+<meta property="og:description" content="Quickstart: Hierarchical TreeDataGrid This quickstart shows both hierarchical setup styles. The key rule is unchanged: a hierarchical grid needs one expander column. Model using System.Collections.ObjectModel; public class Person { public string? Name { get; set; } public int Age { get; set; } public bool IsExpanded { get; set; } public ObservableCollection&lt;Person> Children { get; } = new(); public bool HasChildren => Children.Count > 0; } XAML ItemsSource Setup &lt;TreeDataGrid...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
 <meta property="og:image:alt" content="Quickstart: Hierarchical TreeDataGrid | TreeDataGrid for Avalonia">
   </head>
@@ -156,143 +156,48 @@
         </div>
 <!-- lunet:summarize -->
 <h1 id="quickstart-hierarchical-treedatagrid">Quickstart: Hierarchical TreeDataGrid</h1>
-<p>This quickstart builds a complete hierarchical TreeDataGrid with expandable rows.</p>
-<h2 id="goal">Goal</h2>
-<p>Create a parent/child dataset where each row can expand to show children.</p>
-<h2 id="1-data-model">1. Data Model</h2>
-<p>Create <code>Person.cs</code>:</p>
+<p>This quickstart shows both hierarchical setup styles. The key rule is unchanged: a hierarchical grid needs one expander column.</p>
+<h2 id="model">Model</h2>
 <pre><code class="language-csharp">using System.Collections.ObjectModel;
 
 public class Person
 {
-    public string? FirstName { get; set; }
-    public string? LastName { get; set; }
+    public string? Name { get; set; }
     public int Age { get; set; }
+    public bool IsExpanded { get; set; }
     public ObservableCollection&lt;Person&gt; Children { get; } = new();
+    public bool HasChildren =&gt; Children.Count &gt; 0;
 }
 </code></pre>
-<h2 id="2-view-model-with-hierarchical-source">2. View Model with Hierarchical Source</h2>
-<p>Create <code>MainWindowViewModel.cs</code>:</p>
-<pre><code class="language-csharp">using System.Collections.ObjectModel;
-using Avalonia.Controls;
-using Avalonia.Controls.Models.TreeDataGrid;
-
-public class MainWindowViewModel
-{
-    private readonly ObservableCollection&lt;Person&gt; _people = new()
-    {
-        new Person
-        {
-            FirstName = &quot;Eleanor&quot;,
-            LastName = &quot;Pope&quot;,
-            Age = 32,
-            Children =
-            {
-                new Person { FirstName = &quot;Marcel&quot;, LastName = &quot;Gutierrez&quot;, Age = 4 },
-            }
-        },
-        new Person
-        {
-            FirstName = &quot;Jeremy&quot;,
-            LastName = &quot;Navarro&quot;,
-            Age = 74,
-            Children =
-            {
-                new Person
-                {
-                    FirstName = &quot;Jane&quot;,
-                    LastName = &quot;Navarro&quot;,
-                    Age = 42,
-                    Children =
-                    {
-                        new Person { FirstName = &quot;Lailah&quot;, LastName = &quot;Velazquez&quot;, Age = 16 },
-                    }
-                }
-            }
-        },
-    };
-
-    public MainWindowViewModel()
-    {
-        Source = new HierarchicalTreeDataGridSource&lt;Person&gt;(_people)
-        {
-            Columns =
-            {
-                new HierarchicalExpanderColumn&lt;Person&gt;(
-                    new TextColumn&lt;Person, string&gt;(&quot;First Name&quot;, x =&gt; x.FirstName),
-                    x =&gt; x.Children),
-                new TextColumn&lt;Person, string&gt;(&quot;Last Name&quot;, x =&gt; x.LastName),
-                new TextColumn&lt;Person, int&gt;(&quot;Age&quot;, x =&gt; x.Age),
-            },
-        };
-
-        // Optional: expand first root row at startup.
-        Source.Expand(new IndexPath(0));
-    }
-
-    public HierarchicalTreeDataGridSource&lt;Person&gt; Source { get; }
-}
+<h2 id="xaml-itemssource-setup">XAML <code>ItemsSource</code> Setup</h2>
+<pre><code class="language-xml">&lt;TreeDataGrid ItemsSource=&quot;{Binding People}&quot;&gt;
+  &lt;TreeDataGridHierarchicalExpanderColumn Header=&quot;Name&quot;
+                                          ChildrenBinding=&quot;{Binding Children}&quot;
+                                          HasChildrenBinding=&quot;{Binding HasChildren}&quot;
+                                          IsExpandedBinding=&quot;{Binding IsExpanded}&quot;&gt;
+    &lt;TreeDataGridTextColumn Binding=&quot;{Binding Name}&quot;/&gt;
+  &lt;/TreeDataGridHierarchicalExpanderColumn&gt;
+  &lt;TreeDataGridTextColumn Header=&quot;Age&quot;
+                          Binding=&quot;{Binding Age}&quot;/&gt;
+&lt;/TreeDataGrid&gt;
 </code></pre>
-<p>Important:</p>
-<ul>
-<li>Hierarchical sources require exactly one expander column.</li>
-<li><code>HierarchicalExpanderColumn&lt;TModel&gt;</code> wraps an inner column and child selector.</li>
-</ul>
-<h2 id="3-bind-in-xaml">3. Bind in XAML</h2>
-<pre><code class="language-xml">&lt;Window xmlns=&quot;https://github.com/avaloniaui&quot;
-        xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
-        x:Class=&quot;AvaloniaApplication.MainWindow&quot;&gt;
-  &lt;TreeDataGrid Source=&quot;{Binding Source}&quot; /&gt;
-&lt;/Window&gt;
-</code></pre>
-<h2 id="4-set-datacontext">4. Set DataContext</h2>
-<pre><code class="language-csharp">public partial class MainWindow : Window
-{
-    public MainWindow()
+<h2 id="code-source-setup">Code <code>Source</code> Setup</h2>
+<p>Use the fluent source API when you need runtime-only features such as filtering or programmatic expand/collapse:</p>
+<pre><code class="language-csharp">Source = new HierarchicalTreeDataGridSource&lt;Person&gt;(People)
+    .WithHierarchicalExpanderTextColumn(x =&gt; x.Name, x =&gt; x.Children, o =&gt;
     {
-        InitializeComponent();
-        DataContext = new MainWindowViewModel();
-    }
-}
+        o.HasChildren = x =&gt; x.HasChildren;
+        o.IsExpanded = x =&gt; x.IsExpanded;
+    })
+    .WithTextColumn(x =&gt; x.Age);
+
+Source.Expand(new IndexPath(0));
 </code></pre>
-<h2 id="5-run">5. Run</h2>
-<p>Verify expansion behavior:</p>
-<p><img src="/TreeDataGrid/images/get-started-hierarchical-1.png" class="img-fluid" alt="Simple TreeDataGrid" /></p>
-<h2 id="what-you-have-now">What You Have Now</h2>
+<h2 id="next">Next</h2>
 <ul>
-<li>A bound hierarchical source</li>
-<li>Expand/collapse row behavior</li>
-<li>Multiple columns in hierarchical mode</li>
-</ul>
-<h2 id="common-next-steps">Common Next Steps</h2>
-<ul>
-<li>Handle expansion events (<code>RowExpanding</code>, <code>RowExpanded</code>)</li>
-<li>Programmatically expand/collapse ranges</li>
-<li>Add custom cell templates</li>
-</ul>
-<h2 id="troubleshooting">Troubleshooting</h2>
-<ul>
-<li><p>Feature behavior differs from expectations
-Cause: one or more options in this scenario are configured differently (source type, column options, sort/selection/edit state).
-Fix: compare your setup with the snippet in this article and verify runtime values on <code>Source</code>, <code>Columns</code>, and <code>Selection</code>.</p>
-</li>
-<li><p>Data changes are not visible in UI
-Cause: model or collection notifications are missing, or a replaced collection/source is not re-bound.
-Fix: ensure <code>INotifyPropertyChanged</code>/<code>INotifyCollectionChanged</code> flow is active and reassign <code>Source</code> after replacing underlying collections.</p>
-</li>
-</ul>
-<h2 id="api-coverage-checklist">API Coverage Checklist</h2>
-<ul>
-<li><a href="/TreeDataGrid/api/Avalonia.Controls.TreeDataGrid/" title="TreeDataGrid">TreeDataGrid</a></li>
-<li><a href="/TreeDataGrid/api/Avalonia.Controls.HierarchicalTreeDataGridSource-1/" title="HierarchicalTreeDataGridSource&lt;TModel&gt;">HierarchicalTreeDataGridSource&lt;TModel&gt;</a></li>
-<li><a href="/TreeDataGrid/api/Avalonia.Controls.Models.TreeDataGrid.HierarchicalExpanderColumn-1/" title="HierarchicalExpanderColumn&lt;TModel&gt;">HierarchicalExpanderColumn&lt;TModel&gt;</a></li>
-</ul>
-<h2 id="related">Related</h2>
-<ul>
-<li><a href="/TreeDataGrid/articles/guides/sources-hierarchical">Hierarchical Source Guide</a></li>
-<li><a href="/TreeDataGrid/articles/guides/column-expander">Hierarchical Expander Column Guide</a></li>
-<li><a href="/TreeDataGrid/articles/guides/validation-snippets">Validation Snippets</a></li>
-<li><a href="/TreeDataGrid/articles/guides/troubleshooting">Troubleshooting Guide</a></li>
+<li>Programmatically expand rows: <a href="/TreeDataGrid/articles/expand-and-collapse">Expand and Collapse</a></li>
+<li>Switch selection behavior: <a href="/TreeDataGrid/articles/selection-modes">Selection Modes</a></li>
+<li>Migrate older expander code: <a href="/TreeDataGrid/articles/breaking-changes-v12">Breaking Changes v12</a></li>
 </ul>
 
       </div>

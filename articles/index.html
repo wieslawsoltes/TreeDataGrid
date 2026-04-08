@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Documentation | TreeDataGrid for Avalonia">
-<meta name="twitter:description" content="Documentation This site covers TreeDataGrid from four angles: how to install the package and choose the right flat or hierarchical source model how columns, rows, selection, templating, and theme resources fit together how to customize, diagnose, and extend the control internals safely how to map public namespaces and generated API pages back to narrative docs Read by intent I need my first TreeDataGrid working Start with: Getting Started Guides XAML...">
+<meta name="twitter:description" content="Documentation TreeDataGrid now supports two first-class setup styles: ItemsSource plus declarative columns in XAML Source plus fluent column builders in code Use the XAML path when you want the control definition to live in markup. Use the Source path when you need features such as filtering or programmatic expand/collapse. Start Here Getting Started Breaking Changes v12 Column Types Selection Modes Sorting Filtering Expand and Collapse Common Tasks Build a flat...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
 <meta name="twitter:image:alt" content="Documentation | TreeDataGrid for Avalonia">
 <meta property="og:title" content="Documentation | TreeDataGrid for Avalonia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/TreeDataGrid">
-<meta property="og:description" content="Documentation This site covers TreeDataGrid from four angles: how to install the package and choose the right flat or hierarchical source model how columns, rows, selection, templating, and theme resources fit together how to customize, diagnose, and extend the control internals safely how to map public namespaces and generated API pages back to narrative docs Read by intent I need my first TreeDataGrid working Start with: Getting Started Guides XAML...">
+<meta property="og:description" content="Documentation TreeDataGrid now supports two first-class setup styles: ItemsSource plus declarative columns in XAML Source plus fluent column builders in code Use the XAML path when you want the control definition to live in markup. Use the Source path when you need features such as filtering or programmatic expand/collapse. Start Here Getting Started Breaking Changes v12 Column Types Selection Modes Sorting Filtering Expand and Collapse Common Tasks Build a flat...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
 <meta property="og:image:alt" content="Documentation | TreeDataGrid for Avalonia">
   </head>
@@ -98,7 +98,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
-          <div class='lunet-menu-async' data-lunet-menu-partial='/TreeDataGrid/partials/menus/menu-articles.1849b3777fa7fd452afc4f8c3f293e7e.html' data-lunet-menu-open='menu-id-articles-0' data-lunet-menu-active='menu-item-articles-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+          <div class='lunet-menu-async' data-lunet-menu-partial='/TreeDataGrid/partials/menus/menu-articles.62b0c8557e8bbe22ded6b3892a02274b.html' data-lunet-menu-open='menu-id-articles-0' data-lunet-menu-active='menu-item-articles-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
         </div>
       </nav>
       <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
@@ -140,63 +140,29 @@
         </div>
 <!-- lunet:summarize -->
 <h1 id="documentation">Documentation</h1>
-<p>This site covers TreeDataGrid from four angles:</p>
+<p>TreeDataGrid now supports two first-class setup styles:</p>
 <ul>
-<li>how to install the package and choose the right flat or hierarchical source model</li>
-<li>how columns, rows, selection, templating, and theme resources fit together</li>
-<li>how to customize, diagnose, and extend the control internals safely</li>
-<li>how to map public namespaces and generated API pages back to narrative docs</li>
+<li><code>ItemsSource</code> plus declarative columns in XAML</li>
+<li><code>Source</code> plus fluent column builders in code</li>
 </ul>
-<h2 id="read-by-intent">Read by intent</h2>
-<h3 id="i-need-my-first-treedatagrid-working">I need my first TreeDataGrid working</h3>
-<p>Start with:</p>
+<p>Use the XAML path when you want the control definition to live in markup. Use the <code>Source</code> path when you need features such as filtering or programmatic expand/collapse.</p>
+<h2 id="start-here">Start Here</h2>
 <ol>
 <li><a href="/TreeDataGrid/articles/getting-started">Getting Started</a></li>
-<li><a href="/TreeDataGrid/articles/guides">Guides</a></li>
-<li><a href="/TreeDataGrid/articles/xaml">XAML Usage</a></li>
+<li><a href="/TreeDataGrid/articles/breaking-changes-v12">Breaking Changes v12</a></li>
+<li><a href="/TreeDataGrid/articles/column-types">Column Types</a></li>
+<li><a href="/TreeDataGrid/articles/selection-modes">Selection Modes</a></li>
+<li><a href="/TreeDataGrid/articles/sorting">Sorting</a></li>
+<li><a href="/TreeDataGrid/articles/filtering">Filtering</a></li>
+<li><a href="/TreeDataGrid/articles/expand-and-collapse">Expand and Collapse</a></li>
 </ol>
-<h3 id="i-need-to-understand-the-control-model">I need to understand the control model</h3>
-<p>Start with:</p>
-<ol>
-<li><a href="/TreeDataGrid/articles/concepts">Concepts</a></li>
-<li><a href="/TreeDataGrid/articles/reference">Reference</a></li>
-<li><a href="/TreeDataGrid/articles/advanced">Advanced</a></li>
-</ol>
-<h3 id="i-need-to-customize-or-debug-treedatagrid">I need to customize or debug TreeDataGrid</h3>
-<p>Start with:</p>
-<ol>
-<li><a href="/TreeDataGrid/articles/guides">Guides</a></li>
-<li><a href="/TreeDataGrid/articles/advanced">Advanced</a></li>
-<li><a href="/TreeDataGrid/articles/reference">Reference</a></li>
-</ol>
-<h2 id="task-first-entry-points">Task-first entry points</h2>
+<h2 id="common-tasks">Common Tasks</h2>
 <ul>
-<li><a href="/TreeDataGrid/articles/getting-started/overview">Overview</a></li>
-<li><a href="/TreeDataGrid/articles/getting-started/installation">Installation</a></li>
-<li><a href="/TreeDataGrid/articles/getting-started/quickstart-flat">Quickstart: Flat</a></li>
-<li><a href="/TreeDataGrid/articles/getting-started/quickstart-hierarchical">Quickstart: Hierarchical</a></li>
-<li><a href="/TreeDataGrid/articles/guides/sources-flat">Sources: Flat</a></li>
-<li><a href="/TreeDataGrid/articles/guides/sources-hierarchical">Sources: Hierarchical</a></li>
-<li><a href="/TreeDataGrid/articles/concepts/selection-models">Selection Models</a></li>
-<li><a href="/TreeDataGrid/articles/guides/templates-and-styling">Templates and Styling</a></li>
-<li><a href="/TreeDataGrid/articles/xaml/samples-walkthrough">XAML Samples Walkthrough</a></li>
-</ul>
-<h2 id="operational-entry-points">Operational entry points</h2>
-<ul>
-<li><a href="/TreeDataGrid/articles/guides/troubleshooting">Troubleshooting</a></li>
-<li><a href="/TreeDataGrid/articles/advanced/diagnostics-and-testing">Diagnostics and Testing</a></li>
-<li><a href="/TreeDataGrid/articles/reference/package-and-assembly">Package and Assembly</a></li>
-<li><a href="/TreeDataGrid/articles/reference/api-coverage-index">API Coverage Index</a></li>
-<li><a href="/TreeDataGrid/articles/reference/lunet-docs-pipeline">Lunet Docs Pipeline</a></li>
-</ul>
-<h2 id="sections">Sections</h2>
-<ul>
-<li><a href="/TreeDataGrid/articles/getting-started">Getting Started</a></li>
-<li><a href="/TreeDataGrid/articles/concepts">Concepts</a></li>
-<li><a href="/TreeDataGrid/articles/guides">Guides</a></li>
-<li><a href="/TreeDataGrid/articles/xaml">XAML Usage</a></li>
-<li><a href="/TreeDataGrid/articles/advanced">Advanced</a></li>
-<li><a href="/TreeDataGrid/articles/reference">Reference</a></li>
+<li>Build a flat grid: <a href="/TreeDataGrid/articles/getting-started/quickstart-flat">Quickstart: Flat</a></li>
+<li>Build a hierarchical grid: <a href="/TreeDataGrid/articles/getting-started/quickstart-hierarchical">Quickstart: Hierarchical</a></li>
+<li>Learn declarative XAML usage: <a href="/TreeDataGrid/articles/xaml/overview">XAML Overview</a></li>
+<li>Learn the older internal model: <a href="/TreeDataGrid/articles/concepts">Concepts</a></li>
+<li>Troubleshoot runtime behavior: <a href="/TreeDataGrid/articles/guides">Guides</a></li>
 </ul>
 
       </div>
