@@ -6,8 +6,8 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using Avalonia.Controls;
-using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Selection;
+using Avalonia.Data;
 using Avalonia.Data.Converters;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
@@ -126,47 +126,27 @@ namespace TreeDataGridDemo.ViewModels
         private FlatTreeDataGridSource<FileTreeNodeModel> CreateFlatSource()
         {
             var result = new FlatTreeDataGridSource<FileTreeNodeModel>(_root!.Children)
-            {
-                Columns =
+                .WithCheckBoxColumn(null, x => x.IsChecked, o =>
                 {
-                    new CheckBoxColumn<FileTreeNodeModel>(
-                        null,
-                        x => x.IsChecked,
-                        (o, v) => o.IsChecked = v,
-                        options: new()
-                        {
-                            CanUserResizeColumn = false,
-                        }),
-                    new TemplateColumn<FileTreeNodeModel>(
-                        "Name",
-                        "FileNameCell",
-                        "FileNameEditCell",
-                        new GridLength(1, GridUnitType.Star),
-                        new()
-                        {
-                            CompareAscending = FileTreeNodeModel.SortAscending(x => x.Name),
-                            CompareDescending = FileTreeNodeModel.SortDescending(x => x.Name),
-                            IsTextSearchEnabled = true,
-                            TextSearchValueSelector = x => x.Name
-                        }),
-                    new TextColumn<FileTreeNodeModel, long?>(
-                        "Size",
-                        x => x.Size,
-                        options: new()
-                        {
-                            CompareAscending = FileTreeNodeModel.SortAscending(x => x.Size),
-                            CompareDescending = FileTreeNodeModel.SortDescending(x => x.Size),
-                        }),
-                    new TextColumn<FileTreeNodeModel, DateTimeOffset?>(
-                        "Modified",
-                        x => x.Modified,
-                        options: new()
-                        {
-                            CompareAscending = FileTreeNodeModel.SortAscending(x => x.Modified),
-                            CompareDescending = FileTreeNodeModel.SortDescending(x => x.Modified),
-                        }),
-                }
-            };
+                    o.CanUserResize = false;
+                })
+                .WithTemplateColumnFromResourceKeys("Name", "FileNameCell", "FileNameEditCell", o =>
+                {
+                    o.Width = new GridLength(1, GridUnitType.Star);
+                    o.CompareAscending = Compare(FileTreeNodeModel.SortAscending(x => x.Name));
+                    o.CompareDescending = Compare(FileTreeNodeModel.SortDescending(x => x.Name));
+                    o.TextSearchBinding = CompiledBinding.Create((FileTreeNodeModel x) => x.Name);
+                })
+                .WithTextColumn("Size", x => x.Size, o =>
+                {
+                    o.CompareAscending = Compare(FileTreeNodeModel.SortAscending(x => x.Size));
+                    o.CompareDescending = Compare(FileTreeNodeModel.SortDescending(x => x.Size));
+                })
+                .WithTextColumn("Modified", x => x.Modified, o =>
+                {
+                    o.CompareAscending = Compare(FileTreeNodeModel.SortAscending(x => x.Modified));
+                    o.CompareDescending = Compare(FileTreeNodeModel.SortDescending(x => x.Modified));
+                });
 
             result.RowSelection!.SingleSelect = false;
             result.RowSelection.SelectionChanged += SelectionChanged;
@@ -176,51 +156,35 @@ namespace TreeDataGridDemo.ViewModels
         private HierarchicalTreeDataGridSource<FileTreeNodeModel> CreateTreeSource()
         {
             var result = new HierarchicalTreeDataGridSource<FileTreeNodeModel>(Array.Empty<FileTreeNodeModel>())
-            {
-                Columns =
+                .WithCheckBoxColumn(null, x => x.IsChecked, o =>
                 {
-                    new CheckBoxColumn<FileTreeNodeModel>(
-                        null,
-                        x => x.IsChecked,
-                        (o, v) => o.IsChecked = v,
-                        options: new()
-                        {
-                            CanUserResizeColumn = false,
-                        }),
-                    new HierarchicalExpanderColumn<FileTreeNodeModel>(
-                        new TemplateColumn<FileTreeNodeModel>(
-                            "Name",
-                            "FileNameCell",
-                            "FileNameEditCell",
-                            new GridLength(1, GridUnitType.Star),
-                            new()
-                            {
-                                CompareAscending = FileTreeNodeModel.SortAscending(x => x.Name),
-                                CompareDescending = FileTreeNodeModel.SortDescending(x => x.Name),
-                                IsTextSearchEnabled = true,
-                                TextSearchValueSelector = x => x.Name
-                            }),
-                        x => x.Children,
-                        x => x.HasChildren,
-                        x => x.IsExpanded),
-                    new TextColumn<FileTreeNodeModel, long?>(
-                        "Size",
-                        x => x.Size,
-                        options: new()
-                        {
-                            CompareAscending = FileTreeNodeModel.SortAscending(x => x.Size),
-                            CompareDescending = FileTreeNodeModel.SortDescending(x => x.Size),
-                        }),
-                    new TextColumn<FileTreeNodeModel, DateTimeOffset?>(
-                        "Modified",
-                        x => x.Modified,
-                        options: new()
-                        {
-                            CompareAscending = FileTreeNodeModel.SortAscending(x => x.Modified),
-                            CompareDescending = FileTreeNodeModel.SortDescending(x => x.Modified),
-                        }),
-                }
-            };
+                    o.CanUserResize = false;
+                })
+                .WithHierarchicalExpanderColumn(
+                    "Name",
+                    new TreeDataGridTemplateColumn(null, "FileNameCell", "FileNameEditCell")
+                    {
+                        CompareAscending = Compare(FileTreeNodeModel.SortAscending(x => x.Name)),
+                        CompareDescending = Compare(FileTreeNodeModel.SortDescending(x => x.Name)),
+                        TextSearchBinding = CompiledBinding.Create((FileTreeNodeModel x) => x.Name),
+                    },
+                    x => x.Children,
+                    o =>
+                    {
+                        o.Width = new GridLength(1, GridUnitType.Star);
+                        o.HasChildren = x => x.HasChildren;
+                        o.IsExpanded = x => x.IsExpanded;
+                    })
+                .WithTextColumn("Size", x => x.Size, o =>
+                {
+                    o.CompareAscending = Compare(FileTreeNodeModel.SortAscending(x => x.Size));
+                    o.CompareDescending = Compare(FileTreeNodeModel.SortDescending(x => x.Size));
+                })
+                .WithTextColumn("Modified", x => x.Modified, o =>
+                {
+                    o.CompareAscending = Compare(FileTreeNodeModel.SortAscending(x => x.Modified));
+                    o.CompareDescending = Compare(FileTreeNodeModel.SortDescending(x => x.Modified));
+                });
 
             result.RowSelection!.SingleSelect = false;
             result.RowSelection.SelectionChanged += SelectionChanged;
@@ -289,7 +253,7 @@ namespace TreeDataGridDemo.ViewModels
                 throw new InvalidOperationException("Expected a row selection model.");
         }
 
-        private void SelectionChanged(object? sender, TreeSelectionModelSelectionChangedEventArgs<FileTreeNodeModel> e)
+        private void SelectionChanged(object? sender, TreeDataGridSelectionChangedEventArgs<FileTreeNodeModel> e)
         {
             var selectedPath = GetRowSelection(Source).SelectedItem?.Path;
             this.RaiseAndSetIfChanged(ref _selectedPath, selectedPath, nameof(SelectedPath));
@@ -298,6 +262,11 @@ namespace TreeDataGridDemo.ViewModels
                 System.Diagnostics.Trace.WriteLine($"Deselected '{i?.Path}'");
             foreach (var i in e.SelectedItems)
                 System.Diagnostics.Trace.WriteLine($"Selected '{i?.Path}'");
+        }
+
+        private static Comparison<object?> Compare(Comparison<FileTreeNodeModel?> comparison)
+        {
+            return (x, y) => comparison((FileTreeNodeModel?)x, (FileTreeNodeModel?)y);
         }
 
         private class IconConverter : IMultiValueConverter

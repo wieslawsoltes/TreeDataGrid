@@ -40,7 +40,8 @@ namespace Avalonia.Experimental.Data
 
         public static TypedBinding<TIn, TOut> TwoWay<TOut>(Expression<Func<TIn, TOut>> expression)
         {
-            var property = (expression.Body as MemberExpression)?.Member as PropertyInfo ??
+            var member = GetMemberExpression(expression.Body);
+            var property = member?.Member as System.Reflection.PropertyInfo ??
                 throw new ArgumentException(
                     $"Cannot create a two-way binding for '{expression}' because the expression does not target a property.",
                     nameof(expression));
@@ -57,17 +58,10 @@ namespace Avalonia.Experimental.Data
                     $"Cannot create a two-way binding for '{expression}' because the property has no setter or the setter is private.",
                     nameof(expression));
 
-            // TODO: This is using reflection and mostly untested. Unit test it properly and
-            // benchmark it against creating an expression.
             var links = ExpressionChainVisitor<TIn>.Build(expression);
-            Action<TIn, TOut> write = links.Length == 1 ?
-                (o, v) => property.SetValue(o, v) :
-                (root, v) =>
-                {
-                    // The last link points the object containing the property to set
-                    var o = links[^1](root);
-                    property.SetValue(o, v);
-                };
+            var value = Expression.Parameter(typeof(TOut), "value");
+            var assign = Expression.Assign(member!, Expression.Convert(value, member!.Type));
+            var write = Expression.Lambda<Action<TIn, TOut>>(assign, expression.Parameters[0], value).Compile();
 
             return new TypedBinding<TIn, TOut>
             {
@@ -99,6 +93,20 @@ namespace Avalonia.Experimental.Data
                 Links = ExpressionChainVisitor<TIn>.Build(read),
                 Mode = BindingMode.OneTime,
             };
+        }
+
+        private static MemberExpression? GetMemberExpression(Expression expression)
+        {
+            if (expression is MemberExpression member)
+                return member;
+
+            if (expression is UnaryExpression unary &&
+                unary.NodeType == ExpressionType.Convert)
+            {
+                return GetMemberExpression(unary.Operand);
+            }
+
+            return null;
         }
     }
 }

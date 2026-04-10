@@ -4,76 +4,34 @@ title: "Getting Started with TreeDataGrid"
 
 # Getting Started with TreeDataGrid
 
-TreeDataGrid is an Avalonia control that combines:
+TreeDataGrid combines tree navigation and tabular columns in a single control. In the v12-style API there are two supported ways to configure it:
 
-- DataGrid-style columns
-- Tree-style hierarchical expansion
-- Strongly typed source and column models
+- `ItemsSource` plus declarative `TreeDataGrid*Column` elements in XAML
+- `Source` plus a `FlatTreeDataGridSource<TModel>` or `HierarchicalTreeDataGridSource<TModel>` built in code
 
-Use TreeDataGrid when you need column-based presentation with optional parent/child data and large datasets.
+## Choose an Approach
 
-## What You Will Build
+- Use `ItemsSource` when you want the control definition to stay in XAML and you do not need advanced source-only features.
+- Use `Source` when you need filtering, programmatic expand/collapse, or more involved runtime composition.
 
-By the end of Getting Started, you will have:
+## Useful Properties
 
-- A working `TreeDataGrid` in XAML
-- A view model exposing a `FlatTreeDataGridSource<TModel>` or `HierarchicalTreeDataGridSource<TModel>`
-- Strongly typed columns (`TextColumn`, `TemplateColumn`, `CheckBoxColumn`, `HierarchicalExpanderColumn`)
-- Working row or cell selection
+- `ItemsSource`: binds a collection for declarative XAML columns
+- `Source`: binds a `FlatTreeDataGridSource<TModel>` or `HierarchicalTreeDataGridSource<TModel>`
+- `SelectionMode`: chooses row or cell selection, with optional multiple selection
+- `CanUserResizeColumns`: controls column resizing, default `false`
+- `CanUserSortColumns`: controls header-click sorting, default `true`
 
-## Learning Path
+## Recommended Path
 
 1. [Installation](installation.md)
-2. [Quickstart: Flat TreeDataGrid](quickstart-flat.md)
-3. [Quickstart: Hierarchical TreeDataGrid](quickstart-hierarchical.md)
-4. [Architecture and Data Flow](../concepts/architecture-and-data-flow.md)
-5. [Columns, Cells, and Rows](../concepts/columns-cells-rows.md)
-6. [Selection Models](../concepts/selection-models.md)
-7. [TreeDataGrid Glossary](../concepts/glossary.md)
-
-## Flat vs Hierarchical
-
-Choose your source type first:
-
-- `FlatTreeDataGridSource<TModel>`: table-like data, no children
-- `HierarchicalTreeDataGridSource<TModel>`: rows may contain nested children
-
-You can still use multiple columns in both modes.
-
-## Key Idea
-
-TreeDataGrid separates what to show from how to show it:
-
-- Source model (`ITreeDataGridSource`) defines rows, columns, selection, sorting
-- `TreeDataGrid` control realizes models into visual rows/cells with virtualization
-
-This keeps view models strongly typed and UI behavior predictable.
+2. [Quickstart: Flat](quickstart-flat.md)
+3. [Quickstart: Hierarchical](quickstart-hierarchical.md)
+4. [Breaking Changes v12](../breaking-changes-v12.md)
+5. [Column Types](../column-types.md)
 
 ## Next
 
-- Start with [Installation](installation.md)
-- If package/theme are already configured, jump directly to [Quickstart: Flat TreeDataGrid](quickstart-flat.md)
-- Use [Troubleshooting Guide](../guides/troubleshooting.md) if setup diverges from expected behavior.
-
-## Troubleshooting
-
-- Feature behavior differs from expectations
-Cause: one or more options in this scenario are configured differently (source type, column options, sort/selection/edit state).
-Fix: compare your setup with the snippet in this article and verify runtime values on `Source`, `Columns`, and `Selection`.
-
-- Data changes are not visible in UI
-Cause: model or collection notifications are missing, or a replaced collection/source is not re-bound.
-Fix: ensure `INotifyPropertyChanged`/`INotifyCollectionChanged` flow is active and reassign `Source` after replacing underlying collections.
-
-## API Coverage Checklist
-
-- <xref:Avalonia.Controls.TreeDataGrid>
-- <xref:Avalonia.Controls.FlatTreeDataGridSource`1>
-- <xref:Avalonia.Controls.HierarchicalTreeDataGridSource`1>
-
-## Related
-
-- [Installation](installation.md)
-- [Quickstart: Flat TreeDataGrid](quickstart-flat.md)
-- [Quickstart: Hierarchical TreeDataGrid](quickstart-hierarchical.md)
-- [TreeDataGrid Glossary](../concepts/glossary.md)
+- If you are migrating older code, read [Breaking Changes v12](../breaking-changes-v12.md) before changing your view models.
+- If you are starting from markup, continue with [XAML Overview](../xaml/overview.md).
+- If you need filtering or programmatic tree operations, continue with [Filtering](../filtering.md) and [Expand and Collapse](../expand-and-collapse.md).

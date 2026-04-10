@@ -7,6 +7,8 @@ using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Selection;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input;
+using Avalonia.Input.Raw;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -138,6 +140,49 @@ namespace Avalonia.Controls.TreeDataGridTests
             {
                 Assert.Equal(0, items[i].PropertyChangedSubscriberCount());
             }
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void AutoDragDropRows_Should_Raise_RowDragStarted_When_Row_Is_Dragged()
+        {
+            var (target, _) = CreateTarget();
+            var row = Assert.IsType<TreeDataGridRow>(
+                target.RowsPresenter!.GetVisualChildren().Cast<TreeDataGridRow>().First());
+            var pointer = new Pointer(0, PointerType.Mouse, true);
+            DragDropEffects? initialEffects = null;
+
+            target.AutoDragDropRows = true;
+            target.RowSelection!.Select(0);
+            target.RowDragStarted += (_, e) =>
+            {
+                initialEffects = e.AllowedEffects;
+                e.AllowedEffects = DragDropEffects.None;
+            };
+
+            row.RaiseEvent(new PointerPressedEventArgs(
+                row,
+                pointer,
+                row,
+                new Point(1, 1),
+                0,
+                new PointerPointProperties(
+                    RawInputModifiers.LeftMouseButton,
+                    PointerUpdateKind.LeftButtonPressed),
+                KeyModifiers.None));
+
+            row.RaiseEvent(new PointerEventArgs(
+                InputElement.PointerMovedEvent,
+                row,
+                pointer,
+                row,
+                new Point(10, 10),
+                1,
+                new PointerPointProperties(
+                    RawInputModifiers.LeftMouseButton,
+                    PointerUpdateKind.Other),
+                KeyModifiers.None));
+
+            Assert.Equal(DragDropEffects.Move, initialEffects);
         }
 
         [AvaloniaFact(Timeout = 10000)]

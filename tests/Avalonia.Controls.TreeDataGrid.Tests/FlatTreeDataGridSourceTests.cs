@@ -173,6 +173,42 @@ namespace Avalonia.Controls.TreeDataGridTests
             Assert.Equal(1, raised);
         }
 
+        [AvaloniaFact(Timeout = 10000)]
+        public void Supports_Filter_And_Refresh()
+        {
+            var data = CreateData();
+            var target = CreateTarget(data);
+            var maxId = 4;
+
+            target.Filter(x => x.Id <= maxId);
+
+            AssertRows(target.Rows, data.Take(5).ToList());
+
+            maxId = 2;
+            target.RefreshFilter();
+
+            AssertRows(target.Rows, data.Take(3).ToList());
+
+            target.Filter(null);
+
+            AssertRows(target.Rows, data);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Supports_Clearing_Sort()
+        {
+            var data = CreateData();
+            var target = CreateTarget(data);
+
+            Assert.True(((ITreeDataGridSource)target).SortBy(target.Columns[0], System.ComponentModel.ListSortDirection.Descending));
+            Assert.Equal(9, ((IRow<Row>)target.Rows[0]).Model.Id);
+
+            target.ClearSort();
+
+            Assert.Null(target.Columns[0].SortDirection);
+            AssertRows(target.Rows, data);
+        }
+
         public class Sorted
         {
             [AvaloniaFact(Timeout = 10000)]

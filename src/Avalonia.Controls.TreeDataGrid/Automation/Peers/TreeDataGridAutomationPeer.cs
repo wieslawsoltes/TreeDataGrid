@@ -126,7 +126,7 @@ public class TreeDataGridAutomationPeer : ControlAutomationPeer, ISelectionProvi
         }
     }
 
-    private void OnRowSelectionChanged(object? sender, TreeSelectionModelSelectionChangedEventArgs e)
+    private void OnRowSelectionChanged(object? sender, TreeDataGridSelectionChangedEventArgs e)
     {
         RaiseSelectionChanged();
     }

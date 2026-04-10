@@ -18,13 +18,13 @@ using Avalonia.VisualTree;
 
 namespace Avalonia.Controls
 {
-    public class TreeDataGrid : TemplatedControl
+    public partial class TreeDataGrid : TemplatedControl
     {
         public static readonly StyledProperty<bool> AutoDragDropRowsProperty =
             AvaloniaProperty.Register<TreeDataGrid, bool>(nameof(AutoDragDropRows));
 
         public static readonly StyledProperty<bool> CanUserResizeColumnsProperty =
-            AvaloniaProperty.Register<TreeDataGrid, bool>(nameof(CanUserResizeColumns), true);
+            AvaloniaProperty.Register<TreeDataGrid, bool>(nameof(CanUserResizeColumns), false);
 
         public static readonly StyledProperty<bool> CanUserSortColumnsProperty =
             AvaloniaProperty.Register<TreeDataGrid, bool>(nameof(CanUserSortColumns), true);
@@ -98,6 +98,7 @@ namespace Avalonia.Controls
         {
             AddHandler(TreeDataGridColumnHeader.ClickEvent, OnClick);
             AddHandler(KeyDownEvent, OnPreviewKeyDown, RoutingStrategies.Tunnel);
+            InitializeV12Support();
         }
 
         static TreeDataGrid()
@@ -170,30 +171,10 @@ namespace Avalonia.Controls
             get => _source;
             set
             {
-                if (_source != value)
+                if (!ReferenceEquals(_explicitSource, value))
                 {
-                    if (_source != null)
-                    {
-                        _source.PropertyChanged -= OnSourcePropertyChanged;
-                        _source.Sorted -= OnSourceSorted;
-                    }
-
-                    var oldSource = _source;
-                    _source = value;
-                    Columns = _source?.Columns;
-                    Rows = _source?.Rows;
-                    SelectionInteraction = _source?.Selection as ITreeDataGridSelectionInteraction;
-
-                    if (_source != null)
-                    {
-                        _source.PropertyChanged += OnSourcePropertyChanged;
-                        _source.Sorted += OnSourceSorted;
-                    }
-
-                    RaisePropertyChanged(
-                        SourceProperty,
-                        oldSource,
-                        _source);
+                    _explicitSource = value;
+                    UpdateActiveSource();
                 }
             }
         }
@@ -361,6 +342,14 @@ namespace Avalonia.Controls
             {
                 DragDrop.SetAllowDrop(this, change.GetNewValue<bool>());
             }
+            else if (change.Property == ItemsSourceProperty)
+            {
+                RebuildGeneratedSource();
+            }
+            else if (change.Property == SelectionModeProperty)
+            {
+                ApplySelectionMode();
+            }
         }
 
         protected override void OnKeyDown(KeyEventArgs e)
@@ -458,7 +447,7 @@ namespace Avalonia.Controls
             }
         }
 
-        internal void RaiseRowDragStarted(PointerEventArgs trigger)
+        internal void RaiseRowDragStarted(PointerPressedEventArgs trigger)
         {
             if (_source is null || RowSelection is null)
                 return;
@@ -484,7 +473,7 @@ namespace Avalonia.Controls
         }
 
         private static async System.Threading.Tasks.Task DoDragDropAsync(
-            PointerEventArgs trigger,
+            PointerPressedEventArgs trigger,
             DragInfo info,
             DragDropEffects allowedEffects)
         {
@@ -799,6 +788,20 @@ namespace Avalonia.Controls
             {
                 SelectionInteraction = Source?.Selection as ITreeDataGridSelectionInteraction;
                 RowsPresenter?.UpdateSelection(SelectionInteraction);
+                SubscribeSelectionModel();
+                ApplySelectionMode();
+            }
+            else if (e.PropertyName == nameof(ITreeDataGridSource.Rows))
+            {
+                Rows = Source?.Rows;
+                RowsPresenter?.RecycleAllElements();
+                RowsPresenter?.InvalidateMeasure();
+            }
+            else if (e.PropertyName == nameof(ITreeDataGridSource.Columns))
+            {
+                Columns = Source?.Columns;
+                RowsPresenter?.RecycleAllElements();
+                RowsPresenter?.InvalidateMeasure();
             }
         }
 

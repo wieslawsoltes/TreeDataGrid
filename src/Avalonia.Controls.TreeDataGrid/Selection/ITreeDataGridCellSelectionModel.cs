@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Avalonia.Controls;
 
 namespace Avalonia.Controls.Selection
 {
@@ -11,7 +12,7 @@ namespace Avalonia.Controls.Selection
         /// <summary>
         /// Occurs when the cell selection changes.
         /// </summary>
-        event EventHandler<TreeDataGridCellSelectionChangedEventArgs>? SelectionChanged;
+        event EventHandler<TreeDataGridSelectionChangedEventArgs>? SelectionChanged;
     }
 
     /// <summary>
@@ -38,7 +39,7 @@ namespace Avalonia.Controls.Selection
         /// <summary>
         /// Occurs when the cell selection changes.
         /// </summary>
-        new event EventHandler<TreeDataGridCellSelectionChangedEventArgs<T>>? SelectionChanged;
+        new event EventHandler<TreeDataGridSelectionChangedEventArgs<T>>? SelectionChanged;
 
         /// <summary>
         /// Checks whether the specified cell is selected.
