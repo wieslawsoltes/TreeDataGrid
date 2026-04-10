@@ -129,8 +129,15 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         {
             if (_isExpandedBinding?.Read is { } read)
             {
-                isExpanded = read(model);
-                return true;
+                try
+                {
+                    isExpanded = read(model);
+                    return true;
+                }
+                catch
+                {
+                    // Match the rest of the Uno binding pipeline by tolerating read failures.
+                }
             }
 
             isExpanded = false;

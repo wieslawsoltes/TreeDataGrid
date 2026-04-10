@@ -12,7 +12,9 @@ namespace Avalonia.Controls.Selection
     public partial class TreeDataGridRowSelectionModel<TModel> : ITreeDataGridSelectionInteraction
         where TModel : class
     {
+        private static readonly Point s_InvalidPoint = new(double.NegativeInfinity, double.NegativeInfinity);
         private EventHandler? _viewSelectionChanged;
+        private Point _pressedPoint = s_InvalidPoint;
         private bool _raiseViewSelectionChanged;
 
         partial void OnConstructed()
@@ -206,6 +208,48 @@ namespace Avalonia.Controls.Selection
             UpdateSelectionAndBringIntoView(newIndex);
         }
 
+        void ITreeDataGridSelectionInteraction.OnPointerPressed(TreeDataGrid sender, PointerPressedEventArgs e)
+        {
+            // Keep row pointer-selection behavior aligned with the Avalonia implementation:
+            // select immediately for mouse clicks and pen secondary clicks, otherwise defer
+            // selection until release so touch scroll starts do not unexpectedly reselect rows.
+            var pointerSupportSelectionOnPress = e.Pointer.Type switch
+            {
+                PointerType.Mouse => true,
+                PointerType.Pen => e.GetCurrentPoint(null).Properties.IsRightButtonPressed,
+                _ => false
+            };
+
+            if (!e.Handled &&
+                pointerSupportSelectionOnPress &&
+                e.Source is Control source &&
+                sender.TryGetRow(source, out var row) &&
+                _source.Rows.RowIndexToModelIndex(row.RowIndex) is { } modelIndex &&
+                !IsSelected(modelIndex))
+            {
+                PointerSelect(sender, row, e);
+                _pressedPoint = s_InvalidPoint;
+            }
+            else
+            {
+                _pressedPoint = e.GetPosition(sender);
+            }
+        }
+
+        void ITreeDataGridSelectionInteraction.OnPointerReleased(TreeDataGrid sender, PointerReleasedEventArgs e)
+        {
+            if (!e.Handled &&
+                _pressedPoint != s_InvalidPoint &&
+                e.Source is Control source &&
+                sender.TryGetRow(source, out var row))
+            {
+                var p = e.GetPosition(sender);
+
+                if (Math.Abs(p.X - _pressedPoint.X) <= 3 || Math.Abs(p.Y - _pressedPoint.Y) <= 3)
+                    PointerSelect(sender, row, e);
+            }
+        }
+
         protected override void OnSourceCollectionChangeFinished()
         {
             base.OnSourceCollectionChangeFinished();
@@ -215,6 +259,23 @@ namespace Avalonia.Controls.Selection
                 _viewSelectionChanged?.Invoke(this, EventArgs.Empty);
                 _raiseViewSelectionChanged = false;
             }
+        }
+
+        private void PointerSelect(TreeDataGrid sender, TreeDataGridRow row, PointerEventArgs e)
+        {
+            var point = e.GetCurrentPoint(sender);
+            var toggleModifier = e.KeyModifiers.HasFlag(KeyModifiers.Control) ||
+                e.KeyModifiers.HasFlag(KeyModifiers.Meta);
+            var isRightButton = point.Properties.PointerUpdateKind is PointerUpdateKind.RightButtonPressed or
+                PointerUpdateKind.RightButtonReleased;
+
+            UpdateSelection(
+                sender,
+                row.RowIndex,
+                rangeModifier: e.KeyModifiers.HasFlag(KeyModifiers.Shift),
+                toggleModifier: toggleModifier,
+                rightButton: isRightButton);
+            e.Handled = true;
         }
 
         private bool TryKeyExpandCollapse(
@@ -285,14 +346,28 @@ namespace Avalonia.Controls.Selection
             return true;
         }
 
-        private void UpdateSelection(TreeDataGrid treeDataGrid, int rowIndex, bool rangeModifier = false)
+        private void UpdateSelection(
+            TreeDataGrid treeDataGrid,
+            int rowIndex,
+            bool rangeModifier = false,
+            bool toggleModifier = false,
+            bool rightButton = false)
         {
             var modelIndex = _source.Rows.RowIndexToModelIndex(rowIndex);
 
             if (modelIndex == default || treeDataGrid.QueryCancelSelection())
                 return;
 
-            if (!SingleSelect && rangeModifier)
+            var mode = SingleSelect ? SelectionMode.Single : SelectionMode.Multiple;
+            var multi = (mode & SelectionMode.Multiple) != 0;
+            var toggle = toggleModifier;
+            var range = multi && rangeModifier;
+
+            if (rightButton && IsSelected(modelIndex))
+            {
+                return;
+            }
+            else if (range)
             {
                 var anchor = RangeAnchorIndex != default ? RangeAnchorIndex : AnchorIndex;
                 var i = Math.Max(_source.Rows.ModelIndexToRowIndex(anchor), 0);
@@ -314,6 +389,13 @@ namespace Avalonia.Controls.Selection
                         i += step;
                     }
                 }
+            }
+            else if (toggle)
+            {
+                if (!IsSelected(modelIndex))
+                    Select(modelIndex);
+                else if (!SingleSelect)
+                    Deselect(modelIndex);
             }
             else if (SelectedIndex != modelIndex || Count > 1)
             {
