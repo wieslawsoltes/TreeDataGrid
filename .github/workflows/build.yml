@@ -18,6 +18,7 @@ env:
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  CI_SOLUTION: Avalonia.Controls.TreeDataGrid.CI.slnx
 
 jobs:
   build:
@@ -58,10 +59,10 @@ jobs:
           echo "version=$VERSION_PREFIX$VERSION_SUFFIX" >> $GITHUB_OUTPUT
 
       - name: Restore
-        run: dotnet restore
+        run: dotnet restore ${{ env.CI_SOLUTION }}
 
       - name: Build
-        run: dotnet build -c Release --no-restore -p:Version="${{ steps.version.outputs.version }}"
+        run: dotnet build ${{ env.CI_SOLUTION }} -c Release --no-restore -p:Version="${{ steps.version.outputs.version }}"
 
   test:
     name: Test
@@ -79,13 +80,13 @@ jobs:
             8.0.x
 
       - name: Restore
-        run: dotnet restore
+        run: dotnet restore ${{ env.CI_SOLUTION }}
 
       - name: Build
-        run: dotnet build -c Release --no-restore -p:Version="${{ needs.build.outputs.version }}"
+        run: dotnet build ${{ env.CI_SOLUTION }} -c Release --no-restore -p:Version="${{ needs.build.outputs.version }}"
 
       - name: Test
-        run: dotnet test -c Release --no-build --logger trx --results-directory artifacts/test
+        run: dotnet test ${{ env.CI_SOLUTION }} -c Release --no-build --logger trx --results-directory artifacts/test
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -150,13 +151,13 @@ jobs:
             8.0.x
 
       - name: Restore
-        run: dotnet restore
+        run: dotnet restore ${{ env.CI_SOLUTION }}
 
       - name: Build
-        run: dotnet build -c Release --no-restore -p:Version="${{ needs.build.outputs.version }}"
+        run: dotnet build ${{ env.CI_SOLUTION }} -c Release --no-restore -p:Version="${{ needs.build.outputs.version }}"
 
       - name: Pack
-        run: dotnet pack -c Release --no-build -p:Version="${{ needs.build.outputs.version }}" -o artifacts/packages
+        run: dotnet pack ${{ env.CI_SOLUTION }} -c Release --no-build -p:Version="${{ needs.build.outputs.version }}" -o artifacts/packages
 
       - name: Upload NuGet packages
         uses: actions/upload-artifact@v4
