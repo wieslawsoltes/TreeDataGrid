@@ -8,7 +8,6 @@
   </Folder>
   <Folder Name="/Samples/">
     <Project Path="samples/TreeDataGridDemo/TreeDataGridDemo.csproj" />
-    <Project Path="samples/TreeDataGridUnoActivityMonitor/TreeDataGridUnoActivityMonitor.csproj" />
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="tests/Avalonia.Controls.TreeDataGrid.Tests/Avalonia.Controls.TreeDataGrid.Tests.csproj" />
