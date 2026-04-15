@@ -31,7 +31,7 @@ internal sealed class TreeDataGridBindingAccessor
         _mode = binding.Mode;
         _declaredType = TryGetValueType(modelType, _segments);
         _canWrite = _segments.Length > 0 &&
-            _mode != BindingMode.OneTime &&
+            _mode == BindingMode.TwoWay &&
             CanWritePath(sampleModel?.GetType() ?? modelType, _segments);
 
         if (sampleModel is not null)

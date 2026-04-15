@@ -4,6 +4,10 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Data;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Selection;
@@ -169,6 +173,26 @@ namespace Avalonia.Controls.TreeDataGridUnoTests
             Assert.Equal(expectedUnit, result.GridUnitType);
         }
 
+        [Fact]
+        public void BindingAccessor_Does_Not_Write_Back_For_OneWay_Bindings()
+        {
+            var model = new MutableRow { Caption = "Before" };
+            var binding = (Binding)RuntimeHelpers.GetUninitializedObject(typeof(Binding));
+            var path = (PropertyPath)RuntimeHelpers.GetUninitializedObject(typeof(PropertyPath));
+            typeof(PropertyPath).GetField("_path", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(path, nameof(MutableRow.Caption));
+            binding.Path = path;
+            binding.Mode = BindingMode.OneWay;
+            var accessor = new TreeDataGridBindingAccessor(
+                binding,
+                model);
+
+            Assert.False(accessor.CanWrite);
+
+            accessor.Write(model, "After");
+
+            Assert.Equal("Before", model.Caption);
+        }
+
         private static FlatTreeDataGridSource<Row> CreateFlatTarget(IEnumerable<Row> rows)
         {
             return new FlatTreeDataGridSource<Row>(rows)
@@ -248,6 +272,11 @@ namespace Avalonia.Controls.TreeDataGridUnoTests
         {
             public int Id { get; init; }
             public string? Caption { get; init; }
+        }
+
+        private sealed class MutableRow
+        {
+            public string? Caption { get; set; }
         }
 
         private sealed class Node
