@@ -184,7 +184,7 @@ namespace Avalonia.Controls
             if (_expanderColumn is null)
                 throw new InvalidOperationException("No expander column defined.");
 
-            var items = (IEnumerable<TModel>?)Items;
+            var items = _filter is null ? _items : _itemsView;
             var count = index.Count;
 
             for (var depth = 0; depth < count; ++depth)

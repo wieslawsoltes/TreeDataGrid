@@ -80,6 +80,22 @@ namespace Avalonia.Controls.TreeDataGridUnoTests
         }
 
         [Fact]
+        public void HierarchicalSource_TryGetModelAt_Uses_Filtered_Roots()
+        {
+            var data = new ObservableCollection<Node>
+            {
+                new() { Id = 1, Caption = "Odd" },
+                new() { Id = 2, Caption = "Even" },
+            };
+            var target = CreateHierarchicalTarget(data);
+
+            target.Filter(x => x.Id % 2 == 0);
+
+            Assert.True(target.TryGetModelAt(new IndexPath(0), out var result));
+            Assert.Same(data[1], result);
+        }
+
+        [Fact]
         public void HierarchicalSource_RowEvents_Use_TreeDataGridRowModelEventArgs()
         {
             var data = CreateNodes(1, 1);
