@@ -20,7 +20,7 @@ namespace Avalonia.Controls.Selection
         private TreeSelectedIndexes<T>? _selectedIndexes;
         private TreeSelectedItems<T>? _selectedItems;
         private int _collectionChanging;
-        private EventHandler<TreeSelectionModelSelectionChangedEventArgs>? _untypedSelectionChanged;
+        private EventHandler<TreeDataGridSelectionChangedEventArgs>? _untypedSelectionChanged;
 
         protected TreeSelectionModelBase()
         {
@@ -139,12 +139,12 @@ namespace Avalonia.Controls.Selection
             }
         }
 
-        public event EventHandler<TreeSelectionModelSelectionChangedEventArgs<T>>? SelectionChanged;
+        public event EventHandler<TreeDataGridSelectionChangedEventArgs<T>>? SelectionChanged;
         public event PropertyChangedEventHandler? PropertyChanged;
         public event EventHandler<TreeSelectionModelIndexesChangedEventArgs>? IndexesChanged;
         public event EventHandler<TreeSelectionModelSourceResetEventArgs>? SourceReset;
 
-        event EventHandler<TreeSelectionModelSelectionChangedEventArgs>? ITreeSelectionModel.SelectionChanged
+        event EventHandler<TreeDataGridSelectionChangedEventArgs>? ITreeSelectionModel.SelectionChanged
         {
             add => _untypedSelectionChanged += value;
             remove => _untypedSelectionChanged -= value;
@@ -305,9 +305,11 @@ namespace Avalonia.Controls.Selection
 
             if (removed?.Count > 0 && (SelectionChanged is not null || _untypedSelectionChanged is not null))
             {
-                var e = new TreeSelectionModelSelectionChangedEventArgs<T>(deselectedItems: removed);
-                SelectionChanged?.Invoke(this, e);
-                _untypedSelectionChanged?.Invoke(this, e);
+                var typed = new TreeDataGridSelectionChangedEventArgs<T>(deselectedItems: removed);
+                SelectionChanged?.Invoke(this, typed);
+                _untypedSelectionChanged?.Invoke(
+                    this,
+                    new TreeDataGridSelectionChangedEventArgs(deselectedItems: Untype(typed.DeselectedItems)));
             }
 
             if (removed?.Count > 0)
@@ -482,13 +484,19 @@ namespace Avalonia.Controls.Selection
                 var deselectedItems = operation.DeselectedItems ??
                     TreeSelectionChangedItems<T>.Create(this, deselectedIndexes);
 
-                var e = new TreeSelectionModelSelectionChangedEventArgs<T>(
+                var typed = new TreeDataGridSelectionChangedEventArgs<T>(
                     deselectedIndexes,
                     selectedIndexes,
                     deselectedItems,
                     TreeSelectionChangedItems<T>.Create(this, selectedIndexes));
-                SelectionChanged?.Invoke(this, e);
-                _untypedSelectionChanged?.Invoke(this, e);
+                SelectionChanged?.Invoke(this, typed);
+                _untypedSelectionChanged?.Invoke(
+                    this,
+                    new TreeDataGridSelectionChangedEventArgs(
+                        typed.DeselectedIndexes,
+                        typed.SelectedIndexes,
+                        Untype(typed.DeselectedItems),
+                        Untype(typed.SelectedItems)));
             }
 
             _root.PruneEmptyChildren();
@@ -529,6 +537,19 @@ namespace Avalonia.Controls.Selection
                         result += node.CommitSelect(range);
                 }
             }
+
+            return result;
+        }
+
+        private static IReadOnlyList<object?> Untype(IReadOnlyList<T?>? source)
+        {
+            if (source is null)
+                return Array.Empty<object?>();
+
+            var result = new object?[source.Count];
+
+            for (var i = 0; i < source.Count; ++i)
+                result[i] = source[i];
 
             return result;
         }

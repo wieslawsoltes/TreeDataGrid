@@ -15,6 +15,7 @@ namespace Avalonia.Controls
     /// <typeparam name="TModel">The model type.</typeparam>
     public class FlatTreeDataGridSource<TModel> : NotifyingBase,
         ITreeDataGridSource<TModel>,
+        ITreeDataGridSelectionFactory,
         IDisposable
             where TModel: class
     {
@@ -24,6 +25,7 @@ namespace Avalonia.Controls
         private IComparer<TModel>? _comparer;
         private ITreeDataGridSelection? _selection;
         private bool _isSelectionSet;
+        private Func<TModel, bool>? _filter;
 
         public FlatTreeDataGridSource(IEnumerable<TModel> items)
         {
@@ -44,10 +46,7 @@ namespace Avalonia.Controls
                 if (_items != value)
                 {
                     _items = value;
-                    _itemsView = TreeDataGridItemsSourceView<TModel>.GetOrCreate(value);
-                    _rows?.SetItems(_itemsView);
-                    if (_selection is object)
-                        _selection.Source = value;
+                    UpdateItemsView();
                     RaisePropertyChanged();
                 }
             }
@@ -65,7 +64,7 @@ namespace Avalonia.Controls
             {
                 if (_selection != value)
                 {
-                    if (value?.Source != _items)
+                    if (value is not null && value.Source != _items && value.Source != _itemsView)
                         throw new InvalidOperationException("Selection source must be set to Items.");
                     _selection = value;
                     _isSelectionSet = true;
@@ -74,7 +73,7 @@ namespace Avalonia.Controls
             }
         }
 
-        IEnumerable<object> ITreeDataGridSource.Items => Items;
+        IEnumerable<object> ITreeDataGridSource.Items => _itemsView;
 
         public ITreeDataGridCellSelectionModel<TModel>? CellSelection => Selection as ITreeDataGridCellSelectionModel<TModel>;
         public ITreeDataGridRowSelectionModel<TModel>? RowSelection => Selection as ITreeDataGridRowSelectionModel<TModel>;
@@ -87,6 +86,31 @@ namespace Avalonia.Controls
         {
             _rows?.Dispose();
             GC.SuppressFinalize(this);
+        }
+
+        public void ClearSort(IColumn? column = null)
+        {
+            if (column is not null && column.SortDirection is null)
+                return;
+
+            _comparer = null;
+            _rows?.Sort(null);
+
+            foreach (var c in Columns)
+                c.SortDirection = null;
+
+            Sorted?.Invoke();
+        }
+
+        public void Filter(Func<TModel, bool>? predicate)
+        {
+            _filter = predicate;
+            RefreshFilter();
+        }
+
+        public void RefreshFilter()
+        {
+            UpdateItemsView();
         }
 
         void ITreeDataGridSource.DragDropRows(
@@ -166,6 +190,28 @@ namespace Avalonia.Controls
         private AnonymousSortableRows<TModel> CreateRows()
         {
             return new AnonymousSortableRows<TModel>(_itemsView, _comparer);
+        }
+
+        ITreeDataGridSelection ITreeDataGridSelectionFactory.CreateRowSelectionModel()
+        {
+            return new TreeDataGridRowSelectionModel<TModel>(this);
+        }
+
+        ITreeDataGridSelection ITreeDataGridSelectionFactory.CreateCellSelectionModel()
+        {
+            return new TreeDataGridCellSelectionModel<TModel>(this);
+        }
+
+        private void UpdateItemsView()
+        {
+            var filtered = _filter is null ? _items : _items.Where(_filter).ToList();
+            _itemsView = TreeDataGridItemsSourceView<TModel>.GetOrCreate(filtered);
+            _rows?.SetItems(_itemsView);
+
+            if (_selection is object)
+                _selection.Source = _filter is null ? _items : _itemsView;
+
+            RaisePropertyChanged(nameof(Rows));
         }
     }
 }

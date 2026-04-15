@@ -92,7 +92,7 @@ namespace Avalonia.Controls.Selection
         /// For this reason it is advised that all subscriptions to <see cref="SelectionChanged"/>
         /// are paired with a subscription to <see cref="SourceReset"/>.
         /// /// </remarks>
-        event EventHandler<TreeSelectionModelSelectionChangedEventArgs>? SelectionChanged;
+        event EventHandler<TreeDataGridSelectionChangedEventArgs>? SelectionChanged;
 
         /// <summary>
         /// Occurs when the indexes of the selected items are changed due to items being added or

@@ -20,6 +20,7 @@ namespace Avalonia.Controls
     public class HierarchicalTreeDataGridSource<TModel> : NotifyingBase,
         ITreeDataGridSource<TModel>,
         IDisposable,
+        ITreeDataGridSelectionFactory,
         IExpanderRowController<TModel>
         where TModel: class
     {
@@ -30,6 +31,8 @@ namespace Avalonia.Controls
         private Comparison<TModel>? _comparison;
         private ITreeDataGridSelection? _selection;
         private bool _isSelectionSet;
+        private Func<TModel, bool>? _filter;
+        private FilteredExpanderColumn<TModel>? _filteredExpanderColumn;
 
         public HierarchicalTreeDataGridSource(TModel item)
             : this(new[] { item })
@@ -52,10 +55,7 @@ namespace Avalonia.Controls
                 if (_items != value)
                 {
                     _items = value;
-                    _itemsView = TreeDataGridItemsSourceView<TModel>.GetOrCreate(value);
-                    _rows?.SetItems(_itemsView);
-                    if (_selection is object)
-                        _selection.Source = value;
+                    UpdateItemsView(recreateRows: _filter is not null);
                 }
             }
         }
@@ -75,7 +75,7 @@ namespace Avalonia.Controls
             {
                 if (_selection != value)
                 {
-                    if (value?.Source != _items)
+                    if (value is not null && value.Source != _items && value.Source != _itemsView)
                         throw new InvalidOperationException("Selection source must be set to Items.");
                     _selection = value;
                     _isSelectionSet = true;
@@ -84,7 +84,7 @@ namespace Avalonia.Controls
             }
         }
 
-        IEnumerable<object> ITreeDataGridSource.Items => Items;
+        IEnumerable<object> ITreeDataGridSource.Items => _itemsView;
 
         public ITreeDataGridCellSelectionModel<TModel>? CellSelection => Selection as ITreeDataGridCellSelectionModel<TModel>;
         public ITreeDataGridRowSelectionModel<TModel>? RowSelection => Selection as ITreeDataGridRowSelectionModel<TModel>;
@@ -93,16 +93,41 @@ namespace Avalonia.Controls
 
         IColumns ITreeDataGridSource.Columns => Columns;
 
-        public event EventHandler<RowEventArgs<HierarchicalRow<TModel>>>? RowExpanding;
-        public event EventHandler<RowEventArgs<HierarchicalRow<TModel>>>? RowExpanded;
-        public event EventHandler<RowEventArgs<HierarchicalRow<TModel>>>? RowCollapsing;
-        public event EventHandler<RowEventArgs<HierarchicalRow<TModel>>>? RowCollapsed;
+        public event EventHandler<TreeDataGridRowModelEventArgs>? RowExpanding;
+        public event EventHandler<TreeDataGridRowModelEventArgs>? RowExpanded;
+        public event EventHandler<TreeDataGridRowModelEventArgs>? RowCollapsing;
+        public event EventHandler<TreeDataGridRowModelEventArgs>? RowCollapsed;
         public event Action? Sorted;
 
         public void Dispose()
         {
             _rows?.Dispose();
             GC.SuppressFinalize(this);
+        }
+
+        public void ClearSort(IColumn? column = null)
+        {
+            if (column is not null && column.SortDirection is null)
+                return;
+
+            _comparison = null;
+            _rows?.Sort(null);
+
+            foreach (var c in Columns)
+                c.SortDirection = null;
+
+            Sorted?.Invoke();
+        }
+
+        public void Filter(Func<TModel, bool>? predicate)
+        {
+            _filter = predicate;
+            RefreshFilter();
+        }
+
+        public void RefreshFilter()
+        {
+            UpdateItemsView(recreateRows: true);
         }
 
         /// <summary>
@@ -172,7 +197,7 @@ namespace Avalonia.Controls
 
                     if (depth < count - 1)
                     {
-                        items = _expanderColumn.GetChildModels(e);
+                        items = GetModelChildren(e);
                     }
                     else
                     {
@@ -215,6 +240,16 @@ namespace Avalonia.Controls
             }
 
             return false;
+        }
+
+        ITreeDataGridSelection ITreeDataGridSelectionFactory.CreateRowSelectionModel()
+        {
+            return new TreeDataGridRowSelectionModel<TModel>(this);
+        }
+
+        ITreeDataGridSelection ITreeDataGridSelectionFactory.CreateCellSelectionModel()
+        {
+            return new TreeDataGridCellSelectionModel<TModel>(this);
         }
 
         void ITreeDataGridSource.DragDropRows(
@@ -292,9 +327,9 @@ namespace Avalonia.Controls
             if (row is HierarchicalRow<TModel> r)
             {
                 if (!row.IsExpanded)
-                    RowExpanding?.Invoke(this, RowEventArgs.Create(r));
+                    RowExpanding?.Invoke(this, CreateRowEventArgs(r));
                 else
-                    RowCollapsing?.Invoke(this, RowEventArgs.Create(r));
+                    RowCollapsing?.Invoke(this, CreateRowEventArgs(r));
             }
         }
 
@@ -303,9 +338,9 @@ namespace Avalonia.Controls
             if (row is HierarchicalRow<TModel> r)
             {
                 if (row.IsExpanded)
-                    RowExpanded?.Invoke(this, RowEventArgs.Create(r));
+                    RowExpanded?.Invoke(this, CreateRowEventArgs(r));
                 else
-                    RowCollapsed?.Invoke(this, RowEventArgs.Create(r));
+                    RowCollapsed?.Invoke(this, CreateRowEventArgs(r));
             }
         }
 
@@ -318,7 +353,8 @@ namespace Avalonia.Controls
         internal IEnumerable<TModel>? GetModelChildren(TModel model)
         {
             _ = _expanderColumn ?? throw new InvalidOperationException("No expander column defined.");
-            return _expanderColumn.GetChildModels(model);
+            var children = _expanderColumn.GetChildModels(model);
+            return _filter is null || children is null ? children : children.Where(_filter);
         }
 
         internal int GetRowIndex(in IndexPath index, int fromRowIndex = 0)
@@ -336,7 +372,7 @@ namespace Avalonia.Controls
                     throw new InvalidOperationException("No columns defined.");
                 if (_expanderColumn is null)
                     throw new InvalidOperationException("No expander column defined.");
-                _rows = new HierarchicalRows<TModel>(this, _itemsView, _expanderColumn, _comparison);
+                _rows = new HierarchicalRows<TModel>(this, _itemsView, GetActiveExpanderColumn(), _comparison);
             }
 
             return _rows;
@@ -388,6 +424,7 @@ namespace Avalonia.Controls
                         }
 
                         _expanderColumn = expander;
+                        _filteredExpanderColumn = null;
                         break;
                     }
                 }
@@ -405,6 +442,42 @@ namespace Avalonia.Controls
                         throw new InvalidOperationException($"The expander column cannot be {action}.");
                     }
                 }
+            }
+        }
+
+        private IExpanderColumn<TModel> GetActiveExpanderColumn()
+        {
+            _ = _expanderColumn ?? throw new InvalidOperationException("No expander column defined.");
+
+            if (_filter is null)
+                return _expanderColumn;
+
+            return _filteredExpanderColumn ??= new FilteredExpanderColumn<TModel>(_expanderColumn, () => _filter);
+        }
+
+        private static TreeDataGridRowModelEventArgs CreateRowEventArgs(HierarchicalRow<TModel> row)
+        {
+            return new TreeDataGridRowModelEventArgs(
+                new TreeDataGridRowModel(row.Model, row.ModelIndexPath));
+        }
+
+        private void UpdateItemsView(bool recreateRows)
+        {
+            var filtered = _filter is null ? _items : _items.Where(_filter).ToList();
+            _itemsView = TreeDataGridItemsSourceView<TModel>.GetOrCreate(filtered);
+
+            if (_selection is object)
+                _selection.Source = _filter is null ? _items : _itemsView;
+
+            if (recreateRows)
+            {
+                _rows?.Dispose();
+                _rows = null;
+                RaisePropertyChanged(nameof(Rows));
+            }
+            else
+            {
+                _rows?.SetItems(_itemsView);
             }
         }
     }

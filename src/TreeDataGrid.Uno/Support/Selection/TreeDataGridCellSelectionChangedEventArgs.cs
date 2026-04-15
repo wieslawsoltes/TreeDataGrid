@@ -3,17 +3,17 @@
 namespace Avalonia.Controls.Selection
 {
     /// <summary>
-    /// Provides data for the <see cref="ITreeDataGridCellSelectionModel.SelectionChanged"/> event.
+    /// Compatibility shim for older Uno cell selection event usages.
     /// </summary>
-    public class TreeDataGridCellSelectionChangedEventArgs : EventArgs
+    public class TreeDataGridCellSelectionChangedEventArgs : TreeDataGridSelectionChangedEventArgs
     {
     }
 
     /// <summary>
-    /// Provides data for the <see cref="ITreeDataGridCellSelectionModel{T}.SelectionChanged"/> event.
+    /// Compatibility shim for older Uno cell selection event usages.
     /// </summary>
     /// <typeparam name="T">The model type.</typeparam>
-    public class TreeDataGridCellSelectionChangedEventArgs<T> : TreeDataGridCellSelectionChangedEventArgs
+    public class TreeDataGridCellSelectionChangedEventArgs<T> : TreeDataGridSelectionChangedEventArgs<T>
         where T : class
     {
     }

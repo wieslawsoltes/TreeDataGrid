@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
@@ -18,12 +19,13 @@ namespace Avalonia.Controls.Selection
         private readonly ITreeDataGridRowSelectionModel<TModel> _selectedRows;
         private readonly SelectedCellIndexes _selectedIndexes;
         private readonly ITreeDataGridSource<TModel> _source;
-        private EventHandler<TreeDataGridCellSelectionChangedEventArgs>? _untypedSelectionChanged;
+        private EventHandler<TreeDataGridSelectionChangedEventArgs>? _untypedSelectionChanged;
         private EventHandler? _viewSelectionChanged;
         private Point _pressedPoint = s_InvalidPoint;
         private (int x, int y) _rangeAnchor = (-1, -1);
         private bool _columnsChanged;
         private bool _rowsChanged;
+        private IReadOnlyList<CellIndex> _lastSelection = Array.Empty<CellIndex>();
 
         public TreeDataGridCellSelectionModel(ITreeDataGridSource<TModel> source)
         {
@@ -33,6 +35,7 @@ namespace Avalonia.Controls.Selection
             _selectedColumns.SelectionChanged += OnSelectedColumnsSelectionChanged;
             _selectedRows.SelectionChanged += OnSelectedRowsSelectionChanged;
             _selectedIndexes = new(_selectedColumns, _selectedRows);
+            _lastSelection = SelectedIndexes.ToList();
         }
 
         public int Count => _selectedColumns.Count * _selectedRows.Count;
@@ -61,7 +64,7 @@ namespace Avalonia.Controls.Selection
             set => ((ITreeDataGridSelection)_selectedRows).Source = value;
         }
 
-        public event EventHandler<TreeDataGridCellSelectionChangedEventArgs<TModel>>? SelectionChanged;
+        public event EventHandler<TreeDataGridSelectionChangedEventArgs<TModel>>? SelectionChanged;
 
         event EventHandler? ITreeDataGridSelectionInteraction.SelectionChanged
         {
@@ -69,7 +72,7 @@ namespace Avalonia.Controls.Selection
             remove => _viewSelectionChanged -= value;
         }
 
-        event EventHandler<TreeDataGridCellSelectionChangedEventArgs>? ITreeDataGridCellSelectionModel.SelectionChanged
+        event EventHandler<TreeDataGridSelectionChangedEventArgs>? ITreeDataGridCellSelectionModel.SelectionChanged
         {
             add => _untypedSelectionChanged += value;
             remove => _untypedSelectionChanged -= value;
@@ -192,10 +195,28 @@ namespace Avalonia.Controls.Selection
 
             if (_columnsChanged || _rowsChanged)
             {
-                var e = new TreeDataGridCellSelectionChangedEventArgs<TModel>();
+                var current = SelectedIndexes.ToList();
+                var selected = current.Except(_lastSelection).ToList();
+                var deselected = _lastSelection.Except(current).ToList();
+                _lastSelection = current;
+                var typed = new TreeDataGridSelectionChangedEventArgs<TModel>(
+                    deselectedIndexes: GetDistinctRowIndexes(deselected),
+                    selectedIndexes: GetDistinctRowIndexes(selected),
+                    deselectedItems: GetDistinctModels(deselected),
+                    selectedItems: GetDistinctModels(selected),
+                    deselectedCellIndexes: deselected,
+                    selectedCellIndexes: selected);
                 _viewSelectionChanged?.Invoke(this, EventArgs.Empty);
-                SelectionChanged?.Invoke(this, e);
-                _untypedSelectionChanged?.Invoke(this, e);
+                SelectionChanged?.Invoke(this, typed);
+                _untypedSelectionChanged?.Invoke(
+                    this,
+                    new TreeDataGridSelectionChangedEventArgs(
+                        typed.DeselectedIndexes,
+                        typed.SelectedIndexes,
+                        Untype(typed.DeselectedItems),
+                        Untype(typed.SelectedItems),
+                        typed.DeselectedCellIndexes,
+                        typed.SelectedCellIndexes));
             }
         }
 
@@ -320,9 +341,46 @@ namespace Avalonia.Controls.Selection
             _columnsChanged = true;
         }
 
-        private void OnSelectedRowsSelectionChanged(object? sender, TreeSelectionModelSelectionChangedEventArgs<TModel> e)
+        private void OnSelectedRowsSelectionChanged(object? sender, TreeDataGridSelectionChangedEventArgs<TModel> e)
         {
             _rowsChanged = true;
+        }
+
+        private static IReadOnlyList<IndexPath> GetDistinctRowIndexes(IEnumerable<CellIndex> indexes)
+        {
+            return indexes.Select(x => x.RowIndex).Distinct().ToList();
+        }
+
+        private IReadOnlyList<TModel?> GetDistinctModels(IEnumerable<CellIndex> indexes)
+        {
+            var result = new List<TModel?>();
+            var seen = new HashSet<IndexPath>();
+
+            foreach (var index in indexes)
+            {
+                if (!seen.Add(index.RowIndex))
+                    continue;
+
+                var rowIndex = _source.Rows.ModelIndexToRowIndex(index.RowIndex);
+                result.Add(rowIndex >= 0 && rowIndex < _source.Rows.Count
+                    ? (TModel?)_source.Rows[rowIndex].Model
+                    : default);
+            }
+
+            return result;
+        }
+
+        private static IReadOnlyList<object?> Untype(IReadOnlyList<TModel?>? source)
+        {
+            if (source is null)
+                return Array.Empty<object?>();
+
+            var result = new object?[source.Count];
+
+            for (var i = 0; i < source.Count; ++i)
+                result[i] = source[i];
+
+            return result;
         }
     }
 }

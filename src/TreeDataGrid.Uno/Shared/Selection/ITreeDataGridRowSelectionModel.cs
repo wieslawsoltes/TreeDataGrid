@@ -11,6 +11,6 @@ namespace Avalonia.Controls.Selection
     {
         new T? SelectedItem { get; }
         new IReadOnlyList<T?> SelectedItems { get; }
-        new event EventHandler<TreeSelectionModelSelectionChangedEventArgs<T>>? SelectionChanged;
+        new event EventHandler<TreeDataGridSelectionChangedEventArgs<T>>? SelectionChanged;
     }
 }
