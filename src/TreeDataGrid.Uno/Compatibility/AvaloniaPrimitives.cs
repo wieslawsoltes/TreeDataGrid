@@ -1,4 +1,7 @@
 using System;
+using System.ComponentModel;
+using System.Globalization;
+using Windows.Foundation.Metadata;
 
 namespace Avalonia
 {
@@ -9,6 +12,8 @@ namespace Avalonia
         Star,
     }
 
+    [CreateFromString(MethodName = nameof(Parse))]
+    [TypeConverter(typeof(GridLengthTypeConverter))]
     public readonly struct GridLength : IEquatable<GridLength>
     {
         public GridLength(double value, GridUnitType gridUnitType = GridUnitType.Pixel)
@@ -30,6 +35,59 @@ namespace Avalonia
         public override int GetHashCode() => HashCode.Combine(Value, (int)GridUnitType);
         public static bool operator ==(GridLength left, GridLength right) => left.Equals(right);
         public static bool operator !=(GridLength left, GridLength right) => !left.Equals(right);
+
+        public static GridLength Parse(string text)
+        {
+            return GridLengthTypeConverter.Parse(text, CultureInfo.InvariantCulture);
+        }
+    }
+
+    public sealed class GridLengthTypeConverter : TypeConverter
+    {
+        public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
+        {
+            return sourceType == typeof(string) || base.CanConvertFrom(context, sourceType);
+        }
+
+        public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
+        {
+            if (value is string text)
+                return Parse(text, culture ?? CultureInfo.InvariantCulture);
+
+            return base.ConvertFrom(context, culture, value);
+        }
+
+        internal static GridLength Parse(string value, CultureInfo culture)
+        {
+            var text = value.Trim();
+
+            if (text.Length == 0)
+                throw new FormatException("GridLength cannot be parsed from an empty string.");
+
+            if (string.Equals(text, "Auto", StringComparison.OrdinalIgnoreCase))
+                return GridLength.Auto;
+
+            if (text.EndsWith('*'))
+            {
+                var starText = text[..^1].Trim();
+
+                if (starText.Length == 0)
+                    return new GridLength(1, GridUnitType.Star);
+
+                if (double.TryParse(starText, NumberStyles.Float, culture, out var stars))
+                    return new GridLength(stars, GridUnitType.Star);
+
+                throw new FormatException($"GridLength star value '{value}' is invalid.");
+            }
+
+            if (text.EndsWith("px", StringComparison.OrdinalIgnoreCase))
+                text = text[..^2].TrimEnd();
+
+            if (double.TryParse(text, NumberStyles.Float, culture, out var pixels))
+                return new GridLength(pixels, GridUnitType.Pixel);
+
+            throw new FormatException($"GridLength value '{value}' is invalid.");
+        }
     }
 
     public readonly struct Size

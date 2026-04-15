@@ -152,10 +152,11 @@ public sealed partial class MainPage : Page
     {
         return tabs.SelectedIndex switch
         {
-            0 => countries,
-            1 => fileViewer,
-            2 => wikipedia,
-            3 => dragDrop,
+            0 => peopleXamlGrid,
+            1 => countries,
+            2 => fileViewer,
+            3 => wikipedia,
+            4 => dragDrop,
             _ => null,
         };
     }
@@ -165,15 +166,18 @@ public sealed partial class MainPage : Page
         switch (tabs.SelectedIndex)
         {
             case 0:
-                UpdateRealizedCount(countries, countriesRealizedCount);
+                UpdateRealizedCount(peopleXamlGrid, peopleXamlRealizedCount);
                 break;
             case 1:
-                UpdateRealizedCount(fileViewer, filesRealizedCount);
+                UpdateRealizedCount(countries, countriesRealizedCount);
                 break;
             case 2:
-                UpdateRealizedCount(wikipedia, wikipediaRealizedCount);
+                UpdateRealizedCount(fileViewer, filesRealizedCount);
                 break;
             case 3:
+                UpdateRealizedCount(wikipedia, wikipediaRealizedCount);
+                break;
+            case 4:
                 UpdateRealizedCount(dragDrop, dragDropRealizedCount);
                 break;
         }

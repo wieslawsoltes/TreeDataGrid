@@ -3,12 +3,67 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:Avalonia.Controls"
+    xmlns:m="using:TreeDataGridDemo.Models"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <Grid Padding="12">
         <TabView x:Name="tabs"
                  HorizontalAlignment="Stretch"
                  VerticalAlignment="Stretch"
                  SelectionChanged="Tabs_SelectionChanged">
+            <TabViewItem Header="People (XAML)"
+                         HorizontalContentAlignment="Stretch"
+                         VerticalContentAlignment="Stretch">
+                <Grid RowSpacing="8"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Border BorderBrush="{ThemeResource TreeDataGridGridLinesBrush}"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            BorderThickness="1">
+                        <controls:TreeDataGrid x:Name="peopleXamlGrid"
+                                               HorizontalAlignment="Stretch"
+                                               VerticalAlignment="Stretch"
+                                               ItemsSource="{x:Bind ViewModel.PeopleXaml.People, Mode=OneWay}"
+                                               SelectionMode="Row,Multiple">
+                            <controls:TreeDataGridHierarchicalExpanderColumn Header="Name"
+                                                                             ChildrenBinding="{Binding Children}"
+                                                                             HasChildrenBinding="{Binding HasChildren}"
+                                                                             IsExpandedBinding="{Binding IsExpanded, Mode=TwoWay}">
+                                <controls:TreeDataGridTextColumn Width="3*"
+                                                                 Binding="{Binding Name, Mode=TwoWay}" />
+                            </controls:TreeDataGridHierarchicalExpanderColumn>
+                            <controls:TreeDataGridTextColumn Header="Title"
+                                                             Width="2*"
+                                                             Binding="{Binding Title, Mode=TwoWay}" />
+                            <controls:TreeDataGridTemplateColumn Header="Age"
+                                                                 TextSearchBinding="{Binding Title}">
+                                <controls:TreeDataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="m:Person">
+                                        <Border Background="{ThemeResource AccentFillColorSecondaryBrush}"
+                                                CornerRadius="999"
+                                                HorizontalAlignment="Left"
+                                                Padding="10,2">
+                                            <TextBlock FontWeight="SemiBold"
+                                                       Text="{x:Bind Age, Mode=OneWay}" />
+                                        </Border>
+                                    </DataTemplate>
+                                </controls:TreeDataGridTemplateColumn.CellTemplate>
+                            </controls:TreeDataGridTemplateColumn>
+                            <controls:TreeDataGridCheckBoxColumn Header="Active"
+                                                                 Binding="{Binding IsActive, Mode=TwoWay}" />
+                        </controls:TreeDataGrid>
+                    </Border>
+
+                    <TextBlock x:Name="peopleXamlRealizedCount"
+                               Grid.Row="1" />
+                </Grid>
+            </TabViewItem>
+
             <TabViewItem Header="Countries"
                          HorizontalContentAlignment="Stretch"
                          VerticalContentAlignment="Stretch">

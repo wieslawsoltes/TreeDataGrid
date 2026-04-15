@@ -34,7 +34,7 @@ namespace Avalonia.Controls
     [TemplatePart(Name = "PART_DragIndicatorHost", Type = typeof(Canvas))]
     [TemplatePart(Name = "PART_DragIndicatorLine", Type = typeof(Border))]
     [TemplatePart(Name = "PART_DragIndicatorBox", Type = typeof(Border))]
-    public class TreeDataGrid : Control
+    public partial class TreeDataGrid : Control
     {
         public static readonly DependencyProperty AutoDragDropRowsProperty =
             DependencyProperty.Register(
@@ -113,6 +113,7 @@ namespace Avalonia.Controls
         public TreeDataGrid()
         {
             DefaultStyleKey = typeof(TreeDataGrid);
+            InitializeV12Support();
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
             SizeChanged += OnTreeDataGridSizeChanged;
@@ -159,7 +160,7 @@ namespace Avalonia.Controls
 
         public ITreeDataGridSource? Source
         {
-            get => (ITreeDataGridSource?)GetValue(SourceProperty);
+            get => _source;
             set => SetValue(SourceProperty, value);
         }
 
@@ -528,7 +529,7 @@ namespace Avalonia.Controls
 
         private static void OnSourcePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            ((TreeDataGrid)d).OnSourceChanged((ITreeDataGridSource?)e.OldValue, (ITreeDataGridSource?)e.NewValue);
+            ((TreeDataGrid)d).OnExplicitSourceChanged((ITreeDataGridSource?)e.NewValue);
         }
 
         private static void OnAutoDragDropRowsPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -549,6 +550,7 @@ namespace Avalonia.Controls
             ClearPresenters();
 
             _source = newValue;
+            ApplySelectionMode(newValue);
             _columns = newValue?.Columns;
             _rows = newValue?.Rows;
 
@@ -1251,9 +1253,10 @@ namespace Avalonia.Controls
             }
         }
 
-        private void OnRowSelectionChanged(object? sender, TreeSelectionModelSelectionChangedEventArgs e)
+        private void OnRowSelectionChanged(object? sender, TreeDataGridSelectionChangedEventArgs e)
         {
             UpdateRowSelectionStates();
+            SelectionChanged?.Invoke(this, e);
         }
 
         private void OnRowIndexesChanged(object? sender, TreeSelectionModelIndexesChangedEventArgs e)
@@ -1272,9 +1275,10 @@ namespace Avalonia.Controls
                 UpdateRowSelectionStates();
         }
 
-        private void OnCellSelectionChanged(object? sender, TreeDataGridCellSelectionChangedEventArgs e)
+        private void OnCellSelectionChanged(object? sender, TreeDataGridSelectionChangedEventArgs e)
         {
             UpdateCellSelectionStates();
+            SelectionChanged?.Invoke(this, e);
         }
 
         private void OnRowsScrollViewerViewChanged(object? sender, ScrollViewerViewChangedEventArgs e)
