@@ -2,7 +2,7 @@
 
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using Avalonia.Controls.Models;
+using Uno.Controls.Models;
 
 namespace TreeDataGridUnoSample.Models
 {

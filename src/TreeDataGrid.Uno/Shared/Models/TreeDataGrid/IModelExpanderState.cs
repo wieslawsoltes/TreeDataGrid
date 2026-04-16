@@ -1,7 +1,7 @@
 using System;
 using Avalonia.Data;
 
-namespace Avalonia.Controls.Models.TreeDataGrid
+namespace Uno.Controls.Models.TreeDataGrid
 {
     internal interface IModelExpanderState<TModel>
     {

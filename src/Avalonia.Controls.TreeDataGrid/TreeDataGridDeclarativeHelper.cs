@@ -3,9 +3,20 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+#if TREE_DATAGRID_UNO
+using Uno.Controls.Selection;
+#else
 using Avalonia.Controls.Selection;
+#endif
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls
+
+#else
 
 namespace Avalonia.Controls
+
+#endif
 {
     internal static class TreeDataGridDeclarativeHelper
     {

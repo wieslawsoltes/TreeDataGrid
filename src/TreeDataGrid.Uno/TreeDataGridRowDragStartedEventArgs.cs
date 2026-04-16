@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Avalonia.Input;
 
-namespace Avalonia.Controls
+namespace Uno.Controls
 {
     public class TreeDataGridRowDragStartedEventArgs : EventArgs
     {

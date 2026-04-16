@@ -1,6 +1,14 @@
 ﻿using System;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Models.TreeDataGrid
+
+#else
+
 namespace Avalonia.Controls.Models.TreeDataGrid
+
+#endif
 {
     /// <summary>
     /// Represents a cell in an <see cref="ITreeDataGridSource"/>.

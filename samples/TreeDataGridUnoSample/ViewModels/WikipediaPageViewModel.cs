@@ -6,8 +6,8 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.Models.TreeDataGrid;
+using Uno.Controls;
+using Uno.Controls.Models.TreeDataGrid;
 using TreeDataGridDemo.Models;
 
 namespace TreeDataGridDemo.ViewModels;

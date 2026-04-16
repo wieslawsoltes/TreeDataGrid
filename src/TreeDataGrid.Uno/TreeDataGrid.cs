@@ -7,12 +7,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Disposables;
-using Avalonia.Controls.Automation.Peers;
-using Avalonia.Controls.Internal;
-using Avalonia.Controls.Models.TreeDataGrid;
-using Avalonia.Controls.Primitives;
-using Avalonia.Controls.Selection;
-using Avalonia.Controls.Themes;
+using Uno.Controls.Automation.Peers;
+using Uno.Controls.Internal;
+using Uno.Controls.Models.TreeDataGrid;
+using Uno.Controls.Primitives;
+using Uno.Controls.Selection;
+using Uno.Controls.Themes;
 using Avalonia.Input;
 using Microsoft.UI;
 using Microsoft.UI.Input;
@@ -25,7 +25,7 @@ using Windows.System;
 using Windows.UI.Core;
 using Brush = Microsoft.UI.Xaml.Media.Brush;
 
-namespace Avalonia.Controls
+namespace Uno.Controls
 {
     [TemplatePart(Name = "PART_HeaderScrollViewer", Type = typeof(ScrollViewer))]
     [TemplatePart(Name = "PART_ColumnHeadersPresenter", Type = typeof(TreeDataGridColumnHeadersPresenter))]
@@ -78,7 +78,7 @@ namespace Avalonia.Controls
                 typeof(TreeDataGrid),
                 new PropertyMetadata(20d, OnLayoutPropertyChanged));
 
-        private const string RowDragDataKey = "Avalonia.Controls.TreeDataGrid.RowDragInfo";
+        private const string RowDragDataKey = "Uno.Controls.TreeDataGrid.RowDragInfo";
         private const double DragIndicatorThickness = 2;
         private const double ScrollSyncTolerance = 0.5;
         private static readonly SolidColorBrush s_defaultBorderBrush = new(ColorHelper.FromArgb(0xFF, 0xD9, 0xD9, 0xD9));
@@ -276,14 +276,14 @@ namespace Avalonia.Controls
             return new TreeDataGridAutomationPeer(this);
         }
 
-        internal global::Avalonia.Controls.IndexPath GetModelIndex(IRow row, int rowIndex)
+        internal global::Uno.Controls.IndexPath GetModelIndex(IRow row, int rowIndex)
         {
             return row is IModelIndexableRow indexedRow
                 ? indexedRow.ModelIndexPath
-                : new global::Avalonia.Controls.IndexPath(rowIndex);
+                : new global::Uno.Controls.IndexPath(rowIndex);
         }
 
-        internal Brush GetRowBackground(int rowIndex, global::Avalonia.Controls.IndexPath modelIndex)
+        internal Brush GetRowBackground(int rowIndex, global::Uno.Controls.IndexPath modelIndex)
         {
             if (_rowSelection?.IsSelected(modelIndex) == true)
                 return GetThemeBrush(TreeDataGridThemeResources.SelectedRowBackgroundBrushKey, s_transparentBrush);
@@ -867,7 +867,7 @@ namespace Avalonia.Controls
             }
         }
 
-        private int FindDisplayRowIndex(global::Avalonia.Controls.IndexPath modelIndex)
+        private int FindDisplayRowIndex(global::Uno.Controls.IndexPath modelIndex)
         {
             return _rows?.ModelIndexToRowIndex(modelIndex) ?? -1;
         }
@@ -1454,14 +1454,14 @@ namespace Avalonia.Controls
 
         private sealed class RowDragInfo
         {
-            public RowDragInfo(ITreeDataGridSource source, IReadOnlyList<global::Avalonia.Controls.IndexPath> indexes)
+            public RowDragInfo(ITreeDataGridSource source, IReadOnlyList<global::Uno.Controls.IndexPath> indexes)
             {
                 Source = source;
                 Indexes = indexes;
             }
 
             public ITreeDataGridSource Source { get; }
-            public IReadOnlyList<global::Avalonia.Controls.IndexPath> Indexes { get; }
+            public IReadOnlyList<global::Uno.Controls.IndexPath> Indexes { get; }
         }
     }
 }

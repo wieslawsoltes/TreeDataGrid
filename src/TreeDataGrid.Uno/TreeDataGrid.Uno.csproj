@@ -3,7 +3,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <LangVersion>12</LangVersion>
-    <RootNamespace>Uno.Controls.TreeDataGrid</RootNamespace>
+    <RootNamespace>Uno.Controls</RootNamespace>
     <PackageId>TreeDataGrid.Uno</PackageId>
     <DefineConstants>$(DefineConstants);TREE_DATAGRID_UNO</DefineConstants>
     <GenerateLibraryLayout>true</GenerateLibraryLayout>

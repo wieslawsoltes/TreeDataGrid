@@ -2,11 +2,11 @@ using System;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq.Expressions;
-using Avalonia.Controls.Models.TreeDataGrid;
+using Uno.Controls.Models.TreeDataGrid;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
 
-namespace Avalonia.Controls
+namespace Uno.Controls
 {
     public class ColumnCreateOptions
     {

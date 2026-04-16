@@ -1,5 +1,5 @@
 using System.ComponentModel;
-using Avalonia.Controls.Models.TreeDataGrid;
+using Uno.Controls.Models.TreeDataGrid;
 using AvaloniaTextAlignment = Avalonia.Media.TextAlignment;
 using AvaloniaTextTrimming = Avalonia.Media.TextTrimming;
 using AvaloniaTextWrapping = Avalonia.Media.TextWrapping;
@@ -7,7 +7,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Windows.System;
 
-namespace Avalonia.Controls.Primitives
+namespace Uno.Controls.Primitives
 {
     public class TreeDataGridTextCell : TreeDataGridCell
     {

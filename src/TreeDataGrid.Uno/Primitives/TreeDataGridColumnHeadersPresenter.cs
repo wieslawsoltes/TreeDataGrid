@@ -1,12 +1,12 @@
 using System.Collections.Generic;
-using Avalonia.Controls.Automation.Peers;
-using Avalonia.Controls.Models.TreeDataGrid;
+using Uno.Controls.Automation.Peers;
+using Uno.Controls.Models.TreeDataGrid;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using WinSize = Windows.Foundation.Size;
 using WinRect = Windows.Foundation.Rect;
 
-namespace Avalonia.Controls.Primitives
+namespace Uno.Controls.Primitives
 {
     public class TreeDataGridColumnHeadersPresenter : Panel
     {

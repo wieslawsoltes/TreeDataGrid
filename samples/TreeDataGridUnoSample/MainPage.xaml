@@ -2,7 +2,7 @@
     x:Class="TreeDataGridUnoSample.MainPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:controls="using:Avalonia.Controls"
+    xmlns:controls="using:Uno.Controls"
     xmlns:m="using:TreeDataGridDemo.Models"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <Grid Padding="12">

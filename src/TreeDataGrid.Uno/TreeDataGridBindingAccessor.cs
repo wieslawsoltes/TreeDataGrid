@@ -2,7 +2,7 @@ using System;
 using System.Reflection;
 using Microsoft.UI.Xaml.Data;
 
-namespace Avalonia.Controls;
+namespace Uno.Controls;
 
 internal sealed class TreeDataGridBindingAccessor
 {

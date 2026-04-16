@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using Avalonia.Data;
 
-namespace Avalonia.Controls.Models.TreeDataGrid
+namespace Uno.Controls.Models.TreeDataGrid
 {
     /// <summary>
     /// A row in a <see cref="HierarchicalTreeDataGridSource{TModel}"/>.

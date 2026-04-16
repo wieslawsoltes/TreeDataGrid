@@ -1,6 +1,6 @@
 using Microsoft.UI.Xaml.Automation.Peers;
 
-namespace Avalonia.Controls.Automation.Peers
+namespace Uno.Controls.Automation.Peers
 {
     internal sealed class TreeDataGridAutomationPeer : FrameworkElementAutomationPeer
     {

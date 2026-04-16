@@ -1,10 +1,10 @@
 using System.ComponentModel;
-using Avalonia.Controls.Models.TreeDataGrid;
+using Uno.Controls.Models.TreeDataGrid;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 
-namespace Avalonia.Controls.Primitives
+namespace Uno.Controls.Primitives
 {
     public class TreeDataGridExpanderCell : TreeDataGridCell
     {
@@ -115,8 +115,8 @@ namespace Avalonia.Controls.Primitives
             if (_glyphText is not null)
             {
                 _glyphText.Text = _expanderModel.IsExpanded
-                    ? Owner?.GetThemeString(Avalonia.Controls.Themes.TreeDataGridThemeResources.ExpandedGlyphKey, "▾") ?? "▾"
-                    : Owner?.GetThemeString(Avalonia.Controls.Themes.TreeDataGridThemeResources.CollapsedGlyphKey, "▸") ?? "▸";
+                    ? Owner?.GetThemeString(Uno.Controls.Themes.TreeDataGridThemeResources.ExpandedGlyphKey, "▾") ?? "▾"
+                    : Owner?.GetThemeString(Uno.Controls.Themes.TreeDataGridThemeResources.CollapsedGlyphKey, "▸") ?? "▸";
             }
         }
 

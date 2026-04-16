@@ -1,10 +1,10 @@
 using System;
-using Avalonia.Controls.Primitives;
+using Uno.Controls.Primitives;
 using Avalonia.Input;
 using Microsoft.UI.Xaml;
 using Windows.ApplicationModel.DataTransfer;
 
-namespace Avalonia.Controls
+namespace Uno.Controls
 {
     public class TreeDataGridRowDragEventArgs : EventArgs
     {

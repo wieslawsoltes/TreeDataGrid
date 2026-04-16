@@ -1,4 +1,4 @@
-namespace Avalonia.Controls.Themes
+namespace Uno.Controls.Themes
 {
     public static class TreeDataGridThemeResources
     {

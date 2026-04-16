@@ -1,6 +1,6 @@
-using Avalonia.Controls.Models.TreeDataGrid;
+using Uno.Controls.Models.TreeDataGrid;
 
-namespace Avalonia.Controls.Primitives
+namespace Uno.Controls.Primitives
 {
     internal interface ITreeDataGridCell
     {

@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel;
-using Avalonia.Controls.Automation.Peers;
-using Avalonia.Controls.Models.TreeDataGrid;
+using Uno.Controls.Automation.Peers;
+using Uno.Controls.Models.TreeDataGrid;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -10,7 +10,7 @@ using WinRect = Windows.Foundation.Rect;
 using WinSize = Windows.Foundation.Size;
 using Windows.System;
 
-namespace Avalonia.Controls.Primitives
+namespace Uno.Controls.Primitives
 {
     public abstract class TreeDataGridCell : Control, ITreeDataGridCell
     {

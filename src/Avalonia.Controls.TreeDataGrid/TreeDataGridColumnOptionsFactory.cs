@@ -1,8 +1,19 @@
 using System;
 using System.Globalization;
+#if TREE_DATAGRID_UNO
+using Uno.Controls.Models.TreeDataGrid;
+#else
 using Avalonia.Controls.Models.TreeDataGrid;
+#endif
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls
+
+#else
 
 namespace Avalonia.Controls
+
+#endif
 {
     internal static class TreeDataGridColumnOptionsFactory
     {

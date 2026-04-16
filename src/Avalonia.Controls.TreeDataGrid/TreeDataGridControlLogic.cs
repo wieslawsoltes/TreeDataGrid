@@ -2,11 +2,27 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+#if TREE_DATAGRID_UNO
+using Uno.Controls.Models.TreeDataGrid;
+#else
 using Avalonia.Controls.Models.TreeDataGrid;
+#endif
+#if TREE_DATAGRID_UNO
+using Uno.Controls.Primitives;
+#else
 using Avalonia.Controls.Primitives;
+#endif
 using Avalonia.Input;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls
+
+#else
+
 namespace Avalonia.Controls
+
+#endif
 {
     internal static class TreeDataGridControlLogic
     {

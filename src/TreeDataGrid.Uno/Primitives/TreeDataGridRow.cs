@@ -1,7 +1,7 @@
 using System;
-using Avalonia.Controls.Automation.Peers;
-using Avalonia.Controls.Internal;
-using Avalonia.Controls.Models.TreeDataGrid;
+using Uno.Controls.Automation.Peers;
+using Uno.Controls.Internal;
+using Uno.Controls.Models.TreeDataGrid;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -9,7 +9,7 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using WinPoint = Windows.Foundation.Point;
 
-namespace Avalonia.Controls.Primitives
+namespace Uno.Controls.Primitives
 {
     public class TreeDataGridRow : Control
     {
@@ -38,7 +38,7 @@ namespace Avalonia.Controls.Primitives
 
         public TreeDataGridCellsPresenter? CellsPresenter { get; private set; }
         public int RowIndex { get; private set; } = -1;
-        public global::Avalonia.Controls.IndexPath ModelIndex { get; private set; }
+        public global::Uno.Controls.IndexPath ModelIndex { get; private set; }
         public bool IsSelected { get; private set; }
         public object? Model => DataContext;
         public IRows? Rows => _rows;

@@ -6,7 +6,15 @@ using Avalonia.Experimental.Data;
 using Avalonia.Experimental.Data.Core;
 using Avalonia.Reactive;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Models.TreeDataGrid
+
+#else
+
 namespace Avalonia.Controls.Models.TreeDataGrid
+
+#endif
 {
     /// <summary>
     /// Base class for columns which select cell values from a model.

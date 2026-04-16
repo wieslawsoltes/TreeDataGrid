@@ -8,11 +8,22 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+#if TREE_DATAGRID_UNO
+using Uno.Controls.Utils;
+#else
 using Avalonia.Controls.Utils;
-
+#endif
 #nullable enable
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls
+
+#else
+
 namespace Avalonia.Controls
+
+#endif
 {
     /// <summary>
     /// Represents a standardized view of the supported interactions between a given ItemsSource

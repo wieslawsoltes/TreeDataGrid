@@ -1,6 +1,6 @@
 using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.Models.TreeDataGrid;
+using Uno.Controls;
+using Uno.Controls.Models.TreeDataGrid;
 using TreeDataGridDemo.Models;
 
 namespace TreeDataGridDemo.ViewModels;

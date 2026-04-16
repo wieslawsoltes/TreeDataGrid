@@ -1,7 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 
-namespace Avalonia.Controls.Internal
+namespace Uno.Controls.Internal
 {
     internal static class VisualTreeHelpers
     {

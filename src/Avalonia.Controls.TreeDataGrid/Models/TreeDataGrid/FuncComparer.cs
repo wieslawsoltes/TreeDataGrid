@@ -2,7 +2,15 @@
 using System.Collections.Generic;
 using System.Text;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Models.TreeDataGrid
+
+#else
+
 namespace Avalonia.Controls.Models.TreeDataGrid
+
+#endif
 {
     internal class FuncComparer<T> : IComparer<T>
     {

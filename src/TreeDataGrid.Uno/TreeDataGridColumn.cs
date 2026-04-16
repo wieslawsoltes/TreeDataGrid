@@ -2,12 +2,12 @@ using System;
 using System.Collections;
 using System.Globalization;
 using System.Linq;
-using Avalonia.Controls.Models.TreeDataGrid;
+using Uno.Controls.Models.TreeDataGrid;
 using Avalonia.Media;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Markup;
 
-namespace Avalonia.Controls
+namespace Uno.Controls
 {
     public abstract class TreeDataGridColumn
     {

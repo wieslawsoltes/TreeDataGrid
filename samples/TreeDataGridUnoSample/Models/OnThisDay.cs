@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
-using Avalonia.Controls.Models;
+using Uno.Controls.Models;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Windows.Storage.Streams;

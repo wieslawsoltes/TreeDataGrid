@@ -2,7 +2,7 @@
     x:Class="TreeDataGridUnoActivityMonitor.Views.MetricSectionView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:controls="using:Avalonia.Controls"
+    xmlns:controls="using:Uno.Controls"
     xmlns:local="using:TreeDataGridUnoActivityMonitor.Controls">
     <Grid x:Name="ContentRoot" Padding="20" RowSpacing="18">
         <Grid.RowDefinitions>

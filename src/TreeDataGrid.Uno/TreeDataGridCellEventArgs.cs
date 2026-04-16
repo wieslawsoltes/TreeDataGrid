@@ -1,7 +1,7 @@
 using System;
-using Avalonia.Controls.Primitives;
+using Uno.Controls.Primitives;
 
-namespace Avalonia.Controls
+namespace Uno.Controls
 {
     public sealed class TreeDataGridCellEventArgs : EventArgs
     {

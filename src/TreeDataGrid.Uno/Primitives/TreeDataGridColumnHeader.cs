@@ -1,12 +1,12 @@
 using System.ComponentModel;
-using Avalonia.Controls.Automation.Peers;
-using Avalonia.Controls.Models.TreeDataGrid;
-using Avalonia.Controls.Themes;
+using Uno.Controls.Automation.Peers;
+using Uno.Controls.Models.TreeDataGrid;
+using Uno.Controls.Themes;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Shapes;
 
-namespace Avalonia.Controls.Primitives
+namespace Uno.Controls.Primitives
 {
     public class TreeDataGridColumnHeader : Button
     {

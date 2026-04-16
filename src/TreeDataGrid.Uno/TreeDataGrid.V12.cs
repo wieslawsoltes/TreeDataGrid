@@ -1,11 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Specialized;
-using Avalonia.Controls.Selection;
+using Uno.Controls.Selection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Markup;
 
-namespace Avalonia.Controls
+namespace Uno.Controls
 {
     [ContentProperty(Name = nameof(ColumnDefinitions))]
     public partial class TreeDataGrid

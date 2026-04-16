@@ -1,7 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Selection
+
+#else
+
 namespace Avalonia.Controls.Selection
+
+#endif
 {
     internal readonly struct IndexRange : IEquatable<IndexRange>
     {

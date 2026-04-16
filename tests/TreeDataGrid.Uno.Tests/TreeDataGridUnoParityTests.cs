@@ -8,12 +8,12 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
-using Avalonia.Controls;
-using Avalonia.Controls.Models.TreeDataGrid;
-using Avalonia.Controls.Selection;
+using Uno.Controls;
+using Uno.Controls.Models.TreeDataGrid;
+using Uno.Controls.Selection;
 using Xunit;
 
-namespace Avalonia.Controls.TreeDataGridUnoTests
+namespace Uno.Controls.TreeDataGridUnoTests
 {
     public class TreeDataGridUnoParityTests
     {

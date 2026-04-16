@@ -1,11 +1,11 @@
 using System;
-using Avalonia.Controls.Models.TreeDataGrid;
+using Uno.Controls.Models.TreeDataGrid;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 
-namespace Avalonia.Controls.Primitives;
+namespace Uno.Controls.Primitives;
 
 public sealed class TreeDataGridTemplateCell : TreeDataGridCell
 {

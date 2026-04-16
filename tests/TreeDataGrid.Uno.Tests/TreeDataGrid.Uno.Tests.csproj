@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <IsPackable>False</IsPackable>
-    <RootNamespace>Avalonia.Controls.TreeDataGridUnoTests</RootNamespace>
+    <RootNamespace>Uno.Controls.TreeDataGridUnoTests</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />

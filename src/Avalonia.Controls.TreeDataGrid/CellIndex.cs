@@ -1,4 +1,8 @@
-﻿namespace Avalonia.Controls
+﻿#if TREE_DATAGRID_UNO
+namespace Uno.Controls
+#else
+namespace Avalonia.Controls
+#endif
 {
     /// <summary>
     /// Represents a cell in a <see cref="TreeDataGrid"/>.

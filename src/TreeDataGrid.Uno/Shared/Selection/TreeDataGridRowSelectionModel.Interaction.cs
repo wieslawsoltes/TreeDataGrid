@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
-using Avalonia.Controls.Primitives;
+using Uno.Controls.Primitives;
 using Avalonia.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using WinRect = Windows.Foundation.Rect;
 
-namespace Avalonia.Controls.Selection
+namespace Uno.Controls.Selection
 {
     public partial class TreeDataGridRowSelectionModel<TModel>
         where TModel : class

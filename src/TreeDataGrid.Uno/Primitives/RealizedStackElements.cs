@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Avalonia.Controls.Utils;
+using Uno.Controls.Utils;
 using Microsoft.UI.Xaml.Controls;
 
-namespace Avalonia.Controls.Primitives
+namespace Uno.Controls.Primitives
 {
     internal class RealizedStackElements
     {

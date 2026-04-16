@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 using Avalonia.Data;
 using Avalonia.Experimental.Data;
 
-namespace Avalonia.Controls.Models.TreeDataGrid
+namespace Uno.Controls.Models.TreeDataGrid
 {
     /// <summary>
     /// A column in an <see cref="HierarchicalTreeDataGridSource{TModel}"/> whose cells show an

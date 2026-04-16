@@ -1,11 +1,27 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+#if TREE_DATAGRID_UNO
+using Uno.Controls.Models.TreeDataGrid;
+#else
 using Avalonia.Controls.Models.TreeDataGrid;
+#endif
+#if TREE_DATAGRID_UNO
+using Uno.Controls.Primitives;
+#else
 using Avalonia.Controls.Primitives;
+#endif
 using Avalonia.Input;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Selection
+
+#else
+
 namespace Avalonia.Controls.Selection
+
+#endif
 {
     public partial class TreeDataGridRowSelectionModel<TModel> : TreeSelectionModelBase<TModel>,
         ITreeDataGridRowSelectionModel<TModel>,

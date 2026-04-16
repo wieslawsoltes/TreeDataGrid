@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Avalonia.Controls.Selection
+namespace Uno.Controls.Selection
 {
     public interface ISelectionModel
     {

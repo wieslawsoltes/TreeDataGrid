@@ -1,10 +1,10 @@
 using System.ComponentModel;
-using Avalonia.Controls.Automation.Peers;
-using Avalonia.Controls.Models.TreeDataGrid;
+using Uno.Controls.Automation.Peers;
+using Uno.Controls.Models.TreeDataGrid;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
-namespace Avalonia.Controls.Primitives
+namespace Uno.Controls.Primitives
 {
     public class TreeDataGridCheckBoxCell : TreeDataGridCell
     {

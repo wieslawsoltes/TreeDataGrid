@@ -4,7 +4,7 @@ using System.Reactive.Disposables;
 using Avalonia.Data;
 using Avalonia.Experimental.Data.Core;
 
-namespace Avalonia.Controls.Models.TreeDataGrid
+namespace Uno.Controls.Models.TreeDataGrid
 {
     public class ExpanderCell<TModel> : NotifyingBase,
         IExpanderCell,

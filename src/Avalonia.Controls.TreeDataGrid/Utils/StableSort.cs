@@ -7,7 +7,15 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Utils
+
+#else
+
 namespace Avalonia.Controls.Utils
+
+#endif
 {
     internal class StableSort
     {
