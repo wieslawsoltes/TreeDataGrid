@@ -1,104 +1,111 @@
-# PR Summary: Add Uno TreeDataGrid source port and sample app
+# PR Summary: Expand Uno TreeDataGrid port with Avalonia 12 parity and shared core reuse
 
 ## Branch
 
 - `feat/uno-treedatagrid-port`
 
-## Commits
-
-- `432eff0` — `feat: add Uno TreeDataGrid library`
-- `f69e632` — `feat: add Uno TreeDataGrid sample app`
-- `d49d8a4` — `docs: document Uno TreeDataGrid port`
-
 ## Overview
 
-This branch adds a new Uno Platform source port of `TreeDataGrid` alongside the existing Avalonia implementation. The port keeps the shared model, row, column, hierarchical, and selection architecture close to the Avalonia original while adapting the control shell, templating, scrolling, layout, and input integration to Uno/WinUI mechanics.
+This branch adds a full Uno Platform port of `TreeDataGrid`, wires in Uno sample applications, closes a substantial set of Avalonia 12 parity gaps, and then refactors the Uno implementation to consume the Avalonia TreeDataGrid core from a shared authoritative source instead of maintaining a growing fork.
 
-The branch also adds a full Uno sample app with parity-focused demo tabs for `Countries`, `Files`, `Wikipedia`, and `Drag/Drop`, and updates the repository README with Uno build and smoke-test instructions.
+The result is a thinner Uno-specific surface: the WinUI/Uno control shell, binding/runtime adapters, presenters, automation, and compatibility shims stay local, while the reusable model, source, selection, and helper core is now implemented once.
 
-## What changed
+## Main changes
 
-### 1. New Uno TreeDataGrid library
+### 1. Add the Uno TreeDataGrid library
 
-Added `src/Uno.Controls.TreeDataGrid/` as a new source port of the Avalonia control, including:
+Introduces `src/TreeDataGrid.Uno/` with:
 
-- Uno control shell and dependency-property surface in `TreeDataGrid.cs`
-- WinUI/Uno themes and templates in `Themes/Generic.xaml`
-- row/cell/header presenters and element factory under `Primitives/`
-- shared model, source, row, column, and selection logic under `Shared/`
-- Avalonia compatibility shims under `Compatibility/`
-- automation peer coverage under `Automation/Peers/`
+- Uno control shell and dependency-property surface
+- Uno themes and templates
+- row, cell, and header presenters under `Primitives/`
+- Avalonia-compatible model, source, and selection architecture adapted for Uno
+- compatibility shims for Avalonia-style contracts used by the shared core
+- Uno automation peer support
 
-### 2. Uno-specific behavior work needed for parity
+### 2. Add Uno sample applications and repo wiring
 
-The port includes the Uno-side integration work required to match Avalonia behavior as closely as possible, including:
+Adds two Uno samples:
 
-- viewport-driven row virtualization via `TreeDataGridRowsPresenter` and `RealizedStackElements`
-- model-backed hierarchical expansion owned by `HierarchicalRow<TModel>` so `Files` expansion does not depend on cell realization timing
-- rebuild requeue logic for row changes that occur during realization/rebuild passes
-- explicit hidden-tab / visibility layout recovery for Uno tab and visibility lifecycles
-- manual drag/drop indicator visuals via template parts instead of Avalonia adorners
-- width calculations driven from the real rows `ScrollViewer` viewport to avoid false horizontal overflow
-- restored keyboard selection/navigation pipeline, including Up/Down, Left/Right, Home/End, and PageUp/PageDown handling
-- expander toggle styling to avoid default WinUI checked-state background leakage
+- `samples/TreeDataGridUnoSample/`
+- `samples/TreeDataGridUnoActivityMonitor/`
 
-### 3. New Uno sample app
+Also updates the solutions, CI workflow scope, and README so the Uno port can build and be smoke-tested alongside the Avalonia implementation.
 
-Added `samples/TreeDataGridUnoSample/` with:
+### 3. Address review feedback on the initial Uno port
 
-- main sample shell and tab host
-- `Countries`, `Files`, `Wikipedia`, and `Drag/Drop` sample pages/view models
-- Uno assets for file/folder icons
-- Android, iOS, WebAssembly, and desktop heads
-- desktop smoke-test path via `--exit`
+The branch includes several follow-up fixes on top of the first port, including:
 
-### 4. Sample-specific fixes included in the port
+- header theming fixes
+- sort glyph alignment with Avalonia
+- compact Uno checkbox column sizing
+- drag indicator alignment
+- row rebinding after source swaps
+- sample selection-model cleanup
+- additional Uno-specific behavior fixes found during review
 
-The sample and port also include fixes discovered while bringing behavior in line with the Avalonia sample:
+### 4. Bring Uno closer to Avalonia 12 APIs and behavior
 
-- cached file/folder `ImageSource` instances to stop icon flashing on expand/collapse
-- updated file-cell bindings to use the cached icon source path
-- Uno-side handling for sample scrolling, expansion, and drag/drop feedback behavior
+This branch adds the first major Avalonia 12 parity slice for Uno:
 
-### 5. Documentation updates
+- declarative/XAML column support in `TreeDataGrid.V12.cs`
+- Uno `ColumnDefinitions` support for text, checkbox, template, row-header, and hierarchical expander columns
+- Uno `TreeDataGridSourceExtensions` parity surface
+- source behavior parity for `ClearSort`, `Filter`, and `RefreshFilter`
+- filtered hierarchical expander behavior aligned with Avalonia
+- selection and row event parity via `TreeDataGridSelectionChangedEventArgs`, `TreeDataGridRowModel`, and `TreeDataGridRowModelEventArgs`
+- a dedicated Uno parity test project covering the new surface
 
-Updated `readme.md` to document:
+### 5. Fix follow-up issues found during parity work
 
-- the new Uno library location
-- the new Uno sample location
-- desktop build/run commands for the Uno source port
-- platform prerequisite notes for Android and WebAssembly builds
+The latest parity fixes also address review findings uncovered while testing the newer Uno surface:
+
+- filtered hierarchical root model lookup now resolves correctly under active filters
+- Uno XAML binding write-back now respects `BindingMode` instead of writing through one-way bindings
+
+### 6. Refactor Uno to share the Avalonia TreeDataGrid core
+
+The branch now shifts from copied Uno core files to Avalonia-authored shared source:
+
+- adds `src/TreeDataGrid.Uno/TreeDataGrid.Uno.LinkedAvalonia.props` to link the reusable Avalonia core into the Uno build
+- removes the duplicated Uno copies for the linked source set
+- moves shared member-path, declarative-source, column-option, and non-visual control logic into Avalonia-owned helpers
+- links the Avalonia `TreeDataGridCellSelectionModel` into Uno and splits `TreeDataGridRowSelectionModel<TModel>` into shared core plus platform-specific interaction partials
+- keeps only the true Uno adapter boundary local: control shell, binding/runtime adapters, presenters, automation, and compatibility shims
+
+This improves reuse by making shared behavior changes land in one place instead of parallel Avalonia and Uno edits.
+
+### 7. Add committed sharing analysis and plan docs
+
+Adds:
+
+- `plan/uno-avalonia-code-sharing-analysis.md`
+- `plan/uno-avalonia-code-sharing-plan.md`
+
+These documents capture the current sharing architecture and the Phase 4 evaluation. The conclusion is that a separate `TreeDataGrid.Core` assembly is not justified yet because the linked-source model already centralizes the reusable core without adding package and assembly-identity churn.
 
 ## Validation performed
 
-The following commands were run successfully on this branch:
+The following checks were run successfully during this branch work:
 
 ```bash
-dotnet build Avalonia.Controls.TreeDataGrid.slnx -c Release
-dotnet test tests/Avalonia.Controls.TreeDataGrid.Tests/Avalonia.Controls.TreeDataGrid.Tests.csproj -c Release --no-build
-dotnet build samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj -c Release -f net9.0-desktop
-cd samples/TreeDataGridUnoSample && dotnet run -c Release -f net9.0-desktop -- --exit
+dotnet build Avalonia.Controls.TreeDataGrid.CI.slnx
+dotnet build src/Avalonia.Controls.TreeDataGrid/Avalonia.Controls.TreeDataGrid.csproj
+dotnet build src/TreeDataGrid.Uno/TreeDataGrid.Uno.csproj
+dotnet test tests/TreeDataGrid.Uno.Tests/TreeDataGrid.Uno.Tests.csproj
+dotnet build samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj -p:TreeDataGridUnoSampleTargetFrameworks=net10.0-desktop
+dotnet build samples/TreeDataGridUnoActivityMonitor/TreeDataGridUnoActivityMonitor.csproj -p:TreeDataGridUnoActivityMonitorTargetFrameworks=net10.0-desktop
 ```
 
 Validation results:
 
-- solution build passed
-- Avalonia test suite passed: `329` tests
-- Uno desktop sample build passed
-- Uno desktop sample smoke run passed
+- CI solution build passed
+- Avalonia library build passed
+- Uno library build passed
+- Uno parity tests passed
+- Uno sample desktop build passed
+- Uno Activity Monitor desktop build passed
 
-## Commit breakdown rationale
+## Remaining note
 
-The commit history is intentionally split into three layers:
-
-1. library port
-2. sample app and solution wiring
-3. README/docs
-
-That structure should make review easier by separating the reusable control implementation from the demo surface and then from documentation.
-
-## Notes for reviewers
-
-- The architectural alignment tracker and related analysis docs under `plan/` were maintained locally during implementation, but `plan/` is gitignored in this repository and therefore not part of this branch.
-- The largest intentional adaptation zones remain the Uno control/template/scroll/layout layers; the shared model and selection architecture were kept as close to Avalonia as possible.
-- A possible future parity follow-up is explicit text-input/type-to-search forwarding if full character-input parity is required beyond the restored row keyboard navigation path.
+The local machine used for this work does not have the .NET 8 runtime required to execute `tests/Avalonia.Controls.TreeDataGrid.Tests`, so the Avalonia `net8.0` test host was not run in this lane.
