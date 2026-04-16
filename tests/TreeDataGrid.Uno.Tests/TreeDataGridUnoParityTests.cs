@@ -177,20 +177,128 @@ namespace Avalonia.Controls.TreeDataGridUnoTests
         public void BindingAccessor_Does_Not_Write_Back_For_OneWay_Bindings()
         {
             var model = new MutableRow { Caption = "Before" };
-            var binding = (Binding)RuntimeHelpers.GetUninitializedObject(typeof(Binding));
-            var path = (PropertyPath)RuntimeHelpers.GetUninitializedObject(typeof(PropertyPath));
-            typeof(PropertyPath).GetField("_path", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(path, nameof(MutableRow.Caption));
-            binding.Path = path;
-            binding.Mode = BindingMode.OneWay;
-            var accessor = new TreeDataGridBindingAccessor(
-                binding,
-                model);
+            var accessor = new TreeDataGridBindingAccessor(CreateBinding(nameof(MutableRow.Caption), BindingMode.OneWay), model);
 
             Assert.False(accessor.CanWrite);
 
             accessor.Write(model, "After");
 
             Assert.Equal("Before", model.Caption);
+        }
+
+        [Fact]
+        public void BindingAccessor_Reads_And_Writes_Nested_Paths()
+        {
+            var model = new ParentRow
+            {
+                Child = new MutableRow { Caption = "Before" },
+            };
+            var accessor = new TreeDataGridBindingAccessor(CreateBinding("Child.Caption", BindingMode.TwoWay), model);
+
+            Assert.Equal("Before", accessor.Read(model));
+            Assert.Equal(model.Child!, accessor.Links[0](model));
+            Assert.Equal("Before", accessor.Links[1](model));
+
+            accessor.Write(model, "After");
+
+            Assert.Equal("After", model.Child!.Caption);
+        }
+
+        [Fact]
+        public void ControlLogic_GetNextSortDirection_Toggles()
+        {
+            Assert.Equal(ListSortDirection.Ascending, TreeDataGridControlLogic.GetNextSortDirection(null));
+            Assert.Equal(ListSortDirection.Descending, TreeDataGridControlLogic.GetNextSortDirection(ListSortDirection.Ascending));
+            Assert.Equal(ListSortDirection.Ascending, TreeDataGridControlLogic.GetNextSortDirection(ListSortDirection.Descending));
+        }
+
+        [Fact]
+        public void ControlLogic_TryGetAutoDrop_Prevents_Drop_Into_Self()
+        {
+            var data = CreateNodes(1, 1);
+            var target = CreateHierarchicalTarget(data);
+            var dragged = new[] { new IndexPath(0) };
+
+            var canDrop = TreeDataGridControlLogic.TryGetAutoDrop(
+                autoDragDropRows: true,
+                source: target,
+                draggedIndexes: dragged,
+                targetIndex: new IndexPath(0),
+                rowRelativeY: 0.5,
+                out var position);
+
+            Assert.False(canDrop);
+            Assert.Equal(TreeDataGridRowDropPosition.None, position);
+        }
+
+        [Fact]
+        public void ControlLogic_TryGetAutoDrop_Returns_Inside_For_Hierarchical_Middle()
+        {
+            var data = CreateNodes(1, 1);
+            var target = CreateHierarchicalTarget(data);
+            var dragged = new[] { new IndexPath(0, 0) };
+
+            var canDrop = TreeDataGridControlLogic.TryGetAutoDrop(
+                autoDragDropRows: true,
+                source: target,
+                draggedIndexes: dragged,
+                targetIndex: new IndexPath(0),
+                rowRelativeY: 0.5,
+                out var position);
+
+            Assert.True(canDrop);
+            Assert.Equal(TreeDataGridRowDropPosition.Inside, position);
+        }
+
+        [Fact]
+        public void DeclarativeHelper_Creates_Flat_Source_For_NonHierarchical_Columns()
+        {
+            var columns = new TreeDataGridColumns
+            {
+                new TreeDataGridTextColumn
+                {
+                    Binding = CreateBinding(nameof(Row.Caption), BindingMode.OneWay),
+                },
+            };
+
+            var source = TreeDataGridDeclarativeHelper.CreateGeneratedSource(columns, CreateRows(2));
+
+            var flat = Assert.IsType<FlatTreeDataGridSource<object>>(source);
+            Assert.Single(flat.Columns);
+        }
+
+        [Fact]
+        public void DeclarativeHelper_Creates_Hierarchical_Source_For_Expander_Columns()
+        {
+            var columns = new TreeDataGridColumns
+            {
+                new TreeDataGridHierarchicalExpanderColumn
+                {
+                    ChildrenBinding = CreateBinding(nameof(Node.Children), BindingMode.OneWay),
+                    InnerColumn = new TreeDataGridTextColumn
+                    {
+                        Binding = CreateBinding(nameof(Node.Caption), BindingMode.OneWay),
+                    },
+                },
+            };
+
+            var source = TreeDataGridDeclarativeHelper.CreateGeneratedSource(columns, CreateNodes(1, 1));
+
+            var hierarchical = Assert.IsType<HierarchicalTreeDataGridSource<object>>(source);
+            Assert.Single(hierarchical.Columns);
+        }
+
+        [Fact]
+        public void DeclarativeHelper_ApplySelectionMode_Creates_Cell_Selection_And_Honors_Multiple()
+        {
+            var source = CreateFlatTarget(CreateRows(2));
+
+            TreeDataGridDeclarativeHelper.ApplySelectionMode(
+                source,
+                TreeDataGridSelectionMode.Cell | TreeDataGridSelectionMode.Multiple);
+
+            Assert.IsAssignableFrom<ITreeDataGridCellSelectionModel>(source.Selection);
+            Assert.False(((ITreeDataGridSingleSelectSupport)source.Selection!).SingleSelect);
         }
 
         private static FlatTreeDataGridSource<Row> CreateFlatTarget(IEnumerable<Row> rows)
@@ -279,11 +387,26 @@ namespace Avalonia.Controls.TreeDataGridUnoTests
             public string? Caption { get; set; }
         }
 
+        private sealed class ParentRow
+        {
+            public MutableRow? Child { get; init; }
+        }
+
         private sealed class Node
         {
             public int Id { get; init; }
             public string? Caption { get; init; }
             public ObservableCollection<Node> Children { get; init; } = new();
+        }
+
+        private static Binding CreateBinding(string pathText, BindingMode mode)
+        {
+            var binding = (Binding)RuntimeHelpers.GetUninitializedObject(typeof(Binding));
+            var path = (PropertyPath)RuntimeHelpers.GetUninitializedObject(typeof(PropertyPath));
+            typeof(PropertyPath).GetField("_path", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(path, pathText);
+            binding.Path = path;
+            binding.Mode = mode;
+            return binding;
         }
     }
 

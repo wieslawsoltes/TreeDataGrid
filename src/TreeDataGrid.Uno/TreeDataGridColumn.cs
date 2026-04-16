@@ -30,16 +30,7 @@ namespace Avalonia.Controls
 
         protected ColumnOptions<object> CreateCommonOptions()
         {
-            return new ColumnOptions<object>
-            {
-                CanUserResizeColumn = CanUserResize,
-                CanUserSortColumn = CanUserSortColumn,
-                MinWidth = MinWidth,
-                MaxWidth = MaxWidth,
-                BeginEditGestures = BeginEditGestures,
-                CompareAscending = CompareAscending is null ? null : (a, b) => CompareAscending(a, b),
-                CompareDescending = CompareDescending is null ? null : (a, b) => CompareDescending(a, b),
-            };
+            return TreeDataGridColumnOptionsFactory.CreateCommonOptions<object>(this);
         }
     }
 
@@ -68,22 +59,7 @@ namespace Avalonia.Controls
             if (!IsReadOnly && accessor.CanWrite)
                 setter = accessor.Write;
 
-            var options = new TextColumnOptions<object>
-            {
-                CanUserResizeColumn = CanUserResize,
-                CanUserSortColumn = CanUserSortColumn,
-                MinWidth = MinWidth,
-                MaxWidth = MaxWidth,
-                BeginEditGestures = BeginEditGestures,
-                CompareAscending = CompareAscending is null ? null : (a, b) => CompareAscending(a, b),
-                CompareDescending = CompareDescending is null ? null : (a, b) => CompareDescending(a, b),
-                IsTextSearchEnabled = IsTextSearchEnabled,
-                StringFormat = StringFormat,
-                Culture = Culture,
-                TextAlignment = TextAlignment,
-                TextTrimming = TextTrimming,
-                TextWrapping = TextWrapping,
-            };
+            var options = TreeDataGridColumnOptionsFactory.CreateTextOptions<object>(this);
 
             return new ReflectionTextColumn(Header, getter, setter, accessor.Links, Width, options);
         }
@@ -121,16 +97,7 @@ namespace Avalonia.Controls
                 Nullable.GetUnderlyingType(valueType) == typeof(bool) ||
                 accessor.SampleValueWasNull;
 
-            var options = new CheckBoxColumnOptions<object>
-            {
-                CanUserResizeColumn = CanUserResize,
-                CanUserSortColumn = CanUserSortColumn,
-                MinWidth = MinWidth,
-                MaxWidth = MaxWidth,
-                BeginEditGestures = BeginEditGestures,
-                CompareAscending = CompareAscending is null ? null : (a, b) => CompareAscending(a, b),
-                CompareDescending = CompareDescending is null ? null : (a, b) => CompareDescending(a, b),
-            };
+            var options = TreeDataGridColumnOptionsFactory.CreateCheckBoxOptions<object>(this);
 
             return new ReflectionCheckBoxColumn(Header, getter, setter, accessor.Links, Width, options, _isThreeState);
         }
@@ -164,18 +131,9 @@ namespace Avalonia.Controls
 
         internal override IColumn<object> CreateUntypedColumn()
         {
-            var options = new TemplateColumnOptions<object>
-            {
-                CanUserResizeColumn = CanUserResize,
-                CanUserSortColumn = CanUserSortColumn,
-                MinWidth = MinWidth,
-                MaxWidth = MaxWidth,
-                BeginEditGestures = BeginEditGestures,
-                CompareAscending = CompareAscending is null ? null : (a, b) => CompareAscending(a, b),
-                CompareDescending = CompareDescending is null ? null : (a, b) => CompareDescending(a, b),
-                TextSearchValueSelector = TreeDataGridBindingAccessor.TryCreateTextSelector<object>(TextSearchBinding),
-                IsTextSearchEnabled = TextSearchBinding is not null,
-            };
+            var options = TreeDataGridColumnOptionsFactory.CreateTemplateOptions<object>(
+                this,
+                TreeDataGridBindingAccessor.TryCreateTextSelector<object>(TextSearchBinding));
 
             if (CellTemplate is not null)
                 return new TemplateColumn<object>(Header, CellTemplate, CellEditingTemplate, Width, options);
@@ -188,18 +146,9 @@ namespace Avalonia.Controls
 
         internal TemplateColumn<TModel> CreateTyped<TModel>() where TModel : class
         {
-            var options = new TemplateColumnOptions<TModel>
-            {
-                CanUserResizeColumn = CanUserResize,
-                CanUserSortColumn = CanUserSortColumn,
-                MinWidth = MinWidth,
-                MaxWidth = MaxWidth,
-                BeginEditGestures = BeginEditGestures,
-                CompareAscending = CompareAscending is null ? null : (a, b) => CompareAscending(a, b),
-                CompareDescending = CompareDescending is null ? null : (a, b) => CompareDescending(a, b),
-                TextSearchValueSelector = TreeDataGridBindingAccessor.TryCreateTextSelector<TModel>(TextSearchBinding),
-                IsTextSearchEnabled = TextSearchBinding is not null,
-            };
+            var options = TreeDataGridColumnOptionsFactory.CreateTemplateOptions<TModel>(
+                this,
+                TreeDataGridBindingAccessor.TryCreateTextSelector<TModel>(TextSearchBinding));
 
             if (CellTemplate is not null)
                 return new TemplateColumn<TModel>(Header, CellTemplate, CellEditingTemplate, Width, options);

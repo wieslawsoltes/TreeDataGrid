@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel;
 using Avalonia.Experimental.Data;
 
 namespace Avalonia.Controls.Models.TreeDataGrid

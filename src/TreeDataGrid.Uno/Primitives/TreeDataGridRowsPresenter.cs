@@ -119,6 +119,12 @@ namespace Avalonia.Controls.Primitives
             return row;
         }
 
+        public TreeDataGridRow? BringIntoView(int rowIndex, global::Avalonia.Rect? rect)
+        {
+            _ = rect;
+            return BringIntoView(rowIndex);
+        }
+
         protected override WinSize MeasureOverride(WinSize availableSize)
         {
             if (Owner is null || ElementFactory is null || Columns is null || Items is null || Items.Count == 0)

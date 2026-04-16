@@ -40,6 +40,7 @@ namespace Avalonia.Controls.Primitives
 
         public bool CanUserResize { get; private set; }
         public ListSortDirection? SortDirection { get; private set; }
+        public global::Avalonia.Rect Bounds => new(0, 0, ActualWidth, ActualHeight);
 
         public void Realize(TreeDataGrid owner, IColumns columns, int columnIndex)
         {

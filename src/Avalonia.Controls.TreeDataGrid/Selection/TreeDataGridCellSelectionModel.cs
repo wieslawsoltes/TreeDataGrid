@@ -158,7 +158,7 @@ namespace Avalonia.Controls.Selection
             };
             if (!e.Handled &&
                 pointerSupportSelectionOnPress &&
-                e.Source is Control source &&
+                e.Source is object source &&
                 sender.TryGetCell(source, out var cell) &&
                 !IsSelected(cell.ColumnIndex, cell.RowIndex))
             {
@@ -174,7 +174,7 @@ namespace Avalonia.Controls.Selection
         {
             if (!e.Handled &&
                 _pressedPoint != s_InvalidPoint &&
-                e.Source is Control source &&
+                e.Source is object source &&
                 sender.TryGetCell(source, out var cell))
             {
                 var p = e.GetPosition(sender);
