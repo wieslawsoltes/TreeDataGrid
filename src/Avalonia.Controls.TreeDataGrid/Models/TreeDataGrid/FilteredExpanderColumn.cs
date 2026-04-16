@@ -3,7 +3,15 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Models.TreeDataGrid
+
+#else
+
 namespace Avalonia.Controls.Models.TreeDataGrid
+
+#endif
 {
     internal sealed class FilteredExpanderColumn<TModel> : IExpanderColumn<TModel>, IUpdateColumnLayout
         where TModel : class

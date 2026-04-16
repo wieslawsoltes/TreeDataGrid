@@ -3,7 +3,15 @@ using System.Reactive.Subjects;
 using System.Reflection;
 using Avalonia.Data;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Models.TreeDataGrid
+
+#else
+
 namespace Avalonia.Controls.Models.TreeDataGrid
+
+#endif
 {
     public class CheckBoxCell : NotifyingBase, ICell, IDisposable
     {

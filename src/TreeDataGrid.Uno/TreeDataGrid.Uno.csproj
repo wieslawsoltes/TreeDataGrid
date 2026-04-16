@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>12</LangVersion>
+    <RootNamespace>Uno.Controls</RootNamespace>
+    <PackageId>TreeDataGrid.Uno</PackageId>
+    <DefineConstants>$(DefineConstants);TREE_DATAGRID_UNO</DefineConstants>
+    <GenerateLibraryLayout>true</GenerateLibraryLayout>
+  </PropertyGroup>
+  <Import Project="TreeDataGrid.Uno.LinkedAvalonia.props" />
+  <ItemGroup>
+        <PackageReference Include="Uno.WinUI" Version="6.5.64" />
+    <PackageReference Include="System.Reactive" Version="5.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Themes/**/*.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+</Project>

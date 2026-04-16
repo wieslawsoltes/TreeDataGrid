@@ -7,7 +7,15 @@ using Avalonia.Utilities;
 
 #nullable enable
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Utils
+
+#else
+
 namespace Avalonia.Controls.Utils
+
+#endif
 {
     internal interface ICollectionChangedListener
     {

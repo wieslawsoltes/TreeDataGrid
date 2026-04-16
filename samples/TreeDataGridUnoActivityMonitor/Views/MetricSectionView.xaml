@@ -1,0 +1,147 @@
+<UserControl
+    x:Class="TreeDataGridUnoActivityMonitor.Views.MetricSectionView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Uno.Controls"
+    xmlns:local="using:TreeDataGridUnoActivityMonitor.Controls">
+    <Grid x:Name="ContentRoot" Padding="20" RowSpacing="18">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="320" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel>
+                <TextBlock
+                    Foreground="{StaticResource PanelTextBrush}"
+                    FontFamily="SF Pro Display, Segoe UI Variable Display, Segoe UI"
+                    FontSize="30"
+                    FontWeight="SemiBold"
+                    Style="{StaticResource SingleLineEllipsisTextStyle}"
+                    Text="{x:Bind Section.Title, Mode=OneWay}" />
+                <TextBlock
+                    Margin="0,4,0,0"
+                    Foreground="{StaticResource PanelTextSubtleBrush}"
+                    Style="{StaticResource TwoLineEllipsisTextStyle}"
+                    Text="{x:Bind Section.Subtitle, Mode=OneWay}" />
+            </StackPanel>
+
+            <TextBox
+                Grid.Column="1"
+                Background="#16000000"
+                BorderBrush="#28FFFFFF"
+                BorderThickness="1"
+                CornerRadius="16"
+                Foreground="{StaticResource PanelTextBrush}"
+                Header="Search"
+                PlaceholderText="Filter the table"
+                RequestedTheme="Dark"
+                Text="{x:Bind Section.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+        </Grid>
+
+        <Grid Grid.Row="1" ColumnSpacing="18">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="240" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Spacing="12">
+                <Border
+                    Background="#15000000"
+                    BorderBrush="#20FFFFFF"
+                    BorderThickness="1"
+                    CornerRadius="18"
+                    Padding="14">
+                    <StackPanel Spacing="6">
+                        <TextBlock Foreground="{StaticResource PanelMutedBrush}" FontSize="11" Text="Current Window" />
+                        <TextBlock Foreground="{StaticResource PanelTextBrush}" FontSize="22" FontWeight="SemiBold" Text="{x:Bind Section.CurrentValueText, Mode=OneWay}" />
+                        <TextBlock Foreground="{StaticResource PanelTextSubtleBrush}" FontSize="12" Style="{StaticResource TwoLineEllipsisTextStyle}" Text="{x:Bind Section.InsightText, Mode=OneWay}" />
+                    </StackPanel>
+                </Border>
+
+                <Grid ColumnSpacing="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border
+                        Background="#12000000"
+                        BorderBrush="#18FFFFFF"
+                        BorderThickness="1"
+                        CornerRadius="16"
+                        Padding="12">
+                        <StackPanel>
+                            <TextBlock Foreground="{StaticResource PanelMutedBrush}" FontSize="11" Text="Average" />
+                            <TextBlock Foreground="{StaticResource PanelTextBrush}" FontSize="18" FontWeight="SemiBold" Text="{x:Bind Section.AverageValueText, Mode=OneWay}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border
+                        Grid.Column="1"
+                        Background="#12000000"
+                        BorderBrush="#18FFFFFF"
+                        BorderThickness="1"
+                        CornerRadius="16"
+                        Padding="12">
+                        <StackPanel>
+                            <TextBlock Foreground="{StaticResource PanelMutedBrush}" FontSize="11" Text="Peak" />
+                            <TextBlock Foreground="{StaticResource PanelTextBrush}" FontSize="18" FontWeight="SemiBold" Text="{x:Bind Section.PeakValueText, Mode=OneWay}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border
+                        Grid.Column="2"
+                        Background="#12000000"
+                        BorderBrush="#18FFFFFF"
+                        BorderThickness="1"
+                        CornerRadius="16"
+                        Padding="12">
+                        <StackPanel>
+                            <TextBlock Foreground="{StaticResource PanelMutedBrush}" FontSize="11" Text="Visible Rows" />
+                            <TextBlock Foreground="{StaticResource PanelTextBrush}" FontSize="18" FontWeight="SemiBold" Text="{x:Bind Section.RowCountText, Mode=OneWay}" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </StackPanel>
+
+            <Border
+                Grid.Column="1"
+                Background="#12000000"
+                BorderBrush="#22FFFFFF"
+                BorderThickness="1"
+                CornerRadius="22"
+                Padding="16">
+                <local:MetricChartCanvas
+                    AccentColor="{x:Bind Section.AccentColor, Mode=OneWay}"
+                    Height="180"
+                    HorizontalAlignment="Stretch"
+                    Series="{x:Bind Section.TrendSeries, Mode=OneWay}"
+                    VerticalAlignment="Stretch" />
+            </Border>
+        </Grid>
+
+        <Border
+            Grid.Row="2"
+            Margin="0,2,0,0"
+            Background="#0D000000"
+            BorderBrush="#22FFFFFF"
+            BorderThickness="1"
+            CornerRadius="24"
+            Padding="0">
+            <controls:TreeDataGrid
+                Foreground="{StaticResource PanelTextBrush}"
+                HorizontalAlignment="Stretch"
+                RequestedTheme="Dark"
+                VerticalAlignment="Stretch"
+                Source="{x:Bind Section.Source, Mode=OneWay}" />
+        </Border>
+    </Grid>
+</UserControl>

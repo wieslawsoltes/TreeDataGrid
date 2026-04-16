@@ -5,7 +5,15 @@ using System.Reactive.Subjects;
 using Avalonia.Data;
 using Avalonia.Media;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Models.TreeDataGrid
+
+#else
+
 namespace Avalonia.Controls.Models.TreeDataGrid
+
+#endif
 {
     public class TextCell<T> : NotifyingBase, ITextCell, IDisposable, IEditableObject
     {

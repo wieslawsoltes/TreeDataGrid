@@ -1,0 +1,42 @@
+<Application
+    x:Class="TreeDataGridUnoSample.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:m="using:TreeDataGridDemo.Models">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+                <ResourceDictionary Source="ms-appx:///TreeDataGrid.Uno/Themes/Generic.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <DataTemplate x:Key="RegionCell" x:DataType="m:Country">
+                <TextBlock Text="{x:Bind Region}" />
+            </DataTemplate>
+
+            <DataTemplate x:Key="RegionEditCell" x:DataType="m:Country">
+                <ComboBox ItemsSource="{x:Bind m:Countries.Regions}"
+                          MinWidth="180"
+                          SelectedItem="{x:Bind Region, Mode=TwoWay}" />
+            </DataTemplate>
+
+            <DataTemplate x:Key="FileNameCell" x:DataType="m:FileTreeNodeModel">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <Image Width="16" Height="16" Source="{x:Bind IconSource, Mode=OneWay}" />
+                    <TextBlock VerticalAlignment="Center" Text="{x:Bind Name}" />
+                </StackPanel>
+            </DataTemplate>
+
+            <DataTemplate x:Key="FileNameEditCell" x:DataType="m:FileTreeNodeModel">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <Image Width="16" Height="16" Source="{x:Bind IconSource, Mode=OneWay}" />
+                    <TextBox MinWidth="220" Text="{x:Bind Name, Mode=TwoWay}" />
+                </StackPanel>
+            </DataTemplate>
+
+            <DataTemplate x:Key="WikipediaImageCell" x:DataType="m:OnThisDayArticle">
+                <Image MaxHeight="72" Stretch="Uniform" Source="{x:Bind Image, Mode=OneWay}" />
+            </DataTemplate>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

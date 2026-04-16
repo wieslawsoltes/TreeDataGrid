@@ -1,0 +1,228 @@
+<Page
+    x:Class="TreeDataGridUnoSample.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Uno.Controls"
+    xmlns:m="using:TreeDataGridDemo.Models"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <Grid Padding="12">
+        <TabView x:Name="tabs"
+                 HorizontalAlignment="Stretch"
+                 VerticalAlignment="Stretch"
+                 SelectionChanged="Tabs_SelectionChanged">
+            <TabViewItem Header="People (XAML)"
+                         HorizontalContentAlignment="Stretch"
+                         VerticalContentAlignment="Stretch">
+                <Grid RowSpacing="8"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Border BorderBrush="{ThemeResource TreeDataGridGridLinesBrush}"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            BorderThickness="1">
+                        <controls:TreeDataGrid x:Name="peopleXamlGrid"
+                                               HorizontalAlignment="Stretch"
+                                               VerticalAlignment="Stretch"
+                                               ItemsSource="{x:Bind ViewModel.PeopleXaml.People, Mode=OneWay}"
+                                               SelectionMode="Row,Multiple">
+                            <controls:TreeDataGridHierarchicalExpanderColumn Header="Name"
+                                                                             ChildrenBinding="{Binding Children}"
+                                                                             HasChildrenBinding="{Binding HasChildren}"
+                                                                             IsExpandedBinding="{Binding IsExpanded, Mode=TwoWay}">
+                                <controls:TreeDataGridTextColumn Width="3*"
+                                                                 Binding="{Binding Name, Mode=TwoWay}" />
+                            </controls:TreeDataGridHierarchicalExpanderColumn>
+                            <controls:TreeDataGridTextColumn Header="Title"
+                                                             Width="2*"
+                                                             Binding="{Binding Title, Mode=TwoWay}" />
+                            <controls:TreeDataGridTemplateColumn Header="Age"
+                                                                 TextSearchBinding="{Binding Title}">
+                                <controls:TreeDataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="m:Person">
+                                        <Border Background="{ThemeResource AccentFillColorSecondaryBrush}"
+                                                CornerRadius="999"
+                                                HorizontalAlignment="Left"
+                                                Padding="10,2">
+                                            <TextBlock FontWeight="SemiBold"
+                                                       Text="{x:Bind Age, Mode=OneWay}" />
+                                        </Border>
+                                    </DataTemplate>
+                                </controls:TreeDataGridTemplateColumn.CellTemplate>
+                            </controls:TreeDataGridTemplateColumn>
+                            <controls:TreeDataGridCheckBoxColumn Header="Active"
+                                                                 Binding="{Binding IsActive, Mode=TwoWay}" />
+                        </controls:TreeDataGrid>
+                    </Border>
+
+                    <TextBlock x:Name="peopleXamlRealizedCount"
+                               Grid.Row="1" />
+                </Grid>
+            </TabViewItem>
+
+            <TabViewItem Header="Countries"
+                         HorizontalContentAlignment="Stretch"
+                         VerticalContentAlignment="Stretch">
+                <Grid ColumnSpacing="8"
+                      RowSpacing="8"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            BorderBrush="{ThemeResource TreeDataGridGridLinesBrush}"
+                            BorderThickness="1">
+                        <controls:TreeDataGrid x:Name="countries"
+                                               AutoDragDropRows="True"
+                                               HorizontalAlignment="Stretch"
+                                               VerticalAlignment="Stretch"
+                                               Source="{x:Bind ViewModel.Countries.Source, Mode=OneWay}" />
+                    </Border>
+
+                    <StackPanel Grid.Column="1" Width="220" Spacing="4">
+                        <CheckBox Content="Cell Selection"
+                                  IsChecked="{x:Bind ViewModel.Countries.CellSelection, Mode=TwoWay}" />
+                        <TextBlock Text="Country" />
+                        <TextBox x:Name="countryTextBox" Text="Sealand" />
+                        <TextBlock Text="Region" />
+                        <TextBox x:Name="regionTextBox" Text="WESTERN EUROPE" />
+                        <TextBlock Text="Population" />
+                        <TextBox x:Name="populationTextBox" Text="2" />
+                        <TextBlock Text="Area" />
+                        <TextBox x:Name="areaTextBox" Text="0" />
+                        <TextBlock Text="GDP" />
+                        <TextBox x:Name="gdpTextBox" Text="600000" />
+                        <Button Click="AddCountryClick">Add</Button>
+                        <Button Click="RemoveCountryClick">Remove</Button>
+                    </StackPanel>
+
+                    <TextBlock x:Name="countriesRealizedCount"
+                               Grid.Row="1"
+                               Grid.ColumnSpan="2" />
+                </Grid>
+            </TabViewItem>
+
+            <TabViewItem Header="Files"
+                         HorizontalContentAlignment="Stretch"
+                         VerticalContentAlignment="Stretch">
+                <Grid RowSpacing="8"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <ComboBox Grid.Column="0"
+                                  Width="220"
+                                  ItemsSource="{x:Bind ViewModel.Files.Drives, Mode=OneWay}"
+                                  SelectedItem="{x:Bind ViewModel.Files.SelectedDrive, Mode=TwoWay}" />
+                        <TextBox x:Name="selectedPathTextBox"
+                                 Grid.Column="1"
+                                 Text="{x:Bind ViewModel.Files.SelectedPath, Mode=OneWay}"
+                                 KeyDown="SelectedPath_KeyDown" />
+                        <CheckBox Grid.Column="2"
+                                  Margin="8,0,0,0"
+                                  Content="Flat"
+                                  IsChecked="{x:Bind ViewModel.Files.FlatList, Mode=TwoWay}" />
+                        <CheckBox Grid.Column="3"
+                                  Margin="8,0,0,0"
+                                  Content="Cell Selection"
+                                  IsChecked="{x:Bind ViewModel.Files.CellSelection, Mode=TwoWay}" />
+                    </Grid>
+
+                    <Border Grid.Row="1"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            BorderBrush="{ThemeResource TreeDataGridGridLinesBrush}"
+                            BorderThickness="1">
+                        <controls:TreeDataGrid x:Name="fileViewer"
+                                               HorizontalAlignment="Stretch"
+                                               VerticalAlignment="Stretch"
+                                               Source="{x:Bind ViewModel.Files.Source, Mode=OneWay}" />
+                    </Border>
+
+                    <TextBlock x:Name="filesRealizedCount"
+                               Grid.Row="2" />
+                </Grid>
+            </TabViewItem>
+
+            <TabViewItem Header="Wikipedia"
+                         HorizontalContentAlignment="Stretch"
+                         VerticalContentAlignment="Stretch">
+                <Grid RowSpacing="8"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Border BorderBrush="{ThemeResource TreeDataGridGridLinesBrush}"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            BorderThickness="1">
+                        <controls:TreeDataGrid x:Name="wikipedia"
+                                               HorizontalAlignment="Stretch"
+                                               VerticalAlignment="Stretch"
+                                               Source="{x:Bind ViewModel.Wikipedia.Source, Mode=OneWay}" />
+                    </Border>
+
+                    <TextBlock x:Name="wikipediaRealizedCount"
+                               Grid.Row="1" />
+                </Grid>
+            </TabViewItem>
+
+            <TabViewItem Header="Drag/Drop"
+                         HorizontalContentAlignment="Stretch"
+                         VerticalContentAlignment="Stretch">
+                <Grid RowSpacing="8"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Border BorderBrush="{ThemeResource TreeDataGridGridLinesBrush}"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            BorderThickness="1">
+                        <controls:TreeDataGrid x:Name="dragDrop"
+                                               AutoDragDropRows="True"
+                                               HorizontalAlignment="Stretch"
+                                               VerticalAlignment="Stretch"
+                                               RowDragStarted="DragDrop_RowDragStarted"
+                                               RowDragOver="DragDrop_RowDragOver"
+                                               Source="{x:Bind ViewModel.DragDrop.Source, Mode=OneWay}" />
+                    </Border>
+
+                    <TextBlock x:Name="dragDropRealizedCount"
+                               Grid.Row="1" />
+                </Grid>
+            </TabViewItem>
+        </TabView>
+    </Grid>
+</Page>

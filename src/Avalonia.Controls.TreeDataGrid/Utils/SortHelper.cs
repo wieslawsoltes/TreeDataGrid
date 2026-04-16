@@ -9,7 +9,15 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Utils
+
+#else
+
 namespace Avalonia.Controls.Utils
+
+#endif
 {
     internal static class SortHelper<T>
     {

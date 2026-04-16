@@ -1,0 +1,155 @@
+<Project>
+  <ItemGroup>
+    <UnoLinkedAvaloniaRoot Include="../Avalonia.Controls.TreeDataGrid/CellIndex.cs">
+      <UnoRemove>Shared/CellIndex.cs</UnoRemove>
+      <Link>Shared/CellIndex.cs</Link>
+    </UnoLinkedAvaloniaRoot>
+    <UnoLinkedAvaloniaRoot Include="../Avalonia.Controls.TreeDataGrid/ITreeDataGridSource.cs">
+      <UnoRemove>Shared/ITreeDataGridSource.cs</UnoRemove>
+      <Link>Shared/ITreeDataGridSource.cs</Link>
+    </UnoLinkedAvaloniaRoot>
+    <UnoLinkedAvaloniaRoot Include="../Avalonia.Controls.TreeDataGrid/IndexPath.cs">
+      <UnoRemove>Shared/IndexPath.cs</UnoRemove>
+      <Link>Shared/IndexPath.cs</Link>
+    </UnoLinkedAvaloniaRoot>
+    <UnoLinkedAvaloniaRoot Include="../Avalonia.Controls.TreeDataGrid/TreeDataGridItemsSourceView.cs">
+      <UnoRemove>Shared/TreeDataGridItemsSourceView.cs</UnoRemove>
+      <Link>Shared/TreeDataGridItemsSourceView.cs</Link>
+    </UnoLinkedAvaloniaRoot>
+    <UnoLinkedAvaloniaRoot Include="../Avalonia.Controls.TreeDataGrid/FlatTreeDataGridSource.cs">
+      <UnoRemove>Shared/FlatTreeDataGridSource.cs</UnoRemove>
+      <Link>Shared/FlatTreeDataGridSource.cs</Link>
+    </UnoLinkedAvaloniaRoot>
+    <UnoLinkedAvaloniaRoot Include="../Avalonia.Controls.TreeDataGrid/HierarchicalTreeDataGridSource.cs">
+      <UnoRemove>Shared/HierarchicalTreeDataGridSource.cs</UnoRemove>
+      <Link>Shared/HierarchicalTreeDataGridSource.cs</Link>
+    </UnoLinkedAvaloniaRoot>
+    <UnoLinkedAvaloniaRoot Include="../Avalonia.Controls.TreeDataGrid/NullableAttributes.cs">
+      <UnoRemove>Shared/NullableAttributes.cs</UnoRemove>
+      <Link>Shared/NullableAttributes.cs</Link>
+    </UnoLinkedAvaloniaRoot>
+    <UnoLinkedAvaloniaRoot Include="../Avalonia.Controls.TreeDataGrid/TreeDataGridColumns.cs">
+      <UnoRemove>TreeDataGridColumns.cs</UnoRemove>
+      <Link>TreeDataGridColumns.cs</Link>
+    </UnoLinkedAvaloniaRoot>
+    <UnoLinkedAvaloniaRoot Include="../Avalonia.Controls.TreeDataGrid/TreeDataGridExpressionHelper.cs">
+      <UnoRemove>TreeDataGridExpressionHelper.cs</UnoRemove>
+      <Link>TreeDataGridExpressionHelper.cs</Link>
+    </UnoLinkedAvaloniaRoot>
+    <UnoLinkedAvaloniaRoot Include="../Avalonia.Controls.TreeDataGrid/TreeDataGridRowModel.cs">
+      <UnoRemove>TreeDataGridRowModel.cs</UnoRemove>
+      <Link>TreeDataGridRowModel.cs</Link>
+    </UnoLinkedAvaloniaRoot>
+    <UnoLinkedAvaloniaRoot Include="../Avalonia.Controls.TreeDataGrid/TreeDataGridRowModelEventArgs.cs">
+      <UnoRemove>TreeDataGridRowModelEventArgs.cs</UnoRemove>
+      <Link>TreeDataGridRowModelEventArgs.cs</Link>
+    </UnoLinkedAvaloniaRoot>
+    <UnoLinkedAvaloniaRoot Include="../Avalonia.Controls.TreeDataGrid/TreeDataGridSelectionChangedEventArgs.cs">
+      <UnoRemove>TreeDataGridSelectionChangedEventArgs.cs</UnoRemove>
+      <Link>TreeDataGridSelectionChangedEventArgs.cs</Link>
+    </UnoLinkedAvaloniaRoot>
+    <UnoLinkedAvaloniaRoot Include="../Avalonia.Controls.TreeDataGrid/TreeDataGridSelectionMode.cs">
+      <UnoRemove>TreeDataGridSelectionMode.cs</UnoRemove>
+      <Link>TreeDataGridSelectionMode.cs</Link>
+    </UnoLinkedAvaloniaRoot>
+    <UnoLinkedAvaloniaRoot Include="../Avalonia.Controls.TreeDataGrid/TreeDataGridMemberPath.cs">
+      <UnoRemove>TreeDataGridMemberPath.cs</UnoRemove>
+      <Link>TreeDataGridMemberPath.cs</Link>
+    </UnoLinkedAvaloniaRoot>
+    <UnoLinkedAvaloniaRoot Include="../Avalonia.Controls.TreeDataGrid/TreeDataGridColumnOptionsFactory.cs">
+      <UnoRemove>TreeDataGridColumnOptionsFactory.cs</UnoRemove>
+      <Link>TreeDataGridColumnOptionsFactory.cs</Link>
+    </UnoLinkedAvaloniaRoot>
+    <UnoLinkedAvaloniaRoot Include="../Avalonia.Controls.TreeDataGrid/TreeDataGridControlLogic.cs">
+      <UnoRemove>TreeDataGridControlLogic.cs</UnoRemove>
+      <Link>TreeDataGridControlLogic.cs</Link>
+    </UnoLinkedAvaloniaRoot>
+    <UnoLinkedAvaloniaRoot Include="../Avalonia.Controls.TreeDataGrid/TreeDataGridDeclarativeHelper.cs">
+      <UnoRemove>TreeDataGridDeclarativeHelper.cs</UnoRemove>
+      <Link>TreeDataGridDeclarativeHelper.cs</Link>
+    </UnoLinkedAvaloniaRoot>
+    <UnoLinkedAvaloniaRoot Include="../Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/ReflectionTextColumn.cs">
+      <UnoRemove>Models/TreeDataGrid/ReflectionTextColumn.cs</UnoRemove>
+      <Link>Models/TreeDataGrid/ReflectionTextColumn.cs</Link>
+    </UnoLinkedAvaloniaRoot>
+    <UnoLinkedAvaloniaRoot Include="../Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/ReflectionCheckBoxColumn.cs">
+      <UnoRemove>Models/TreeDataGrid/ReflectionCheckBoxColumn.cs</UnoRemove>
+      <Link>Models/TreeDataGrid/ReflectionCheckBoxColumn.cs</Link>
+    </UnoLinkedAvaloniaRoot>
+    <UnoLinkedAvaloniaRoot Include="../Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/ObjectHierarchicalExpanderColumn.cs">
+      <UnoRemove>Models/TreeDataGrid/ObjectHierarchicalExpanderColumn.cs</UnoRemove>
+      <Link>Models/TreeDataGrid/ObjectHierarchicalExpanderColumn.cs</Link>
+    </UnoLinkedAvaloniaRoot>
+    <UnoLinkedAvaloniaRoot Include="../Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/FilteredExpanderColumn.cs">
+      <UnoRemove>Models/TreeDataGrid/FilteredExpanderColumn.cs</UnoRemove>
+      <Link>Models/TreeDataGrid/FilteredExpanderColumn.cs</Link>
+    </UnoLinkedAvaloniaRoot>
+    <UnoLinkedAvaloniaRoot Include="../Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/TreeDataGridRowHeaderColumnInternal.cs">
+      <UnoRemove>Models/TreeDataGrid/TreeDataGridRowHeaderColumnInternal.cs</UnoRemove>
+      <Link>Models/TreeDataGrid/TreeDataGridRowHeaderColumnInternal.cs</Link>
+    </UnoLinkedAvaloniaRoot>
+  </ItemGroup>
+
+  <ItemGroup>
+    <UnoLinkedAvaloniaModels Include="../Avalonia.Controls.TreeDataGrid/Models/**/*.cs"
+                             Exclude="../Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/ExpanderCell.cs;../Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/FilteredExpanderColumn.cs;../Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/HierarchicalExpanderColumn.cs;../Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/HierarchicalRow.cs;../Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/ITemplateCellOptions.cs;../Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/ObjectHierarchicalExpanderColumn.cs;../Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/ReflectionCheckBoxColumn.cs;../Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/ReflectionTextColumn.cs;../Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/TemplateCell.cs;../Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/TemplateColumn.cs;../Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/TemplateColumnOptions.cs;../Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/TreeDataGridRowHeaderColumnInternal.cs">
+      <UnoRemove>Shared/Models/%(RecursiveDir)%(Filename)%(Extension)</UnoRemove>
+      <Link>Shared/Models/%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </UnoLinkedAvaloniaModels>
+  </ItemGroup>
+
+  <ItemGroup>
+    <UnoLinkedAvaloniaSelection Include="../Avalonia.Controls.TreeDataGrid/Selection/*.cs"
+                                Exclude="../Avalonia.Controls.TreeDataGrid/Selection/ITreeDataGridCellSelectionModel.cs;../Avalonia.Controls.TreeDataGrid/Selection/TreeDataGridCellSelectionChangedEventArgs.cs;../Avalonia.Controls.TreeDataGrid/Selection/TreeDataGridRowSelectionModel.cs">
+      <UnoRemove>Shared/Selection/%(Filename)%(Extension)</UnoRemove>
+      <Link>Shared/Selection/%(Filename)%(Extension)</Link>
+    </UnoLinkedAvaloniaSelection>
+    <UnoLinkedAvaloniaSelection Include="../Avalonia.Controls.TreeDataGrid/Selection/ITreeDataGridCellSelectionModel.cs">
+      <UnoRemove>Support/Selection/ITreeDataGridCellSelectionModel.cs</UnoRemove>
+      <Link>Support/Selection/ITreeDataGridCellSelectionModel.cs</Link>
+    </UnoLinkedAvaloniaSelection>
+  </ItemGroup>
+
+  <ItemGroup>
+    <UnoLinkedAvaloniaUtils Include="../Avalonia.Controls.TreeDataGrid/Utils/*.cs">
+      <UnoRemove>Shared/Utils/%(Filename)%(Extension)</UnoRemove>
+      <Link>Shared/Utils/%(Filename)%(Extension)</Link>
+    </UnoLinkedAvaloniaUtils>
+  </ItemGroup>
+
+  <ItemGroup>
+    <UnoLinkedAvaloniaExperimental Include="../Avalonia.Controls.TreeDataGrid/Experimental/Data/Core/**/*.cs"
+                                   Exclude="../Avalonia.Controls.TreeDataGrid/Experimental/Data/Core/TypedBindingExpression`2.cs">
+      <UnoRemove>Support/Experimental/Data/Core/%(RecursiveDir)%(Filename)%(Extension)</UnoRemove>
+      <Link>Support/Experimental/Data/Core/%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </UnoLinkedAvaloniaExperimental>
+    <UnoLinkedAvaloniaExperimental Include="../Avalonia.Controls.TreeDataGrid/Experimental/Data/ObservableEx.cs">
+      <UnoRemove>Support/Experimental/Data/ObservableEx.cs</UnoRemove>
+      <Link>Support/Experimental/Data/ObservableEx.cs</Link>
+    </UnoLinkedAvaloniaExperimental>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="@(UnoLinkedAvaloniaRoot->'%(UnoRemove)')" />
+    <Compile Remove="@(UnoLinkedAvaloniaModels->'%(UnoRemove)')" />
+    <Compile Remove="@(UnoLinkedAvaloniaSelection->'%(UnoRemove)')" />
+    <Compile Remove="@(UnoLinkedAvaloniaUtils->'%(UnoRemove)')" />
+    <Compile Remove="@(UnoLinkedAvaloniaExperimental->'%(UnoRemove)')" />
+
+    <Compile Include="@(UnoLinkedAvaloniaRoot)">
+      <Link>%(UnoLinkedAvaloniaRoot.Link)</Link>
+    </Compile>
+    <Compile Include="@(UnoLinkedAvaloniaModels)">
+      <Link>%(UnoLinkedAvaloniaModels.Link)</Link>
+    </Compile>
+    <Compile Include="@(UnoLinkedAvaloniaSelection)">
+      <Link>%(UnoLinkedAvaloniaSelection.Link)</Link>
+    </Compile>
+    <Compile Include="@(UnoLinkedAvaloniaUtils)">
+      <Link>%(UnoLinkedAvaloniaUtils.Link)</Link>
+    </Compile>
+    <Compile Include="@(UnoLinkedAvaloniaExperimental)">
+      <Link>%(UnoLinkedAvaloniaExperimental.Link)</Link>
+    </Compile>
+  </ItemGroup>
+</Project>

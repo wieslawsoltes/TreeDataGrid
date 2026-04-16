@@ -1,6 +1,14 @@
 ﻿using System;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Selection
+
+#else
+
 namespace Avalonia.Controls.Selection
+
+#endif
 {
     /// <summary>
     /// Holds data for the <see cref="ITreeSelectionModel.IndexesChanged"/> event.

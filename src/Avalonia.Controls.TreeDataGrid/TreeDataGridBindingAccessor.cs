@@ -10,7 +10,6 @@ namespace Avalonia.Controls
 {
     internal sealed class TreeDataGridBindingAccessor : IDisposable
     {
-        private static readonly Func<object, object>[] s_selfLinks = new Func<object, object>[] { x => x };
         private static readonly PropertyInfo? s_compiledBindingPathElementsProperty =
             typeof(CompiledBindingPath).GetProperty("Elements", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
         private readonly IDisposable _bindingDisposable;
@@ -27,7 +26,7 @@ namespace Avalonia.Controls
             _expression = _probe.Bind(TreeDataGridBindingProbe.ValueProperty, binding);
             _bindingDisposable = _expression;
             _mode = GetMode(binding);
-            _links = TryCreateLinks(binding, modelType) ?? s_selfLinks;
+            _links = TryCreateLinks(binding, modelType) ?? TreeDataGridMemberPath.CreateProgressiveLinks(Array.Empty<string>());
             _declaredType = TryGetValueType(binding, modelType);
 
             if (sampleModel is not null)
@@ -259,15 +258,15 @@ namespace Avalonia.Controls
                 return null;
             }
 
-            var members = TryResolveReflectionPath(modelType, binding.Path);
-            return members is not null ? CreateLinks(members) : null;
+            var members = TreeDataGridMemberPath.TryResolve(modelType, binding.Path);
+            return members is not null ? TreeDataGridMemberPath.CreateSubscriptionLinks(members) : null;
         }
 
         private static Type? TryGetReflectionBindingValueType(ReflectionBinding binding, Type? modelType)
         {
             var rootType = GetReflectionBindingSource(binding)?.GetType() ?? modelType;
-            var members = TryResolveReflectionPath(rootType, binding.Path);
-            return members is { Count: > 0 } ? GetMemberType(members[members.Count - 1]) : rootType;
+            var members = TreeDataGridMemberPath.TryResolve(rootType, binding.Path);
+            return TreeDataGridMemberPath.TryGetValueType(members, rootType);
         }
 
         private static object? GetReflectionBindingSource(ReflectionBinding binding)
@@ -275,79 +274,18 @@ namespace Avalonia.Controls
             return ReferenceEquals(binding.Source, AvaloniaProperty.UnsetValue) ? null : binding.Source;
         }
 
-        private static IReadOnlyList<MemberInfo>? TryResolveReflectionPath(Type? rootType, string? path)
-        {
-            if (rootType is null)
-                return null;
-
-            if (string.IsNullOrWhiteSpace(path) || path == ".")
-                return Array.Empty<MemberInfo>();
-
-            var currentType = rootType;
-            var result = new List<MemberInfo>();
-            var parts = path.Split('.');
-
-            foreach (var rawPart in parts)
-            {
-                var part = rawPart.Trim();
-
-                if (part.Length == 0 ||
-                    part.Contains('[') ||
-                    part.Contains('(') ||
-                    part.Contains('!') ||
-                    part.Contains('#') ||
-                    part.Contains('$') ||
-                    part.Contains('/'))
-                {
-                    return null;
-                }
-
-                var member = (MemberInfo?)currentType.GetProperty(
-                        part,
-                        BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                    ?? currentType.GetField(
-                        part,
-                        BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-                if (member is null)
-                    return null;
-
-                result.Add(member);
-                currentType = GetMemberType(member);
-            }
-
-            return result;
-        }
-
         private static Func<object, object>[] CreateLinks(IReadOnlyList<IPropertyInfo> properties)
         {
             if (properties.Count == 0)
-                return s_selfLinks;
+                return TreeDataGridMemberPath.CreateProgressiveLinks(Array.Empty<string>());
 
             var result = new Func<object, object>[properties.Count];
-            result[0] = s_selfLinks[0];
+            result[0] = x => x;
 
             for (var i = 1; i < properties.Count; ++i)
             {
                 var length = i;
                 result[i] = x => EvaluateProperties(x, properties, length);
-            }
-
-            return result;
-        }
-
-        private static Func<object, object>[] CreateLinks(IReadOnlyList<MemberInfo> members)
-        {
-            if (members.Count == 0)
-                return s_selfLinks;
-
-            var result = new Func<object, object>[members.Count];
-            result[0] = s_selfLinks[0];
-
-            for (var i = 1; i < members.Count; ++i)
-            {
-                var length = i;
-                result[i] = x => EvaluateMembers(x, members, length);
             }
 
             return result;
@@ -363,34 +301,5 @@ namespace Avalonia.Controls
             return current!;
         }
 
-        private static object EvaluateMembers(object model, IReadOnlyList<MemberInfo> members, int length)
-        {
-            object? current = model;
-
-            for (var i = 0; i < length && current is not null; ++i)
-                current = GetMemberValue(members[i], current);
-
-            return current!;
-        }
-
-        private static object? GetMemberValue(MemberInfo member, object target)
-        {
-            return member switch
-            {
-                PropertyInfo property => property.GetValue(target),
-                FieldInfo field => field.GetValue(target),
-                _ => null,
-            };
-        }
-
-        private static Type GetMemberType(MemberInfo member)
-        {
-            return member switch
-            {
-                PropertyInfo property => property.PropertyType,
-                FieldInfo field => field.FieldType,
-                _ => typeof(object),
-            };
-        }
     }
 }

@@ -1,6 +1,14 @@
 ﻿using System.Collections.Generic;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Models.TreeDataGrid
+
+#else
+
 namespace Avalonia.Controls.Models.TreeDataGrid
+
+#endif
 {
     /// <summary>
     /// Defines a column whose cells show an expander to reveal nested data.
