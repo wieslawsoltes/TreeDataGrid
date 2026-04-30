@@ -26,6 +26,7 @@
     <PackageReference Include="Bogus" Version="34.0.2" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />
     <ProjectReference Include="..\..\src\Avalonia.Controls.TreeDataGrid\Avalonia.Controls.TreeDataGrid.csproj" />
   </ItemGroup>
 </Project>
