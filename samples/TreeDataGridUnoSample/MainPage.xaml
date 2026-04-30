@@ -5,6 +5,37 @@
     xmlns:controls="using:Uno.Controls"
     xmlns:m="using:TreeDataGridDemo.Models"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <Page.Resources>
+        <ResourceDictionary>
+            <DataTemplate x:Key="RegionCell" x:DataType="m:Country">
+                <TextBlock Text="{x:Bind Region}" />
+            </DataTemplate>
+
+            <DataTemplate x:Key="RegionEditCell" x:DataType="m:Country">
+                <ComboBox ItemsSource="{x:Bind m:Countries.Regions}"
+                          MinWidth="180"
+                          SelectedItem="{x:Bind Region, Mode=TwoWay}" />
+            </DataTemplate>
+
+            <DataTemplate x:Key="FileNameCell" x:DataType="m:FileTreeNodeModel">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <Image Width="16" Height="16" Source="{x:Bind IconSource, Mode=OneWay}" />
+                    <TextBlock VerticalAlignment="Center" Text="{x:Bind Name}" />
+                </StackPanel>
+            </DataTemplate>
+
+            <DataTemplate x:Key="FileNameEditCell" x:DataType="m:FileTreeNodeModel">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <Image Width="16" Height="16" Source="{x:Bind IconSource, Mode=OneWay}" />
+                    <TextBox MinWidth="220" Text="{x:Bind Name, Mode=TwoWay}" />
+                </StackPanel>
+            </DataTemplate>
+
+            <DataTemplate x:Key="WikipediaImageCell" x:DataType="m:OnThisDayArticle">
+                <Image MaxHeight="72" Stretch="Uniform" Source="{x:Bind Image, Mode=OneWay}" />
+            </DataTemplate>
+        </ResourceDictionary>
+    </Page.Resources>
     <Grid Padding="12">
         <TabView x:Name="tabs"
                  HorizontalAlignment="Stretch"
