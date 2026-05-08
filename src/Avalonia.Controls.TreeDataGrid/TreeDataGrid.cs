@@ -85,8 +85,6 @@ namespace Avalonia.Controls
         private IScrollable? _scroll;
         private IScrollable? _headerScroll;
         private ITreeDataGridSelectionInteraction? _selection;
-        private Control? _userSortColumn;
-        private ListSortDirection _userSortDirection;
         private TreeDataGridCellEventArgs? _cellArgs;
         private TreeDataGridRowEventArgs? _rowArgs;
         private Canvas? _dragAdorner;
@@ -251,6 +249,11 @@ namespace Avalonia.Controls
             return false;
         }
 
+        public bool TryGetCell(object? element, [NotNullWhen(true)] out TreeDataGridCell? result)
+        {
+            return TryGetCell(element as Control, out result);
+        }
+
         public bool TryGetRow(Control? element, [NotNullWhen(true)] out TreeDataGridRow? result)
         {
             if (element is TreeDataGridRow row && row.RowIndex >= 0)
@@ -270,17 +273,16 @@ namespace Avalonia.Controls
             return result is not null;
         }
 
+        public bool TryGetRow(object? element, [NotNullWhen(true)] out TreeDataGridRow? result)
+        {
+            return TryGetRow(element as Control, out result);
+        }
+
         public bool TryGetRowModel<TModel>(Control element, [NotNullWhen(true)] out TModel? result)
             where TModel : notnull
         {
-            if (Source is object &&
-                TryGetRow(element, out var row) &&
-                row.RowIndex < Source.Rows.Count &&
-                Source.Rows[row.RowIndex] is IRow<TModel> rowWithModel)
-            {
-                result = rowWithModel.Model;
-                return true;
-            }
+            if (TryGetRow(element, out var row))
+                return TreeDataGridControlLogic.TryGetRowModel(Source, row, out result);
 
             result = default;
             return false;
@@ -288,11 +290,7 @@ namespace Avalonia.Controls
 
         public bool QueryCancelSelection()
         {
-            if (SelectionChanging is null)
-                return false;
-            var e = new CancelEventArgs();
-            SelectionChanging(this, e);
-            return e.Cancel;
+            return TreeDataGridControlLogic.QueryCancelSelection(this, SelectionChanging);
         }
 
         protected override AutomationPeer OnCreateAutomationPeer()
@@ -452,9 +450,7 @@ namespace Avalonia.Controls
             if (_source is null || RowSelection is null)
                 return;
 
-            var allowedEffects = AutoDragDropRows && !_source.IsSorted ?
-                DragDropEffects.Move :
-                DragDropEffects.None;
+            var allowedEffects = TreeDataGridControlLogic.GetAllowedRowDragEffects(AutoDragDropRows, _source);
             var route = BuildEventRoute(RowDragStartedEvent);
 
             if (route.HasHandlers)
@@ -508,19 +504,9 @@ namespace Avalonia.Controls
                 columnHeader.ColumnIndex < _source.Columns.Count &&
                 CanUserSortColumns)
             {
-                if (_userSortColumn != columnHeader)
-                {
-                    _userSortColumn = columnHeader;
-                    _userSortDirection = ListSortDirection.Ascending;
-                }
-                else
-                {
-                    _userSortDirection = _userSortDirection == ListSortDirection.Ascending ?
-                        ListSortDirection.Descending : ListSortDirection.Ascending;
-                }
-
                 var column = _source.Columns[columnHeader.ColumnIndex];
-                _source.SortBy(column, _userSortDirection);
+                var direction = TreeDataGridControlLogic.GetNextSortDirection(column.SortDirection);
+                _source.SortBy(column, direction);
             }
         }
 
@@ -639,7 +625,6 @@ namespace Avalonia.Controls
             if (!AutoDragDropRows ||
                 !TryGetDragInfo(e, out var di) ||
                 _source is null ||
-                _source.IsSorted ||
                 targetRow is null ||
                 di.Source != _source)
             {
@@ -649,18 +634,18 @@ namespace Avalonia.Controls
             }
 
             var targetIndex = _source.Rows.RowIndexToModelIndex(targetRow.RowIndex);
-            position = GetDropPosition(_source, e, targetRow);
+            var rowY = e.GetPosition(targetRow).Y / targetRow.Bounds.Height;
 
-            // We can't drop rows into themselves or their descendents.
-            foreach (var sourceIndex in di.Indexes)
+            if (!TreeDataGridControlLogic.TryGetAutoDrop(
+                AutoDragDropRows,
+                _source,
+                di.Indexes,
+                targetIndex,
+                rowY,
+                out position))
             {
-                if (sourceIndex.IsAncestorOf(targetIndex) ||
-                    (sourceIndex == targetIndex && position == TreeDataGridRowDropPosition.Inside))
-                {
-                    data = null;
-                    position = TreeDataGridRowDropPosition.None;
-                    return false;
-                }
+                data = null;
+                return false;
             }
 
             data = di;
@@ -811,29 +796,5 @@ namespace Avalonia.Controls
             RowsPresenter?.InvalidateMeasure();
         }
 
-        private static TreeDataGridRowDropPosition GetDropPosition(
-            ITreeDataGridSource source,
-            DragEventArgs e,
-            TreeDataGridRow row)
-        {
-            var rowY = e.GetPosition(row).Y / row.Bounds.Height;
-
-            if (source.IsHierarchical)
-            {
-                if (rowY < 0.33)
-                    return TreeDataGridRowDropPosition.Before;
-                else if (rowY > 0.66)
-                    return TreeDataGridRowDropPosition.After;
-                else
-                    return TreeDataGridRowDropPosition.Inside;
-            }
-            else
-            {
-                if (rowY < 0.5)
-                    return TreeDataGridRowDropPosition.Before;
-                else
-                    return TreeDataGridRowDropPosition.After;
-            }
-        }
     }
 }

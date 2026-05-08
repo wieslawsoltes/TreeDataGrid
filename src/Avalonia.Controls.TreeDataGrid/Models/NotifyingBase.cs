@@ -2,7 +2,15 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Models
+
+#else
+
 namespace Avalonia.Controls.Models
+
+#endif
 {
     public class NotifyingBase : INotifyPropertyChanged
     {

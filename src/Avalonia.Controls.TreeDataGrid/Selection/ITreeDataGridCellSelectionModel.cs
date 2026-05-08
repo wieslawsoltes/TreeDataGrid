@@ -1,8 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+#if TREE_DATAGRID_UNO
+using Uno.Controls;
+#else
 using Avalonia.Controls;
+#endif
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Selection
+
+#else
 
 namespace Avalonia.Controls.Selection
+
+#endif
 {
     /// <summary>
     /// Maintains the cell selection state for an <see cref="ITreeDataGridSource"/>.

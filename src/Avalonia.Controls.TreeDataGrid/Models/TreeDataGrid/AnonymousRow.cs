@@ -1,7 +1,15 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Models.TreeDataGrid
+
+#else
+
 namespace Avalonia.Controls.Models.TreeDataGrid
+
+#endif
 {
     /// <summary>
     /// A row that can be reused for situations where creating a separate object for each row is

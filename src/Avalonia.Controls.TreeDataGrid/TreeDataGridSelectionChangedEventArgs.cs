@@ -1,8 +1,19 @@
 using System;
 using System.Collections.Generic;
+#if TREE_DATAGRID_UNO
+using Uno.Controls.Selection;
+#else
 using Avalonia.Controls.Selection;
+#endif
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls
+
+#else
 
 namespace Avalonia.Controls
+
+#endif
 {
     public class TreeDataGridSelectionChangedEventArgs : TreeSelectionModelSelectionChangedEventArgs
     {

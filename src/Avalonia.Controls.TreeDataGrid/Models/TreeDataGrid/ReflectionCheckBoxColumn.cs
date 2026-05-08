@@ -1,7 +1,15 @@
 using System;
 using Avalonia.Experimental.Data;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Models.TreeDataGrid
+
+#else
+
 namespace Avalonia.Controls.Models.TreeDataGrid
+
+#endif
 {
     internal class ReflectionCheckBoxColumn : ColumnBase<object, bool?>
     {

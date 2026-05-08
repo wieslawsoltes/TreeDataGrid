@@ -1,8 +1,15 @@
 using System;
 using Avalonia.Threading;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Experimental.Data.Core;
+
+#else
+
 namespace Avalonia.Controls.Experimental.Data.Core;
 
+#endif
 internal abstract class SingleSubscriberObservableBase<T> : IObservable<T>, IDisposable
 {
     private Exception? _error;

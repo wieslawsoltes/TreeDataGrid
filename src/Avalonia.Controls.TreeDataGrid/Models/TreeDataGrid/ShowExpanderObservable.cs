@@ -2,12 +2,24 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+#if TREE_DATAGRID_UNO
+using Uno.Controls.Experimental.Data.Core;
+#else
 using Avalonia.Controls.Experimental.Data.Core;
+#endif
 using Avalonia.Data;
 using Avalonia.Experimental.Data;
 using Avalonia.Experimental.Data.Core;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Models.TreeDataGrid
+
+#else
+
 namespace Avalonia.Controls.Models.TreeDataGrid
+
+#endif
 {
     internal class ShowExpanderObservable<TModel> : SingleSubscriberObservableBase<bool>,
         IObserver<BindingValue<bool>>,

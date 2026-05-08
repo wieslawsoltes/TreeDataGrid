@@ -2,9 +2,20 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+#if TREE_DATAGRID_UNO
+using Uno.Controls.Utils;
+#else
 using Avalonia.Controls.Utils;
+#endif
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Models.TreeDataGrid
+
+#else
 
 namespace Avalonia.Controls.Models.TreeDataGrid
+
+#endif
 {
     public class HierarchicalRows<TModel> : ReadOnlyListBase<HierarchicalRow<TModel>>,
         IRows,

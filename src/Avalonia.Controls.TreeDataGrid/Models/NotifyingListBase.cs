@@ -3,9 +3,20 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+#if TREE_DATAGRID_UNO
+using Uno.Controls.Models.TreeDataGrid;
+#else
 using Avalonia.Controls.Models.TreeDataGrid;
+#endif
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Models
+
+#else
 
 namespace Avalonia.Controls.Models
+
+#endif
 {
     public class NotifyingListBase<T> : Collection<T>, INotifyCollectionChanged, INotifyPropertyChanged
     {

@@ -1,7 +1,15 @@
 ﻿using System;
 using System.Collections;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Models.TreeDataGrid
+
+#else
+
 namespace Avalonia.Controls.Models.TreeDataGrid
+
+#endif
 {
     /// <summary>
     /// Exposes a list of <typeparamref name="TModel"/> as anonymous rows.

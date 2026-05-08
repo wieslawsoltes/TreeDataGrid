@@ -8,11 +8,22 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+#if TREE_DATAGRID_UNO
+using Uno.Controls.Utils;
+#else
 using Avalonia.Controls.Utils;
-
+#endif
 #nullable enable
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls
+
+#else
+
 namespace Avalonia.Controls
+
+#endif
 {
     /// <summary>
     /// Represents a standardized view of the supported interactions between a given ItemsSource
@@ -94,7 +105,11 @@ namespace Avalonia.Controls
                 {
                     if (_inner is INotifyCollectionChanged incc)
                     {
-                        CollectionChangedEventManager.Instance.AddListener(incc, this);
+#if TREE_DATAGRID_UNO
+                        Uno.Controls.Utils.CollectionChangedEventManager.Instance.AddListener(incc, this);
+#else
+                CollectionChangedEventManager.Instance.AddListener(incc, this);
+#endif
                     }
                 }
 
@@ -112,7 +127,11 @@ namespace Avalonia.Controls
                 {
                     if (_inner is INotifyCollectionChanged incc)
                     {
-                        CollectionChangedEventManager.Instance.RemoveListener(incc, this);
+#if TREE_DATAGRID_UNO
+                        Uno.Controls.Utils.CollectionChangedEventManager.Instance.RemoveListener(incc, this);
+#else
+                CollectionChangedEventManager.Instance.RemoveListener(incc, this);
+#endif
                     }
                 }
             }
@@ -123,7 +142,11 @@ namespace Avalonia.Controls
         {
             if (_inner is INotifyCollectionChanged incc)
             {
+#if TREE_DATAGRID_UNO
+                Uno.Controls.Utils.CollectionChangedEventManager.Instance.RemoveListener(incc, this);
+#else
                 CollectionChangedEventManager.Instance.RemoveListener(incc, this);
+#endif
             }
 
             _inner = null;
@@ -198,7 +221,11 @@ namespace Avalonia.Controls
         {
             if (Inner is INotifyCollectionChanged incc)
             {
-                CollectionChangedEventManager.Instance.AddListener(incc, listener);
+#if TREE_DATAGRID_UNO
+                Uno.Controls.Utils.CollectionChangedEventManager.Instance.AddListener(incc, this);
+#else
+                CollectionChangedEventManager.Instance.AddListener(incc, this);
+#endif
             }
         }
 
@@ -206,7 +233,11 @@ namespace Avalonia.Controls
         {
             if (Inner is INotifyCollectionChanged incc)
             {
-                CollectionChangedEventManager.Instance.RemoveListener(incc, listener);
+#if TREE_DATAGRID_UNO
+                Uno.Controls.Utils.CollectionChangedEventManager.Instance.RemoveListener(incc, this);
+#else
+                CollectionChangedEventManager.Instance.RemoveListener(incc, this);
+#endif
             }
         }
 
