@@ -1,8 +1,8 @@
 <Project Sdk="Uno.Sdk/6.5.31">
-      <PropertyGroup>
+  <PropertyGroup>
         <TargetFramework></TargetFramework>
-        <TreeDataGridUnoSampleTargetFrameworks Condition="'$(TreeDataGridUnoSampleTargetFrameworks)' == ''">net9.0-android;net9.0-ios;net9.0-browserwasm;net9.0-desktop</TreeDataGridUnoSampleTargetFrameworks>
-        <TargetFrameworks>$(TreeDataGridUnoSampleTargetFrameworks)</TargetFrameworks>
+        <TreeDataGridUnoSampleTargetFrameworks Condition="'$(TreeDataGridUnoSampleTargetFrameworks)' == ''">net10.0-android;net10.0-ios;net10.0-browserwasm;net10.0-desktop;net10.0-windows10.0.26100</TreeDataGridUnoSampleTargetFrameworks>
+        <TargetFrameworks>$(TreeDataGridUnoSampleTargetFrameworks)</TargetFrameworks>       
         <OutputType>Exe</OutputType>
         <UnoSingleProject>true</UnoSingleProject>
         <MSBuildEnableWorkloadResolver>true</MSBuildEnableWorkloadResolver>
@@ -21,6 +21,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\TreeDataGrid.Uno\TreeDataGrid.Uno.csproj" />
-    <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.3" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.7" />
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />
   </ItemGroup>
 </Project>
