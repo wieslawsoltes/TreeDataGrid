@@ -1182,6 +1182,7 @@ namespace Avalonia.Controls.TreeDataGridTests
                 var selectedItemRaised = 0;
 
                 target.Select(new IndexPath(1));
+                var movedItem = data[1];
 
                 target.IndexesChanged += (s, e) =>
                 {
@@ -1208,15 +1209,15 @@ namespace Avalonia.Controls.TreeDataGridTests
 
                 data.Move(1, 3);
 
-                Assert.Equal(0, target.Count);
-                Assert.Equal(default, target.SelectedIndex);
-                Assert.Empty(target.SelectedIndexes);
-                Assert.Null(target.SelectedItem);
-                Assert.Empty(target.SelectedItems);
+                Assert.Equal(1, target.Count);
+                Assert.Equal(new IndexPath(3), target.SelectedIndex);
+                Assert.Equal(new[] { new IndexPath(3) }, target.SelectedIndexes);
+                Assert.Same(movedItem, target.SelectedItem);
+                Assert.Same(movedItem, target.SelectedItems.Single());
                 Assert.Equal(1, indexesChangedRaised);
-                Assert.Equal(1, selectionChangedRaised);
+                Assert.Equal(0, selectionChangedRaised);
                 Assert.Equal(1, selectedIndexRaised);
-                Assert.Equal(1, selectedItemRaised);
+                Assert.Equal(0, selectedItemRaised);
             }
 
             [AvaloniaFact(Timeout = 10000)]
@@ -1230,6 +1231,7 @@ namespace Avalonia.Controls.TreeDataGridTests
                 var selectedItemRaised = 0;
 
                 target.Select(new IndexPath(1, 1));
+                var movedChild = data[1].Children![1];
 
                 target.IndexesChanged += (s, e) =>
                 {
@@ -1256,15 +1258,15 @@ namespace Avalonia.Controls.TreeDataGridTests
 
                 data[1].Children!.Move(1, 2);
 
-                Assert.Equal(0, target.Count);
-                Assert.Equal(default, target.SelectedIndex);
-                Assert.Empty(target.SelectedIndexes);
-                Assert.Null(target.SelectedItem);
-                Assert.Empty(target.SelectedItems);
+                Assert.Equal(1, target.Count);
+                Assert.Equal(new IndexPath(1, 2), target.SelectedIndex);
+                Assert.Equal(new[] { new IndexPath(1, 2) }, target.SelectedIndexes);
+                Assert.Same(movedChild, target.SelectedItem);
+                Assert.Same(movedChild, target.SelectedItems.Single());
                 Assert.Equal(1, indexesChangedRaised);
-                Assert.Equal(1, selectionChangedRaised);
+                Assert.Equal(0, selectionChangedRaised);
                 Assert.Equal(1, selectedIndexRaised);
-                Assert.Equal(1, selectedItemRaised);
+                Assert.Equal(0, selectedItemRaised);
             }
 
             [AvaloniaFact(Timeout = 10000)]

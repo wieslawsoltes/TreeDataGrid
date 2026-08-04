@@ -22,6 +22,12 @@ namespace Avalonia.Controls.Selection
         private TreeSelectedItems<T>? _selectedItems;
         private int _collectionChanging;
         private EventHandler<TreeDataGridSelectionChangedEventArgs>? _untypedSelectionChanged;
+        private IndexPath _oldSelectedIndexDuringSourceChange;
+        private IndexPath _oldAnchorIndexDuringSourceChange;
+        private IndexPath _oldRangeAnchorIndexDuringSourceChange;
+        private bool _selectedIndexMovedDuringSourceChange;
+        private bool _anchorIndexMovedDuringSourceChange;
+        private bool _rangeAnchorIndexMovedDuringSourceChange;
 
         protected TreeSelectionModelBase()
         {
@@ -267,6 +273,16 @@ namespace Avalonia.Controls.Selection
 
         internal void OnNodeCollectionChangeStarted()
         {
+            if (_collectionChanging == 0)
+            {
+                _oldSelectedIndexDuringSourceChange = _selectedIndex;
+                _oldAnchorIndexDuringSourceChange = _anchorIndex;
+                _oldRangeAnchorIndexDuringSourceChange = _rangeAnchorIndex;
+                _selectedIndexMovedDuringSourceChange = false;
+                _anchorIndexMovedDuringSourceChange = false;
+                _rangeAnchorIndexMovedDuringSourceChange = false;
+            }
+
             ++_collectionChanging;
         }
 
@@ -280,7 +296,7 @@ namespace Avalonia.Controls.Selection
         {
             if (_operation?.UpdateCount > 0)
                 throw new InvalidOperationException("Source collection was modified during selection update.");
-            if (shiftDelta == 0 && !(removed?.Count > 0))
+            if (shiftDelta == 0 && !(removed?.Count > 0) && !raiseIndexesChanged)
                 return;
 
             if (raiseIndexesChanged)
@@ -292,8 +308,24 @@ namespace Avalonia.Controls.Selection
 
             // Shift or clear the selected and anchor indexes according to the shift index/delta.
             var hadSelection = _selectedIndex != default;
-            var selectedIndexChanged = ShiftIndex(parentIndex, shiftStartIndex, shiftDelta, ref _selectedIndex);
-            var anchorIndexChanged = ShiftIndex(parentIndex, shiftStartIndex, shiftDelta, ref _anchorIndex);
+            var selectedIndexChanged = false;
+            if (!_selectedIndexMovedDuringSourceChange)
+            {
+                selectedIndexChanged = ShiftIndex(parentIndex, shiftStartIndex, shiftDelta, ref _selectedIndex);
+            }
+
+            var anchorIndexChanged = false;
+            if (!_anchorIndexMovedDuringSourceChange)
+            {
+                anchorIndexChanged = ShiftIndex(parentIndex, shiftStartIndex, shiftDelta, ref _anchorIndex);
+            }
+
+            var rangeAnchorIndexChanged = false;
+            if (!_rangeAnchorIndexMovedDuringSourceChange)
+            {
+                rangeAnchorIndexChanged = ShiftIndex(parentIndex, shiftStartIndex, shiftDelta, ref _rangeAnchorIndex);
+            }
+
             var selectedItemChanged = false;
 
             // Check that the selected index is still selected in the node. It can get
@@ -316,18 +348,59 @@ namespace Avalonia.Controls.Selection
             if (removed?.Count > 0)
                 Count -= removed.Count;
 
+            if (_selectedIndexMovedDuringSourceChange &&
+                _oldSelectedIndexDuringSourceChange != _selectedIndex)
+            {
+                selectedIndexChanged = true;
+            }
+
+            if (_anchorIndexMovedDuringSourceChange &&
+                _oldAnchorIndexDuringSourceChange != _anchorIndex)
+            {
+                anchorIndexChanged = true;
+            }
+
+            if (_rangeAnchorIndexMovedDuringSourceChange &&
+                _oldRangeAnchorIndexDuringSourceChange != _rangeAnchorIndex)
+            {
+                rangeAnchorIndexChanged = true;
+            }
+
             if (selectedIndexChanged)
                 RaisePropertyChanged(nameof(SelectedIndex));
             if (selectedItemChanged)
                 RaisePropertyChanged(nameof(SelectedItem));
             if (anchorIndexChanged)
                 RaisePropertyChanged(nameof(AnchorIndex));
+            if (rangeAnchorIndexChanged)
+                RaisePropertyChanged(nameof(RangeAnchorIndex));
+        }
+
+        internal void OnNodeSelectionMoved(
+            IndexPath parentIndex,
+            IReadOnlyList<IndexRange> oldSelectedRanges,
+            IReadOnlyList<IndexRange> newSelectedRanges,
+            IReadOnlyList<T?> movedItems)
+        {
+            _ = movedItems;
+
+            _selectedIndexMovedDuringSourceChange |= TryMoveIndex(parentIndex, oldSelectedRanges, newSelectedRanges, ref _selectedIndex);
+            _anchorIndexMovedDuringSourceChange |= TryMoveIndex(parentIndex, oldSelectedRanges, newSelectedRanges, ref _anchorIndex);
+            _rangeAnchorIndexMovedDuringSourceChange |= TryMoveIndex(parentIndex, oldSelectedRanges, newSelectedRanges, ref _rangeAnchorIndex);
         }
 
         internal void OnNodeCollectionChangeFinished()
         {
             if (--_collectionChanging == 0)
+            {
+                _oldSelectedIndexDuringSourceChange = default;
+                _oldAnchorIndexDuringSourceChange = default;
+                _oldRangeAnchorIndexDuringSourceChange = default;
+                _selectedIndexMovedDuringSourceChange = false;
+                _anchorIndexMovedDuringSourceChange = false;
+                _rangeAnchorIndexMovedDuringSourceChange = false;
                 OnSourceCollectionChangeFinished();
+            }
         }
 
         protected internal virtual void OnNodeCollectionReset(IndexPath parentIndex, int removeCount)
@@ -571,6 +644,49 @@ namespace Avalonia.Controls.Selection
             }
 
             return result;
+        }
+
+        private static bool TryMoveIndex(
+            IndexPath parentIndex,
+            IReadOnlyList<IndexRange> oldSelectedRanges,
+            IReadOnlyList<IndexRange> newSelectedRanges,
+            ref IndexPath path)
+        {
+            if (path == default)
+                return false;
+
+            var depth = parentIndex.Count;
+
+            if (path.Count <= depth)
+                return false;
+
+            if (parentIndex.Count > 0 && !parentIndex.IsAncestorOf(path))
+                return false;
+
+            var indexAtDepth = path[depth];
+            var rangeCount = Math.Min(oldSelectedRanges.Count, newSelectedRanges.Count);
+
+            for (var i = 0; i < rangeCount; ++i)
+            {
+                var oldRange = oldSelectedRanges[i];
+                var newRange = newSelectedRanges[i];
+
+                if (indexAtDepth >= oldRange.Begin && indexAtDepth <= oldRange.End)
+                {
+                    var offset = indexAtDepth - oldRange.Begin;
+                    var newIndex = newRange.Begin + offset;
+
+                    if (newIndex == indexAtDepth)
+                        return false;
+
+                    var indexes = path.ToArray();
+                    indexes[depth] = newIndex;
+                    path = new IndexPath(indexes);
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         internal static bool ShiftIndex(IndexPath parentIndex, int shiftIndex, int shiftDelta, ref IndexPath path)

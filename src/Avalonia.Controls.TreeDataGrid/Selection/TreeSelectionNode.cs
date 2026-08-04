@@ -128,6 +128,9 @@ namespace Avalonia.Controls.Selection
             var shiftDelta = 0;
             var indexesChanged = false;
             List<T?>? removed = null;
+            var moveOldIndex = -1;
+            var moveInsertIndex = -1;
+            var moveCount = 0;
 
             // Adjust the selection in this node according to the collection change.
             switch (e.Action)
@@ -153,43 +156,102 @@ namespace Avalonia.Controls.Selection
                     removed = removeChange.RemovedItems;
                     break;
                 case NotifyCollectionChangedAction.Move:
+                    if (e.OldStartingIndex < 0)
+                    {
+                        OnSourceReset();
+                        return;
+                    }
+
+                    moveOldIndex = e.OldStartingIndex;
+                    moveCount = e.OldItems!.Count;
                     shiftStartIndex = Math.Min(e.OldStartingIndex, e.NewStartingIndex);
                     shiftEndIndex = Math.Max(e.OldStartingIndex, e.NewStartingIndex);
-                    shiftDelta = e.OldStartingIndex < e.NewStartingIndex ? -e.OldItems!.Count : e.OldItems!.Count;
-                    var moveRemoveChange = OnItemsRemoved(e.OldStartingIndex, e.OldItems!);
-                    var moveAddChange = OnItemsAdded(e.NewStartingIndex, e.NewItems!);
-                    indexesChanged = shiftDelta != 0;
-                    removed = moveRemoveChange.RemovedItems;
+                    shiftDelta = e.OldStartingIndex < e.NewStartingIndex ? -moveCount : moveCount;
+                    indexesChanged = true;
+
+                    var removeMoveChange = OnItemsRemoved(e.OldStartingIndex, e.OldItems!);
+                    var insertIndex = e.NewStartingIndex;
+
+                    if (e.NewStartingIndex > e.OldStartingIndex)
+                    {
+                        insertIndex -= moveCount - 1;
+                    }
+
+                    OnItemsAdded(insertIndex, e.NewItems!);
+                    moveInsertIndex = insertIndex;
+
+                    if (removeMoveChange.DeselectedRanges is { Count: > 0 } deselectedRanges)
+                    {
+                        var movedRanges = new List<IndexRange>(deselectedRanges.Count);
+
+                        foreach (var range in deselectedRanges)
+                        {
+                            var relativeBegin = range.Begin - e.OldStartingIndex;
+                            var begin = insertIndex + relativeBegin;
+                            var end = begin + (range.End - range.Begin);
+                            movedRanges.Add(new IndexRange(begin, end));
+
+                            if (RangesEnabled)
+                            {
+                                CommitSelect(begin, end);
+                            }
+                        }
+
+                        var movedItems = removeMoveChange.RemovedItems is { Count: > 0 } items
+                            ? (IReadOnlyList<T?>)items
+                            : Array.Empty<T?>();
+
+                        OnSelectionMoved(
+                            e.OldStartingIndex,
+                            insertIndex,
+                            deselectedRanges,
+                            movedRanges,
+                            movedItems);
+
+                        removed = null;
+                    }
+                    else
+                    {
+                        removed = removeMoveChange.RemovedItems;
+                    }
+
                     break;
                 case NotifyCollectionChangedAction.Reset:
                     OnSourceReset();
-                    break;
+                    return;
                 default:
                     throw new NotSupportedException($"Collection {e.Action} not supported.");
             }
 
             // Adjust the paths of any child nodes.
-            if (_children?.Count > 0 && shiftDelta != 0)
+            if (_children is not null)
             {
-                for (var i = shiftStartIndex; i < _children.Count; ++i)
+                if (e.Action == NotifyCollectionChangedAction.Move && moveCount > 0 && moveInsertIndex >= 0)
                 {
-                    var child = _children[i];
-
-                    if (shiftDelta < 1 && i >= shiftStartIndex && i < shiftStartIndex - shiftDelta)
-                    {
-                        child?.AncestorRemoved(ref removed);
-                    }
-                    else
-                    {
-                        child?.AncestorIndexChanged(Path, shiftStartIndex, shiftDelta);
-                        indexesChanged = true;
-                    }
+                    AdjustChildrenForMove(moveOldIndex, moveInsertIndex, moveCount);
                 }
+                else if (shiftDelta != 0 && _children.Count > 0)
+                {
+                    for (var i = shiftStartIndex; i < _children.Count; ++i)
+                    {
+                        var child = _children[i];
 
-                if (shiftDelta > 0)
-                    _children.InsertMany(shiftStartIndex, null, shiftDelta);
-                else
-                    _children.RemoveRange(shiftStartIndex, -shiftDelta);
+                        if (shiftDelta < 1 && i >= shiftStartIndex && i < shiftStartIndex - shiftDelta)
+                        {
+                            child?.AncestorRemoved(ref removed);
+                        }
+                        else
+                        {
+                            child?.AncestorIndexChanged(Path, shiftStartIndex, shiftDelta);
+                            indexesChanged = true;
+                        }
+                    }
+
+                    if (shiftDelta > 0)
+                        _children.InsertMany(shiftStartIndex, null, shiftDelta);
+                    else
+                        _children.RemoveRange(shiftStartIndex, -shiftDelta);
+                }
             }
 
             if (shiftDelta != 0 || removed?.Count > 0)
@@ -203,6 +265,19 @@ namespace Avalonia.Controls.Selection
         protected override void OnSourceCollectionChangeFinished()
         {
             _owner.OnNodeCollectionChangeFinished();
+        }
+
+        private protected override void OnSelectionMoved(
+            int oldStartIndex,
+            int newStartIndex,
+            IReadOnlyList<IndexRange> oldSelectedRanges,
+            IReadOnlyList<IndexRange> newSelectedRanges,
+            IReadOnlyList<T?> movedItems)
+        {
+            _ = oldStartIndex;
+            _ = newStartIndex;
+
+            _owner.OnNodeSelectionMoved(Path, oldSelectedRanges, newSelectedRanges, movedItems);
         }
 
         protected override void OnSourceReset()
@@ -271,6 +346,38 @@ namespace Avalonia.Controls.Selection
             }
 
             Source = null;
+        }
+
+        private void AdjustChildrenForMove(int oldIndex, int newIndex, int count)
+        {
+            if (_children is null || count <= 0)
+                return;
+
+            if (oldIndex < 0 || oldIndex >= _children.Count)
+                return;
+
+            var available = _children.Count - oldIndex;
+            count = Math.Min(count, available);
+
+            if (count <= 0)
+                return;
+
+            var moving = _children.GetRange(oldIndex, count);
+            _children.RemoveRange(oldIndex, count);
+
+            var insertIndex = Math.Min(newIndex, _children.Count);
+            _children.InsertRange(insertIndex, moving);
+
+            var start = Math.Min(oldIndex, insertIndex);
+            var end = Math.Min(_children.Count, Math.Max(oldIndex, insertIndex) + count);
+
+            for (var i = start; i < end; ++i)
+            {
+                if (_children[i] is TreeSelectionNode<T> child)
+                {
+                    child.Path = Path.Append(i);
+                }
+            }
         }
 
         private static void Resize(List<TreeSelectionNode<T>?> list, int count)
