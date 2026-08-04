@@ -293,13 +293,19 @@ namespace Avalonia.Controls.Models.TreeDataGrid
                 // the star width for the non-constrained columns.
                 if (starWidthWasConstrained && DoubleUtils.GreaterThan(availableSpace, 0))
                 {
+                    var initialAvailableSpace = availableSpace;
+                    var initialTotalStars = totalStars;
+
                     for (var i = 0; i < Count; ++i)
                     {
                         var column = (IUpdateColumnLayout)this[i];
 
                         if (column.StarWidthWasConstrained)
                         {
-                            availableSpace -= column.ActualWidth;
+                            availableSpace -= GetConstrainedStarWidth(
+                                column,
+                                initialAvailableSpace,
+                                initialTotalStars);
                             totalStars -= column.Width.Value;
                         }
                     }
@@ -337,6 +343,15 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         }
 
         private static double NotNaN(double v) => double.IsNaN(v) ? 0 : v;
+
+        private static double GetConstrainedStarWidth(
+            IUpdateColumnLayout column,
+            double availableSpace,
+            double totalStars)
+        {
+            var width = (availableSpace / totalStars) * column.Width.Value;
+            return Math.Min(Math.Max(width, column.MinActualWidth), column.MaxActualWidth);
+        }
 
         private static bool WidthsEqual(double x, double y) =>
             x.Equals(y) || DoubleUtils.AreClose(x, y);
