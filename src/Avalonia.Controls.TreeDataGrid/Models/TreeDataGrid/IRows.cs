@@ -55,4 +55,14 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         /// <param name="rowIndex">The index of the cell's row.</param>
         void UnrealizeCell(ICell cell, int columnIndex, int rowIndex);
     }
+
+    internal interface IReusableCellRows
+    {
+        bool TryReuseCell(IColumn column, ICell cell, int rowIndex);
+    }
+
+    internal interface IReusableCellColumn<TModel>
+    {
+        bool TryReuseCell(ICell cell, IRow<TModel> row);
+    }
 }

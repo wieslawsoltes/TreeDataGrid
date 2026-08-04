@@ -25,7 +25,9 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         public BeginEditGestures EditGestures => _options?.BeginEditGestures ?? BeginEditGestures.Default;
         public Func<Control, IDataTemplate> GetCellTemplate { get; }
         public Func<Control, IDataTemplate>? GetCellEditingTemplate { get; }
-        public object? Value { get; }
+        public object? Value { get; private set; }
+
+        internal void SetValue(object? value) => Value = value;
 
         void IEditableObject.BeginEdit() => (Value as IEditableObject)?.BeginEdit();
         void IEditableObject.CancelEdit() => (Value as IEditableObject)?.CancelEdit();

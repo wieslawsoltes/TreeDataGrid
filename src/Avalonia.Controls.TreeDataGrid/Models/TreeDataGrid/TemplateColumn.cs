@@ -10,8 +10,8 @@ namespace Avalonia.Controls.Models.TreeDataGrid
     /// template.
     /// </summary>
     /// <typeparam name="TModel">The model type.</typeparam>
-    /// <typeparam name="TValue">The column data type.</typeparam>
-    public class TemplateColumn<TModel> : ColumnBase<TModel>, ITextSearchableColumn<TModel>
+    public class TemplateColumn<TModel> : ColumnBase<TModel>, ITextSearchableColumn<TModel>,
+        IReusableCellColumn<TModel>
     {
         private readonly Func<Control, IDataTemplate> _getCellTemplate;
         private readonly Func<Control, IDataTemplate>? _getEditingCellTemplate;
@@ -112,5 +112,16 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         }
 
         string? ITextSearchableColumn<TModel>.SelectValue(TModel model) => Options.TextSearchValueSelector?.Invoke(model);
+
+        bool IReusableCellColumn<TModel>.TryReuseCell(ICell cell, IRow<TModel> row)
+        {
+            if (cell is TemplateCell templateCell)
+            {
+                templateCell.SetValue(row.Model);
+                return true;
+            }
+
+            return false;
+        }
     }
 }

@@ -6,6 +6,7 @@ using Avalonia.Collections;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Selection;
+using Avalonia.Controls.Templates;
 using Avalonia.Headless.XUnit;
 using Avalonia.Styling;
 using Avalonia.Threading;
@@ -142,7 +143,7 @@ namespace Avalonia.Controls.TreeDataGridTests
         }
 
         [AvaloniaFact(Timeout = 10000)]
-        public void Full_Row_Scroll_Reuses_Row_And_Cell_Controls_With_New_Models()
+        public void Full_Row_Scroll_Reuses_Row_Cell_And_Binding_Instances()
         {
             var (target, items) = CreateTarget();
             var row = Assert.IsType<TreeDataGridRow>(target.RowsPresenter!.TryGetElement(0));
@@ -157,13 +158,59 @@ namespace Avalonia.Controls.TreeDataGridTests
             Assert.Same(items[10], rebound.DataContext);
             Assert.Equal(cells, rebound.CellsPresenter!.RealizedElements);
             Assert.All(cells, cell => Assert.Equal(10, cell.RowIndex));
-            Assert.All(cells.Zip(models), pair => Assert.NotSame(pair.Second, pair.First.Model));
+            Assert.All(cells.Zip(models), pair => Assert.Same(pair.Second, pair.First.Model));
+
+            var titleCell = Assert.IsAssignableFrom<ITextCell>(cells[1].Model);
+            items[0].Title = "Old row changed";
+            Assert.Equal("Item 10", titleCell.Text);
+            items[10].Title = "Rebound row changed";
+            Assert.Equal("Rebound row changed", titleCell.Text);
+            titleCell.Text = "Written through rebound cell";
+            Assert.Equal("Written through rebound cell", items[10].Title);
 
             for (var i = 0; i < items.Count; ++i)
             {
                 var expected = i > 0 && i <= 10 ? 2 : 0;
                 Assert.Equal(expected, items[i].PropertyChangedSubscriberCount());
             }
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Full_Row_Scroll_Reuses_CheckBox_And_Template_Cell_Models()
+        {
+            var columns = new IColumn<Model>[]
+            {
+                new CheckBoxColumn<Model>("Active", x => x.IsActive, (x, v) => x.IsActive = v),
+                new TemplateColumn<Model>(
+                    "Template",
+                    new FuncDataTemplate<Model>((_, _) => new Border(), supportsRecycling: true)),
+            };
+            var (target, items) = CreateTarget(columns: columns);
+            var row = Assert.IsType<TreeDataGridRow>(target.RowsPresenter!.TryGetElement(0));
+            var cells = row.CellsPresenter!.RealizedElements.Cast<TreeDataGridCell>().ToList();
+            var checkBoxModel = Assert.IsType<CheckBoxCell>(cells[0].Model);
+            var templateModel = Assert.IsType<TemplateCell>(cells[1].Model);
+
+            target.Scroll!.Offset = new Vector(0, 10);
+            Layout(target);
+
+            var rebound = Assert.IsType<TreeDataGridRow>(target.RowsPresenter.TryGetElement(10));
+            Assert.Same(row, rebound);
+            Assert.Same(checkBoxModel, Assert.IsType<TreeDataGridCheckBoxCell>(
+                rebound.CellsPresenter!.RealizedElements[0]).Model);
+            Assert.Same(templateModel, Assert.IsType<TreeDataGridTemplateCell>(
+                rebound.CellsPresenter.RealizedElements[1]).Model);
+            Assert.Same(items[10], templateModel.Value);
+            Assert.Same(items[10], Assert.IsType<TreeDataGridTemplateCell>(
+                rebound.CellsPresenter.RealizedElements[1]).Content);
+
+            items[0].IsActive = true;
+            Assert.False(checkBoxModel.Value);
+            items[10].IsActive = true;
+            Assert.True(checkBoxModel.Value);
+            checkBoxModel.Value = false;
+            Assert.False(items[10].IsActive);
+            Assert.True(items[0].IsActive);
         }
 
         [AvaloniaFact(Timeout = 10000)]
@@ -1097,9 +1144,16 @@ namespace Avalonia.Controls.TreeDataGridTests
 
         private class Model : NotifyingBase
         {
+            private bool _isActive;
             private string? _title;
 
             public int Id { get; set; }
+            public bool IsActive
+            {
+                get => _isActive;
+                set => RaiseAndSetIfChanged(ref _isActive, value);
+            }
+
             public string? Title
             {
                 get => _title;

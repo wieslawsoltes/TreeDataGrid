@@ -9,6 +9,7 @@ namespace Avalonia.Controls.Models.TreeDataGrid
 {
     public class HierarchicalRows<TModel> : ReadOnlyListBase<HierarchicalRow<TModel>>,
         IRows,
+        IReusableCellRows,
         IDisposable,
         IExpanderRowController<TModel>
     {
@@ -172,6 +173,12 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         public void UnrealizeCell(ICell cell, int rowIndex, int columnIndex)
         {
             (cell as IDisposable)?.Dispose();
+        }
+
+        bool IReusableCellRows.TryReuseCell(IColumn column, ICell cell, int rowIndex)
+        {
+            return column is IReusableCellColumn<TModel> reusable &&
+                reusable.TryReuseCell(cell, this[rowIndex]);
         }
 
         public int GetParentRowIndex(IndexPath modelIndex)

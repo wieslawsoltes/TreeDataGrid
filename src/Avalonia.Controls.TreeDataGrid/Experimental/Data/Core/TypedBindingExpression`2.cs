@@ -9,6 +9,11 @@ using Avalonia.Utilities;
 
 namespace Avalonia.Experimental.Data.Core
 {
+    internal interface IRetargetableTypedBindingExpression
+    {
+        bool TrySetRoot(object? value);
+    }
+
     /// <summary>
     /// A binding expression which uses delegates to read and write a bound value.
     /// </summary>
@@ -20,7 +25,8 @@ namespace Avalonia.Experimental.Data.Core
     /// </remarks>
     public class TypedBindingExpression<TIn, TOut> : LightweightObservableBase<BindingValue<TOut>>,
         ISubject<BindingValue<TOut>>,
-        IDescription
+        IDescription,
+        IRetargetableTypedBindingExpression
             where TIn : class
     {
         private readonly IObservable<TIn?> _rootSource;
@@ -88,6 +94,15 @@ namespace Avalonia.Experimental.Data.Core
         {
         }
 
+        bool IRetargetableTypedBindingExpression.TrySetRoot(object? value)
+        {
+            if (value is not null && value is not TIn)
+                return false;
+
+            RootChanged((TIn?)value);
+            return true;
+        }
+
         protected override void Initialize()
         {
             _flags &= ~Flags.RootHasFired;
@@ -120,9 +135,22 @@ namespace Avalonia.Experimental.Data.Core
 
         private void RootChanged(TIn? value)
         {
-            _root = value is null ? null : new WeakReference<TIn>(value);
-            _flags |= Flags.RootHasFired;
             StopListeningToChain(0);
+
+            if (value is null)
+            {
+                _root = null;
+            }
+            else if (_root is null)
+            {
+                _root = new WeakReference<TIn>(value);
+            }
+            else
+            {
+                _root.SetTarget(value);
+            }
+
+            _flags |= Flags.RootHasFired;
             ListenToChain(0);
             PublishValue();
         }
@@ -141,7 +169,10 @@ namespace Avalonia.Experimental.Data.Core
 
                         if (o != last)
                         {
-                            _chain[i].Value = new WeakReference<object>(o);
+                            if (_chain[i].Value is { } value)
+                                value.SetTarget(o);
+                            else
+                                _chain[i].Value = new WeakReference<object>(o);
 
                             if (SubscribeToChanges(o))
                             {
@@ -166,7 +197,7 @@ namespace Avalonia.Experimental.Data.Core
             if ((_flags & Flags.ListeningToChain) == 0)
                 return;
 
-            if (_chain != null && _root != null && _root.TryGetTarget(out _))
+            if (_chain != null)
             {
                 for (var i = from; i < _chain.Length; ++i)
                 {

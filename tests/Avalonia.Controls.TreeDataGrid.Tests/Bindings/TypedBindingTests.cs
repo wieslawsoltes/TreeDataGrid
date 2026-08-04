@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Avalonia.Data;
 using Avalonia.Experimental.Data;
+using Avalonia.Experimental.Data.Core;
 using Avalonia.Headless.XUnit;
 using Xunit;
 
@@ -11,6 +12,31 @@ namespace Avalonia.Controls.TreeDataGridTests.Bindings;
 
 public class TypedBindingTests
 {
+    [AvaloniaFact]
+    public void Retargeted_Binding_Unsubscribes_Old_Root_And_Tracks_New_Root()
+    {
+        var first = new TestViewModel { Name = "First" };
+        var second = new TestViewModel { Name = "Second" };
+        var target = new TestTarget();
+        var expression = TypedBinding<TestViewModel>.OneWay(vm => vm.Name).Instance(first);
+
+        target.Bind(TestTarget.TextProperty, expression);
+        var retargetable = Assert.IsAssignableFrom<IRetargetableTypedBindingExpression>(expression);
+
+        Assert.True(retargetable.TrySetRoot(second));
+        Assert.Equal("Second", target.Text);
+
+        first.Name = "Old root changed";
+        Assert.Equal("Second", target.Text);
+
+        second.Name = "New root changed";
+        Assert.Equal("New root changed", target.Text);
+
+        Assert.True(retargetable.TrySetRoot(null));
+        second.Name = "Detached root changed";
+        Assert.Null(target.Text);
+    }
+
     [AvaloniaFact]
     public void OneWay_Delegate_Overload_Uses_Precompiled_Delegates()
     {

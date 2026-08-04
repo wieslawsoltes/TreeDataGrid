@@ -15,7 +15,8 @@ namespace Avalonia.Controls.Models.TreeDataGrid
     /// In a flat grid where rows cannot be resized, it is not necessary to persist any information
     /// about rows; the same row object can be updated and reused when a new row is requested.
     /// </remarks>
-    public class AnonymousSortableRows<TModel> : ReadOnlyListBase<IRow<TModel>>, IRows, IDisposable
+    public class AnonymousSortableRows<TModel> : ReadOnlyListBase<IRow<TModel>>, IRows,
+        IReusableCellRows, IDisposable
     {
         private readonly AnonymousRow<TModel> _row;
         private readonly Comparison<int> _compareItemsByIndex;
@@ -117,6 +118,12 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         public void UnrealizeCell(ICell cell, int columnIndex, int rowIndex)
         {
             (cell as IDisposable)?.Dispose();
+        }
+
+        bool IReusableCellRows.TryReuseCell(IColumn column, ICell cell, int rowIndex)
+        {
+            return column is IReusableCellColumn<TModel> reusable &&
+                reusable.TryReuseCell(cell, this[rowIndex]);
         }
 
         IEnumerator<IRow> IEnumerable<IRow>.GetEnumerator() => GetEnumerator();
