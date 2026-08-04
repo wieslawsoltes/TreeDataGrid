@@ -22,10 +22,10 @@ public class VirtualizationBenchmarks
 {
     private const int VerticalScrollOperations = 10_000;
     private const int StationaryLayoutOperations = 25_000;
-    private const int HorizontalScrollOperations = 1_000;
-    private const int CollectionEditOperations = 300;
-    private const int CollectionMoveOperations = 1_000;
-    private const int DetachReattachOperations = 100;
+    private const int HorizontalScrollOperations = 2_500;
+    private const int CollectionEditOperations = 1_500;
+    private const int CollectionMoveOperations = 6_000;
+    private const int DetachReattachOperations = 200;
 
     private AppBuilder? _appBuilder;
     private Window? _window;
