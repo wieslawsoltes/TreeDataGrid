@@ -15,7 +15,8 @@ namespace Avalonia.Controls.Models.TreeDataGrid
     public class HierarchicalExpanderColumn<TModel> : NotifyingBase,
         IColumn<TModel>,
         IExpanderColumn<TModel>,
-        IUpdateColumnLayout
+        IUpdateColumnLayout,
+        IColumnMeasurementOptions
             where TModel : class
     {
         private readonly IColumn<TModel> _inner;
@@ -88,6 +89,9 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         double IUpdateColumnLayout.MinActualWidth => ((IUpdateColumnLayout)_inner).MinActualWidth;
         double IUpdateColumnLayout.MaxActualWidth => ((IUpdateColumnLayout)_inner).MaxActualWidth;
         bool IUpdateColumnLayout.StarWidthWasConstrained => ((IUpdateColumnLayout)_inner).StarWidthWasConstrained;
+        bool IColumnMeasurementOptions.RequiresUnconstrainedWidthMeasurement =>
+            _inner is not IColumnMeasurementOptions options ||
+            options.RequiresUnconstrainedWidthMeasurement;
 
         public ICell CreateCell(IRow<TModel> row)
         {
