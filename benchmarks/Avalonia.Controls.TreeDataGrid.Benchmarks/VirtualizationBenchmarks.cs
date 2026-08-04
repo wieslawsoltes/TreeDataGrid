@@ -158,6 +158,47 @@ public class VirtualizationBenchmarks
         return _grid!.RowsPresenter!.GetRealizedElements().Count();
     }
 
+    [IterationSetup(Target = nameof(VerticalJitterScrolls))]
+    public void SetupVerticalJitterScrolls() => CreateGrid(rowCount: 10_000, columnCount: 12);
+
+    [IterationCleanup(Target = nameof(VerticalJitterScrolls))]
+    public void CleanupVerticalJitterScrolls() => CleanupGrid();
+
+    [Benchmark(OperationsPerInvoke = VerticalScrollOperations)]
+    public int VerticalJitterScrolls()
+    {
+        var scroll = _scroll!;
+
+        for (var i = 0; i < VerticalScrollOperations; ++i)
+        {
+            scroll.Offset = new Vector(0, (i & 1) == 0 ? 100 : 0);
+            _grid!.UpdateLayout();
+        }
+
+        return _grid!.RowsPresenter!.GetRealizedElements().Count();
+    }
+
+    [IterationSetup(Target = nameof(VerticalBufferedJitterScrolls))]
+    public void SetupVerticalBufferedJitterScrolls() =>
+        CreateGrid(rowCount: 10_000, columnCount: 12, cacheLength: 0.1);
+
+    [IterationCleanup(Target = nameof(VerticalBufferedJitterScrolls))]
+    public void CleanupVerticalBufferedJitterScrolls() => CleanupGrid();
+
+    [Benchmark(OperationsPerInvoke = VerticalScrollOperations)]
+    public int VerticalBufferedJitterScrolls()
+    {
+        var scroll = _scroll!;
+
+        for (var i = 0; i < VerticalScrollOperations; ++i)
+        {
+            scroll.Offset = new Vector(0, (i & 1) == 0 ? 100 : 0);
+            _grid!.UpdateLayout();
+        }
+
+        return _grid!.RowsPresenter!.GetRealizedElements().Count();
+    }
+
     [IterationSetup(Target = nameof(HorizontalSmallScrolls))]
     public void SetupHorizontalSmallScrolls() => CreateGrid(rowCount: 1_000, columnCount: 200);
 
