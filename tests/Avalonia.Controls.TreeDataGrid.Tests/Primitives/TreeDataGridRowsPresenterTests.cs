@@ -87,6 +87,25 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void CacheLength_Buffers_Rows_Across_Small_Scrolls()
+        {
+            var (target, scroll, _) = CreateTarget(cacheLength: 0.5);
+            var initialRows = target.RealizedElements.ToList();
+
+            AssertRowIndexes(target, 0, 20);
+
+            scroll.Offset = new Vector(0, 40);
+            Layout(target);
+
+            Assert.Equal(initialRows, target.RealizedElements);
+
+            scroll.Offset = new Vector(0, 110);
+            Layout(target);
+
+            AssertRowIndexes(target, 6, 20);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void Scrolls_Down_More_Than_A_Page()
         {
             var (target, scroll, _) = CreateTarget();
@@ -833,7 +852,8 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
             IColumns? columns = null,
             List<IStyle>? additionalStyles = null,
             int itemCount = 100,
-            Size? rootSize = null)
+            Size? rootSize = null,
+            double cacheLength = 0)
         {
             var items = new AvaloniaList<Model>(Enumerable.Range(0, itemCount).Select(x =>
                 new Model
@@ -847,6 +867,7 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
 
             var target = new TreeDataGridRowsPresenter
             {
+                CacheLength = cacheLength,
                 ElementFactory = new TreeDataGridElementFactory(),
                 Items = rows,
                 Columns = columns,

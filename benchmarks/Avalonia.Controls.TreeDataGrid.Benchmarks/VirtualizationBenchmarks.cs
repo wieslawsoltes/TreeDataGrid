@@ -64,6 +64,27 @@ public class VirtualizationBenchmarks
         return _grid!.RowsPresenter!.GetRealizedElements().Count();
     }
 
+    [IterationSetup(Target = nameof(VerticalBufferedSmallScrolls))]
+    public void SetupVerticalBufferedSmallScrolls() =>
+        CreateGrid(rowCount: 10_000, columnCount: 12, cacheLength: 0.1);
+
+    [IterationCleanup(Target = nameof(VerticalBufferedSmallScrolls))]
+    public void CleanupVerticalBufferedSmallScrolls() => CleanupGrid();
+
+    [Benchmark]
+    public int VerticalBufferedSmallScrolls()
+    {
+        var scroll = _scroll!;
+
+        for (var i = 1; i <= 500; ++i)
+        {
+            scroll.Offset = new Vector(0, i);
+            _grid!.UpdateLayout();
+        }
+
+        return _grid!.RowsPresenter!.GetRealizedElements().Count();
+    }
+
     [IterationSetup(Target = nameof(HorizontalSmallScrolls))]
     public void SetupHorizontalSmallScrolls() => CreateGrid(rowCount: 1_000, columnCount: 200);
 
@@ -129,7 +150,7 @@ public class VirtualizationBenchmarks
         return grid.RowsPresenter!.GetRealizedElements().Count();
     }
 
-    private void CreateGrid(int rowCount, int columnCount)
+    private void CreateGrid(int rowCount, int columnCount, double cacheLength = 0)
     {
         _items = new AvaloniaList<RowModel>(Enumerable.Range(0, rowCount)
             .Select(x => new RowModel(x, $"Item {x}")));
@@ -154,7 +175,7 @@ public class VirtualizationBenchmarks
         _grid = new TreeDataGridControl
         {
             Source = source,
-            Template = TreeDataGridTemplate(),
+            Template = TreeDataGridTemplate(cacheLength),
         };
 
         _window = new Window
@@ -191,7 +212,7 @@ public class VirtualizationBenchmarks
         _items = null;
     }
 
-    private static IControlTemplate TreeDataGridTemplate()
+    private static IControlTemplate TreeDataGridTemplate(double cacheLength)
     {
         return new FuncControlTemplate<TreeDataGridControl>((x, ns) =>
             new ScrollViewer
@@ -203,6 +224,7 @@ public class VirtualizationBenchmarks
                 Content = new TreeDataGridRowsPresenter
                 {
                     Name = "PART_RowsPresenter",
+                    CacheLength = cacheLength,
                     [!TreeDataGridRowsPresenter.ColumnsProperty] = x[!TreeDataGridControl.ColumnsProperty],
                     [!TreeDataGridRowsPresenter.ElementFactoryProperty] = x[!TreeDataGridControl.ElementFactoryProperty],
                     [!TreeDataGridRowsPresenter.ItemsProperty] = x[!TreeDataGridControl.RowsProperty],
