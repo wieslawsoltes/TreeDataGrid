@@ -145,8 +145,9 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
 
             var indexes = GetRealizedRowIndexes(target);
 
-            // The affected suffix is recycled so it cannot retain stale data.
-            Assert.Equal(new[] { 0, 1 }, indexes);
+            // The inserted slot is unrealized, while existing rows retain their items at their
+            // shifted indexes until the next measure fills the slot and trims the tail.
+            Assert.Equal(new[] { 0, 1, -1 }.Concat(Enumerable.Range(3, 8)), indexes);
             Layout(target);
 
             indexes = GetRealizedRowIndexes(target);
@@ -166,7 +167,7 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
 
             var indexes = GetRealizedRowIndexes(target);
 
-            Assert.Equal(new[] { 0, 1 }, indexes);
+            Assert.Equal(Enumerable.Range(0, 9), indexes);
             Layout(target);
 
             indexes = GetRealizedRowIndexes(target);
@@ -175,6 +176,98 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
             Assert.Equal(
                 items.Take(10),
                 target.RealizedElements.Cast<TreeDataGridRow>().Select(x => x.DataContext));
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Insert_Preserves_Realized_Rows_Whose_Items_Only_Changed_Index()
+        {
+            var (target, _, items) = CreateTarget();
+            var rows = target.RealizedElements.Cast<TreeDataGridRow>().ToList();
+            var shiftedItem = rows[2].DataContext;
+
+            items.Insert(2, new Model { Id = 100, Title = "New" });
+
+            Assert.Same(rows[2], target.TryGetElement(3));
+            Assert.Same(shiftedItem, rows[2].DataContext);
+            Assert.Equal(3, rows[2].RowIndex);
+
+            Layout(target);
+
+            Assert.Same(rows[0], target.TryGetElement(0));
+            Assert.Same(rows[1], target.TryGetElement(1));
+            for (var oldIndex = 2; oldIndex < 9; ++oldIndex)
+                Assert.Same(rows[oldIndex], target.TryGetElement(oldIndex + 1));
+            AssertRealizedRowsAreConsistent(target, items);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Remove_Preserves_Realized_Rows_Whose_Items_Only_Changed_Index()
+        {
+            var (target, _, items) = CreateTarget();
+            var rows = target.RealizedElements.Cast<TreeDataGridRow>().ToList();
+            var shiftedItem = rows[3].DataContext;
+
+            items.RemoveAt(2);
+
+            Assert.Same(rows[3], target.TryGetElement(2));
+            Assert.Same(shiftedItem, rows[3].DataContext);
+            Assert.Equal(2, rows[3].RowIndex);
+
+            Layout(target);
+
+            Assert.Same(rows[0], target.TryGetElement(0));
+            Assert.Same(rows[1], target.TryGetElement(1));
+            for (var oldIndex = 3; oldIndex < 10; ++oldIndex)
+                Assert.Same(rows[oldIndex], target.TryGetElement(oldIndex - 1));
+            AssertRealizedRowsAreConsistent(target, items);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Collection_Edit_Remains_Consistent_Across_Recycling_Scrolls()
+        {
+            var (target, scroll, items) = CreateTarget();
+
+            items.Insert(2, new Model { Id = -1, Title = "Inserted" });
+            Layout(target);
+            AssertRealizedRowsAreConsistent(target, items);
+
+            scroll.Offset = new Vector(0, 100);
+            Layout(target);
+            AssertRealizedRowsAreConsistent(target, items);
+
+            items.RemoveAt(2);
+            Layout(target);
+            AssertRealizedRowsAreConsistent(target, items);
+
+            scroll.Offset = default;
+            Layout(target);
+            AssertRealizedRowsAreConsistent(target, items);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Collection_Edit_Preserves_Focus_On_A_Shifted_Visible_Row()
+        {
+            var (target, _, items) = CreateTarget();
+            var focusedRow = target.RealizedElements[5]!;
+            var focusedItem = focusedRow.DataContext;
+
+            focusedRow.Focusable = true;
+            focusedRow.Focus();
+            Assert.True(focusedRow.IsKeyboardFocusWithin);
+
+            items.Insert(2, new Model { Id = -1, Title = "Inserted" });
+            Layout(target);
+
+            Assert.Same(focusedRow, target.TryGetElement(6));
+            Assert.Same(focusedItem, focusedRow.DataContext);
+            Assert.True(focusedRow.IsKeyboardFocusWithin);
+
+            items.RemoveAt(2);
+            Layout(target);
+
+            Assert.Same(focusedRow, target.TryGetElement(5));
+            Assert.Same(focusedItem, focusedRow.DataContext);
+            Assert.True(focusedRow.IsKeyboardFocusWithin);
         }
 
         [AvaloniaFact(Timeout = 10000)]
@@ -311,22 +404,25 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
             Assert.Equal(10, target.RealizedElements.Count);
 
             var item = items[0];
+            var preservedRows = target.RealizedElements.Skip(1).ToList();
             items.RemoveAt(0);
 
             var indexes = GetRealizedRowIndexes(target);
 
-            Assert.Empty(indexes);
+            Assert.Equal(Enumerable.Range(0, 9), indexes);
+            Assert.Equal(preservedRows, target.RealizedElements);
 
             items.Insert(0, item);
 
             indexes = GetRealizedRowIndexes(target);
-            Assert.Empty(indexes);
+            Assert.Equal(new[] { -1 }.Concat(Enumerable.Range(1, 9)), indexes);
             Layout(target);
 
             indexes = GetRealizedRowIndexes(target);
 
             Assert.Equal(Enumerable.Range(0, 10), indexes);
             Assert.Same(item, target.RealizedElements[0]!.DataContext);
+            Assert.Equal(preservedRows, target.RealizedElements.Skip(1));
         }
 
         [AvaloniaFact(Timeout = 10000)]
@@ -846,6 +942,27 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
                 .Cast<TreeDataGridRow?>()
                 .Select(x => x?.RowIndex ?? -1)
                 .ToList();
+        }
+
+        private static void AssertRealizedRowsAreConsistent(
+            TreeDataGridRowsPresenter target,
+            IReadOnlyList<Model> items)
+        {
+            var rows = target.RealizedElements.Cast<TreeDataGridRow>().ToList();
+            Assert.Equal(rows.Count, rows.Select(x => x.RowIndex).Distinct().Count());
+
+            foreach (var row in rows)
+            {
+                Assert.InRange(row.RowIndex, 0, items.Count - 1);
+                Assert.Same(items[row.RowIndex], row.DataContext);
+                Assert.True(row.IsVisible);
+                Assert.Contains(row, target.GetVisualChildren());
+                Assert.Contains(row, target.GetLogicalChildren());
+            }
+
+            Assert.Equal(
+                rows.OrderBy(x => x.RowIndex),
+                target.GetVisualChildren().Cast<TreeDataGridRow>().Where(x => x.IsVisible).OrderBy(x => x.RowIndex));
         }
 
         private static (TreeDataGridRowsPresenter, ScrollViewer, AvaloniaList<Model>) CreateTarget(
