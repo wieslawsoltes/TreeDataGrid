@@ -124,6 +124,89 @@ namespace Avalonia.Controls.TreeDataGridTests.Models
             Assert.Equal(1, raised);
         }
 
+        [AvaloniaFact(Timeout = 10000)]
+        public void Clean_Commit_Does_Not_Suppress_Later_Measurement_And_Viewport_Changes()
+        {
+            var starColumn = new TextColumn<Model, string?>(
+                null,
+                x => x.Country,
+                new GridLength(1, GridUnitType.Star));
+            var target = new ColumnList<Model>
+            {
+                new TextColumn<Model, string?>(
+                    null,
+                    x => x.Name,
+                    new GridLength(50, GridUnitType.Pixel)),
+                new TextColumn<Model, string?>(null, x => x.Country, GridLength.Auto),
+                starColumn,
+            };
+
+            target.ViewportChanged(new Rect(0, 0, 300, 500));
+            target.CellMeasured(0, 0, new Size(50, 10));
+            target.CellMeasured(1, 0, new Size(80, 10));
+            target.CellMeasured(2, 0, new Size(80, 10));
+            target.CommitActualWidths();
+            target.CommitActualWidths();
+
+            Assert.Equal(50, target[0].ActualWidth);
+            Assert.Equal(80, target[1].ActualWidth);
+            Assert.Equal(170, target[2].ActualWidth);
+
+            target.CellMeasured(1, 1, new Size(100, 10));
+            target.CommitActualWidths();
+
+            Assert.Equal(100, target[1].ActualWidth);
+            Assert.Equal(150, target[2].ActualWidth);
+
+            target.CommitActualWidths();
+            target.ViewportChanged(new Rect(0, 0, 400, 500));
+
+            Assert.Equal(250, target[2].ActualWidth);
+
+            starColumn.Options.MinWidth = new GridLength(300, GridUnitType.Pixel);
+            target.CellMeasured(2, 1, new Size(100, 10));
+            target.CommitActualWidths();
+
+            Assert.Equal(300, target[2].ActualWidth);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Clean_Commit_Does_Not_Suppress_Later_Column_Collection_Changes()
+        {
+            var target = new ColumnList<Model>
+            {
+                new TextColumn<Model, string?>(
+                    null,
+                    x => x.Name,
+                    new GridLength(50, GridUnitType.Pixel)),
+                new TextColumn<Model, string?>(
+                    null,
+                    x => x.Country,
+                    new GridLength(1, GridUnitType.Star)),
+            };
+
+            target.ViewportChanged(new Rect(0, 0, 200, 500));
+            target.CellMeasured(0, 0, new Size(50, 10));
+            target.CellMeasured(1, 0, new Size(100, 10));
+            target.CommitActualWidths();
+            target.CommitActualWidths();
+
+            target.RemoveAt(0);
+            target.CommitActualWidths();
+            Assert.Equal(200, target[0].ActualWidth);
+
+            target.Insert(
+                0,
+                new TextColumn<Model, string?>(
+                    null,
+                    x => x.Name,
+                    new GridLength(100, GridUnitType.Pixel)));
+            target.CommitActualWidths();
+
+            Assert.Equal(100, target[0].ActualWidth);
+            Assert.Equal(100, target[1].ActualWidth);
+        }
+
         private class Model
         {
             public string? Name { get; set; }

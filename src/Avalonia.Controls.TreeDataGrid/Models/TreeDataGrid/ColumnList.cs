@@ -23,6 +23,8 @@ namespace Avalonia.Controls.Models.TreeDataGrid
     public class ColumnList<TModel> : NotifyingListBase<IColumn<TModel>>, IColumns, IColumnViewportEstimator
     {
         private bool _initialized;
+        private bool _columnWidthsDirty = true;
+        private readonly List<(double min, double max)> _committedConstraints = new();
         private double _viewportWidth;
 
         public event EventHandler? LayoutInvalidated;
@@ -37,7 +39,17 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         {
             var column = (IUpdateColumnLayout)this[columnIndex];
             _initialized = true;
-            return new Size(column.CellMeasured(size.Width, rowIndex), size.Height);
+            var measuredWidth = column.CellMeasured(size.Width, rowIndex);
+            var committed = _committedConstraints[columnIndex];
+
+            if (!WidthsEqual(measuredWidth, column.ActualWidth) ||
+                !WidthsEqual(committed.min, column.MinActualWidth) ||
+                !WidthsEqual(committed.max, column.MaxActualWidth))
+            {
+                _columnWidthsDirty = true;
+            }
+
+            return new Size(measuredWidth, size.Height);
         }
 
         public (int index, double x) GetColumnAt(double x)
@@ -184,6 +196,7 @@ namespace Avalonia.Controls.Models.TreeDataGrid
             if (width != column.Width)
             {
                 ((IUpdateColumnLayout)column).SetWidth(width);
+                _columnWidthsDirty = true;
                 LayoutInvalidated?.Invoke(this, EventArgs.Empty);
                 UpdateColumnSizes();
             }
@@ -194,6 +207,7 @@ namespace Avalonia.Controls.Models.TreeDataGrid
             if (!MathUtilities.AreClose(_viewportWidth, viewport.Width))
             {
                 _viewportWidth = viewport.Width;
+                _columnWidthsDirty = true;
                 if (_initialized)
                     UpdateColumnSizes();
             }
@@ -202,8 +216,40 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         IColumn IReadOnlyList<IColumn>.this[int index] => this[index];
         IEnumerator<IColumn> IEnumerable<IColumn>.GetEnumerator() => GetEnumerator();
 
+        protected override void ClearItems()
+        {
+            _columnWidthsDirty = true;
+            _committedConstraints.Clear();
+            base.ClearItems();
+        }
+
+        protected override void InsertItem(int index, IColumn<TModel> item)
+        {
+            _columnWidthsDirty = true;
+            _committedConstraints.Insert(index, (double.NaN, double.NaN));
+            base.InsertItem(index, item);
+        }
+
+        protected override void RemoveItem(int index)
+        {
+            _columnWidthsDirty = true;
+            _committedConstraints.RemoveAt(index);
+            base.RemoveItem(index);
+        }
+
+        protected override void SetItem(int index, IColumn<TModel> item)
+        {
+            _columnWidthsDirty = true;
+            _committedConstraints[index] = (double.NaN, double.NaN);
+            base.SetItem(index, item);
+        }
+
         private void UpdateColumnSizes()
         {
+            if (!_columnWidthsDirty)
+                return;
+
+            _columnWidthsDirty = false;
             var totalStars = 0.0;
             var availableSpace = _viewportWidth;
             var invalidated = false;
@@ -278,6 +324,12 @@ namespace Avalonia.Controls.Models.TreeDataGrid
                 }
             }
 
+            for (var i = 0; i < Count; ++i)
+            {
+                var column = (IUpdateColumnLayout)this[i];
+                _committedConstraints[i] = (column.MinActualWidth, column.MaxActualWidth);
+            }
+
             if (invalidated)
             {
                 LayoutInvalidated?.Invoke(this, EventArgs.Empty);
@@ -285,5 +337,8 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         }
 
         private static double NotNaN(double v) => double.IsNaN(v) ? 0 : v;
+
+        private static bool WidthsEqual(double x, double y) =>
+            x.Equals(y) || MathUtilities.AreClose(x, y);
     }
 }
