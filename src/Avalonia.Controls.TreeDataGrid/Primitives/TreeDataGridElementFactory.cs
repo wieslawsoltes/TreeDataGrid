@@ -17,12 +17,13 @@ namespace Avalonia.Controls.Primitives
             {
                 // First look for an element with the same parent.
                 for (var i = 0; i < elements.Count; i++)
-                { 
+                {
                     var e = elements[i];
 
                     if (e.Parent == parent)
                     {
-                        parent.InvalidateMeasure();
+                        if (parent.IsMeasureValid && !IsParentLayouting(parent))
+                            parent.InvalidateMeasure();
                         elements.RemoveAt(i);
                         return e;
                     }
@@ -36,7 +37,8 @@ namespace Avalonia.Controls.Primitives
 
                     if (e.Parent is null || parentPanel is not null)
                     {
-                        parent.InvalidateMeasure();
+                        if (parent.IsMeasureValid && !IsParentLayouting(parent))
+                            parent.InvalidateMeasure();
                         parentPanel?.Children.Remove(e);
                         Debug.Assert(e.Parent is null);
                         elements.RemoveAt(i);
@@ -93,6 +95,12 @@ namespace Avalonia.Controls.Primitives
         protected virtual string GetElementRecycleKey(Control element)
         {
             return element.GetType().FullName!;
+        }
+
+        private static bool IsParentLayouting(Control parent)
+        {
+            return parent is TreeDataGridPresenterBase<IRow> rows && rows.IsLayoutInProgress ||
+                   parent is TreeDataGridPresenterBase<IColumn> columns && columns.IsLayoutInProgress;
         }
     }
 }

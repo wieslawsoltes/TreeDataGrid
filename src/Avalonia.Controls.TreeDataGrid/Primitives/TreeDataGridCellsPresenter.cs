@@ -79,6 +79,17 @@ namespace Avalonia.Controls.Primitives
 
         protected override Size MeasureElement(int index, Control element, Size availableSize)
         {
+            // Optimization: Skip measure if the element was already measured with the same constraint
+            // and its measure is still valid. This significantly improves reattachment performance.
+            var previousConstraint = LayoutInformation.GetPreviousMeasureConstraint(element);
+            if (previousConstraint.HasValue &&
+                previousConstraint.Value == availableSize &&
+                element.IsMeasureValid &&
+                element.DesiredSize != default)
+            {
+                return ((IColumns)Items!).CellMeasured(index, RowIndex, element.DesiredSize);
+            }
+
             element.Measure(availableSize);
             return ((IColumns)Items!).CellMeasured(index, RowIndex, element.DesiredSize);
         }

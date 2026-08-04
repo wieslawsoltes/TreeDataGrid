@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Utils;
 
