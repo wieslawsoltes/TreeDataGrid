@@ -230,6 +230,23 @@ namespace Avalonia.Controls.Models.TreeDataGrid
             base.InsertItem(index, item);
         }
 
+        protected override void MoveItem(int oldIndex, int newIndex)
+        {
+            if ((uint)oldIndex >= (uint)Count)
+                throw new ArgumentOutOfRangeException(nameof(oldIndex));
+            if ((uint)newIndex >= (uint)Count)
+                throw new ArgumentOutOfRangeException(nameof(newIndex));
+
+            // Keep the constraint snapshots aligned before the collection-changed event is raised,
+            // so synchronous listeners always observe a consistent column list.
+            CheckReentrancy();
+            var constraints = _committedConstraints[oldIndex];
+            _committedConstraints.RemoveAt(oldIndex);
+            _committedConstraints.Insert(newIndex, constraints);
+            _columnWidthsDirty = true;
+            base.MoveItem(oldIndex, newIndex);
+        }
+
         protected override void RemoveItem(int index)
         {
             _columnWidthsDirty = true;
