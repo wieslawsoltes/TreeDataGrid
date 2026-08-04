@@ -58,7 +58,7 @@ namespace Avalonia.Controls.Primitives
         private bool _isDetaching;
 
         // Cached state for fast reattachment (fixes for tab switching performance)
-        private Size _cachedViewportSize;
+        private Rect _cachedViewport;
 
         public TreeDataGridPresenterBase()
         {
@@ -447,7 +447,7 @@ namespace Avalonia.Controls.Primitives
             base.OnAttachedToVisualTree(e);
             _isDetaching = false;
             _scrollViewer = this.FindAncestorOfType<ScrollViewer>();
-            Trace($"OnAttachedToVisualTree: Viewport={Viewport}, IsInvalid={Viewport == s_invalidViewport}, ItemCount={Items?.Count ?? 0}, CachedViewportSize={_cachedViewportSize}");
+            Trace($"OnAttachedToVisualTree: Viewport={Viewport}, IsInvalid={Viewport == s_invalidViewport}, ItemCount={Items?.Count ?? 0}, CachedViewport={_cachedViewport}");
             // Subscribing to this event adds a reference to 'this' in the layout manager.
             // so this must be unsubscribed to avoid memory leaks.
             EffectiveViewportChanged += OnEffectiveViewportChanged;
@@ -457,7 +457,7 @@ namespace Avalonia.Controls.Primitives
 
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
         {
-            Trace($"OnDetachedFromVisualTree: recycling {_realizedElements?.Count ?? 0} elements, Viewport={Viewport}, CachedViewportSize={_cachedViewportSize}");
+            Trace($"OnDetachedFromVisualTree: recycling {_realizedElements?.Count ?? 0} elements, Viewport={Viewport}, CachedViewport={_cachedViewport}");
             base.OnDetachedFromVisualTree(e);
             _isDetaching = true;
             _scrollViewer = null;
@@ -494,7 +494,7 @@ namespace Avalonia.Controls.Primitives
             // Cache the viewport size for use when estimating viewport on reattachment
             if (Viewport != s_invalidViewport && Viewport.Size != default)
             {
-                _cachedViewportSize = Viewport.Size;
+                _cachedViewport = Viewport;
             }
 
             _isWaitingForViewportUpdate = false;
@@ -711,17 +711,17 @@ namespace Avalonia.Controls.Primitives
 
         private Rect EstimateViewport(Size availableSize)
         {
-            // First, try to use cached viewport size from before detachment.
-            // This gives us an accurate estimate without walking the visual tree.
-            if (_cachedViewportSize != default)
-            {
-                Trace($"EstimateViewport: Using cached viewport size {_cachedViewportSize}");
-                return new Rect(0, 0, _cachedViewportSize.Width, _cachedViewportSize.Height);
-            }
-
             if (GetParentPresenterViewPort() is { } parentViewport && parentViewport != s_invalidViewport)
             {
                 return parentViewport;
+            }
+
+            // A parent presenter carries the current scroll offset and is therefore a safer
+            // estimate than a cached size. Use the cache only when no parent viewport exists.
+            if (_cachedViewport != default)
+            {
+                Trace($"EstimateViewport: Using cached viewport {_cachedViewport}");
+                return _cachedViewport;
             }
 
             var c = this.GetVisualParent();

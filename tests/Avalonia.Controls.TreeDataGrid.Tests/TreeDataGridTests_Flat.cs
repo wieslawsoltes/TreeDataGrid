@@ -421,7 +421,7 @@ namespace Avalonia.Controls.TreeDataGridTests
             Assert.Equal(30, columns[0].ActualWidth);
             Assert.Equal(50, columns[1].ActualWidth);
             Assert.Equal(50, columns[2].ActualWidth);
-            Assert.True(double.IsNaN(columns[3].ActualWidth));
+            Assert.Equal(50, columns[3].ActualWidth);
         }
 
         [AvaloniaFact(Timeout = 10000)]
@@ -442,11 +442,14 @@ namespace Avalonia.Controls.TreeDataGridTests
             var movedColumn = source.Columns[1];
             source.Columns.Remove(movedColumn);
 
+            var root = (TestWindow)TopLevel.GetTopLevel(target)!;
+            root.UpdateLayout();
+            Dispatcher.UIThread.RunJobs();
+
             AssertColumnIndexes(target, 0, 3);
 
             source.Columns.Add(movedColumn);
 
-            var root = (TestWindow)TopLevel.GetTopLevel(target)!;
             root.UpdateLayout();
             Dispatcher.UIThread.RunJobs();
 
@@ -541,7 +544,7 @@ namespace Avalonia.Controls.TreeDataGridTests
         }
 
         [AvaloniaFact(Timeout = 10000)]
-        public void Ensure_That_Falling_Back_To_The_RowPresenters_ViewPort_Instead_Of_Estimating_Prevents_A_Full_Realization_of_Columns()
+        public void Uses_Row_Presenter_Viewport_When_Replacing_Source_While_Scrolled()
         {
             var (target, items) = CreateTarget(headerPresenterSize: 10, columns:
             [
@@ -568,7 +571,8 @@ namespace Avalonia.Controls.TreeDataGridTests
             target.UpdateLayout();
             Dispatcher.UIThread.RunJobs();
 
-            // Replace the source, so that non  of the columns have an actual width.
+            // Replace the source. Unmeasured Auto columns reserve their minimum width while the
+            // retained row viewport keeps the realized controls at the scrolled position.
             var newSource = new FlatTreeDataGridSource<Model>(items)
             {
                 Columns =
@@ -595,10 +599,13 @@ namespace Avalonia.Controls.TreeDataGridTests
             target.Source = newSource;
             Dispatcher.UIThread.RunJobs();
 
-            Assert.True(double.IsNaN(newSource.Columns[1].ActualWidth));
-            Assert.True(double.IsNaN(newSource.Columns[2].ActualWidth));
-            Assert.True(double.IsNaN(newSource.Columns[3].ActualWidth));
-            Assert.True(double.IsNaN(newSource.Columns[4].ActualWidth));
+            Assert.Equal(30, newSource.Columns[1].ActualWidth);
+            Assert.Equal(30, newSource.Columns[2].ActualWidth);
+            Assert.Equal(30, newSource.Columns[3].ActualWidth);
+            Assert.Equal(30, newSource.Columns[4].ActualWidth);
+
+            for (var i = 5; i < 12; ++i)
+                Assert.Equal(30, newSource.Columns[i].ActualWidth);
 
             AssertRealizedCells(target, (columnHeaders, cells) =>
             {
