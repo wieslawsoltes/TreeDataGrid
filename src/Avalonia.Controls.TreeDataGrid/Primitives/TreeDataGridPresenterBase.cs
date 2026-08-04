@@ -48,6 +48,7 @@ namespace Avalonia.Controls.Primitives
         private bool _isInLayout;
         private bool _isWaitingForViewportUpdate;
         private IReadOnlyList<TItem>? _items;
+        private Rect _lastMeasureViewport = s_invalidViewport;
         private bool _isSubscribedToItemChanges;
         private RealizedStackElements? _measureElements;
         private RealizedStackElements? _realizedElements;
@@ -540,11 +541,11 @@ namespace Avalonia.Controls.Primitives
 
             var newViewportStart = vertical ? Viewport.Top : Viewport.Left;
             var newViewportEnd = vertical ? Viewport.Bottom : Viewport.Right;
-
             if (!DoubleUtils.AreClose(oldViewportStart, newViewportStart) ||
                 !DoubleUtils.AreClose(oldViewportEnd, newViewportEnd))
             {
-                InvalidateMeasure();
+                if (NeedsMeasureForViewportChange(_lastMeasureViewport, Viewport))
+                    InvalidateMeasure();
             }
         }
 
@@ -660,6 +661,8 @@ namespace Avalonia.Controls.Primitives
             // Try to work it out from an ancestor control.
             var viewportIsInvalid = Viewport == s_invalidViewport;
             var viewport = !viewportIsInvalid ? Viewport : EstimateViewport(availableSize);
+            viewport = GetMeasureViewport(viewport);
+            _lastMeasureViewport = viewport;
 
             Trace($"CalculateMeasureViewport: ViewportIsInvalid={viewportIsInvalid}, Viewport={Viewport}, EstimatedViewport={viewport}, AvailableSize={availableSize}, ItemCount={items.Count}");
 
@@ -756,6 +759,16 @@ namespace Avalonia.Controls.Primitives
         protected virtual Rect? GetParentPresenterViewPort()
         {
             return null;
+        }
+
+        protected virtual Rect GetMeasureViewport(Rect viewport)
+        {
+            return viewport;
+        }
+
+        protected virtual bool NeedsMeasureForViewportChange(Rect measureViewport, Rect viewport)
+        {
+            return true;
         }
 
         private Rect EstimateViewport(Size availableSize)

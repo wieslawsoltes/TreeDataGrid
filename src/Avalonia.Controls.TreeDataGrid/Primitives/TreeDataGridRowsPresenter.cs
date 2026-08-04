@@ -9,6 +9,11 @@ namespace Avalonia.Controls.Primitives
 {
     public class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>, IChildIndexProvider
     {
+        public static readonly StyledProperty<double> CacheLengthProperty =
+            AvaloniaProperty.Register<TreeDataGridRowsPresenter, double>(
+                nameof(CacheLength),
+                validate: value => value is >= 0 and <= 2);
+
         public static readonly DirectProperty<TreeDataGridRowsPresenter, IColumns?> ColumnsProperty =
             AvaloniaProperty.RegisterDirect<TreeDataGridRowsPresenter, IColumns?>(
                 nameof(Columns),
@@ -29,7 +34,44 @@ namespace Avalonia.Controls.Primitives
             set => SetAndRaise(ColumnsProperty, ref _columns, value);
         }
 
+        /// <summary>
+        /// Gets or sets the additional row realization space before and after the viewport,
+        /// expressed as a multiple of the viewport height.
+        /// </summary>
+        public double CacheLength
+        {
+            get => GetValue(CacheLengthProperty);
+            set => SetValue(CacheLengthProperty, value);
+        }
+
         protected override Orientation Orientation => Orientation.Vertical;
+
+        protected override Rect GetMeasureViewport(Rect viewport)
+        {
+            if (CacheLength <= 0 || viewport.Height <= 0)
+                return viewport;
+
+            var buffer = viewport.Height * CacheLength;
+            var extent = Bounds.Height > 0 ? Bounds.Height : double.PositiveInfinity;
+            var start = Math.Max(0, viewport.Top - buffer);
+            var end = Math.Min(extent, viewport.Bottom + buffer);
+            var missingBefore = buffer - (viewport.Top - start);
+            var missingAfter = buffer - (end - viewport.Bottom);
+
+            if (missingBefore > 0)
+                end = Math.Min(extent, end + missingBefore);
+            else if (missingAfter > 0)
+                start = Math.Max(0, start - missingAfter);
+
+            return new Rect(viewport.X, start, viewport.Width, end - start);
+        }
+
+        protected override bool NeedsMeasureForViewportChange(Rect measureViewport, Rect viewport)
+        {
+            return CacheLength <= 0 ||
+                viewport.Top < measureViewport.Top ||
+                viewport.Bottom > measureViewport.Bottom;
+        }
 
         protected override (int index, double position) GetElementAt(double position)
         {
@@ -134,6 +176,10 @@ namespace Avalonia.Controls.Primitives
                 {
                     newValue.ViewportChanged(Viewport);
                 }
+            }
+            else if (change.Property == CacheLengthProperty)
+            {
+                InvalidateMeasure();
             }
 
             base.OnPropertyChanged(change);
