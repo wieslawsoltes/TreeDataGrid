@@ -43,7 +43,7 @@ namespace Avalonia.Controls.Models.TreeDataGrid
             ColumnOptions<TModel> options)
             : base(header, width, options)
         {
-            ValueSelector = getter.Compile();
+            ValueSelector = getter.Compile(preferInterpretation: true);
             Binding = setter is null ? 
                 TypedBinding<TModel>.OneWay(getter) :
                 TypedBinding<TModel>.TwoWay(getter, setter);

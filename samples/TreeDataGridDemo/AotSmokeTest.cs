@@ -3,6 +3,7 @@ using System.IO;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Models.TreeDataGrid;
+using Avalonia.Experimental.Data;
 using Avalonia.Threading;
 using TreeDataGridDemo.Models;
 using TreeDataGridDemo.ViewModels;
@@ -74,6 +75,16 @@ namespace TreeDataGridDemo
 
             if (root.Name != "Eleanor Pope")
                 throw new InvalidOperationException("Unexpected root row model.");
+
+            var generatedBinding = TypedBinding<Person>.OneWay(
+                static person => person.Name,
+                new Func<Person, object>[] { static person => person });
+
+            if (generatedBinding.Read?.Invoke(root) != root.Name ||
+                !ReferenceEquals(generatedBinding.Links?[0](root), root))
+            {
+                throw new InvalidOperationException("Delegate-based typed binding did not read the row model.");
+            }
 
             var activeCell = grid.Rows.RealizeCell(grid.Columns[4], 4, 0) as CheckBoxCell
                 ?? throw new InvalidOperationException("Could not realize the Active checkbox cell.");

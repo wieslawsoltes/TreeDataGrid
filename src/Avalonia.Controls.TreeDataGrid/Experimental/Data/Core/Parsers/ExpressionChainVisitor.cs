@@ -54,7 +54,7 @@ namespace Avalonia.Data.Core.Parsers
                 node.Expression.Type.IsValueType == false)
             {
                 var link = Expression.Lambda<Func<TIn, object>>(node.Expression, _rootExpression.Parameters);
-                _links.Add(link.Compile());
+                _links.Add(link.Compile(preferInterpretation: true));
                 _head = node;
             }
 
@@ -70,7 +70,7 @@ namespace Avalonia.Data.Core.Parsers
                 node.Type.IsValueType == false)
             {
                 var link = Expression.Lambda<Func<TIn, object>>(node.Object, _rootExpression.Parameters);
-                _links.Add(link.Compile());
+                _links.Add(link.Compile(preferInterpretation: true));
                 _head = node;
             }
 

@@ -20,7 +20,8 @@ namespace Avalonia.Controls
                 var model = expression.Parameters[0];
                 var value = Expression.Parameter(typeof(TValue), "value");
                 var assign = Expression.Assign(member, Expression.Convert(value, member.Type));
-                return Expression.Lambda<Action<TModel, TValue?>>(assign, model, value).Compile();
+                return Expression.Lambda<Action<TModel, TValue?>>(assign, model, value)
+                    .Compile(preferInterpretation: true);
             }
 
             if (member?.Member is FieldInfo field && !field.IsInitOnly)
@@ -28,7 +29,8 @@ namespace Avalonia.Controls
                 var model = expression.Parameters[0];
                 var value = Expression.Parameter(typeof(TValue), "value");
                 var assign = Expression.Assign(member, Expression.Convert(value, member.Type));
-                return Expression.Lambda<Action<TModel, TValue?>>(assign, model, value).Compile();
+                return Expression.Lambda<Action<TModel, TValue?>>(assign, model, value)
+                    .Compile(preferInterpretation: true);
             }
 
             return null;
@@ -43,7 +45,8 @@ namespace Avalonia.Controls
                 var model = expression.Parameters[0];
                 var value = Expression.Parameter(typeof(TValue), "value");
                 var assign = Expression.Assign(member, Expression.Convert(value, member.Type));
-                return Expression.Lambda<Action<TModel, TValue>>(assign, model, value).Compile();
+                return Expression.Lambda<Action<TModel, TValue>>(assign, model, value)
+                    .Compile(preferInterpretation: true);
             }
 
             if (member?.Member is FieldInfo field && !field.IsInitOnly)
@@ -51,7 +54,8 @@ namespace Avalonia.Controls
                 var model = expression.Parameters[0];
                 var value = Expression.Parameter(typeof(TValue), "value");
                 var assign = Expression.Assign(member, Expression.Convert(value, member.Type));
-                return Expression.Lambda<Action<TModel, TValue>>(assign, model, value).Compile();
+                return Expression.Lambda<Action<TModel, TValue>>(assign, model, value)
+                    .Compile(preferInterpretation: true);
             }
 
             return null;

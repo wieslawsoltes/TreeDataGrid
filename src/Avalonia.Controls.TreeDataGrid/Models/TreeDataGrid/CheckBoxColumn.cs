@@ -73,7 +73,7 @@ namespace Avalonia.Controls.Models.TreeDataGrid
 
         private static Func<TModel, bool?> ToNullable(Expression<Func<TModel, bool>> getter)
         {
-            var c = getter.Compile();
+            var c = getter.Compile(preferInterpretation: true);
             return x => c(x);
         }
 
