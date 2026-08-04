@@ -193,7 +193,7 @@ namespace Avalonia.Controls.Primitives
         /// </returns>
         public double GetElementU(int index)
         {
-            if (index < FirstIndex || _sizes is null)
+            if (_startUUnstable || index < FirstIndex || _sizes is null)
                 return double.NaN;
 
             var endIndex = index - FirstIndex;

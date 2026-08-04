@@ -32,6 +32,19 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
             Assert.Equal(1120, target.GetOrEstimateElementU(14, ref estimatedSize));
         }
 
+        [AvaloniaFact]
+        public void Does_Not_Use_Stale_Row_Position_After_Insert_Before_Range()
+        {
+            var target = new RealizedStackElements(traceEnabled: false);
+            var estimatedSize = 25d;
+
+            target.Add(10, new Border(), 1000, 20);
+            target.ItemsInserted(0, 1, (_, _, _) => { }, _ => { });
+
+            Assert.True(double.IsNaN(target.GetElementU(11)));
+            Assert.Equal(220, target.GetOrEstimateElementU(11, ref estimatedSize));
+        }
+
         [AvaloniaTheory(Timeout = 10000)]
         [InlineData(10)]
         [InlineData(20)]
