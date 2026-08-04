@@ -220,6 +220,16 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void Realized_Children_Are_Added_To_The_Logical_Tree()
+        {
+            var (target, _, _) = CreateTarget();
+            var logicalChildren = target.GetLogicalChildren().ToList();
+
+            Assert.NotEmpty(target.RealizedElements);
+            Assert.All(target.RealizedElements, child => Assert.Contains(child, logicalChildren));
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void Should_Remove_Children_On_Empty_Collection_Assignment_To_Items()
         {
             var (target, _, items) = CreateTarget();
