@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using Avalonia.Controls.Models.TreeDataGrid;
+using Avalonia.Controls.Utils;
 using Avalonia.Layout;
+using Avalonia.Utilities;
 
 namespace Avalonia.Controls.Primitives
 {
@@ -56,6 +58,12 @@ namespace Avalonia.Controls.Primitives
                 _lastEstimatedElementSizeU = result;
 
             return _lastEstimatedElementSizeU;
+        }
+
+        protected override bool NeedsMeasureForViewportChange(Rect measureViewport, Rect viewport)
+        {
+            return !MathUtilities.AreClose(measureViewport.Height, viewport.Height) ||
+                !IsViewportCoveredByRealizedElements(viewport);
         }
 
         protected sealed override bool NeedsFinalMeasurePass(int firstIndex, IReadOnlyList<Control?> elements)

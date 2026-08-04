@@ -22,7 +22,8 @@ public class VirtualizationBenchmarks
 {
     private const int VerticalScrollOperations = 10_000;
     private const int StationaryLayoutOperations = 25_000;
-    private const int HorizontalScrollOperations = 2_500;
+    private const int HorizontalScrollOperations = 6_000;
+    private const int HorizontalColumnOperations = 1_000;
     private const int CollectionEditOperations = 1_500;
     private const int CollectionMoveOperations = 6_000;
     private const int DetachReattachOperations = 200;
@@ -177,6 +178,47 @@ public class VirtualizationBenchmarks
         return _grid!.RowsPresenter!.GetRealizedElements().Count();
     }
 
+    [IterationSetup(Target = nameof(HorizontalUnbatchedSmallScrolls))]
+    public void SetupHorizontalUnbatchedSmallScrolls() =>
+        CreateGrid(rowCount: 1_000, columnCount: 200, alwaysMeasureColumnViewportChanges: true);
+
+    [IterationCleanup(Target = nameof(HorizontalUnbatchedSmallScrolls))]
+    public void CleanupHorizontalUnbatchedSmallScrolls() => CleanupGrid();
+
+    [Benchmark(OperationsPerInvoke = HorizontalScrollOperations)]
+    public int HorizontalUnbatchedSmallScrolls()
+    {
+        var scroll = _scroll!;
+
+        for (var i = 1; i <= HorizontalScrollOperations; ++i)
+        {
+            scroll.Offset = new Vector(i, 0);
+            _grid!.UpdateLayout();
+        }
+
+        return _grid!.RowsPresenter!.GetRealizedElements().Count();
+    }
+
+    [IterationSetup(Target = nameof(HorizontalColumnScrolls))]
+    public void SetupHorizontalColumnScrolls() => CreateGrid(rowCount: 1_000, columnCount: 200);
+
+    [IterationCleanup(Target = nameof(HorizontalColumnScrolls))]
+    public void CleanupHorizontalColumnScrolls() => CleanupGrid();
+
+    [Benchmark(OperationsPerInvoke = HorizontalColumnOperations)]
+    public int HorizontalColumnScrolls()
+    {
+        var scroll = _scroll!;
+
+        for (var i = 0; i < HorizontalColumnOperations; ++i)
+        {
+            scroll.Offset = new Vector((i & 1) == 0 ? 100 : 200, 0);
+            _grid!.UpdateLayout();
+        }
+
+        return _grid!.RowsPresenter!.GetRealizedElements().Count();
+    }
+
     [IterationSetup(Target = nameof(CollectionInsertRemoveBurst))]
     public void SetupCollectionInsertRemoveBurst() => CreateGrid(rowCount: 10_000, columnCount: 12);
 
@@ -248,7 +290,8 @@ public class VirtualizationBenchmarks
         int rowCount,
         int columnCount,
         double cacheLength = 0,
-        bool alwaysMeasureViewportChanges = false)
+        bool alwaysMeasureViewportChanges = false,
+        bool alwaysMeasureColumnViewportChanges = false)
     {
         _items = new AvaloniaList<RowModel>(Enumerable.Range(0, rowCount)
             .Select(x => new RowModel(x, $"Item {x}")));
@@ -287,7 +330,9 @@ public class VirtualizationBenchmarks
                 {
                     Setters =
                     {
-                        new Setter(TreeDataGridRow.TemplateProperty, RowTemplate()),
+                        new Setter(
+                            TreeDataGridRow.TemplateProperty,
+                            RowTemplate(alwaysMeasureColumnViewportChanges)),
                         new Setter(TreeDataGridRow.HeightProperty, 24.0),
                     }
                 }
@@ -337,16 +382,20 @@ public class VirtualizationBenchmarks
         });
     }
 
-    private static IControlTemplate RowTemplate()
+    private static IControlTemplate RowTemplate(bool alwaysMeasureViewportChanges)
     {
         return new FuncControlTemplate<TreeDataGridRow>((x, ns) =>
-            new TreeDataGridCellsPresenter
-            {
-                Name = "PART_CellsPresenter",
-                [!TreeDataGridCellsPresenter.ElementFactoryProperty] = x[!TreeDataGridRow.ElementFactoryProperty],
-                [!TreeDataGridCellsPresenter.ItemsProperty] = x[!TreeDataGridRow.ColumnsProperty],
-                [!TreeDataGridCellsPresenter.RowsProperty] = x[!TreeDataGridRow.RowsProperty],
-            }.RegisterInNameScope(ns));
+        {
+            var cellsPresenter = alwaysMeasureViewportChanges ?
+                new AlwaysMeasureCellsPresenter() :
+                new TreeDataGridCellsPresenter();
+            cellsPresenter.Name = "PART_CellsPresenter";
+            cellsPresenter[!TreeDataGridCellsPresenter.ElementFactoryProperty] = x[!TreeDataGridRow.ElementFactoryProperty];
+            cellsPresenter[!TreeDataGridCellsPresenter.ItemsProperty] = x[!TreeDataGridRow.ColumnsProperty];
+            cellsPresenter[!TreeDataGridCellsPresenter.RowsProperty] = x[!TreeDataGridRow.RowsProperty];
+
+            return cellsPresenter.RegisterInNameScope(ns);
+        });
     }
 
     private static IControlTemplate ScrollViewerTemplate()
@@ -365,6 +414,11 @@ public class VirtualizationBenchmarks
     }
 
     private sealed class AlwaysMeasureRowsPresenter : TreeDataGridRowsPresenter
+    {
+        protected override bool NeedsMeasureForViewportChange(Rect measureViewport, Rect viewport) => true;
+    }
+
+    private sealed class AlwaysMeasureCellsPresenter : TreeDataGridCellsPresenter
     {
         protected override bool NeedsMeasureForViewportChange(Rect measureViewport, Rect viewport) => true;
     }
