@@ -216,6 +216,46 @@ namespace Avalonia.Controls.TreeDataGridTests
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void Detach_Reattach_Preserves_Cell_Control_Subtrees()
+        {
+            var (target, items) = CreateTarget();
+            var window = Assert.IsType<TestWindow>(target.Parent);
+            var cells = target.RowsPresenter!.RealizedElements
+                .Cast<TreeDataGridRow>()
+                .SelectMany(x => x.CellsPresenter!.RealizedElements.Cast<TreeDataGridCell>())
+                .ToList();
+            var models = cells.Select(x => x.Model).ToList();
+            var logicalParents = cells.Select(x => x.Parent).ToList();
+            var visualParents = cells.Select(x => x.GetVisualParent()).ToList();
+            var clearingRaised = 0;
+            var preparedRaised = 0;
+
+            target.CellClearing += (_, _) => ++clearingRaised;
+            target.CellPrepared += (_, _) => ++preparedRaised;
+
+            window.Content = null;
+            window.UpdateLayout();
+
+            Assert.All(cells.Zip(logicalParents), pair => Assert.Same(pair.Second, pair.First.Parent));
+            Assert.All(cells.Zip(visualParents), pair => Assert.Same(pair.Second, pair.First.GetVisualParent()));
+
+            window.Content = target;
+            window.UpdateLayout();
+            Dispatcher.UIThread.RunJobs();
+
+            var reboundCells = target.RowsPresenter!.RealizedElements
+                .Cast<TreeDataGridRow>()
+                .SelectMany(x => x.CellsPresenter!.RealizedElements.Cast<TreeDataGridCell>())
+                .ToList();
+
+            Assert.Equal(cells, reboundCells);
+            Assert.Equal(cells.Count, clearingRaised);
+            Assert.Equal(cells.Count, preparedRaised);
+            Assert.All(models.Zip(reboundCells), pair => Assert.NotSame(pair.First, pair.Second.Model));
+            AssertModelSubscriptions(items);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void Should_Subscribe_To_Correct_Models_After_Scrolling_Down_One_Page()
         {
             var (target, items) = CreateTarget();
