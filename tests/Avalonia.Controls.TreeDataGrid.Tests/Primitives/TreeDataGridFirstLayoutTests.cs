@@ -91,12 +91,12 @@ public class TreeDataGridFirstLayoutTests
         {
             (ColumnLayout.Fixed, 0) => 126,
             (ColumnLayout.Fixed, _) => 252,
-            (ColumnLayout.Auto, 0) => 744,
-            (ColumnLayout.Auto, _) => 1248,
+            (ColumnLayout.Auto, 0) => 366,
+            (ColumnLayout.Auto, _) => 618,
             (ColumnLayout.Star, 0) => 246,
             (ColumnLayout.Star, _) => 492,
-            (ColumnLayout.Mixed, 0) => 372,
-            (ColumnLayout.Mixed, _) => 744,
+            (ColumnLayout.Mixed, 0) => 246,
+            (ColumnLayout.Mixed, _) => 454,
             _ => throw new ArgumentOutOfRangeException(nameof(layout)),
         };
 

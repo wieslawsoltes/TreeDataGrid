@@ -279,6 +279,55 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void Auto_Cell_Natural_Measure_Cache_Is_Invalidated_With_The_Cell()
+        {
+            var columns = new ColumnList<Model>
+            {
+                new LayoutTestColumn<Model>("Col0", GridLength.Auto),
+            };
+            var (target, _) = CreateTarget(columns);
+            var cell = (LayoutTestCellControl)target.RealizedElements[0]!;
+            var initialConstraints = cell.MeasureConstraints.ToArray();
+
+            Assert.Contains(Size.Infinity, initialConstraints);
+            Assert.Contains(new Size(10, double.PositiveInfinity), initialConstraints);
+
+            target.InvalidateMeasure();
+            Layout(target);
+
+            Assert.Equal(initialConstraints, cell.MeasureConstraints);
+
+            cell.InvalidateMeasure();
+            target.InvalidateMeasure();
+            Layout(target);
+
+            Assert.Equal(
+                initialConstraints.Count(x => x == Size.Infinity) + 1,
+                cell.MeasureConstraints.Count(x => x == Size.Infinity));
+            Assert.Equal(new Size(10, double.PositiveInfinity), cell.MeasureConstraints[^1]);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Rebinding_Auto_Cell_Discards_Natural_Measure_Cache()
+        {
+            var columns = new ColumnList<Model>
+            {
+                new LayoutTestColumn<Model>("Col0", GridLength.Auto),
+            };
+            var (target, _) = CreateTarget(columns, rowCount: 2);
+            var cell = (LayoutTestCellControl)target.RealizedElements[0]!;
+            var initialNaturalMeasures = cell.MeasureConstraints.Count(x => x == Size.Infinity);
+
+            target.Unrealize();
+            target.Realize(1);
+            Layout(target);
+
+            Assert.Equal(
+                initialNaturalMeasures + 1,
+                cell.MeasureConstraints.Count(x => x == Size.Infinity));
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void Nth_Child_Handles_Deletion_And_Addition_Correctly()
         {
             var (target, scroll) = CreateTarget(additionalStyles:

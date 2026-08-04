@@ -13,7 +13,8 @@ using Avalonia.VisualTree;
 namespace Avalonia.Controls.Primitives
 {
     [PseudoClasses(":editing")]
-    public abstract class TreeDataGridCell : TemplatedControl, ITreeDataGridCell
+    public abstract class TreeDataGridCell : TemplatedControl, ITreeDataGridCell,
+        INaturalWidthMeasureCache
     {
         public static readonly DirectProperty<TreeDataGridCell, bool> IsSelectedProperty =
             AvaloniaProperty.RegisterDirect<TreeDataGridCell, bool>(
@@ -35,6 +36,7 @@ namespace Avalonia.Controls.Primitives
         public int RowIndex { get; private set; } = -1;
         public bool IsEditing { get; private set; }
         public ICell? Model { get; private set; }
+        Size? INaturalWidthMeasureCache.NaturalDesiredSize { get; set; }
 
         public bool IsSelected
         {
@@ -64,6 +66,7 @@ namespace Avalonia.Controls.Primitives
             ColumnIndex = columnIndex;
             RowIndex = rowIndex;
             Model = model;
+            ((INaturalWidthMeasureCache)this).NaturalDesiredSize = null;
             IsSelected = selection?.IsCellSelected(columnIndex, rowIndex) ?? false;
 
             _treeDataGrid?.RaiseCellPrepared(this, columnIndex, RowIndex);
@@ -74,6 +77,7 @@ namespace Avalonia.Controls.Primitives
             _treeDataGrid?.RaiseCellClearing(this, ColumnIndex, RowIndex);
             ColumnIndex = RowIndex = -1;
             Model = null;
+            ((INaturalWidthMeasureCache)this).NaturalDesiredSize = null;
         }
 
         protected override AutomationPeer OnCreateAutomationPeer()
@@ -168,6 +172,12 @@ namespace Avalonia.Controls.Primitives
             result = result.Inflate(new Thickness(1, 0));
 
             return result;
+        }
+
+        protected override void OnMeasureInvalidated()
+        {
+            ((INaturalWidthMeasureCache)this).NaturalDesiredSize = null;
+            base.OnMeasureInvalidated();
         }
 
         protected virtual void OnDoubleTapped(TappedEventArgs e)

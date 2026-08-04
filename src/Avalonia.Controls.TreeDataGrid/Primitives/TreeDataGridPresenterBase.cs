@@ -404,10 +404,15 @@ namespace Avalonia.Controls.Primitives
                         var e = _measureElements.Elements[i]!;
                         var previous = LayoutInformation.GetPreviousMeasureConstraint(e)!.Value;
 
-                        if (HasInfinity(previous))
+                        var index = _measureElements.FirstIndex + i;
+                        var constraint = GetFinalConstraint(e, index, availableSize);
+
+                        var needsFinalMeasure = this is IFinalMeasureSelector selector ?
+                            selector.NeedsFinalMeasure(e, index) :
+                            HasInfinity(previous);
+
+                        if (needsFinalMeasure && previous != constraint)
                         {
-                            var index = _measureElements.FirstIndex + i;
-                            var constraint = GetFinalConstraint(e, index, availableSize);
                             e.Measure(constraint);
                             viewport.measuredV = Math.Max(
                                 viewport.measuredV,
