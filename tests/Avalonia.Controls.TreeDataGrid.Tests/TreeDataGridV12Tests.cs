@@ -191,6 +191,27 @@ namespace Avalonia.Controls.TreeDataGridTests
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void Explicit_Source_Can_Disable_Selection()
+        {
+            var source = new FlatTreeDataGridSource<TestRow>(new[] { new TestRow { Name = "One" } })
+            {
+                Selection = null,
+            };
+            source.Columns.Add(new TextColumn<TestRow, string?>("Name", x => x.Name));
+
+            var target = CreateTarget();
+            target.Source = source;
+
+            var root = CreateWindow(target);
+            root.UpdateLayout();
+            Dispatcher.UIThread.RunJobs();
+
+            Assert.Null(source.Selection);
+            Assert.Null(target.RowSelection);
+            Assert.Null(target.ColumnSelection);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void Declarative_Text_Column_Writes_Back_Through_Binding_Accessor()
         {
             var items = new AvaloniaList<TestRow>
