@@ -12,6 +12,16 @@ namespace Avalonia.Controls.TreeDataGridTests
 {
     public class FlatTreeDataGridSourceTests
     {
+        [Fact]
+        public void Selection_Can_Be_Explicitly_Disabled()
+        {
+            var target = new FlatTreeDataGridSource<Row>(Array.Empty<Row>());
+
+            target.Selection = null;
+
+            Assert.Null(target.Selection);
+        }
+
         [AvaloniaFact(Timeout = 10000)]
         public void Creates_Initial_Rows()
         {

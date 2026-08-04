@@ -12,6 +12,16 @@ namespace Avalonia.Controls.TreeDataGridTests
 {
     public class HierarchicalTreeDataGridSourceTests
     {
+        [Fact]
+        public void Selection_Can_Be_Explicitly_Disabled()
+        {
+            var target = new HierarchicalTreeDataGridSource<Node>(Array.Empty<Node>());
+
+            target.Selection = null;
+
+            Assert.Null(target.Selection);
+        }
+
         public class RowsAndCells
         {
             [AvaloniaTheory(Timeout = 10000)]

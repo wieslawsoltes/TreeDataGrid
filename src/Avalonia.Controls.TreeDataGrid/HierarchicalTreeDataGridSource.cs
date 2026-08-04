@@ -73,9 +73,9 @@ namespace Avalonia.Controls
             }
             set
             {
-                if (_selection != value)
+                if (_selection != value || value is null)
                 {
-                    if (value?.Source != _items)
+                    if (value is not null && value.Source != _items)
                         throw new InvalidOperationException("Selection source must be set to Items.");
                     _selection = value;
                     _isSelectionSet = true;
