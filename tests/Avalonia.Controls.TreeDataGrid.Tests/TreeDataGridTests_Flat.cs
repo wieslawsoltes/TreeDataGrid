@@ -142,6 +142,31 @@ namespace Avalonia.Controls.TreeDataGridTests
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void Full_Row_Scroll_Reuses_Row_And_Cell_Controls_With_New_Models()
+        {
+            var (target, items) = CreateTarget();
+            var row = Assert.IsType<TreeDataGridRow>(target.RowsPresenter!.TryGetElement(0));
+            var cells = row.CellsPresenter!.RealizedElements.Cast<TreeDataGridCell>().ToList();
+            var models = cells.Select(x => x.Model).ToList();
+
+            target.Scroll!.Offset = new Vector(0, 10);
+            Layout(target);
+
+            var rebound = Assert.IsType<TreeDataGridRow>(target.RowsPresenter.TryGetElement(10));
+            Assert.Same(row, rebound);
+            Assert.Same(items[10], rebound.DataContext);
+            Assert.Equal(cells, rebound.CellsPresenter!.RealizedElements);
+            Assert.All(cells, cell => Assert.Equal(10, cell.RowIndex));
+            Assert.All(cells.Zip(models), pair => Assert.NotSame(pair.Second, pair.First.Model));
+
+            for (var i = 0; i < items.Count; ++i)
+            {
+                var expected = i > 0 && i <= 10 ? 2 : 0;
+                Assert.Equal(expected, items[i].PropertyChangedSubscriberCount());
+            }
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void Should_Subscribe_To_Correct_Models_After_Scrolling_Down_One_Page()
         {
             var (target, items) = CreateTarget();
