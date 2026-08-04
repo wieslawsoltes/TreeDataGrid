@@ -37,6 +37,62 @@ namespace Avalonia.Controls.TreeDataGridTests.Models
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void Star_Column_Leaves_Room_For_Unmeasured_Auto_Columns()
+        {
+            const int viewportWidth = 300;
+
+            var target = new ColumnList<Model>
+            {
+                new TextColumn<Model, string?>(null, x => x.Name, GridLength.Auto),
+                new TextColumn<Model, string?>(null, x => x.Name, new GridLength(1, GridUnitType.Star)),
+                new TextColumn<Model, string?>(null, x => x.Country, GridLength.Auto),
+            };
+
+            target.ViewportChanged(new Rect(0, 0, viewportWidth, viewportWidth));
+
+            var measured = new[] { 50d, 500d, 60d };
+            var widthSoFar = 0d;
+
+            for (var col = 0; col < target.Count && widthSoFar < viewportWidth; ++col)
+            {
+                var size = target.CellMeasured(col, 0, new Size(measured[col], 10));
+                widthSoFar += size.Width;
+            }
+
+            target.CommitActualWidths();
+
+            Assert.Equal(50, target[0].ActualWidth);
+            Assert.Equal(viewportWidth - 50 - 60, target[1].ActualWidth);
+            Assert.Equal(60, target[2].ActualWidth);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Star_Column_Respects_Min_Width_Of_Unmeasured_Auto_Columns()
+        {
+            const int viewportWidth = 300;
+
+            var target = new ColumnList<Model>
+            {
+                new TextColumn<Model, string?>(null, x => x.Name, GridLength.Auto),
+                new TextColumn<Model, string?>(null, x => x.Name, new GridLength(1, GridUnitType.Star)),
+                new TextColumn<Model, string?>(null, x => x.Country, GridLength.Auto),
+            };
+
+            target.ViewportChanged(new Rect(0, 0, viewportWidth, viewportWidth));
+
+            target.CellMeasured(0, 0, new Size(50, 10));
+            target.CellMeasured(1, 0, new Size(500, 10));
+
+            target.CommitActualWidths();
+
+            var unmeasuredAutoColumn = Assert.IsType<TextColumn<Model, string?>>(target[2]);
+
+            Assert.Equal(50, target[0].ActualWidth);
+            Assert.Equal(viewportWidth - 50 - unmeasuredAutoColumn.Options.MinWidth.Value, target[1].ActualWidth);
+            Assert.Equal(unmeasuredAutoColumn.Options.MinWidth.Value, target[2].ActualWidth);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void Layout_Is_Invalidated_At_End_Of_Measure_If_AutoSized_Column_Changes_Width()
         {
             var target = new ColumnList<Model>

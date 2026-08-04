@@ -80,7 +80,10 @@ namespace Avalonia.Controls.Models.TreeDataGrid
             {
                 var size = this[i].ActualWidth;
 
-                if (double.IsNaN(size))
+                // A zero-width Auto column has not provided a useful viewport anchor yet.
+                // Falling back to the measured-width estimate keeps large horizontal jumps
+                // accurate while still allowing zero to reserve its configured minimum width.
+                if (double.IsNaN(size) || size <= 0)
                     break;
 
                 var endU = u + size;
@@ -118,7 +121,7 @@ namespace Avalonia.Controls.Models.TreeDataGrid
             foreach (var column in this)
             {
                 var size = column.ActualWidth;
-                if (double.IsNaN(size))
+                if (double.IsNaN(size) || size <= 0)
                     continue;
                 total += size;
                 ++divisor;
@@ -276,7 +279,9 @@ namespace Avalonia.Controls.Models.TreeDataGrid
             }
 
             if (invalidated)
+            {
                 LayoutInvalidated?.Invoke(this, EventArgs.Empty);
+            }
         }
 
         private static double NotNaN(double v) => double.IsNaN(v) ? 0 : v;

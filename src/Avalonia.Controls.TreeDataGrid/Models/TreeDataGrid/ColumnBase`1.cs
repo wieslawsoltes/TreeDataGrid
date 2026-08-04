@@ -30,7 +30,7 @@ namespace Avalonia.Controls.Models.TreeDataGrid
             object? header,
             GridLength? width,
             ColumnOptions<TModel> options)
-        {            
+        {
             _header = header;
             Options = options;
             SetWidth(width ?? GridLength.Auto);
@@ -51,7 +51,7 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         /// <remarks>
         /// To set the column width use <see cref="IColumns.SetColumnWidth(int, GridLength)"/>.
         /// </remarks>
-        public GridLength Width 
+        public GridLength Width
         {
             get => _width;
             private set => RaiseAndSetIfChanged(ref _width, value);
@@ -75,7 +75,7 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         /// Gets or sets the sort direction indicator that will be displayed on the column.
         /// </summary>
         /// <remarks>
-        /// Note that changing this property does not change the sorting of the data, it is only 
+        /// Note that changing this property does not change the sorting of the data, it is only
         /// used to display a sort direction indicator. To sort data according to a column use
         /// <see cref="ITreeDataGridSource.SortBy(IColumn, ListSortDirection)"/>.
         /// </remarks>
@@ -107,8 +107,19 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         double IUpdateColumnLayout.CellMeasured(double width, int rowIndex)
         {
             _autoWidth = Math.Max(NonNaN(_autoWidth), CoerceActualWidth(width));
-            return Width.GridUnitType == GridUnitType.Auto || double.IsNaN(ActualWidth) ?
-                _autoWidth : ActualWidth;
+
+            if (Width.GridUnitType == GridUnitType.Auto)
+                return _autoWidth;
+
+            if (!double.IsNaN(ActualWidth))
+                return ActualWidth;
+
+            // If we're measuring a star column before its actual width has been calculated,
+            // return the minimum width so we can continue measuring the remaining columns.
+            if (Width.IsStar)
+                return ((IUpdateColumnLayout)this).MinActualWidth;
+
+            return _autoWidth;
         }
 
         void IUpdateColumnLayout.CalculateStarWidth(double availableWidth, double totalStars)
@@ -125,7 +136,7 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         {
             var width = Width.GridUnitType switch
             {
-                GridUnitType.Auto => _autoWidth,
+                GridUnitType.Auto => double.IsNaN(_autoWidth) ? CoerceActualWidth(0) : _autoWidth,
                 GridUnitType.Pixel => CoerceActualWidth(Width.Value),
                 GridUnitType.Star => _starWidth,
                 _ => throw new NotSupportedException(),
@@ -135,17 +146,6 @@ namespace Avalonia.Controls.Models.TreeDataGrid
             ActualWidth = width;
             _starWidthWasConstrained = false;
 
-            // MathUtilites.AreClose will return true for this condition.
-            // If the user has auto columns that are not yet realized, then the
-            // _autoWidth will remain NaN.
-            // This will lead to an endless layout cycle causing the whole UI
-            // to have degraded performance, until all columns have an actual value
-            // set for _autoWidth.
-            if (double.IsNaN(oldWidth) && double.IsNaN(ActualWidth))
-            {
-                return false;
-            }
-            
             return !DoubleUtils.AreClose(oldWidth, ActualWidth);
         }
 
