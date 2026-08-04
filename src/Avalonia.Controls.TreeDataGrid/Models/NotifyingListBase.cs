@@ -221,7 +221,7 @@ namespace Avalonia.Controls.Models
             return _monitor;
         }
 
-        private void CheckReentrancy()
+        protected void CheckReentrancy()
         {
             if (_monitor.Busy)
             {

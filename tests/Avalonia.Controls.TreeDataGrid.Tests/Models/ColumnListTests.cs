@@ -260,6 +260,46 @@ namespace Avalonia.Controls.TreeDataGridTests.Models
             Assert.Equal(200, target[1].ActualWidth);
         }
 
+        [AvaloniaFact(Timeout = 10000)]
+        public void Moving_Columns_Does_Not_Hide_A_Later_Constraint_Change()
+        {
+            var movedOptions = new TextColumnOptions<Model> { MinWidth = new GridLength(30) };
+            var otherOptions = new TextColumnOptions<Model> { MinWidth = new GridLength(100) };
+            var moved = new TextColumn<Model, string?>(
+                null,
+                x => x.Name,
+                new GridLength(50),
+                movedOptions);
+            var target = new MovableColumnList<Model>
+            {
+                moved,
+                new TextColumn<Model, string?>(
+                    null,
+                    x => x.Country,
+                    new GridLength(50),
+                    otherOptions),
+            };
+
+            target.CommitActualWidths();
+            movedOptions.MinWidth = new GridLength(100);
+            var observedMove = false;
+            target.CollectionChanged += (_, e) =>
+            {
+                if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Move)
+                {
+                    observedMove = true;
+                    Assert.Same(moved, target[1]);
+                    target.CellMeasured(1, 0, new Size(50, 10));
+                    target.CommitActualWidths();
+                }
+            };
+
+            target.Move(0, 1);
+
+            Assert.True(observedMove);
+            Assert.Equal(100, moved.ActualWidth);
+        }
+
         private static ColumnList<Model> CreateFixedAndStarColumns(TextColumnOptions<Model> options)
         {
             return new ColumnList<Model>
@@ -290,6 +330,11 @@ namespace Avalonia.Controls.TreeDataGridTests.Models
                     x => x.Country,
                     new GridLength(1, GridUnitType.Star)),
             };
+        }
+
+        private sealed class MovableColumnList<T> : ColumnList<T>
+        {
+            public void Move(int oldIndex, int newIndex) => MoveItem(oldIndex, newIndex);
         }
 
         private class Model
