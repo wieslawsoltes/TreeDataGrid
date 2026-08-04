@@ -228,7 +228,31 @@ namespace Avalonia.Controls.Primitives
             // Store the estimated size for the next layout pass.
             estimatedElementSizeU = estimatedSize;
 
-            // TODO: Use _startU to work this out.
+            // Anchor estimates to the realized range when its position is stable. Multiplying the
+            // requested index by the current average loses all measured-size information before
+            // the range and can place variable-sized rows hundreds of pixels away from their
+            // actual neighborhood.
+            if (!_startUUnstable && _sizes is { Count: > 0 })
+            {
+                if (index < FirstIndex)
+                    return _startU - ((FirstIndex - index) * estimatedSize);
+
+                if (index > LastIndex)
+                {
+                    var realizedEndU = _startU;
+
+                    foreach (var size in _sizes)
+                    {
+                        if (double.IsNaN(size))
+                            return index * estimatedSize;
+
+                        realizedEndU += size;
+                    }
+
+                    return realizedEndU + ((index - LastIndex - 1) * estimatedSize);
+                }
+            }
+
             return index * estimatedSize;
         }
 

@@ -18,6 +18,20 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
 {
     public class TreeDataGridRowsPresenterTests_VariableHeight
     {
+        [AvaloniaFact]
+        public void Estimates_Unrealized_Row_Positions_From_Realized_Range()
+        {
+            var target = new RealizedStackElements(traceEnabled: false);
+            var estimatedSize = 25d;
+
+            target.Add(10, new Border(), 1000, 20);
+            target.Add(11, new Border(), 1020, 40);
+
+            Assert.Equal(970, target.GetOrEstimateElementU(9, ref estimatedSize));
+            Assert.Equal(1060, target.GetOrEstimateElementU(12, ref estimatedSize));
+            Assert.Equal(1120, target.GetOrEstimateElementU(14, ref estimatedSize));
+        }
+
         [AvaloniaTheory(Timeout = 10000)]
         [InlineData(10)]
         [InlineData(20)]
