@@ -1,4 +1,8 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -8,6 +12,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Selection;
 using Avalonia.Data;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -188,6 +193,39 @@ namespace Avalonia.Controls.TreeDataGridTests
             Dispatcher.UIThread.RunJobs();
             selection.Select(0);
             Assert.Equal(2, raised);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Source_And_Column_Subscriptions_Are_Scoped_To_Visual_Attachment()
+        {
+            var source = new TrackingSource(new[]
+            {
+                new TestRow { Name = "One" },
+                new TestRow { Name = "Two" },
+            });
+            var target = CreateTarget();
+            target.Source = source;
+
+            var root = CreateWindow(target);
+            root.UpdateLayout();
+            Dispatcher.UIThread.RunJobs();
+
+            AssertSubscriptionCounts(source, sourceEventCount: 1, columnEventCount: 2);
+
+            for (var i = 0; i < 3; ++i)
+            {
+                root.Content = null;
+                root.UpdateLayout();
+                Dispatcher.UIThread.RunJobs();
+
+                AssertSubscriptionCounts(source, sourceEventCount: 0, columnEventCount: 0);
+
+                root.Content = target;
+                root.UpdateLayout();
+                Dispatcher.UIThread.RunJobs();
+
+                AssertSubscriptionCounts(source, sourceEventCount: 1, columnEventCount: 2);
+            }
         }
 
         [AvaloniaFact(Timeout = 10000)]
@@ -554,6 +592,132 @@ namespace Avalonia.Controls.TreeDataGridTests
                     }
                 }
             };
+        }
+
+        private static void AssertSubscriptionCounts(
+            TrackingSource source,
+            int sourceEventCount,
+            int columnEventCount)
+        {
+            Assert.Equal(sourceEventCount, source.PropertyChangedSubscriberCount);
+            Assert.Equal(sourceEventCount, source.SortedSubscriberCount);
+            Assert.Equal(columnEventCount, source.TrackingColumns.LayoutInvalidatedSubscriberCount);
+        }
+
+        private sealed class TrackingSource : ITreeDataGridSource
+        {
+            private readonly FlatTreeDataGridSource<TestRow> _inner;
+            private PropertyChangedEventHandler? _propertyChanged;
+            private Action? _sorted;
+
+            public TrackingSource(IEnumerable<TestRow> items)
+            {
+                _inner = new FlatTreeDataGridSource<TestRow>(items);
+                _inner.Columns.Add(new TextColumn<TestRow, string?>("Name", x => x.Name));
+                TrackingColumns = new TrackingColumns(_inner.Columns);
+            }
+
+            public int PropertyChangedSubscriberCount =>
+                _propertyChanged?.GetInvocationList().Length ?? 0;
+
+            public int SortedSubscriberCount => _sorted?.GetInvocationList().Length ?? 0;
+
+            public TrackingColumns TrackingColumns { get; }
+
+            public IColumns Columns => TrackingColumns;
+
+            public IRows Rows => _inner.Rows;
+
+            public ITreeDataGridSelection? Selection
+            {
+                get => _inner.Selection;
+                set => _inner.Selection = value;
+            }
+
+            public bool IsHierarchical => false;
+
+            public bool IsSorted => _inner.IsSorted;
+
+            public IEnumerable<object> Items => ((ITreeDataGridSource)_inner).Items;
+
+            public event PropertyChangedEventHandler? PropertyChanged
+            {
+                add => _propertyChanged += value;
+                remove => _propertyChanged -= value;
+            }
+
+            public event Action Sorted
+            {
+                add => _sorted += value;
+                remove => _sorted -= value;
+            }
+
+            public void DragDropRows(
+                ITreeDataGridSource source,
+                IEnumerable<IndexPath> indexes,
+                IndexPath targetIndex,
+                TreeDataGridRowDropPosition position,
+                DragDropEffects effects) =>
+                ((ITreeDataGridSource)_inner).DragDropRows(
+                    source,
+                    indexes,
+                    targetIndex,
+                    position,
+                    effects);
+
+            public IEnumerable<object>? GetModelChildren(object model) =>
+                ((ITreeDataGridSource)_inner).GetModelChildren(model);
+
+            public bool SortBy(IColumn column, ListSortDirection direction) =>
+                ((ITreeDataGridSource)_inner).SortBy(column, direction);
+        }
+
+        private sealed class TrackingColumns : IColumns
+        {
+            private readonly IColumns _inner;
+            private EventHandler? _layoutInvalidated;
+
+            public TrackingColumns(IColumns inner)
+            {
+                _inner = inner;
+            }
+
+            public int LayoutInvalidatedSubscriberCount =>
+                _layoutInvalidated?.GetInvocationList().Length ?? 0;
+
+            public int Count => _inner.Count;
+
+            public IColumn this[int index] => _inner[index];
+
+            public event EventHandler LayoutInvalidated
+            {
+                add => _layoutInvalidated += value;
+                remove => _layoutInvalidated -= value;
+            }
+
+            public event NotifyCollectionChangedEventHandler? CollectionChanged
+            {
+                add => _inner.CollectionChanged += value;
+                remove => _inner.CollectionChanged -= value;
+            }
+
+            public Size CellMeasured(int columnIndex, int rowIndex, Size size) =>
+                _inner.CellMeasured(columnIndex, rowIndex, size);
+
+            public void CommitActualWidths() => _inner.CommitActualWidths();
+
+            public (int index, double x) GetColumnAt(double x) => _inner.GetColumnAt(x);
+
+            public double GetEstimatedWidth(double constraint) => _inner.GetEstimatedWidth(constraint);
+
+            public IEnumerator<IColumn> GetEnumerator() => _inner.GetEnumerator();
+
+            public void SetColumnWidth(int columnIndex, GridLength width) =>
+                _inner.SetColumnWidth(columnIndex, width);
+
+            public void ViewportChanged(Rect viewport) => _inner.ViewportChanged(viewport);
+
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
 
         private class TestRow
