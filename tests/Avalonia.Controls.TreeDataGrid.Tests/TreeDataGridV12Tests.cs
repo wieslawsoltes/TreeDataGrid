@@ -151,6 +151,46 @@ namespace Avalonia.Controls.TreeDataGridTests
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void Selection_Subscriptions_Are_Scoped_To_Visual_Attachment()
+        {
+            var items = new AvaloniaList<TestRow>
+            {
+                new() { Name = "One" },
+                new() { Name = "Two" },
+            };
+
+            var target = CreateTarget();
+            target.ItemsSource = items;
+            target.ColumnDefinitions.Add(new TreeDataGridTextColumn { Binding = new Binding("Name") });
+
+            var raised = 0;
+            target.SelectionChanged += (_, _) => ++raised;
+
+            var root = CreateWindow(target);
+            root.UpdateLayout();
+            Dispatcher.UIThread.RunJobs();
+
+            var selection = Assert.IsAssignableFrom<ITreeDataGridRowSelectionModel<object>>(target.RowSelection);
+
+            root.Content = null;
+            selection.Select(0);
+            Assert.Equal(0, raised);
+
+            root.Content = target;
+            root.UpdateLayout();
+            Dispatcher.UIThread.RunJobs();
+            selection.Select(1);
+            Assert.Equal(1, raised);
+
+            root.Content = null;
+            root.Content = target;
+            root.UpdateLayout();
+            Dispatcher.UIThread.RunJobs();
+            selection.Select(0);
+            Assert.Equal(2, raised);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void Declarative_Text_Column_Writes_Back_Through_Binding_Accessor()
         {
             var items = new AvaloniaList<TestRow>

@@ -93,6 +93,9 @@ namespace Avalonia.Controls
         private bool _hideDragAdorner;
         private DispatcherTimer? _autoScrollTimer;
         private bool _autoScrollDirection;
+        private bool _isAttachedToVisualTree;
+        private bool _sourceEventsSubscribed;
+        private bool _selectionInteractionSubscribed;
 
         public TreeDataGrid()
         {
@@ -186,11 +189,9 @@ namespace Avalonia.Controls
             {
                 if (_selection != value)
                 {
-                    if (_selection != null)
-                        _selection.SelectionChanged -= OnSelectionInteractionChanged;
+                    UnsubscribeSelectionInteraction();
                     _selection = value;
-                    if (_selection != null)
-                        _selection.SelectionChanged += OnSelectionInteractionChanged;
+                    SubscribeSelectionInteraction();
                 }
             }
         }
@@ -302,6 +303,19 @@ namespace Avalonia.Controls
 
         protected virtual TreeDataGridElementFactory CreateDefaultElementFactory() => new TreeDataGridElementFactory();
 
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnAttachedToVisualTree(e);
+            _isAttachedToVisualTree = true;
+            SelectionInteraction = _source?.Selection as ITreeDataGridSelectionInteraction;
+            SubscribeSourceEvents();
+            SubscribeSelectionInteraction();
+            SubscribeSelectionModel();
+            RowsPresenter?.UpdateSelection(SelectionInteraction);
+            RowsPresenter?.RecycleAllElements();
+            RowsPresenter?.InvalidateMeasure();
+        }
+
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
         {
             if (ColumnHeadersPresenter is { } oldColumnHeadersPresenter)
@@ -339,8 +353,50 @@ namespace Avalonia.Controls
 
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
         {
+            UnsubscribeSourceEvents();
+            UnsubscribeSelectionInteraction();
+            UnsubscribeSelectionModelEvents();
+            _isAttachedToVisualTree = false;
             base.OnDetachedFromVisualTree(e);
             StopDrag();
+        }
+
+        private void SubscribeSourceEvents()
+        {
+            if (!_isAttachedToVisualTree || _source is null || _sourceEventsSubscribed)
+                return;
+
+            _source.PropertyChanged += OnSourcePropertyChanged;
+            _source.Sorted += OnSourceSorted;
+            _sourceEventsSubscribed = true;
+        }
+
+        private void UnsubscribeSourceEvents()
+        {
+            if (_source is null || !_sourceEventsSubscribed)
+                return;
+
+            _source.PropertyChanged -= OnSourcePropertyChanged;
+            _source.Sorted -= OnSourceSorted;
+            _sourceEventsSubscribed = false;
+        }
+
+        private void SubscribeSelectionInteraction()
+        {
+            if (!_isAttachedToVisualTree || _selection is null || _selectionInteractionSubscribed)
+                return;
+
+            _selection.SelectionChanged += OnSelectionInteractionChanged;
+            _selectionInteractionSubscribed = true;
+        }
+
+        private void UnsubscribeSelectionInteraction()
+        {
+            if (_selection is null || !_selectionInteractionSubscribed)
+                return;
+
+            _selection.SelectionChanged -= OnSelectionInteractionChanged;
+            _selectionInteractionSubscribed = false;
         }
 
         protected void OnPreviewKeyDown(object? o, KeyEventArgs e)

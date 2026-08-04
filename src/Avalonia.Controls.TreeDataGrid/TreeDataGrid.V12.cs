@@ -24,6 +24,7 @@ namespace Avalonia.Controls
         private ITreeSelectionModel? _rowSelectionModel;
         private ITreeDataGridCellSelectionModel? _cellSelectionModel;
         private bool _updatingSelectionMode;
+        private bool _selectionModelEventsSubscribed;
 
         [Content]
         public TreeDataGridColumns ColumnDefinitions { get; } = new();
@@ -98,23 +99,18 @@ namespace Avalonia.Controls
             if (ReferenceEquals(_source, next))
             {
                 ApplySelectionMode();
+                SelectionInteraction = _source?.Selection as ITreeDataGridSelectionInteraction;
                 SubscribeSelectionModel();
                 return;
             }
 
-            if (_source != null)
-            {
-                _source.PropertyChanged -= OnSourcePropertyChanged;
-                _source.Sorted -= OnSourceSorted;
-            }
+            UnsubscribeSourceEvents();
 
             var oldSource = _source;
             _source = next;
 
             if (_source != null)
             {
-                _source.PropertyChanged += OnSourcePropertyChanged;
-                _source.Sorted += OnSourceSorted;
                 ApplySelectionMode(_source);
                 Columns = _source.Columns;
                 Rows = _source.Rows;
@@ -127,6 +123,7 @@ namespace Avalonia.Controls
                 SelectionInteraction = null;
             }
 
+            SubscribeSourceEvents();
             SubscribeSelectionModel();
             RaisePropertyChanged(SourceProperty, oldSource, _source);
             RowsPresenter?.RecycleAllElements();
@@ -178,11 +175,7 @@ namespace Avalonia.Controls
 
         private void SubscribeSelectionModel()
         {
-            if (_rowSelectionModel is not null)
-                _rowSelectionModel.SelectionChanged -= OnRowSelectionChanged;
-
-            if (_cellSelectionModel is not null)
-                _cellSelectionModel.SelectionChanged -= OnCellSelectionChanged;
+            UnsubscribeSelectionModelEvents();
 
             _rowSelectionModel = _source?.Selection as ITreeSelectionModel;
             _cellSelectionModel = _source?.Selection as ITreeDataGridCellSelectionModel;
@@ -191,17 +184,41 @@ namespace Avalonia.Controls
                 _source.Selection is not ITreeDataGridCellSelectionModel)
             {
                 _rowSelectionModel = rowSelection;
-                _rowSelectionModel.SelectionChanged += OnRowSelectionChanged;
             }
             else
             {
                 _rowSelectionModel = null;
             }
 
+            SubscribeSelectionModelEvents();
+        }
+
+        private void SubscribeSelectionModelEvents()
+        {
+            if (!_isAttachedToVisualTree || _selectionModelEventsSubscribed)
+                return;
+
+            if (_rowSelectionModel is not null)
+                _rowSelectionModel.SelectionChanged += OnRowSelectionChanged;
+
             if (_cellSelectionModel is not null)
-            {
                 _cellSelectionModel.SelectionChanged += OnCellSelectionChanged;
-            }
+
+            _selectionModelEventsSubscribed = _rowSelectionModel is not null || _cellSelectionModel is not null;
+        }
+
+        private void UnsubscribeSelectionModelEvents()
+        {
+            if (!_selectionModelEventsSubscribed)
+                return;
+
+            if (_rowSelectionModel is not null)
+                _rowSelectionModel.SelectionChanged -= OnRowSelectionChanged;
+
+            if (_cellSelectionModel is not null)
+                _cellSelectionModel.SelectionChanged -= OnCellSelectionChanged;
+
+            _selectionModelEventsSubscribed = false;
         }
 
         private void OnRowSelectionChanged(object? sender, TreeDataGridSelectionChangedEventArgs e)

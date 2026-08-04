@@ -10,6 +10,9 @@ namespace Avalonia.Controls.Primitives
 {
     public class TreeDataGridColumnHeadersPresenter : TreeDataGridColumnarPresenterBase<IColumn>, IChildIndexProvider
     {
+        private bool _isAttachedToVisualTree;
+        private IColumns? _layoutInvalidatedColumns;
+
         public event EventHandler<ChildIndexChangedEventArgs>? ChildIndexChanged;
 
         protected override Orientation Orientation => Orientation.Horizontal;
@@ -58,12 +61,51 @@ namespace Avalonia.Controls.Primitives
                 var newValue = change.GetNewValue<IReadOnlyList<IColumn>?>();
 
                 if (oldValue is IColumns oldColumns)
-                    oldColumns.LayoutInvalidated -= OnColumnLayoutInvalidated;
+                    UnsubscribeFromColumnLayoutInvalidated(oldColumns);
                 if (newValue is IColumns newColumns)
-                    newColumns.LayoutInvalidated += OnColumnLayoutInvalidated;
+                    SubscribeToColumnLayoutInvalidated(newColumns);
             }
 
             base.OnPropertyChanged(change);
+        }
+
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnAttachedToVisualTree(e);
+            _isAttachedToVisualTree = true;
+
+            if (Items is IColumns columns)
+                SubscribeToColumnLayoutInvalidated(columns);
+        }
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            if (_layoutInvalidatedColumns is { } columns)
+                UnsubscribeFromColumnLayoutInvalidated(columns);
+
+            _isAttachedToVisualTree = false;
+            base.OnDetachedFromVisualTree(e);
+        }
+
+        private void SubscribeToColumnLayoutInvalidated(IColumns columns)
+        {
+            if (!_isAttachedToVisualTree || ReferenceEquals(_layoutInvalidatedColumns, columns))
+                return;
+
+            if (_layoutInvalidatedColumns is { } oldColumns)
+                UnsubscribeFromColumnLayoutInvalidated(oldColumns);
+
+            columns.LayoutInvalidated += OnColumnLayoutInvalidated;
+            _layoutInvalidatedColumns = columns;
+        }
+
+        private void UnsubscribeFromColumnLayoutInvalidated(IColumns columns)
+        {
+            if (!ReferenceEquals(_layoutInvalidatedColumns, columns))
+                return;
+
+            columns.LayoutInvalidated -= OnColumnLayoutInvalidated;
+            _layoutInvalidatedColumns = null;
         }
 
         private void OnColumnLayoutInvalidated(object? sender, EventArgs e)

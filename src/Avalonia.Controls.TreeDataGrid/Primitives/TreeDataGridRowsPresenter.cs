@@ -16,6 +16,8 @@ namespace Avalonia.Controls.Primitives
                 (o, v) => o.Columns = v);
 
         private IColumns? _columns;
+        private bool _isAttachedToVisualTree;
+        private IColumns? _layoutInvalidatedColumns;
         private bool _pendingColumnLayoutInvalidation;
         private double _lastEstimatedColumnsWidth = double.NaN;
 
@@ -122,9 +124,9 @@ namespace Avalonia.Controls.Primitives
                 var newValue = change.GetNewValue<IColumns>();
 
                 if (oldValue is object)
-                    oldValue.LayoutInvalidated -= OnColumnLayoutInvalidated;
+                    UnsubscribeFromColumnLayoutInvalidated(oldValue);
                 if (newValue is object)
-                    newValue.LayoutInvalidated += OnColumnLayoutInvalidated;
+                    SubscribeToColumnLayoutInvalidated(newValue);
 
                 // When for existing Presenter Columns would be recreated they won't get Viewport set so we need to track that
                 // and pass Viewport for a newly created object.
@@ -137,6 +139,24 @@ namespace Avalonia.Controls.Primitives
             base.OnPropertyChanged(change);
         }
 
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnAttachedToVisualTree(e);
+            _isAttachedToVisualTree = true;
+
+            if (Columns is { } columns)
+                SubscribeToColumnLayoutInvalidated(columns);
+        }
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            if (_layoutInvalidatedColumns is { } columns)
+                UnsubscribeFromColumnLayoutInvalidated(columns);
+
+            _isAttachedToVisualTree = false;
+            base.OnDetachedFromVisualTree(e);
+        }
+
         internal void UpdateSelection(ITreeDataGridSelectionInteraction? selection)
         {
             foreach (var element in RealizedElements)
@@ -144,6 +164,27 @@ namespace Avalonia.Controls.Primitives
                 if (element is TreeDataGridRow { RowIndex: >= 0 } row)
                     row.UpdateSelection(selection);
             }
+        }
+
+        private void SubscribeToColumnLayoutInvalidated(IColumns columns)
+        {
+            if (!_isAttachedToVisualTree || ReferenceEquals(_layoutInvalidatedColumns, columns))
+                return;
+
+            if (_layoutInvalidatedColumns is { } oldColumns)
+                UnsubscribeFromColumnLayoutInvalidated(oldColumns);
+
+            columns.LayoutInvalidated += OnColumnLayoutInvalidated;
+            _layoutInvalidatedColumns = columns;
+        }
+
+        private void UnsubscribeFromColumnLayoutInvalidated(IColumns columns)
+        {
+            if (!ReferenceEquals(_layoutInvalidatedColumns, columns))
+                return;
+
+            columns.LayoutInvalidated -= OnColumnLayoutInvalidated;
+            _layoutInvalidatedColumns = null;
         }
 
         private void OnColumnLayoutInvalidated(object? sender, EventArgs e)
