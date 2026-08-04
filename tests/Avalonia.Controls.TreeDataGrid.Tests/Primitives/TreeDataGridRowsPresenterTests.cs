@@ -106,6 +106,32 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void Small_Scrolls_Within_Realized_Rows_Do_Not_Repeat_Measure()
+        {
+            var presenter = new CountingRowsPresenter();
+            var (target, scroll, items) = CreateTarget(presenter: presenter);
+
+            scroll.Offset = new Vector(0, 1);
+            Layout(target);
+            var measureCountAfterRealizingTrailingRow = presenter.MeasureCount;
+
+            for (var offset = 2; offset <= 10; ++offset)
+            {
+                scroll.Offset = new Vector(0, offset);
+                Layout(target);
+            }
+
+            Assert.Equal(measureCountAfterRealizingTrailingRow, presenter.MeasureCount);
+            AssertRealizedRowsAreConsistent(target, items);
+
+            scroll.Offset = new Vector(0, 11);
+            Layout(target);
+
+            Assert.True(presenter.MeasureCount > measureCountAfterRealizingTrailingRow);
+            AssertRealizedRowsAreConsistent(target, items);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void Scrolls_Down_More_Than_A_Page()
         {
             var (target, scroll, _) = CreateTarget();
@@ -1034,7 +1060,8 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
             List<IStyle>? additionalStyles = null,
             int itemCount = 100,
             Size? rootSize = null,
-            double cacheLength = 0)
+            double cacheLength = 0,
+            TreeDataGridRowsPresenter? presenter = null)
         {
             var items = new AvaloniaList<Model>(Enumerable.Range(0, itemCount).Select(x =>
                 new Model
@@ -1046,13 +1073,11 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
             var itemsView = new TreeDataGridItemsSourceView<Model>(items);
             var rows = new AnonymousSortableRows<Model>(itemsView, null);
 
-            var target = new TreeDataGridRowsPresenter
-            {
-                CacheLength = cacheLength,
-                ElementFactory = new TreeDataGridElementFactory(),
-                Items = rows,
-                Columns = columns,
-            };
+            var target = presenter ?? new TreeDataGridRowsPresenter();
+            target.CacheLength = cacheLength;
+            target.ElementFactory = new TreeDataGridElementFactory();
+            target.Items = rows;
+            target.Columns = columns;
 
             var scrollViewer = new ScrollViewer
             {
@@ -1146,6 +1171,17 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
         {
             public int Id { get; set; }
             public string? Title { get; set; }
+        }
+
+        private sealed class CountingRowsPresenter : TreeDataGridRowsPresenter
+        {
+            public int MeasureCount { get; private set; }
+
+            protected override Size MeasureOverride(Size availableSize)
+            {
+                ++MeasureCount;
+                return base.MeasureOverride(availableSize);
+            }
         }
     }
 }
