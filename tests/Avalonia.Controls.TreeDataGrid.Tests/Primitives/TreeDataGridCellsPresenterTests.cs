@@ -78,6 +78,64 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void Reuses_Realized_Cell_Controls_When_Row_Is_Immediately_Rebound()
+        {
+            var (target, _) = CreateTarget(rowCount: 2);
+            var cells = target.RealizedElements.Cast<TreeDataGridCell>().ToList();
+            var models = cells.Select(x => x.Model).ToList();
+
+            target.Unrealize();
+
+            Assert.Equal(cells, target.RealizedElements);
+            Assert.All(cells, cell => Assert.Equal(0, cell.RowIndex));
+
+            target.Realize(1);
+            Layout(target);
+
+            Assert.Equal(cells, target.RealizedElements);
+            Assert.All(cells, cell => Assert.Equal(1, cell.RowIndex));
+            Assert.All(cells.Zip(models), pair => Assert.NotSame(pair.Second, pair.First.Model));
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Deferred_Row_Cells_Are_Recycled_When_Presenter_Detaches()
+        {
+            var (target, scroll) = CreateTarget(rowCount: 2);
+            var cells = target.RealizedElements.Cast<TreeDataGridCell>().ToList();
+
+            target.Unrealize();
+            scroll.Content = null;
+            scroll.UpdateLayout();
+            Dispatcher.UIThread.RunJobs();
+
+            Assert.Empty(target.RealizedElements);
+            Assert.All(cells, cell =>
+            {
+                Assert.Equal(-1, cell.ColumnIndex);
+                Assert.Equal(-1, cell.RowIndex);
+                Assert.Null(cell.Model);
+            });
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Deferred_Row_Cells_Are_Recycled_Before_Rows_Source_Changes()
+        {
+            var (target, _) = CreateTarget(rowCount: 2);
+            var cells = target.RealizedElements.Cast<TreeDataGridCell>().ToList();
+
+            target.Unrealize();
+            target.Rows = null;
+
+            Assert.Empty(target.RealizedElements);
+            Assert.All(cells, cell =>
+            {
+                Assert.Equal(-1, cell.ColumnIndex);
+                Assert.Equal(-1, cell.RowIndex);
+                Assert.Null(cell.Model);
+            });
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void Moving_Columns_Preserves_Realized_Cell_Identity()
         {
             var columns = new MovableColumnList<Model>();
@@ -205,7 +263,8 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
 
         private static (TreeDataGridCellsPresenter, ScrollViewer) CreateTarget(
             ColumnList<Model>? columns = null,
-            List<IStyle>? additionalStyles = null)
+            List<IStyle>? additionalStyles = null,
+            int rowCount = 1)
         {
             if (columns is null)
             {
@@ -215,7 +274,7 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
                     columns.Add(new LayoutTestColumn<Model>("Column " + i));
             }
 
-            var items = new Model[1];
+            var items = new Model[rowCount];
             var rows = new AnonymousSortableRows<Model>(new TreeDataGridItemsSourceView<Model>(items), null);
 
             var target = new TreeDataGridCellsPresenter

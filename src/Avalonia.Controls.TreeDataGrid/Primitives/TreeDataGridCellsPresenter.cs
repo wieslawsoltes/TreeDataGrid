@@ -19,13 +19,21 @@ namespace Avalonia.Controls.Primitives
                 (o, v) => o.Rows = v);
 
         private IRows? _rows;
+        private bool _rebindRealizedCells;
 
         public event EventHandler<ChildIndexChangedEventArgs>? ChildIndexChanged;
 
         public IRows? Rows
         {
             get => _rows;
-            set => SetAndRaise(RowsProperty, ref _rows, value);
+            set
+            {
+                if (!ReferenceEquals(_rows, value))
+                {
+                    RecycleDeferredCells();
+                    SetAndRaise(RowsProperty, ref _rows, value);
+                }
+            }
         }
 
         public int RowIndex { get; private set; } = -1;
@@ -36,7 +44,15 @@ namespace Avalonia.Controls.Primitives
         {
             if (RowIndex != -1)
                 throw new InvalidOperationException("Row is already realized.");
+
             RowIndex = index;
+
+            if (_rebindRealizedCells)
+            {
+                _rebindRealizedCells = false;
+                RebindRealizedCells();
+            }
+
             InvalidateMeasure();
         }
 
@@ -45,12 +61,12 @@ namespace Avalonia.Controls.Primitives
             if (RowIndex == -1)
                 throw new InvalidOperationException("Row is not realized.");
             RowIndex = -1;
-            // The row itself is about to leave the TreeDataGrid's visual and logical trees.
-            // Keep its cell subtree intact so content-template visuals can be reused when the
-            // pooled row is realized again.
-            RecycleAllElements(
-                preserveVisualTreeMembership: true,
-                preserveLogicalTreeMembership: true);
+
+            // A row leaving one edge of the viewport is commonly reused at the other edge in
+            // the same measure pass. Keep its cells realized until we know whether the row is
+            // rebound or actually detached, avoiding a recycle/factory/re-realize round-trip
+            // for every column.
+            _rebindRealizedCells = true;
         }
 
         public void UpdateRowIndex(int index)
@@ -162,7 +178,55 @@ namespace Avalonia.Controls.Primitives
             if (RowIndex == -1)
                 throw new InvalidOperationException("Row is not realized.");
             RowIndex = -1;
+            _rebindRealizedCells = false;
             RecycleAllElementsOnItemRemoved(
+                preserveVisualTreeMembership: true,
+                preserveLogicalTreeMembership: true);
+        }
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            // If the owning row was not reused during the layout pass, base detachment recycles
+            // the deferred cells and releases their models normally.
+            _rebindRealizedCells = false;
+            base.OnDetachedFromVisualTree(e);
+        }
+
+        private void RebindRealizedCells()
+        {
+            var items = Items;
+            var elements = RealizedElements;
+            var firstIndex = FirstIndex;
+
+            if (items is null || _rows is null || ElementFactory is null ||
+                firstIndex < 0 || firstIndex + elements.Count > items.Count)
+            {
+                RecycleAllElements(
+                    preserveVisualTreeMembership: true,
+                    preserveLogicalTreeMembership: true);
+                return;
+            }
+
+            for (var i = 0; i < elements.Count; ++i)
+            {
+                if (elements[i] is not TreeDataGridCell cell)
+                    continue;
+
+                var columnIndex = firstIndex + i;
+                UnrealizeElement(cell);
+
+                if ((uint)columnIndex < (uint)items.Count)
+                    RealizeElement(cell, items[columnIndex], columnIndex);
+            }
+        }
+
+        private void RecycleDeferredCells()
+        {
+            if (!_rebindRealizedCells)
+                return;
+
+            _rebindRealizedCells = false;
+            RecycleAllElements(
                 preserveVisualTreeMembership: true,
                 preserveLogicalTreeMembership: true);
         }
