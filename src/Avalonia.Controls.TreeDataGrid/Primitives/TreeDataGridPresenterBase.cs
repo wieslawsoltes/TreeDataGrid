@@ -17,6 +17,13 @@ namespace Avalonia.Controls.Primitives
 {
     public abstract class TreeDataGridPresenterBase<TItem> : Border
     {
+        [Conditional("DEBUG")]
+        private void Trace(string message)
+        {
+            if (TreeDataGridDiagnostics.EnableTracing && this is TreeDataGridRowsPresenter)
+                Debug.WriteLine($"[{GetType().Name}] {message}");
+        }
+
 #pragma warning disable AVP1002
         public static readonly DirectProperty<TreeDataGridPresenterBase<TItem>, TreeDataGridElementFactory?>
             ElementFactoryProperty =
@@ -331,8 +338,9 @@ namespace Avalonia.Controls.Primitives
             {
                 var orientation = Orientation;
 
-                _realizedElements ??= new();
-                _measureElements ??= new();
+                var traceRealizedElements = this is TreeDataGridRowsPresenter;
+                _realizedElements ??= new(traceRealizedElements);
+                _measureElements ??= new(traceRealizedElements);
 
                 // We handle horizontal and vertical layouts here so X and Y are abstracted to:
                 // - Horizontal layouts: U = horizontal, V = vertical
@@ -439,6 +447,7 @@ namespace Avalonia.Controls.Primitives
             base.OnAttachedToVisualTree(e);
             _isDetaching = false;
             _scrollViewer = this.FindAncestorOfType<ScrollViewer>();
+            Trace($"OnAttachedToVisualTree: Viewport={Viewport}, IsInvalid={Viewport == s_invalidViewport}, ItemCount={Items?.Count ?? 0}, CachedViewportSize={_cachedViewportSize}");
             // Subscribing to this event adds a reference to 'this' in the layout manager.
             // so this must be unsubscribed to avoid memory leaks.
             EffectiveViewportChanged += OnEffectiveViewportChanged;
@@ -448,6 +457,7 @@ namespace Avalonia.Controls.Primitives
 
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
         {
+            Trace($"OnDetachedFromVisualTree: recycling {_realizedElements?.Count ?? 0} elements, Viewport={Viewport}, CachedViewportSize={_cachedViewportSize}");
             base.OnDetachedFromVisualTree(e);
             _isDetaching = true;
             _scrollViewer = null;
@@ -468,6 +478,7 @@ namespace Avalonia.Controls.Primitives
 
         protected virtual void OnEffectiveViewportChanged(object? sender, EffectiveViewportChangedEventArgs e)
         {
+            Trace($"OnEffectiveViewportChanged: OldViewport={Viewport}, NewEffectiveViewport={e.EffectiveViewport}, BoundsSize={Bounds.Size}");
             var vertical = Orientation == Orientation.Vertical;
             var oldViewportStart = vertical ? Viewport.Top : Viewport.Left;
             var oldViewportEnd = vertical ? Viewport.Bottom : Viewport.Right;
@@ -585,6 +596,7 @@ namespace Avalonia.Controls.Primitives
             // We can now recycle elements before the first element.
             _realizedElements.RecycleElementsBefore(index + 1, _recycleElement);
 
+            Trace($"RealizeElements complete: realized {_measureElements.Count} elements from {_measureElements.FirstIndex} to {viewport.lastIndex}, viewportU=[{viewport.viewportUStart:F1}, {viewport.viewportUEnd:F1}]");
         }
 
         private Size CalculateDesiredSize(Orientation orientation, int itemCount, in MeasureViewport viewport)
@@ -607,7 +619,10 @@ namespace Avalonia.Controls.Primitives
 
             // If the control has not yet been laid out then the effective viewport won't have been set.
             // Try to work it out from an ancestor control.
-            var viewport = Viewport != s_invalidViewport ? Viewport : EstimateViewport(availableSize);
+            var viewportIsInvalid = Viewport == s_invalidViewport;
+            var viewport = !viewportIsInvalid ? Viewport : EstimateViewport(availableSize);
+
+            Trace($"CalculateMeasureViewport: ViewportIsInvalid={viewportIsInvalid}, Viewport={Viewport}, EstimatedViewport={viewport}, AvailableSize={availableSize}, ItemCount={items.Count}");
 
             // Get the viewport in the orientation direction.
             var viewportStart = Orientation == Orientation.Horizontal ? viewport.X : viewport.Y;
@@ -700,6 +715,7 @@ namespace Avalonia.Controls.Primitives
             // This gives us an accurate estimate without walking the visual tree.
             if (_cachedViewportSize != default)
             {
+                Trace($"EstimateViewport: Using cached viewport size {_cachedViewportSize}");
                 return new Rect(0, 0, _cachedViewportSize.Width, _cachedViewportSize.Height);
             }
 

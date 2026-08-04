@@ -11,11 +11,24 @@ namespace Avalonia.Controls.Primitives
     /// </summary>
     internal class RealizedStackElements
     {
+        private readonly bool _traceEnabled;
         private int _firstIndex;
         private List<Control?>? _elements;
         private List<double>? _sizes;
         private double _startU;
         private bool _startUUnstable;
+
+        public RealizedStackElements(bool traceEnabled)
+        {
+            _traceEnabled = traceEnabled;
+        }
+
+        [Conditional("DEBUG")]
+        private void Trace(string message)
+        {
+            if (TreeDataGridDiagnostics.EnableTracing && _traceEnabled)
+                Debug.WriteLine($"[RealizedStackElements] {message}");
+        }
 
         /// <summary>
         /// Gets the number of realized elements.
@@ -58,6 +71,8 @@ namespace Avalonia.Controls.Primitives
         {
             if (index < 0)
                 throw new ArgumentOutOfRangeException(nameof(index));
+
+            Trace($"Add: index={index}, u={u:F1}, sizeU={sizeU:F1}, currentCount={Count}");
 
             _elements ??= new List<Control?>();
             _sizes ??= new List<double>();
@@ -588,6 +603,8 @@ namespace Avalonia.Controls.Primitives
         {
             if (_elements is null || _elements.Count == 0)
                 return;
+
+            Trace($"RecycleAllElements: recycling {_elements.Count} elements (FirstIndex={FirstIndex})");
 
             for (var i = 0; i < _elements.Count; i++)
             {
