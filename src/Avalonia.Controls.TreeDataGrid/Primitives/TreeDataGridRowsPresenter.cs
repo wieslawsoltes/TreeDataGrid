@@ -1,8 +1,10 @@
 ﻿using System;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Selection;
+using Avalonia.Controls.Utils;
 using Avalonia.Layout;
 using Avalonia.LogicalTree;
+using Avalonia.Utilities;
 using Avalonia.VisualTree;
 
 namespace Avalonia.Controls.Primitives
@@ -68,9 +70,13 @@ namespace Avalonia.Controls.Primitives
 
         protected override bool NeedsMeasureForViewportChange(Rect measureViewport, Rect viewport)
         {
-            return CacheLength <= 0 ||
-                viewport.Top < measureViewport.Top ||
-                viewport.Bottom > measureViewport.Bottom;
+            if (CacheLength <= 0)
+            {
+                return !MathUtilities.AreClose(measureViewport.Width, viewport.Width) ||
+                    !IsViewportCoveredByRealizedElements(viewport);
+            }
+
+            return viewport.Top < measureViewport.Top || viewport.Bottom > measureViewport.Bottom;
         }
 
         protected override (int index, double position) GetElementAt(double position)

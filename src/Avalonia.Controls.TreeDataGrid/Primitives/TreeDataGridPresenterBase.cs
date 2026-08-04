@@ -522,6 +522,7 @@ namespace Avalonia.Controls.Primitives
         {
             Trace($"OnEffectiveViewportChanged: OldViewport={Viewport}, NewEffectiveViewport={e.EffectiveViewport}, BoundsSize={Bounds.Size}");
             var vertical = Orientation == Orientation.Vertical;
+            var oldViewportWasInvalid = Viewport == s_invalidViewport;
             var oldViewportStart = vertical ? Viewport.Top : Viewport.Left;
             var oldViewportEnd = vertical ? Viewport.Bottom : Viewport.Right;
 
@@ -546,7 +547,7 @@ namespace Avalonia.Controls.Primitives
             if (!MathUtilities.AreClose(oldViewportStart, newViewportStart) ||
                 !MathUtilities.AreClose(oldViewportEnd, newViewportEnd))
             {
-                if (NeedsMeasureForViewportChange(_lastMeasureViewport, Viewport))
+                if (oldViewportWasInvalid || NeedsMeasureForViewportChange(_lastMeasureViewport, Viewport))
                     InvalidateMeasure();
             }
         }
@@ -766,6 +767,18 @@ namespace Avalonia.Controls.Primitives
         protected virtual Rect GetMeasureViewport(Rect viewport)
         {
             return viewport;
+        }
+
+        protected bool IsViewportCoveredByRealizedElements(Rect viewport)
+        {
+            var viewportStart = Orientation == Orientation.Vertical ? viewport.Top : viewport.Left;
+            var viewportEnd = Orientation == Orientation.Vertical ? viewport.Bottom : viewport.Right;
+
+            return double.IsFinite(viewportStart) &&
+                double.IsFinite(viewportEnd) &&
+                _realizedElements?.TryGetStableRange(out var realizedStart, out var realizedEnd) == true &&
+                !MathUtilities.GreaterThan(realizedStart, viewportStart) &&
+                !MathUtilities.GreaterThan(viewportEnd, realizedEnd);
         }
 
         protected virtual bool NeedsMeasureForViewportChange(Rect measureViewport, Rect viewport)

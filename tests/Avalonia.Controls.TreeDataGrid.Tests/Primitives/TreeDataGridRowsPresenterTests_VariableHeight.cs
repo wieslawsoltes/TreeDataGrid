@@ -89,6 +89,74 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
             Assert.Equal(items.Count - 1, lastIndex);
         }
 
+        [AvaloniaFact(Timeout = 30000)]
+        public void Pixel_Scrolls_In_Both_Directions_Preserve_Variable_Height_Virtualization()
+        {
+            var (target, scroll, items) = CreateTarget(itemCount: 40, rootSize: new Size(100, 200));
+            var encounteredRows = new HashSet<TreeDataGridRow>();
+            var maximumRealizedCount = 0;
+
+            void AssertState()
+            {
+                var rows = target.RealizedElements.Cast<TreeDataGridRow>().ToList();
+                var viewportStart = scroll.Offset.Y;
+                var viewportEnd = Math.Min(scroll.Extent.Height, viewportStart + scroll.Viewport.Height);
+
+                Assert.NotEmpty(rows);
+                Assert.Equal(rows.Count, rows.Distinct().Count());
+                Assert.True(rows[0].Bounds.Top <= viewportStart + 0.001);
+                Assert.True(rows[^1].Bounds.Bottom >= viewportEnd - 0.001);
+
+                for (var i = 0; i < rows.Count; ++i)
+                {
+                    var row = rows[i];
+                    Assert.Same(items[row.RowIndex], row.DataContext);
+                    Assert.Contains(row, target.GetVisualChildren());
+                    Assert.Contains(row, target.GetLogicalChildren());
+
+                    if (i > 0)
+                    {
+                        Assert.Equal(rows[i - 1].RowIndex + 1, row.RowIndex);
+                        Assert.True(Math.Abs(rows[i - 1].Bounds.Bottom - row.Bounds.Top) < 0.001);
+                    }
+
+                    encounteredRows.Add(row);
+                }
+
+                maximumRealizedCount = Math.Max(maximumRealizedCount, rows.Count);
+            }
+
+            var maximumOffset = (int)(scroll.Extent.Height - scroll.Viewport.Height);
+
+            for (var offset = 0; offset <= maximumOffset; ++offset)
+            {
+                scroll.Offset = new Vector(0, offset);
+                Layout(target);
+                AssertState();
+            }
+
+            var mutationIndex = Math.Min(
+                ((TreeDataGridRow)target.RealizedElements[0]!).RowIndex + 1,
+                items.Count);
+            var inserted = new Model { Id = -1, Height = 37 };
+            items.Insert(mutationIndex, inserted);
+            Layout(target);
+            AssertState();
+            items.RemoveAt(mutationIndex);
+            Layout(target);
+            AssertState();
+
+            for (var offset = (int)scroll.Offset.Y; offset >= 0; --offset)
+            {
+                scroll.Offset = new Vector(0, offset);
+                Layout(target);
+                AssertState();
+            }
+
+            Assert.True(encounteredRows.Count <= maximumRealizedCount + 2,
+                $"Encountered {encounteredRows.Count} controls for a maximum realized count of {maximumRealizedCount}.");
+        }
+
         [AvaloniaFact]
         public void Insert_And_Remove_Preserve_Variable_Height_Row_Identity_And_Positions()
         {

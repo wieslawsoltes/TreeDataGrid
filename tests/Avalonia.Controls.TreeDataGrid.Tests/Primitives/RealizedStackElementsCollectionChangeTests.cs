@@ -11,6 +11,30 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
     public class RealizedStackElementsCollectionChangeTests
     {
         [AvaloniaFact]
+        public void Stable_Range_Requires_Contiguous_Measured_Elements()
+        {
+            var (target, _) = CreateRange(10, 3);
+
+            Assert.True(target.TryGetStableRange(out var start, out var end));
+            Assert.Equal(100, start);
+            Assert.Equal(133, end);
+
+            target.ItemsInserted(11, 1, UpdateIndex, _ => { });
+
+            Assert.False(target.TryGetStableRange(out _, out _));
+        }
+
+        [AvaloniaFact]
+        public void Stable_Range_Is_Invalidated_When_Indexes_Change_Before_It()
+        {
+            var (target, _) = CreateRange(10, 3);
+
+            target.ItemsInserted(0, 1, UpdateIndex, _ => { });
+
+            Assert.False(target.TryGetStableRange(out _, out _));
+        }
+
+        [AvaloniaFact]
         public void Insert_Inside_Range_Preserves_And_Reindexes_Suffix()
         {
             var (target, elements) = CreateRange(10, 5);

@@ -62,6 +62,38 @@ namespace Avalonia.Controls.Primitives
         public double StartU => _startU;
 
         /// <summary>
+        /// Gets the range covered by contiguous, measured realized elements.
+        /// </summary>
+        public bool TryGetStableRange(out double start, out double end)
+        {
+            start = end = 0;
+
+            if (_startUUnstable ||
+                _elements is null ||
+                _sizes is null ||
+                _elements.Count == 0 ||
+                _elements.Count != _sizes.Count ||
+                !double.IsFinite(_startU))
+            {
+                return false;
+            }
+
+            start = end = _startU;
+
+            for (var i = 0; i < _elements.Count; ++i)
+            {
+                var size = _sizes[i];
+
+                if (_elements[i] is null || !double.IsFinite(size) || size < 0)
+                    return false;
+
+                end += size;
+            }
+
+            return double.IsFinite(end);
+        }
+
+        /// <summary>
         /// Adds a newly realized element to the collection.
         /// </summary>
         /// <param name="index">The index of the element.</param>

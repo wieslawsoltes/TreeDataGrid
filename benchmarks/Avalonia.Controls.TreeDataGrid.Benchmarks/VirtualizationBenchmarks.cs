@@ -20,7 +20,7 @@ namespace TreeDataGridBenchmarks;
 [SimpleJob(RuntimeMoniker.Net80, warmupCount: 5, iterationCount: 10)]
 public class VirtualizationBenchmarks
 {
-    private const int VerticalScrollOperations = 2_500;
+    private const int VerticalScrollOperations = 10_000;
     private const int StationaryLayoutOperations = 25_000;
     private const int HorizontalScrollOperations = 1_000;
     private const int CollectionEditOperations = 300;
@@ -59,6 +59,27 @@ public class VirtualizationBenchmarks
 
     [Benchmark(OperationsPerInvoke = VerticalScrollOperations)]
     public int VerticalSmallScrolls()
+    {
+        var scroll = _scroll!;
+
+        for (var i = 1; i <= VerticalScrollOperations; ++i)
+        {
+            scroll.Offset = new Vector(0, i);
+            _grid!.UpdateLayout();
+        }
+
+        return _grid!.RowsPresenter!.GetRealizedElements().Count();
+    }
+
+    [IterationSetup(Target = nameof(VerticalUnbatchedSmallScrolls))]
+    public void SetupVerticalUnbatchedSmallScrolls() =>
+        CreateGrid(rowCount: 10_000, columnCount: 12, alwaysMeasureViewportChanges: true);
+
+    [IterationCleanup(Target = nameof(VerticalUnbatchedSmallScrolls))]
+    public void CleanupVerticalUnbatchedSmallScrolls() => CleanupGrid();
+
+    [Benchmark(OperationsPerInvoke = VerticalScrollOperations)]
+    public int VerticalUnbatchedSmallScrolls()
     {
         var scroll = _scroll!;
 
@@ -223,7 +244,11 @@ public class VirtualizationBenchmarks
         return grid.RowsPresenter!.GetRealizedElements().Count();
     }
 
-    private void CreateGrid(int rowCount, int columnCount, double cacheLength = 0)
+    private void CreateGrid(
+        int rowCount,
+        int columnCount,
+        double cacheLength = 0,
+        bool alwaysMeasureViewportChanges = false)
     {
         _items = new AvaloniaList<RowModel>(Enumerable.Range(0, rowCount)
             .Select(x => new RowModel(x, $"Item {x}")));
@@ -248,7 +273,7 @@ public class VirtualizationBenchmarks
         _grid = new TreeDataGridControl
         {
             Source = source,
-            Template = TreeDataGridTemplate(cacheLength),
+            Template = TreeDataGridTemplate(cacheLength, alwaysMeasureViewportChanges),
         };
 
         _window = new Window
@@ -285,24 +310,31 @@ public class VirtualizationBenchmarks
         _items = null;
     }
 
-    private static IControlTemplate TreeDataGridTemplate(double cacheLength)
+    private static IControlTemplate TreeDataGridTemplate(
+        double cacheLength,
+        bool alwaysMeasureViewportChanges)
     {
         return new FuncControlTemplate<TreeDataGridControl>((x, ns) =>
-            new ScrollViewer
+        {
+            var rowsPresenter = alwaysMeasureViewportChanges ?
+                new AlwaysMeasureRowsPresenter() :
+                new TreeDataGridRowsPresenter();
+            rowsPresenter.Name = "PART_RowsPresenter";
+            rowsPresenter.CacheLength = cacheLength;
+            rowsPresenter[!TreeDataGridRowsPresenter.ColumnsProperty] = x[!TreeDataGridControl.ColumnsProperty];
+            rowsPresenter[!TreeDataGridRowsPresenter.ElementFactoryProperty] = x[!TreeDataGridControl.ElementFactoryProperty];
+            rowsPresenter[!TreeDataGridRowsPresenter.ItemsProperty] = x[!TreeDataGridControl.RowsProperty];
+            rowsPresenter.RegisterInNameScope(ns);
+
+            return new ScrollViewer
             {
                 Name = "PART_ScrollViewer",
                 Template = ScrollViewerTemplate(),
                 HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-                Content = new TreeDataGridRowsPresenter
-                {
-                    Name = "PART_RowsPresenter",
-                    CacheLength = cacheLength,
-                    [!TreeDataGridRowsPresenter.ColumnsProperty] = x[!TreeDataGridControl.ColumnsProperty],
-                    [!TreeDataGridRowsPresenter.ElementFactoryProperty] = x[!TreeDataGridControl.ElementFactoryProperty],
-                    [!TreeDataGridRowsPresenter.ItemsProperty] = x[!TreeDataGridControl.RowsProperty],
-                }.RegisterInNameScope(ns),
-            }.RegisterInNameScope(ns));
+                Content = rowsPresenter,
+            }.RegisterInNameScope(ns);
+        });
     }
 
     private static IControlTemplate RowTemplate()
@@ -330,6 +362,11 @@ public class VirtualizationBenchmarks
 
     private sealed class BenchmarkApplication : Application
     {
+    }
+
+    private sealed class AlwaysMeasureRowsPresenter : TreeDataGridRowsPresenter
+    {
+        protected override bool NeedsMeasureForViewportChange(Rect measureViewport, Rect viewport) => true;
     }
 
     private sealed record RowModel(int Id, string Title);
