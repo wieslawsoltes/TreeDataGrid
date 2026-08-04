@@ -186,9 +186,11 @@ namespace Avalonia.Controls.Primitives
 
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
         {
-            // If the owning row was not reused during the layout pass, base detachment recycles
-            // the deferred cells and releases their models normally.
-            _rebindRealizedCells = false;
+            // If the owning row was not reused during the layout pass, release the deferred cell
+            // models while their controls are still parented to this presenter. The entire row is
+            // already leaving the visual tree, so preserving the internal subtree avoids removing
+            // and re-adding the same controls (and reapplying their styles) on reattachment.
+            RecycleDeferredCells();
             base.OnDetachedFromVisualTree(e);
         }
 
