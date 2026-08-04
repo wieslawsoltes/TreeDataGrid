@@ -120,6 +120,27 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
             AssertContiguousRows(target, items);
         }
 
+        [AvaloniaFact(Timeout = 10000)]
+        public void Move_Preserves_Variable_Height_Row_Identity_And_Positions()
+        {
+            var (target, _, items) = CreateTarget(rootSize: new Size(100, 400));
+            var rowsByItem = target.RealizedElements
+                .Cast<TreeDataGridRow>()
+                .ToDictionary(x => (Model)x.DataContext!);
+
+            items.Move(2, 7);
+            Layout(target);
+
+            foreach (var pair in rowsByItem)
+            {
+                var newIndex = items.IndexOf(pair.Key);
+                if (target.TryGetElement(newIndex) is { } row)
+                    Assert.Same(pair.Value, row);
+            }
+
+            AssertContiguousRows(target, items);
+        }
+
         private static void AssertContiguousRows(
             TreeDataGridRowsPresenter target,
             IReadOnlyList<Model> items)

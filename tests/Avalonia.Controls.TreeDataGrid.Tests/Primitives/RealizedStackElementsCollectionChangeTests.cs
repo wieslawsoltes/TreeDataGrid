@@ -102,6 +102,36 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
             Assert.Empty(recycled);
         }
 
+        [AvaloniaFact(Timeout = 10000)]
+        public void Move_Inside_Range_Preserves_Controls_And_Their_Sizes()
+        {
+            var source = CreateSource(20);
+            var (target, elements) = CreateRange(source, 5, 10);
+            var oldIndexes = elements.ToDictionary(x => x, x => x.Index);
+            var recycled = new List<IndexedControl>();
+
+            MoveRange(source, 7, 11, 2);
+            target.ItemsMoved(7, 11, 2, UpdateIndex, x => recycled.Add((IndexedControl)x));
+
+            AssertMovePreservation(target, source, elements, oldIndexes, recycled, 5, 14, 7, 11, 2);
+            Assert.Equal(100, target.GetElementU(5));
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Move_Crossing_Range_Boundaries_Preserves_Controls_That_Remain_Visible()
+        {
+            var source = CreateSource(40);
+            var (target, elements) = CreateRange(source, 10, 10);
+            var oldIndexes = elements.ToDictionary(x => x, x => x.Index);
+            var recycled = new List<IndexedControl>();
+
+            MoveRange(source, 2, 15, 3);
+            target.ItemsMoved(2, 15, 3, UpdateIndex, x => recycled.Add((IndexedControl)x));
+
+            AssertMovePreservation(target, source, elements, oldIndexes, recycled, 10, 19, 2, 15, 3);
+            Assert.True(double.IsNaN(target.GetElementU(10)));
+        }
+
         [AvaloniaFact]
         public void Collection_Change_Matrix_Preserves_Item_Mapping()
         {
@@ -144,6 +174,55 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
                                     UpdateIndex,
                                     x => removeRecycled.Add((IndexedControl)x));
                                 AssertValidMapping(removeTarget, removeSource, removeRecycled);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Move_Matrix_Preserves_Every_Control_That_Remains_In_The_Realized_Window()
+        {
+            const int sourceCount = 40;
+            var firstIndexes = new[] { 0, 5, 20 };
+            var realizedCounts = new[] { 1, 5, 10 };
+            var moveCounts = new[] { 1, 2, 5 };
+
+            foreach (var firstIndex in firstIndexes)
+            {
+                foreach (var realizedCount in realizedCounts)
+                {
+                    foreach (var moveCount in moveCounts)
+                    {
+                        for (var oldIndex = 0; oldIndex <= sourceCount - moveCount; ++oldIndex)
+                        {
+                            for (var newIndex = 0; newIndex <= sourceCount - moveCount; ++newIndex)
+                            {
+                                var source = CreateSource(sourceCount);
+                                var (target, elements) = CreateRange(source, firstIndex, realizedCount);
+                                var oldIndexes = elements.ToDictionary(x => x, x => x.Index);
+                                var recycled = new List<IndexedControl>();
+
+                                MoveRange(source, oldIndex, newIndex, moveCount);
+                                target.ItemsMoved(
+                                    oldIndex,
+                                    newIndex,
+                                    moveCount,
+                                    UpdateIndex,
+                                    x => recycled.Add((IndexedControl)x));
+
+                                AssertMovePreservation(
+                                    target,
+                                    source,
+                                    elements,
+                                    oldIndexes,
+                                    recycled,
+                                    firstIndex,
+                                    firstIndex + realizedCount - 1,
+                                    oldIndex,
+                                    newIndex,
+                                    moveCount);
                             }
                         }
                     }
@@ -202,6 +281,64 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
                 Assert.Same(source[element.Index], element.Item);
                 Assert.DoesNotContain(element, recycled);
             }
+        }
+
+        private static void AssertMovePreservation(
+            RealizedStackElements target,
+            IReadOnlyList<object> source,
+            IReadOnlyList<IndexedControl> elements,
+            IReadOnlyDictionary<IndexedControl, int> oldIndexes,
+            IReadOnlyCollection<IndexedControl> recycled,
+            int firstIndex,
+            int lastIndex,
+            int oldIndex,
+            int newIndex,
+            int count)
+        {
+            Assert.Equal(firstIndex, target.FirstIndex);
+            Assert.Equal(lastIndex, target.LastIndex);
+            Assert.Equal(lastIndex - firstIndex + 1, target.Elements.Count);
+            Assert.Equal(target.Elements.Count, target.SizeU.Count);
+
+            foreach (var element in elements)
+            {
+                var previousIndex = oldIndexes[element];
+                var updatedIndex = MapMovedIndex(previousIndex, oldIndex, newIndex, count);
+
+                if (updatedIndex >= firstIndex && updatedIndex <= lastIndex)
+                {
+                    var realizedIndex = updatedIndex - firstIndex;
+                    Assert.Same(element, target.Elements[realizedIndex]);
+                    Assert.Equal(previousIndex, target.SizeU[realizedIndex]);
+                    Assert.Equal(updatedIndex, element.Index);
+                    Assert.DoesNotContain(element, recycled);
+                }
+                else
+                {
+                    Assert.Contains(element, recycled);
+                }
+            }
+
+            Assert.Equal(recycled.Count, recycled.Distinct().Count());
+            AssertValidMapping(target, source, recycled);
+        }
+
+        private static int MapMovedIndex(int index, int oldIndex, int newIndex, int count)
+        {
+            if (index >= oldIndex && index < oldIndex + count)
+                return newIndex + index - oldIndex;
+            if (oldIndex < newIndex && index >= oldIndex + count && index < newIndex + count)
+                return index - count;
+            if (oldIndex > newIndex && index >= newIndex && index < oldIndex)
+                return index + count;
+            return index;
+        }
+
+        private static void MoveRange(List<object> source, int oldIndex, int newIndex, int count)
+        {
+            var moved = source.GetRange(oldIndex, count);
+            source.RemoveRange(oldIndex, count);
+            source.InsertRange(newIndex, moved);
         }
 
         private static void UpdateIndex(Control control, int oldIndex, int newIndex)

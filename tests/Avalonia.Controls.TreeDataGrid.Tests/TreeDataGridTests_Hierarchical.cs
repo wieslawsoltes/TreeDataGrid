@@ -98,6 +98,37 @@ namespace Avalonia.Controls.TreeDataGridTests
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void Moving_Expanded_Children_Preserves_Realized_Row_Identity()
+        {
+            var (target, source) = CreateTarget();
+            var rootItems = (AvaloniaList<Model>)source.Items;
+            var children = rootItems[0].Children!;
+
+            source.Expand(0);
+            Layout(target);
+
+            var rowsByItem = target.RowsPresenter!.RealizedElements
+                .Cast<TreeDataGridRow>()
+                .ToDictionary(x => (Model)x.DataContext!);
+            var subscriberCounts = rowsByItem.Keys.ToDictionary(x => x, x => x.PropertyChangedSubscriberCount());
+
+            children.Move(1, 6);
+            Layout(target);
+
+            var realizedRows = target.RowsPresenter.RealizedElements.Cast<TreeDataGridRow>().ToList();
+            Assert.Equal(realizedRows.Count, realizedRows.Select(x => x.RowIndex).Distinct().Count());
+
+            foreach (var row in realizedRows)
+            {
+                var item = (Model)row.DataContext!;
+                Assert.Same(rowsByItem[item], row);
+                Assert.Equal(subscriberCounts[item], item.PropertyChangedSubscriberCount());
+                Assert.Contains(row, target.RowsPresenter.GetVisualChildren());
+                Assert.Contains(row, target.RowsPresenter.GetLogicalChildren());
+            }
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void RowIndexes_Should_Be_Correct_After_Expanding_Node_While_Scrolled()
         {
             var (target, source) = CreateTarget();

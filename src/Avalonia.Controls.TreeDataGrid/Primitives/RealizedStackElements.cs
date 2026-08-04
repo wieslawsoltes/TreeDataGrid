@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Avalonia.Controls.Models.TreeDataGrid;
@@ -477,43 +478,78 @@ namespace Avalonia.Controls.Primitives
             if (_elements is null || _elements.Count == 0)
                 return;
 
-            var first = FirstIndex;
-            var last = LastIndex;
-
-            // Calculate the minimum index affected by the move in the source collection
-            var minAffected = Math.Min(oldIndex, newIndex);
-
-            // If the move doesn't affect any realized elements, we're done
-            if (minAffected > last)
+            if (oldIndex == newIndex)
                 return;
 
-            // The move affects realized elements. We need to recycle all elements from the
-            // minimum affected index onwards, because the data at each index may have changed.
-            // For example, if we move item from index 5 to index 2, then items at indices 2, 3, 4, 5
-            // all have different data than before the move.
-            var recycleStart = Math.Max(minAffected - first, 0);
+            var first = FirstIndex;
+            var last = LastIndex;
+            var affectedStart = Math.Min(oldIndex, newIndex);
+            var affectedEnd = Math.Max(oldIndex, newIndex) + count - 1;
 
-            for (var i = recycleStart; i < _elements.Count; ++i)
+            if (affectedEnd < first || affectedStart > last)
+                return;
+
+            var realizedCount = _elements.Count;
+            var oldElements = ArrayPool<Control?>.Shared.Rent(realizedCount);
+            var oldSizes = ArrayPool<double>.Shared.Rent(realizedCount);
+
+            try
             {
-                if (_elements[i] is Control element)
+                _elements.CopyTo(oldElements, 0);
+                _sizes!.CopyTo(oldSizes, 0);
+
+                for (var i = 0; i < realizedCount; ++i)
                 {
                     _elements[i] = null;
-                    recycleElement(element);
+                    _sizes[i] = double.NaN;
+                }
+
+                for (var i = 0; i < realizedCount; ++i)
+                {
+                    var element = oldElements[i];
+                    var oldElementIndex = first + i;
+                    var newElementIndex = MapMovedIndex(
+                        oldElementIndex,
+                        oldIndex,
+                        newIndex,
+                        count);
+
+                    if (newElementIndex >= first && newElementIndex <= last)
+                    {
+                        var realizedIndex = newElementIndex - first;
+                        _elements[realizedIndex] = element;
+                        _sizes[realizedIndex] = oldSizes[i];
+
+                        if (element is not null && newElementIndex != oldElementIndex)
+                            updateElementIndex(element, oldElementIndex, newElementIndex);
+                    }
+                    else if (element is not null)
+                    {
+                        recycleElement(element);
+                    }
                 }
             }
-
-            // Remove all recycled elements and their sizes
-            _elements.RemoveRange(recycleStart, _elements.Count - recycleStart);
-            _sizes!.RemoveRange(recycleStart, _sizes.Count - recycleStart);
-
-            // Update FirstIndex if we removed elements from the beginning
-            if (recycleStart == 0)
+            finally
             {
-                _firstIndex = 0;
-                _startU = 0;
+                ArrayPool<Control?>.Shared.Return(oldElements, clearArray: true);
+                ArrayPool<double>.Shared.Return(oldSizes);
             }
 
-            _startUUnstable = true;
+            // A move whose affected range starts at or after the realized window does not change
+            // the accumulated size before FirstIndex, so the realized start remains exact.
+            if (affectedStart < first)
+                _startUUnstable = true;
+        }
+
+        private static int MapMovedIndex(int index, int oldIndex, int newIndex, int count)
+        {
+            if (index >= oldIndex && index < oldIndex + count)
+                return newIndex + index - oldIndex;
+            if (oldIndex < newIndex && index >= oldIndex + count && index < newIndex + count)
+                return index - count;
+            if (oldIndex > newIndex && index >= newIndex && index < oldIndex)
+                return index + count;
+            return index;
         }
 
         /// <summary>
