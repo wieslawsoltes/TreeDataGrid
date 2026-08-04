@@ -32,6 +32,7 @@ namespace Avalonia.Controls.Primitives
         private IDataTemplate? _contentTemplate;
         private IDataTemplate? _editingTemplate;
         private ContentPresenter? _editingContentPresenter;
+        private IDataTemplate? _sourceContentTemplate;
 
         public object? Content
         {
@@ -99,7 +100,7 @@ namespace Avalonia.Controls.Primitives
 
             if (ContentTemplate is null && DataContext is TemplateCell cell)
             {
-                ContentTemplate = cell.GetCellTemplate(this);
+                SetCellTemplate(cell.GetCellTemplate(this));
                 EditingTemplate = cell.GetCellEditingTemplate?.Invoke(this);
             }
         }
@@ -118,7 +119,7 @@ namespace Avalonia.Controls.Primitives
 
                 if (((ILogical)this).IsAttachedToLogicalTree)
                 {
-                    ContentTemplate = cell.GetCellTemplate(this);
+                    SetCellTemplate(cell.GetCellTemplate(this));
                     EditingTemplate = cell.GetCellEditingTemplate?.Invoke(this);
                 }
             }
@@ -162,6 +163,44 @@ namespace Avalonia.Controls.Primitives
                 return this.IsVisualAncestorOf(host);
 
             return false;
+        }
+
+        private void SetCellTemplate(IDataTemplate? template)
+        {
+            if (ReferenceEquals(_sourceContentTemplate, template))
+                return;
+
+            _sourceContentTemplate = template;
+            ContentTemplate = template is IRecyclingDataTemplate recyclingTemplate ?
+                new ReattachableRecyclingDataTemplate(recyclingTemplate) :
+                template;
+        }
+
+        private sealed class ReattachableRecyclingDataTemplate : IRecyclingDataTemplate
+        {
+            private readonly IRecyclingDataTemplate _inner;
+            private Control? _lastControl;
+
+            public ReattachableRecyclingDataTemplate(IRecyclingDataTemplate inner)
+            {
+                _inner = inner;
+            }
+
+            public Control? Build(object? data)
+            {
+                return Build(data, null);
+            }
+
+            public Control? Build(object? data, Control? existing)
+            {
+                _lastControl = _inner.Build(data, existing ?? _lastControl);
+                return _lastControl;
+            }
+
+            public bool Match(object? data)
+            {
+                return _inner.Match(data);
+            }
         }
     }
 }

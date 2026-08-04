@@ -220,6 +220,45 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void Recycled_Rows_Are_Removed_From_Visual_And_Logical_Trees()
+        {
+            var (target, _, _) = CreateTarget();
+
+            Assert.Equal(10, target.RealizedElements.Count);
+
+            target.RecycleAllElements();
+
+            Assert.Empty(target.RealizedElements);
+            Assert.Empty(target.GetVisualChildren());
+            Assert.Empty(target.GetLogicalChildren());
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Detached_Collection_Shrink_Does_Not_Leave_Ghost_Rows()
+        {
+            var (target, scroll, items) = CreateTarget(itemCount: 10);
+            var window = Assert.IsType<TestWindow>(scroll.Parent);
+
+            Assert.Equal(10, target.GetVisualChildren().Count());
+
+            window.Content = null;
+            window.UpdateLayout();
+            items.RemoveRange(5, 5);
+            window.Content = scroll;
+            window.UpdateLayout();
+            Dispatcher.UIThread.RunJobs();
+
+            var visualRows = target.GetVisualChildren().Cast<TreeDataGridRow>().ToList();
+            var logicalRows = target.GetLogicalChildren().Cast<TreeDataGridRow>().ToList();
+
+            Assert.Equal(5, visualRows.Count);
+            Assert.Equal(5, logicalRows.Count);
+            Assert.All(visualRows, x => Assert.True(x.IsVisible));
+            Assert.Equal(items, visualRows.Select(x => x.DataContext));
+            Assert.Equal(visualRows, logicalRows);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void Should_Remove_Children_On_Empty_Collection_Assignment_To_Items()
         {
             var (target, _, items) = CreateTarget();

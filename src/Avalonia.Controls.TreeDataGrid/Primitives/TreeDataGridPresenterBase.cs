@@ -55,8 +55,9 @@ namespace Avalonia.Controls.Primitives
         private double _lastEstimatedElementSizeU = 25;
         private Control? _focusedElement;
         private int _focusedIndex = -1;
-        private bool _isDetaching;
-
+        private bool _preserveRecycledElementLogicalTreeMembership;
+        private bool _preserveRecycledElementVisualTreeMembership;
+        private int _retainedRecycledElementCount;
         // Cached state for fast reattachment (fixes for tab switching performance)
         private Rect _cachedViewport;
 
@@ -196,17 +197,50 @@ namespace Avalonia.Controls.Primitives
 
         public Control? TryGetElement(int index) => GetRealizedElement(index);
 
-        internal void RecycleAllElements() => _realizedElements?.RecycleAllElements(_recycleElement);
-
-        internal void RecycleAllElementsOnItemRemoved()
+        internal void RecycleAllElements(
+            bool preserveVisualTreeMembership = false,
+            bool preserveLogicalTreeMembership = false)
         {
-            if (_realizedElements?.Count > 0)
+            var previousVisualValue = _preserveRecycledElementVisualTreeMembership;
+            var previousLogicalValue = _preserveRecycledElementLogicalTreeMembership;
+            _preserveRecycledElementVisualTreeMembership = preserveVisualTreeMembership;
+            _preserveRecycledElementLogicalTreeMembership = preserveLogicalTreeMembership;
+
+            try
             {
-                _realizedElements?.ItemsRemoved(
-                    _realizedElements.FirstIndex,
-                    _realizedElements.Count,
-                    _updateElementIndex,
-                    _recycleElementOnItemRemoved);
+                _realizedElements?.RecycleAllElements(_recycleElement);
+            }
+            finally
+            {
+                _preserveRecycledElementVisualTreeMembership = previousVisualValue;
+                _preserveRecycledElementLogicalTreeMembership = previousLogicalValue;
+            }
+        }
+
+        internal void RecycleAllElementsOnItemRemoved(
+            bool preserveVisualTreeMembership = false,
+            bool preserveLogicalTreeMembership = false)
+        {
+            var previousVisualValue = _preserveRecycledElementVisualTreeMembership;
+            var previousLogicalValue = _preserveRecycledElementLogicalTreeMembership;
+            _preserveRecycledElementVisualTreeMembership = preserveVisualTreeMembership;
+            _preserveRecycledElementLogicalTreeMembership = preserveLogicalTreeMembership;
+
+            try
+            {
+                if (_realizedElements?.Count > 0)
+                {
+                    _realizedElements.ItemsRemoved(
+                        _realizedElements.FirstIndex,
+                        _realizedElements.Count,
+                        _updateElementIndex,
+                        _recycleElementOnItemRemoved);
+                }
+            }
+            finally
+            {
+                _preserveRecycledElementVisualTreeMembership = previousVisualValue;
+                _preserveRecycledElementLogicalTreeMembership = previousLogicalValue;
             }
         }
 
@@ -333,6 +367,10 @@ namespace Avalonia.Controls.Primitives
                 return DesiredSize;
 
             _isInLayout = true;
+            var previousVisualValue = _preserveRecycledElementVisualTreeMembership;
+            var previousLogicalValue = _preserveRecycledElementLogicalTreeMembership;
+            _preserveRecycledElementVisualTreeMembership = true;
+            _preserveRecycledElementLogicalTreeMembership = true;
 
             try
             {
@@ -388,6 +426,8 @@ namespace Avalonia.Controls.Primitives
             }
             finally
             {
+                _preserveRecycledElementVisualTreeMembership = previousVisualValue;
+                _preserveRecycledElementLogicalTreeMembership = previousLogicalValue;
                 _isInLayout = false;
             }
         }
@@ -445,7 +485,6 @@ namespace Avalonia.Controls.Primitives
         protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
         {
             base.OnAttachedToVisualTree(e);
-            _isDetaching = false;
             _scrollViewer = this.FindAncestorOfType<ScrollViewer>();
             Trace($"OnAttachedToVisualTree: Viewport={Viewport}, IsInvalid={Viewport == s_invalidViewport}, ItemCount={Items?.Count ?? 0}, CachedViewport={_cachedViewport}");
             // Subscribing to this event adds a reference to 'this' in the layout manager.
@@ -459,15 +498,15 @@ namespace Avalonia.Controls.Primitives
         {
             Trace($"OnDetachedFromVisualTree: recycling {_realizedElements?.Count ?? 0} elements, Viewport={Viewport}, CachedViewport={_cachedViewport}");
             base.OnDetachedFromVisualTree(e);
-            _isDetaching = true;
-            _scrollViewer = null;
 
             EffectiveViewportChanged -= OnEffectiveViewportChanged;
 
             UnsubscribeFromItemChanges();
 
-            // Recycle elements back to the pool on detach to ensure a clean layout on reattach.
-            RecycleAllElements();
+            // The presenter is already leaving the visual tree, so keep recycled controls
+            // parented logically until the next measure can reuse or trim them.
+            RecycleAllElements(preserveLogicalTreeMembership: true);
+            _scrollViewer = null;
         }
 
         protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
@@ -682,12 +721,22 @@ namespace Avalonia.Controls.Primitives
         {
             var item = items[index];
             var e = GetElementFromFactory(item, index);
+            var wasRetained = !e.IsVisible &&
+                (ReferenceEquals(e.Parent, this) || ReferenceEquals(e.GetVisualParent(), this));
             e.IsVisible = true;
+
+            if (wasRetained && _retainedRecycledElementCount > 0)
+                --_retainedRecycledElementCount;
+
             RealizeElement(e, item, index);
-            if (e.GetVisualParent() is null)
+            if (e.Parent is null)
             {
                 ((ISetLogicalParent)e).SetParent(this);
                 LogicalChildren.Add(e);
+            }
+
+            if (e.GetVisualParent() is null)
+            {
                 VisualChildren.Add(e);
             }
             return e;
@@ -760,8 +809,8 @@ namespace Avalonia.Controls.Primitives
             else
             {
                 UnrealizeElement(element);
-                if (!_isDetaching)
-                    element.IsVisible = false;
+                element.IsVisible = false;
+                DetachElement(element);
                 ElementFactory!.RecycleElement(element);
                 _scrollViewer?.UnregisterAnchorCandidate(element);
             }
@@ -777,44 +826,67 @@ namespace Avalonia.Controls.Primitives
             }
 
             UnrealizeElementOnItemRemoved(element);
-            if (!_isDetaching)
-                element.IsVisible = false;
+            element.IsVisible = false;
+            DetachElement(element);
             ElementFactory!.RecycleElement(element);
             _scrollViewer?.UnregisterAnchorCandidate(element);
         }
 
+        private void DetachElement(Control element)
+        {
+            if (_preserveRecycledElementVisualTreeMembership ||
+                _preserveRecycledElementLogicalTreeMembership)
+            {
+                ++_retainedRecycledElementCount;
+            }
+
+            if (!_preserveRecycledElementVisualTreeMembership &&
+                ReferenceEquals(element.GetVisualParent(), this))
+            {
+                VisualChildren.Remove(element);
+            }
+
+            if (!_preserveRecycledElementLogicalTreeMembership)
+            {
+                LogicalChildren.Remove(element);
+
+                if (ReferenceEquals(element.Parent, this))
+                    ((ISetLogicalParent)element).SetParent(null);
+            }
+        }
+
         private void TrimUnrealizedChildren()
         {
-            var count = Items?.Count ?? 0;
+            if (_retainedRecycledElementCount == 0)
+                return;
+
             var children = VisualChildren;
 
-            if (children.Count > count)
+            for (var i = children.Count - 1; i >= 0; --i)
             {
-                for (var i = children.Count - 1; i >= 0; --i)
-                {
-                    var child = children[i];
+                var child = children[i];
 
-                    if (!child.IsVisible)
-                    {
-                        ((ISetLogicalParent)child).SetParent(null);
-                        children.RemoveAt(i);
-                    }
+                if (!child.IsVisible)
+                {
+                    children.RemoveAt(i);
                 }
             }
 
             var logicalChildren = LogicalChildren;
-            if (logicalChildren.Count > count)
+            for (var i = logicalChildren.Count - 1; i >= 0; --i)
             {
-                for (var i = logicalChildren.Count - 1; i >= 0; --i)
-                {
-                    var child = logicalChildren[i];
+                var child = logicalChildren[i];
 
-                    if (child is Visual { IsVisible: false })
-                    {
-                        logicalChildren.RemoveAt(i);
-                    }
+                if (child is Visual { IsVisible: false })
+                {
+                    logicalChildren.RemoveAt(i);
+
+                    if (ReferenceEquals(child.LogicalParent, this))
+                        ((ISetLogicalParent)child).SetParent(null);
                 }
             }
+
+            _retainedRecycledElementCount = 0;
         }
 
         private void OnItemsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -830,28 +902,41 @@ namespace Avalonia.Controls.Primitives
             if (_realizedElements is null)
                 return;
 
-            switch (e.Action)
+            var previousVisualValue = _preserveRecycledElementVisualTreeMembership;
+            var previousLogicalValue = _preserveRecycledElementLogicalTreeMembership;
+            _preserveRecycledElementVisualTreeMembership = true;
+            _preserveRecycledElementLogicalTreeMembership = true;
+
+            try
             {
-                case NotifyCollectionChangedAction.Add:
-                    _realizedElements.ItemsInserted(e.NewStartingIndex, e.NewItems!.Count, _updateElementIndex, _recycleElementOnItemRemoved);
-                    break;
-                case NotifyCollectionChangedAction.Remove:
-                    _realizedElements.ItemsRemoved(e.OldStartingIndex, e.OldItems!.Count, _updateElementIndex, _recycleElementOnItemRemoved);
-                    ClearFocusedElement(e.OldStartingIndex, e.OldItems!.Count);
-                    break;
-                case NotifyCollectionChangedAction.Replace:
-                    _realizedElements.ItemsReplaced(e.OldStartingIndex, e.OldItems!.Count, _recycleElementOnItemRemoved);
-                    ClearFocusedElement(e.OldStartingIndex, e.OldItems!.Count);
-                    break;
-                case NotifyCollectionChangedAction.Move:
-                    _realizedElements.ItemsMoved(e.OldStartingIndex, e.NewStartingIndex, e.OldItems!.Count, _updateElementIndex, _recycleElementOnItemRemoved);
-                    ClearFocusedElement(e.OldStartingIndex, e.OldItems!.Count);
-                    break;
-                case NotifyCollectionChangedAction.Reset:
-                    _realizedElements.ItemsReset(_recycleElementOnItemRemoved);
-                    if (_focusedElement is not null )
-                        RecycleElementOnItemRemoved(_focusedElement);
-                    break;
+                switch (e.Action)
+                {
+                    case NotifyCollectionChangedAction.Add:
+                        _realizedElements.ItemsInserted(e.NewStartingIndex, e.NewItems!.Count, _updateElementIndex, _recycleElementOnItemRemoved);
+                        break;
+                    case NotifyCollectionChangedAction.Remove:
+                        _realizedElements.ItemsRemoved(e.OldStartingIndex, e.OldItems!.Count, _updateElementIndex, _recycleElementOnItemRemoved);
+                        ClearFocusedElement(e.OldStartingIndex, e.OldItems.Count);
+                        break;
+                    case NotifyCollectionChangedAction.Replace:
+                        _realizedElements.ItemsReplaced(e.OldStartingIndex, e.OldItems!.Count, _recycleElementOnItemRemoved);
+                        ClearFocusedElement(e.OldStartingIndex, e.OldItems.Count);
+                        break;
+                    case NotifyCollectionChangedAction.Move:
+                        _realizedElements.ItemsMoved(e.OldStartingIndex, e.NewStartingIndex, e.OldItems!.Count, _updateElementIndex, _recycleElementOnItemRemoved);
+                        ClearFocusedElement(e.OldStartingIndex, e.OldItems.Count);
+                        break;
+                    case NotifyCollectionChangedAction.Reset:
+                        _realizedElements.ItemsReset(_recycleElementOnItemRemoved);
+                        if (_focusedElement is not null)
+                            RecycleElementOnItemRemoved(_focusedElement);
+                        break;
+                }
+            }
+            finally
+            {
+                _preserveRecycledElementVisualTreeMembership = previousVisualValue;
+                _preserveRecycledElementLogicalTreeMembership = previousLogicalValue;
             }
         }
 
