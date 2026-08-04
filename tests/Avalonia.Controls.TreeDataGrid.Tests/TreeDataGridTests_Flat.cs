@@ -10,6 +10,8 @@ using Avalonia.Controls.Templates;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Input.Raw;
+using Avalonia.Markup.Xaml.MarkupExtensions;
+using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -20,6 +22,10 @@ namespace Avalonia.Controls.TreeDataGridTests
 {
     public class TreeDataGridTests_Flat
     {
+        private static readonly StyledProperty<IBrush?> TestResourceProperty =
+            AvaloniaProperty.RegisterAttached<ResourcePropertyOwner, StyledElement, IBrush?>(
+                "TestResource");
+
         [AvaloniaFact(Timeout = 10000)]
         public void Should_Display_Initial_Rows_And_Cells()
         {
@@ -42,6 +48,51 @@ namespace Avalonia.Controls.TreeDataGridTests
                     .ToList();
                 Assert.Equal(2, cells.Count);
             }
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Dynamic_Resources_Propagate_Through_Virtualized_Control_Trees()
+        {
+            const string resourceKey = "TreeDataGridTestBrush";
+            var firstBrush = new SolidColorBrush(Colors.Red);
+            var secondBrush = new SolidColorBrush(Colors.Blue);
+            var (target, _) = CreateTarget();
+            var headersPresenter = Assert.IsType<TreeDataGridColumnHeadersPresenter>(
+                target.ColumnHeadersPresenter);
+            var rowsPresenter = Assert.IsType<TreeDataGridRowsPresenter>(target.RowsPresenter);
+            var header = Assert.IsType<TreeDataGridColumnHeader>(headersPresenter.RealizedElements[0]);
+            var row = Assert.IsType<TreeDataGridRow>(rowsPresenter.TryGetElement(0));
+            var cellsPresenter = Assert.IsType<TreeDataGridCellsPresenter>(row.CellsPresenter);
+            var cell = Assert.IsAssignableFrom<TreeDataGridCell>(cellsPresenter.RealizedElements[0]);
+            var elements = new StyledElement[]
+            {
+                target,
+                headersPresenter,
+                header,
+                rowsPresenter,
+                row,
+                cellsPresenter,
+                cell,
+            };
+
+            target.Resources[resourceKey] = firstBrush;
+
+            foreach (var element in elements)
+                element[!TestResourceProperty] = new DynamicResourceExtension(resourceKey);
+
+            Assert.All(elements, element => Assert.Same(firstBrush, element[TestResourceProperty]));
+
+            target.Scroll!.Offset = new Vector(0, 10);
+            Layout(target);
+
+            Assert.Same(row, rowsPresenter.TryGetElement(10));
+            Assert.Same(cell, row.CellsPresenter!.RealizedElements[0]);
+            Assert.All(elements, element => Assert.Same(firstBrush, element[TestResourceProperty]));
+
+            target.Resources[resourceKey] = secondBrush;
+            Dispatcher.UIThread.RunJobs();
+
+            Assert.All(elements, element => Assert.Same(secondBrush, element[TestResourceProperty]));
         }
 
         [AvaloniaFact(Timeout = 10000)]
@@ -1202,6 +1253,10 @@ namespace Avalonia.Controls.TreeDataGridTests
             {
                 MaxWidth = new GridLength(max, GridUnitType.Pixel),
             };
+        }
+
+        private sealed class ResourcePropertyOwner : AvaloniaObject
+        {
         }
 
         private class Model : NotifyingBase
