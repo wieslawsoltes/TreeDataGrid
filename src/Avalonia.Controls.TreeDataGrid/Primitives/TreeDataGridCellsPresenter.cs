@@ -51,9 +51,10 @@ namespace Avalonia.Controls.Primitives
         public void UpdateRowIndex(int index)
         {
             if (index < 0 || Rows is null || index >= Rows.Count)
-                throw new ArgumentOutOfRangeException(nameof(index));
+                return;
+
             if (RowIndex == -1)
-                throw new InvalidOperationException("Row is not realized.");
+                return;
 
             RowIndex = index;
 
@@ -130,7 +131,7 @@ namespace Avalonia.Controls.Primitives
             if (change.Property == BackgroundProperty)
                 InvalidateVisual();
         }
-        
+
         internal void UpdateSelection(ITreeDataGridSelectionInteraction? selection)
         {
             foreach (var element in RealizedElements)

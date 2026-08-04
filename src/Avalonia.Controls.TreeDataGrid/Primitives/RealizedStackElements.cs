@@ -264,7 +264,12 @@ namespace Avalonia.Controls.Primitives
         /// <param name="index">The index in the source collection of the insert.</param>
         /// <param name="count">The number of items inserted.</param>
         /// <param name="updateElementIndex">A method used to update the element indexes.</param>
-        public void ItemsInserted(int index, int count, Action<Control, int, int> updateElementIndex)
+        /// <param name="recycleElement">A method used to recycle elements.</param>
+        public void ItemsInserted(
+            int index,
+            int count,
+            Action<Control, int, int> updateElementIndex,
+            Action<Control> recycleElement)
         {
             if (index < 0)
                 throw new ArgumentOutOfRangeException(nameof(index));
@@ -277,31 +282,46 @@ namespace Avalonia.Controls.Primitives
 
             if (realizedIndex < Count)
             {
-                // The insertion point affects the realized elements. Update the index of the
-                // elements after the insertion point.
-                var elementCount = _elements.Count;
-                var start = Math.Max(realizedIndex, 0);
-
-                for (var i = start; i < elementCount; ++i)
-                {
-                    if (_elements[i] is not Control element)
-                        continue;
-                    var oldIndex = i + first;
-                    updateElementIndex(element, oldIndex, oldIndex + count);
-                }
-
                 if (realizedIndex < 0)
                 {
                     // The insertion point was before the first element, update the first index.
+                    // The data at each realized index is still correct (same items, just at different indices).
                     _firstIndex += count;
                     _startUUnstable = true;
+
+                    var newIndex = _firstIndex;
+                    for (var i = 0; i < _elements.Count; ++i)
+                    {
+                        if (_elements[i] is Control element)
+                            updateElementIndex(element, newIndex - count, newIndex);
+                        ++newIndex;
+                    }
                 }
                 else
                 {
-                    // The insertion point was within the realized elements, insert an empty space
-                    // in _elements and _sizes.
-                    _elements!.InsertMany(realizedIndex, null, count);
-                    _sizes!.InsertMany(realizedIndex, double.NaN, count);
+                    // The insertion point is within the realized elements.
+                    // We need to recycle all elements from the insertion point onwards because
+                    // the data at each index has changed.
+                    // Example: [A, B, C, D] -> insert X at 1 -> [A, X, B, C, D]
+                    // Elements at indices 1, 2, 3... all have different data now.
+
+                    var start = Math.Max(realizedIndex, 0);
+
+                    // Recycle all elements from the insertion point onwards
+                    for (var i = start; i < _elements.Count; ++i)
+                    {
+                        if (_elements[i] is Control element)
+                        {
+                            _elements[i] = null;
+                            recycleElement(element);
+                        }
+                    }
+
+                    // Remove all recycled elements and their sizes
+                    _elements.RemoveRange(start, _elements.Count - start);
+                    _sizes!.RemoveRange(start, _sizes.Count - start);
+
+                    _startUUnstable = true;
                 }
             }
         }
@@ -326,14 +346,13 @@ namespace Avalonia.Controls.Primitives
 
             // Get the removal start and end index within the realized _elements collection.
             var first = FirstIndex;
-            var last = LastIndex;
             var startIndex = index - first;
             var endIndex = (index + count) - first;
 
             if (endIndex < 0)
             {
-                // The removed range was before the realized elements. Update the first index and
-                // the indexes of the realized elements.
+                // The removed range was before the realized elements. Update the first index.
+                // No need to recycle - the data at each index is still correct.
                 _firstIndex -= count;
                 _startUUnstable = true;
 
@@ -347,11 +366,14 @@ namespace Avalonia.Controls.Primitives
             }
             else if (startIndex < _elements.Count)
             {
-                // Recycle and remove the affected elements.
+                // The removal affects realized elements. We need to recycle all elements from
+                // the removal point onwards because the data at each index has changed.
+                // For example: [A, B, C, D, E] -> remove B -> [A, C, D, E]
+                // Elements at indices 2, 3, 4... all have different data now.
                 var start = Math.Max(startIndex, 0);
-                var end = Math.Min(endIndex, _elements.Count);
 
-                for (var i = start; i < end; ++i)
+                // Recycle all elements from the removal point onwards
+                for (var i = start; i < _elements.Count; ++i)
                 {
                     if (_elements[i] is Control element)
                     {
@@ -360,28 +382,80 @@ namespace Avalonia.Controls.Primitives
                     }
                 }
 
-                _elements.RemoveRange(start, end - start);
-                _sizes!.RemoveRange(start, end - start);
+                // Remove all recycled elements and their sizes
+                _elements.RemoveRange(start, _elements.Count - start);
+                _sizes!.RemoveRange(start, _sizes.Count - start);
 
-                // If the remove started before and ended within our realized elements, then our new
-                // first index will be the index where the remove started. Mark StartU as unstable
-                // because we can't rely on it now to estimate element heights.
-                if (startIndex <= 0 && end < last)
+                // Update FirstIndex if we removed elements from the beginning
+                if (start == 0)
                 {
-                    _firstIndex = first = index;
-                    _startUUnstable = true;
+                    _firstIndex = 0;
+                    _startU = 0;
                 }
 
-                // Update the indexes of the elements after the removed range.
-                end = _elements.Count;
-                var newIndex = first + start;
-                for (var i = start; i < end; ++i)
+                _startUUnstable = true;
+            }
+        }
+
+        /// <summary>
+        /// Updates the elements in response to items being moved within the source collection.
+        /// </summary>
+        /// <param name="oldIndex">The old index in the source collection.</param>
+        /// <param name="newIndex">The new index in the source collection.</param>
+        /// <param name="count">The number of items moved.</param>
+        /// <param name="updateElementIndex">A method used to update the element indexes.</param>
+        /// <param name="recycleElement">A method used to recycle elements.</param>
+        public void ItemsMoved(
+            int oldIndex,
+            int newIndex,
+            int count,
+            Action<Control, int, int> updateElementIndex,
+            Action<Control> recycleElement)
+        {
+            if (oldIndex < 0)
+                throw new ArgumentOutOfRangeException(nameof(oldIndex));
+            if (newIndex < 0)
+                throw new ArgumentOutOfRangeException(nameof(newIndex));
+            if (_elements is null || _elements.Count == 0)
+                return;
+
+            var first = FirstIndex;
+            var last = LastIndex;
+
+            // Calculate the minimum index affected by the move in the source collection
+            var minAffected = Math.Min(oldIndex, newIndex);
+
+            // If the move doesn't affect any realized elements, we're done
+            if (minAffected > last)
+                return;
+
+            // The move affects realized elements. We need to recycle all elements from the
+            // minimum affected index onwards, because the data at each index may have changed.
+            // For example, if we move item from index 5 to index 2, then items at indices 2, 3, 4, 5
+            // all have different data than before the move.
+            var recycleStart = Math.Max(minAffected - first, 0);
+
+            for (var i = recycleStart; i < _elements.Count; ++i)
+            {
+                if (_elements[i] is Control element)
                 {
-                    if (_elements[i] is Control element)
-                        updateElementIndex(element, newIndex + count, newIndex);
-                    ++newIndex;
+                    _elements[i] = null;
+                    recycleElement(element);
                 }
             }
+
+            // Remove all recycled elements and their sizes
+            _elements.RemoveRange(recycleStart, _elements.Count - recycleStart);
+            _sizes!.RemoveRange(recycleStart, _sizes.Count - recycleStart);
+
+            // Update FirstIndex if we removed elements from the beginning
+            if (recycleStart == 0)
+            {
+                _firstIndex = 0;
+                _startU = 0;
+            }
+
+            _startUUnstable = true;
         }
 
         /// <summary>
