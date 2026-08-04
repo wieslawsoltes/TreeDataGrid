@@ -143,8 +143,16 @@ namespace Avalonia.Controls.Primitives
 
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
         {
+            if (CellsPresenter is { } oldCellsPresenter)
+                LogicalChildren.Remove(oldCellsPresenter);
+
             base.OnApplyTemplate(e);
             CellsPresenter = e.NameScope.Find<TreeDataGridCellsPresenter>("PART_CellsPresenter");
+
+            if (CellsPresenter is { })
+            {
+                LogicalChildren.Add(CellsPresenter);
+            }
 
             if (RowIndex >= 0)
                 CellsPresenter?.Realize(RowIndex);
@@ -206,7 +214,7 @@ namespace Avalonia.Controls.Primitives
             {
                 PseudoClasses.Set(":selected", IsSelected);
             }
-            
+
             base.OnPropertyChanged(change);
         }
 
