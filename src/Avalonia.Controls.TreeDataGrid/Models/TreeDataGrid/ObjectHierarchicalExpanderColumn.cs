@@ -5,7 +5,8 @@ using Avalonia.Experimental.Data;
 
 namespace Avalonia.Controls.Models.TreeDataGrid
 {
-    internal class ObjectHierarchicalExpanderColumn : NotifyingBase, IColumn<object>, IExpanderColumn<object>, IUpdateColumnLayout
+    internal class ObjectHierarchicalExpanderColumn : NotifyingBase, IColumn<object>, IExpanderColumn<object>,
+        IUpdateColumnLayout, IColumnMeasurementOptions
     {
         private readonly IColumn<object> _inner;
         private readonly Func<object, IEnumerable<object>?> _childSelector;
@@ -62,6 +63,9 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         double IUpdateColumnLayout.MinActualWidth => ((IUpdateColumnLayout)_inner).MinActualWidth;
         double IUpdateColumnLayout.MaxActualWidth => ((IUpdateColumnLayout)_inner).MaxActualWidth;
         bool IUpdateColumnLayout.StarWidthWasConstrained => ((IUpdateColumnLayout)_inner).StarWidthWasConstrained;
+        bool IColumnMeasurementOptions.RequiresUnconstrainedWidthMeasurement =>
+            _inner is not IColumnMeasurementOptions options ||
+            options.RequiresUnconstrainedWidthMeasurement;
 
         public ICell CreateCell(IRow<object> row)
         {

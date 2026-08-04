@@ -23,7 +23,12 @@ namespace Avalonia.Controls.Primitives
         protected sealed override Size GetInitialConstraint(Control element, int index, Size availableSize)
         {
             var column = (IUpdateColumnLayout)Columns![index];
-            return new Size(Math.Min(availableSize.Width, column.MaxActualWidth), availableSize.Height);
+            var width = column is IColumnMeasurementOptions
+                { RequiresUnconstrainedWidthMeasurement: false } &&
+                double.IsFinite(column.ActualWidth) ?
+                column.ActualWidth :
+                column.MaxActualWidth;
+            return new Size(Math.Min(availableSize.Width, width), availableSize.Height);
         }
 
         protected override (int index, double position) GetOrEstimateAnchorElementForViewport(

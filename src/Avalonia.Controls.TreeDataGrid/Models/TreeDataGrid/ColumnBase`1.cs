@@ -8,7 +8,8 @@ namespace Avalonia.Controls.Models.TreeDataGrid
     /// Base class for columns which select cell values from a model.
     /// </summary>
     /// <typeparam name="TModel">The model type.</typeparam>
-    public abstract class ColumnBase<TModel> : NotifyingBase, IColumn<TModel>, IUpdateColumnLayout
+    public abstract class ColumnBase<TModel> : NotifyingBase, IColumn<TModel>, IUpdateColumnLayout,
+        IColumnMeasurementOptions
     {
         private double _actualWidth = double.NaN;
         private GridLength _width;
@@ -94,6 +95,10 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         double IUpdateColumnLayout.MinActualWidth => CoerceActualWidth(0);
         double IUpdateColumnLayout.MaxActualWidth => CoerceActualWidth(double.PositiveInfinity);
         bool IUpdateColumnLayout.StarWidthWasConstrained => _starWidthWasConstrained;
+        bool IColumnMeasurementOptions.RequiresUnconstrainedWidthMeasurement =>
+            Width.GridUnitType == GridUnitType.Auto ||
+            Options.MinWidth.GridUnitType == GridUnitType.Auto ||
+            Options.MaxWidth?.GridUnitType == GridUnitType.Auto;
 
         /// <summary>
         /// Creates a cell for this column on the specified row.

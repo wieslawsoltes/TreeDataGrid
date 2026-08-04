@@ -5,7 +5,8 @@ using System.Linq;
 
 namespace Avalonia.Controls.Models.TreeDataGrid
 {
-    internal sealed class FilteredExpanderColumn<TModel> : IExpanderColumn<TModel>, IUpdateColumnLayout
+    internal sealed class FilteredExpanderColumn<TModel> : IExpanderColumn<TModel>, IUpdateColumnLayout,
+        IColumnMeasurementOptions
         where TModel : class
     {
         private readonly IExpanderColumn<TModel> _inner;
@@ -40,6 +41,9 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         double IUpdateColumnLayout.MinActualWidth => ((IUpdateColumnLayout)_inner).MinActualWidth;
         double IUpdateColumnLayout.MaxActualWidth => ((IUpdateColumnLayout)_inner).MaxActualWidth;
         bool IUpdateColumnLayout.StarWidthWasConstrained => ((IUpdateColumnLayout)_inner).StarWidthWasConstrained;
+        bool IColumnMeasurementOptions.RequiresUnconstrainedWidthMeasurement =>
+            _inner is not IColumnMeasurementOptions options ||
+            options.RequiresUnconstrainedWidthMeasurement;
 
         public ICell CreateCell(IRow<TModel> row) => _inner.CreateCell(row);
 

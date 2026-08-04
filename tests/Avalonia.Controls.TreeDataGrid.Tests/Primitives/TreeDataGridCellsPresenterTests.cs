@@ -251,13 +251,31 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
                 Assert.Equal(
                     new[]
                     {
-                            Size.Infinity,
-                            new Size(0, double.PositiveInfinity),
-                            Size.Infinity,
-                            new Size(50, double.PositiveInfinity),
+                        Size.Infinity,
+                        new Size(0, double.PositiveInfinity),
+                        new Size(50, double.PositiveInfinity),
                     },
                     cell!.MeasureConstraints);
             }
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Fixed_Cells_Are_Measured_Only_With_Final_Column_Width()
+        {
+            var columns = new ColumnList<Model>
+            {
+                new LayoutTestColumn<Model>("Col0", new GridLength(40)),
+                new LayoutTestColumn<Model>("Col1", new GridLength(60)),
+            };
+
+            var (target, _) = CreateTarget(columns);
+
+            Assert.Equal(
+                new[] { new Size(40, double.PositiveInfinity) },
+                ((LayoutTestCellControl)target.RealizedElements[0]!).MeasureConstraints);
+            Assert.Equal(
+                new[] { new Size(60, double.PositiveInfinity) },
+                ((LayoutTestCellControl)target.RealizedElements[1]!).MeasureConstraints);
         }
 
         [AvaloniaFact(Timeout = 10000)]
