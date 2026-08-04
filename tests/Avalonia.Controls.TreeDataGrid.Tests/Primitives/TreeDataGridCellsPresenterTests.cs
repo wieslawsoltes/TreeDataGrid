@@ -51,6 +51,61 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void Full_Cell_Scroll_Reuses_Controls_Without_Tree_Reattachment()
+        {
+            var (target, scroll) = CreateTarget();
+            var cells = target.RealizedElements.Cast<TreeDataGridCell>().ToHashSet();
+            var logicalAttaches = 0;
+            var logicalDetaches = 0;
+            var visualAttaches = 0;
+            var visualDetaches = 0;
+
+            foreach (var cell in cells)
+            {
+                cell.AttachedToLogicalTree += (_, _) => ++logicalAttaches;
+                cell.DetachedFromLogicalTree += (_, _) => ++logicalDetaches;
+                cell.AttachedToVisualTree += (_, _) => ++visualAttaches;
+                cell.DetachedFromVisualTree += (_, _) => ++visualDetaches;
+            }
+
+            scroll.Offset = new Vector(10, 0);
+            Layout(target);
+
+            Assert.Equal(cells, target.RealizedElements.Cast<TreeDataGridCell>().ToHashSet());
+            Assert.Equal(0, logicalAttaches);
+            Assert.Equal(0, logicalDetaches);
+            Assert.Equal(0, visualAttaches);
+            Assert.Equal(0, visualDetaches);
+            AssertColumnIndexes(target, 1, 10);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Small_Scrolls_Within_Realized_Cells_Do_Not_Repeat_Measure()
+        {
+            var presenter = new CountingCellsPresenter();
+            var (target, scroll) = CreateTarget(presenter: presenter);
+
+            scroll.Offset = new Vector(1, 0);
+            Layout(target);
+            var measureCountAfterRealizingTrailingCell = presenter.MeasureCount;
+
+            for (var offset = 2; offset <= 10; ++offset)
+            {
+                scroll.Offset = new Vector(offset, 0);
+                Layout(target);
+            }
+
+            Assert.Equal(measureCountAfterRealizingTrailingCell, presenter.MeasureCount);
+            AssertColumnIndexes(target, 0, 11);
+
+            scroll.Offset = new Vector(11, 0);
+            Layout(target);
+
+            Assert.True(presenter.MeasureCount > measureCountAfterRealizingTrailingCell);
+            AssertColumnIndexes(target, 1, 11);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void Scrolls_Right_More_Than_A_Page()
         {
             var (target, scroll) = CreateTarget();
@@ -264,7 +319,8 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
         private static (TreeDataGridCellsPresenter, ScrollViewer) CreateTarget(
             ColumnList<Model>? columns = null,
             List<IStyle>? additionalStyles = null,
-            int rowCount = 1)
+            int rowCount = 1,
+            TreeDataGridCellsPresenter? presenter = null)
         {
             if (columns is null)
             {
@@ -277,12 +333,10 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
             var items = new Model[rowCount];
             var rows = new AnonymousSortableRows<Model>(new TreeDataGridItemsSourceView<Model>(items), null);
 
-            var target = new TreeDataGridCellsPresenter
-            {
-                ElementFactory = new TestElementFactory(),
-                Items = columns,
-                Rows = rows,
-            };
+            var target = presenter ?? new TreeDataGridCellsPresenter();
+            target.ElementFactory = new TestElementFactory();
+            target.Items = columns;
+            target.Rows = rows;
 
             // The column list's effective viewport would usually be updated by the rows presenter
             // but in this case we don't have one, so do it manually.
@@ -330,6 +384,17 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
         private sealed class MovableColumnList<T> : ColumnList<T>
         {
             public void Move(int oldIndex, int newIndex) => MoveItem(oldIndex, newIndex);
+        }
+
+        private sealed class CountingCellsPresenter : TreeDataGridCellsPresenter
+        {
+            public int MeasureCount { get; private set; }
+
+            protected override Size MeasureOverride(Size availableSize)
+            {
+                ++MeasureCount;
+                return base.MeasureOverride(availableSize);
+            }
         }
     }
 }
