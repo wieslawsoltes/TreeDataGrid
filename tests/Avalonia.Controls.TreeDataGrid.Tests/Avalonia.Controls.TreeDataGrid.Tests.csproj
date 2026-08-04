@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <IsPackable>False</IsPackable>
+    <IsTestProject>True</IsTestProject>
     <RootNamespace>Avalonia.Controls.TreeDataGridTests</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
