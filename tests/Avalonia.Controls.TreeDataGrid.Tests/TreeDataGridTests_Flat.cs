@@ -141,6 +141,21 @@ namespace Avalonia.Controls.TreeDataGridTests
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void Should_Release_Source_Subscriptions_When_Detached_From_Visual_Tree()
+        {
+            var (target, _) = CreateTarget();
+            var source = target.Source!;
+
+            Assert.Equal(1, EventSubscriberCount(source, typeof(Avalonia.Controls.Models.NotifyingBase), "PropertyChanged"));
+            Assert.Equal(1, EventSubscriberCount(source, source.GetType(), "Sorted"));
+
+            ((Window)target.Parent!).Content = null;
+
+            Assert.Equal(0, EventSubscriberCount(source, typeof(Avalonia.Controls.Models.NotifyingBase), "PropertyChanged"));
+            Assert.Equal(0, EventSubscriberCount(source, source.GetType(), "Sorted"));
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void Desired_Width_Should_Be_Total_Of_Fixed_Width_Columns()
         {
             var (target, items) = CreateTarget(
@@ -989,6 +1004,14 @@ namespace Avalonia.Controls.TreeDataGridTests
             }
 
             return (target, items);
+        }
+
+        private static int EventSubscriberCount(object target, Type declaringType, string eventName)
+        {
+            var field = declaringType.GetField(
+                eventName,
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            return (field?.GetValue(target) as Delegate)?.GetInvocationList().Length ?? 0;
         }
 
         private static void Layout(TreeDataGrid target)
