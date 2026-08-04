@@ -16,6 +16,8 @@ namespace Avalonia.Controls.Primitives
                 (o, v) => o.Columns = v);
 
         private IColumns? _columns;
+        private bool _pendingColumnLayoutInvalidation;
+        private double _lastEstimatedColumnsWidth = double.NaN;
 
         public event EventHandler<ChildIndexChangedEventArgs>? ChildIndexChanged;
 
@@ -65,6 +67,38 @@ namespace Avalonia.Controls.Primitives
             if (Columns is not null && (Items is null || Items.Count == 0))
                 result = result.WithWidth(Columns.GetEstimatedWidth(availableSize.Width));
 
+            if (_pendingColumnLayoutInvalidation)
+            {
+                _pendingColumnLayoutInvalidation = false;
+                if (Columns is not null)
+                {
+                    var widthConstraint = double.IsFinite(availableSize.Width) ? availableSize.Width : Viewport.Width;
+                    var estimatedWidth = Columns.GetEstimatedWidth(widthConstraint);
+
+                    if (double.IsNaN(_lastEstimatedColumnsWidth) ||
+                        Math.Abs(_lastEstimatedColumnsWidth - estimatedWidth) > 0.5)
+                    {
+                        InvalidateMeasure();
+
+                        foreach (var element in RealizedElements)
+                        {
+                            if (element is TreeDataGridRow row)
+                                row.CellsPresenter?.InvalidateMeasure();
+                        }
+                    }
+                }
+            }
+
+            if (Columns is not null)
+            {
+                var widthConstraint = double.IsFinite(availableSize.Width) ? availableSize.Width : Viewport.Width;
+                _lastEstimatedColumnsWidth = Columns.GetEstimatedWidth(widthConstraint);
+            }
+            else
+            {
+                _lastEstimatedColumnsWidth = double.NaN;
+            }
+
             return result;
         }
 
@@ -93,7 +127,7 @@ namespace Avalonia.Controls.Primitives
                     newValue.LayoutInvalidated += OnColumnLayoutInvalidated;
 
                 // When for existing Presenter Columns would be recreated they won't get Viewport set so we need to track that
-                // and pass Viewport for a newly created object. 
+                // and pass Viewport for a newly created object.
                 if (oldValue != null && newValue != null)
                 {
                     newValue.ViewportChanged(Viewport);
@@ -114,6 +148,12 @@ namespace Avalonia.Controls.Primitives
 
         private void OnColumnLayoutInvalidated(object? sender, EventArgs e)
         {
+            if (IsInLayout)
+            {
+                _pendingColumnLayoutInvalidation = true;
+                return;
+            }
+
             InvalidateMeasure();
 
             foreach (var element in RealizedElements)

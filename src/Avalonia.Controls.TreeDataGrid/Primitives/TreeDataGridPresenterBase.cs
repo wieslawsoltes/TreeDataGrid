@@ -48,6 +48,10 @@ namespace Avalonia.Controls.Primitives
         private double _lastEstimatedElementSizeU = 25;
         private Control? _focusedElement;
         private int _focusedIndex = -1;
+        private bool _isDetaching;
+
+        // Cached state for fast reattachment (fixes for tab switching performance)
+        private Size _cachedViewportSize;
 
         public TreeDataGridPresenterBase()
         {
@@ -88,6 +92,9 @@ namespace Avalonia.Controls.Primitives
         internal IReadOnlyList<Control?> RealizedElements => _realizedElements?.Elements ?? Array.Empty<Control>();
 
         protected abstract Orientation Orientation { get; }
+        protected bool IsInLayout => _isInLayout;
+        internal bool IsLayoutInProgress => _isInLayout;
+
         internal Rect Viewport { get; private set; } = s_invalidViewport;
 
         /// <summary>
@@ -204,6 +211,17 @@ namespace Avalonia.Controls.Primitives
 
         protected virtual Size MeasureElement(int index, Control element, Size availableSize)
         {
+            // Optimization: Skip measure if the element was already measured with the same constraint
+            // and its measure is still valid. This significantly improves reattachment performance.
+            var previousConstraint = LayoutInformation.GetPreviousMeasureConstraint(element);
+            if (previousConstraint.HasValue &&
+                previousConstraint.Value == availableSize &&
+                element.IsMeasureValid &&
+                element.DesiredSize != default)
+            {
+                return element.DesiredSize;
+            }
+
             element.Measure(availableSize);
             return element.DesiredSize;
         }
@@ -419,8 +437,8 @@ namespace Avalonia.Controls.Primitives
         protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
         {
             base.OnAttachedToVisualTree(e);
+            _isDetaching = false;
             _scrollViewer = this.FindAncestorOfType<ScrollViewer>();
-
             // Subscribing to this event adds a reference to 'this' in the layout manager.
             // so this must be unsubscribed to avoid memory leaks.
             EffectiveViewportChanged += OnEffectiveViewportChanged;
@@ -431,11 +449,14 @@ namespace Avalonia.Controls.Primitives
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
         {
             base.OnDetachedFromVisualTree(e);
+            _isDetaching = true;
             _scrollViewer = null;
 
             EffectiveViewportChanged -= OnEffectiveViewportChanged;
 
             UnsubscribeFromItemChanges();
+
+            // Recycle elements back to the pool on detach to ensure a clean layout on reattach.
             RecycleAllElements();
         }
 
@@ -458,6 +479,12 @@ namespace Avalonia.Controls.Primitives
             Viewport = e.EffectiveViewport.Size == default ?
                 s_invalidViewport :
                 Intersect(e.EffectiveViewport, new(Bounds.Size));
+
+            // Cache the viewport size for use when estimating viewport on reattachment
+            if (Viewport != s_invalidViewport && Viewport.Size != default)
+            {
+                _cachedViewportSize = Viewport.Size;
+            }
 
             _isWaitingForViewportUpdate = false;
 
@@ -557,6 +584,7 @@ namespace Avalonia.Controls.Primitives
 
             // We can now recycle elements before the first element.
             _realizedElements.RecycleElementsBefore(index + 1, _recycleElement);
+
         }
 
         private Size CalculateDesiredSize(Orientation orientation, int itemCount, in MeasureViewport viewport)
@@ -668,6 +696,13 @@ namespace Avalonia.Controls.Primitives
 
         private Rect EstimateViewport(Size availableSize)
         {
+            // First, try to use cached viewport size from before detachment.
+            // This gives us an accurate estimate without walking the visual tree.
+            if (_cachedViewportSize != default)
+            {
+                return new Rect(0, 0, _cachedViewportSize.Width, _cachedViewportSize.Height);
+            }
+
             if (GetParentPresenterViewPort() is { } parentViewport && parentViewport != s_invalidViewport)
             {
                 return parentViewport;
@@ -709,7 +744,8 @@ namespace Avalonia.Controls.Primitives
             else
             {
                 UnrealizeElement(element);
-                element.IsVisible = false;
+                if (!_isDetaching)
+                    element.IsVisible = false;
                 ElementFactory!.RecycleElement(element);
                 _scrollViewer?.UnregisterAnchorCandidate(element);
             }
@@ -725,7 +761,8 @@ namespace Avalonia.Controls.Primitives
             }
 
             UnrealizeElementOnItemRemoved(element);
-            element.IsVisible = false;
+            if (!_isDetaching)
+                element.IsVisible = false;
             ElementFactory!.RecycleElement(element);
             _scrollViewer?.UnregisterAnchorCandidate(element);
         }
@@ -750,7 +787,6 @@ namespace Avalonia.Controls.Primitives
             }
 
             var logicalChildren = LogicalChildren;
-
             if (logicalChildren.Count > count)
             {
                 for (var i = logicalChildren.Count - 1; i >= 0; --i)
