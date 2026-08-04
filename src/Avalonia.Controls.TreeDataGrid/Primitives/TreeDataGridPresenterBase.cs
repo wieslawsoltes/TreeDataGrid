@@ -443,7 +443,9 @@ namespace Avalonia.Controls.Primitives
             try
             {
                 var orientation = Orientation;
-                var u = _realizedElements!.StartU;
+                var u = _realizedElements!.GetOrEstimateElementU(
+                    _realizedElements.FirstIndex,
+                    ref _lastEstimatedElementSizeU);
 
                 for (var i = 0; i < _realizedElements.Count; ++i)
                 {
