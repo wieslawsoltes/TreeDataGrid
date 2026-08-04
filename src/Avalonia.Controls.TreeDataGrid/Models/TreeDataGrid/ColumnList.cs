@@ -4,10 +4,23 @@ using Avalonia.Controls.Utils;
 
 namespace Avalonia.Controls.Models.TreeDataGrid
 {
+    internal interface IColumnViewportEstimator
+    {
+        (int index, double position) GetOrEstimateColumnAt(
+            double viewportStart,
+            double viewportEnd,
+            int itemCount,
+            double realizedStart,
+            int firstRealizedIndex,
+            ref double estimatedElementSize);
+
+        double EstimateElementSize();
+    }
+
     /// <summary>
     /// An implementation of <see cref="IColumns"/> that stores its columns in a list.
     /// </summary>
-    public class ColumnList<TModel> : NotifyingListBase<IColumn<TModel>>, IColumns
+    public class ColumnList<TModel> : NotifyingListBase<IColumn<TModel>>, IColumns, IColumnViewportEstimator
     {
         private bool _initialized;
         private double _viewportWidth;
@@ -43,6 +56,79 @@ namespace Avalonia.Controls.Models.TreeDataGrid
             }
 
             return (-1, -1);
+        }
+
+        (int index, double position) IColumnViewportEstimator.GetOrEstimateColumnAt(
+            double viewportStartU,
+            double viewportEndU,
+            int itemCount,
+            double startU,
+            int firstIndex,
+            ref double estimatedElementSizeU)
+        {
+            // We have no elements, nothing to do here.
+            if (itemCount <= 0)
+                return (-1, 0);
+
+            // If we're at 0 then display the first item.
+            if (DoubleUtils.IsZero(viewportStartU))
+                return (0, 0);
+
+            var u = startU;
+
+            for (var i = 0; i < Count; ++i)
+            {
+                var size = this[i].ActualWidth;
+
+                if (double.IsNaN(size))
+                    break;
+
+                var endU = u + size;
+
+                if (endU > viewportStartU && u < viewportEndU)
+                    return (firstIndex + i, u);
+
+                u = endU;
+            }
+
+            // We don't have any realized elements in the requested viewport, or can't rely on
+            // StartU being valid. Estimate the index using only the estimated size. First,
+            // estimate the element size, using defaultElementSizeU if we don't have any realized
+            // elements.
+            var estimatedSize = ((IColumnViewportEstimator)this).EstimateElementSize() switch
+            {
+                -1 => estimatedElementSizeU,
+                var v => v,
+            };
+
+            // Store the estimated size for the next layout pass.
+            estimatedElementSizeU = estimatedSize;
+
+            // Estimate the element at the start of the viewport.
+            var index = Math.Min((int)(viewportStartU / estimatedSize), itemCount - 1);
+            return (index, index * estimatedSize);
+        }
+
+        double IColumnViewportEstimator.EstimateElementSize()
+        {
+            var total = 0.0;
+            var divisor = 0.0;
+
+            // Average the size of the realized elements.
+            foreach (var column in this)
+            {
+                var size = column.ActualWidth;
+                if (double.IsNaN(size))
+                    continue;
+                total += size;
+                ++divisor;
+            }
+
+            // We don't have any elements on which to base our estimate.
+            if (divisor == 0 || total == 0)
+                return -1;
+
+            return total / divisor;
         }
 
         public double GetEstimatedWidth(double constraint)
@@ -102,7 +188,7 @@ namespace Avalonia.Controls.Models.TreeDataGrid
 
         public void ViewportChanged(Rect viewport)
         {
-            if (_viewportWidth != viewport.Width)
+            if (!DoubleUtils.AreClose(_viewportWidth, viewport.Width))
             {
                 _viewportWidth = viewport.Width;
                 if (_initialized)
@@ -138,7 +224,6 @@ namespace Avalonia.Controls.Models.TreeDataGrid
             {
                 // Size the star columns.
                 var starWidthWasConstrained = false;
-                var used = 0.0;
 
                 availableSpace = Math.Max(0, availableSpace);
 
@@ -150,7 +235,6 @@ namespace Avalonia.Controls.Models.TreeDataGrid
                     if (column.Width.IsStar)
                     {
                         column.CalculateStarWidth(availableSpace, totalStars);
-                        used += NotNaN(column.ActualWidth);
                         starWidthWasConstrained |= column.StarWidthWasConstrained;
                     }
                 }

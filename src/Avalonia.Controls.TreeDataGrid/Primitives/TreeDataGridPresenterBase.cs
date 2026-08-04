@@ -88,7 +88,14 @@ namespace Avalonia.Controls.Primitives
         internal IReadOnlyList<Control?> RealizedElements => _realizedElements?.Elements ?? Array.Empty<Control>();
 
         protected abstract Orientation Orientation { get; }
-        protected Rect Viewport { get; private set; } = s_invalidViewport;
+        internal Rect Viewport { get; private set; } = s_invalidViewport;
+
+        /// <summary>
+        /// Gets the position of the first realized element on the primary axis.
+        /// </summary>
+        protected double StartU => _realizedElements?.StartU ?? 0;
+
+        protected int FirstIndex => _realizedElements?.FirstIndex ?? 0;
 
         public Control? BringIntoView(int index, Rect? rect = null)
         {
@@ -210,12 +217,12 @@ namespace Avalonia.Controls.Primitives
         /// <returns>The measure constraint for the element.</returns>
         /// <remarks>
         /// The measure pass is split into two parts:
-        /// 
+        ///
         /// - The initial pass is used to determine the "natural" size of the elements. In this
         ///   pass, infinity can be used as the measure constraint if the element has no other
         ///   constraints on its size.
         /// - The final pass is made once the "natural" sizes of the elements are known and any
-        ///   layout logic has been run. This pass is needed because controls should not be 
+        ///   layout logic has been run. This pass is needed because controls should not be
         ///   arranged with a size less than that passed as the constraint during the measure
         ///   pass. This pass is only run if <see cref="NeedsFinalMeasurePass(int, IReadOnlyList{Control})"/> returns
         ///   true.
@@ -413,11 +420,11 @@ namespace Avalonia.Controls.Primitives
         {
             base.OnAttachedToVisualTree(e);
             _scrollViewer = this.FindAncestorOfType<ScrollViewer>();
-            
+
             // Subscribing to this event adds a reference to 'this' in the layout manager.
             // so this must be unsubscribed to avoid memory leaks.
             EffectiveViewportChanged += OnEffectiveViewportChanged;
-            
+
             SubscribeToItemChanges();
         }
 
@@ -425,7 +432,7 @@ namespace Avalonia.Controls.Primitives
         {
             base.OnDetachedFromVisualTree(e);
             _scrollViewer = null;
-            
+
             EffectiveViewportChanged -= OnEffectiveViewportChanged;
 
             UnsubscribeFromItemChanges();
@@ -447,7 +454,7 @@ namespace Avalonia.Controls.Primitives
             // is being raised when the parent control hasn't yet been arranged. This is a bug in
             // Avalonia, but we can work around it by forcing MeasureOverride to estimate the
             // viewport.
-            Viewport = e.EffectiveViewport.Size == default ? 
+            Viewport = e.EffectiveViewport.Size == default ?
                 s_invalidViewport :
                 Intersect(e.EffectiveViewport, new(Bounds.Size));
 
@@ -641,7 +648,7 @@ namespace Avalonia.Controls.Primitives
             return e;
         }
 
-        private double EstimateElementSizeU()
+        protected virtual double EstimateElementSizeU()
         {
             if (_realizedElements is null)
                 return _lastEstimatedElementSizeU;
@@ -652,8 +659,18 @@ namespace Avalonia.Controls.Primitives
             return _lastEstimatedElementSizeU;
         }
 
+        protected virtual Rect? GetParentPresenterViewPort()
+        {
+            return null;
+        }
+
         private Rect EstimateViewport(Size availableSize)
         {
+            if (GetParentPresenterViewPort() is { } parentViewport && parentViewport != s_invalidViewport)
+            {
+                return parentViewport;
+            }
+
             var c = this.GetVisualParent();
 
             if (c is null)
@@ -676,7 +693,7 @@ namespace Avalonia.Controls.Primitives
                 0,
                 0,
                 double.IsFinite(availableSize.Width) ? availableSize.Width : 0,
-                double.IsFinite(availableSize.Height) ? availableSize.Height : 0); 
+                double.IsFinite(availableSize.Height) ? availableSize.Height : 0);
         }
 
         private void RecycleElement(Control element, int index)
