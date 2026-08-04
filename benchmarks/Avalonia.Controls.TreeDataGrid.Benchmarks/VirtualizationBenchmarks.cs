@@ -20,6 +20,12 @@ namespace TreeDataGridBenchmarks;
 [SimpleJob(RuntimeMoniker.Net80, warmupCount: 5, iterationCount: 10)]
 public class VirtualizationBenchmarks
 {
+    private const int VerticalScrollOperations = 2_500;
+    private const int HorizontalScrollOperations = 1_000;
+    private const int CollectionEditOperations = 300;
+    private const int CollectionMoveOperations = 1_000;
+    private const int DetachReattachOperations = 100;
+
     private AppBuilder? _appBuilder;
     private Window? _window;
     private TreeDataGridControl? _grid;
@@ -50,12 +56,12 @@ public class VirtualizationBenchmarks
     [IterationCleanup(Target = nameof(VerticalSmallScrolls))]
     public void CleanupVerticalSmallScrolls() => CleanupGrid();
 
-    [Benchmark]
+    [Benchmark(OperationsPerInvoke = VerticalScrollOperations)]
     public int VerticalSmallScrolls()
     {
         var scroll = _scroll!;
 
-        for (var i = 1; i <= 500; ++i)
+        for (var i = 1; i <= VerticalScrollOperations; ++i)
         {
             scroll.Offset = new Vector(0, i);
             _grid!.UpdateLayout();
@@ -71,12 +77,12 @@ public class VirtualizationBenchmarks
     [IterationCleanup(Target = nameof(VerticalBufferedSmallScrolls))]
     public void CleanupVerticalBufferedSmallScrolls() => CleanupGrid();
 
-    [Benchmark]
+    [Benchmark(OperationsPerInvoke = VerticalScrollOperations)]
     public int VerticalBufferedSmallScrolls()
     {
         var scroll = _scroll!;
 
-        for (var i = 1; i <= 500; ++i)
+        for (var i = 1; i <= VerticalScrollOperations; ++i)
         {
             scroll.Offset = new Vector(0, i);
             _grid!.UpdateLayout();
@@ -91,12 +97,12 @@ public class VirtualizationBenchmarks
     [IterationCleanup(Target = nameof(HorizontalSmallScrolls))]
     public void CleanupHorizontalSmallScrolls() => CleanupGrid();
 
-    [Benchmark]
+    [Benchmark(OperationsPerInvoke = HorizontalScrollOperations)]
     public int HorizontalSmallScrolls()
     {
         var scroll = _scroll!;
 
-        for (var i = 1; i <= 200; ++i)
+        for (var i = 1; i <= HorizontalScrollOperations; ++i)
         {
             scroll.Offset = new Vector(i, 0);
             _grid!.UpdateLayout();
@@ -111,12 +117,12 @@ public class VirtualizationBenchmarks
     [IterationCleanup(Target = nameof(CollectionInsertRemoveBurst))]
     public void CleanupCollectionInsertRemoveBurst() => CleanupGrid();
 
-    [Benchmark]
+    [Benchmark(OperationsPerInvoke = CollectionEditOperations)]
     public int CollectionInsertRemoveBurst()
     {
         var items = _items!;
 
-        for (var i = 0; i < 100; ++i)
+        for (var i = 0; i < CollectionEditOperations; ++i)
         {
             items.Insert(2, new RowModel(-i, $"Inserted {i}"));
             _grid!.UpdateLayout();
@@ -133,12 +139,12 @@ public class VirtualizationBenchmarks
     [IterationCleanup(Target = nameof(CollectionMoveBurst))]
     public void CleanupCollectionMoveBurst() => CleanupGrid();
 
-    [Benchmark]
+    [Benchmark(OperationsPerInvoke = CollectionMoveOperations)]
     public int CollectionMoveBurst()
     {
         var items = _items!;
 
-        for (var i = 0; i < 100; ++i)
+        for (var i = 0; i < CollectionMoveOperations; ++i)
         {
             items.Move(2, 12);
             _grid!.UpdateLayout();
@@ -155,13 +161,13 @@ public class VirtualizationBenchmarks
     [IterationCleanup(Target = nameof(DetachReattach))]
     public void CleanupDetachReattach() => CleanupGrid();
 
-    [Benchmark]
+    [Benchmark(OperationsPerInvoke = DetachReattachOperations)]
     public int DetachReattach()
     {
         var grid = _grid!;
         var window = _window!;
 
-        for (var i = 0; i < 50; ++i)
+        for (var i = 0; i < DetachReattachOperations; ++i)
         {
             window.Content = null;
             window.UpdateLayout();
