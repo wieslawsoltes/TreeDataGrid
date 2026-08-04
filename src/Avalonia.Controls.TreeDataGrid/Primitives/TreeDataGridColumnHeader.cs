@@ -8,7 +8,7 @@ using Avalonia.Input;
 
 namespace Avalonia.Controls.Primitives
 {
-    public class TreeDataGridColumnHeader : Button
+    public class TreeDataGridColumnHeader : Button, INaturalWidthMeasureCache
     {
         public static readonly DirectProperty<TreeDataGridColumnHeader, bool> CanUserResizeProperty =
             AvaloniaProperty.RegisterDirect<TreeDataGridColumnHeader, bool>(
@@ -40,6 +40,7 @@ namespace Avalonia.Controls.Primitives
         }
 
         public int ColumnIndex { get; private set; }
+        Size? INaturalWidthMeasureCache.NaturalDesiredSize { get; set; }
 
         public object? Header
         {
@@ -61,6 +62,7 @@ namespace Avalonia.Controls.Primitives
             _columns = columns;
             _model = columns[columnIndex];
             ColumnIndex = columnIndex;
+            ((INaturalWidthMeasureCache)this).NaturalDesiredSize = null;
             UpdatePropertiesFromModel();
 
             if (_model is INotifyPropertyChanged newInpc)
@@ -80,6 +82,7 @@ namespace Avalonia.Controls.Primitives
             _columns = null;
             _model = null;
             ColumnIndex = -1;
+            ((INaturalWidthMeasureCache)this).NaturalDesiredSize = null;
             UpdatePropertiesFromModel();
         }
 
@@ -116,6 +119,12 @@ namespace Avalonia.Controls.Primitives
             result = result.Inflate(new Thickness(1, 0));
 
             return result;
+        }
+
+        protected override void OnMeasureInvalidated()
+        {
+            ((INaturalWidthMeasureCache)this).NaturalDesiredSize = null;
+            base.OnMeasureInvalidated();
         }
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)

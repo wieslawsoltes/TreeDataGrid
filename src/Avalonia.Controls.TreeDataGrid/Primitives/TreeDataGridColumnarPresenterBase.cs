@@ -14,7 +14,8 @@ namespace Avalonia.Controls.Primitives
     /// Implements common layout functionality between <see cref="TreeDataGridCellsPresenter"/>
     /// and <see cref="TreeDataGridColumnHeadersPresenter"/>.
     /// </remarks>
-    public abstract class TreeDataGridColumnarPresenterBase<TItem> : TreeDataGridPresenterBase<TItem>
+    public abstract class TreeDataGridColumnarPresenterBase<TItem> : TreeDataGridPresenterBase<TItem>,
+        IFinalMeasureSelector
     {
         private double _lastEstimatedElementSizeU = 25;
 
@@ -83,13 +84,22 @@ namespace Avalonia.Controls.Primitives
                 var e = elements[i];
                 if (e is not null)
                 {
-                    var previous = LayoutInformation.GetPreviousMeasureConstraint(e)!.Value;
-                    if (previous.Width > columns[i + firstIndex].ActualWidth)
+                    if (((IFinalMeasureSelector)this).NeedsFinalMeasure(e, i + firstIndex))
                         return true;
                 }
             }
 
             return false;
+        }
+
+        bool IFinalMeasureSelector.NeedsFinalMeasure(Control element, int index)
+        {
+            var column = Columns![index];
+            var previous = LayoutInformation.GetPreviousMeasureConstraint(element)!.Value;
+
+            return previous.Width > column.ActualWidth ||
+                (column.Width.GridUnitType == GridUnitType.Auto &&
+                    !DoubleUtils.AreClose(previous.Width, column.ActualWidth));
         }
 
         protected sealed override (int index, double position) GetElementAt(double position)
@@ -101,6 +111,38 @@ namespace Avalonia.Controls.Primitives
         {
             var column = Columns![index];
             return new(column.ActualWidth, double.PositiveInfinity);
+        }
+
+        protected Size MeasureColumnElement(
+            int index,
+            int rowIndex,
+            Control element,
+            Size availableSize)
+        {
+            var columns = (IColumns)Items!;
+            var previousConstraint = LayoutInformation.GetPreviousMeasureConstraint(element);
+
+            if (element.IsMeasureValid)
+            {
+                if (double.IsPositiveInfinity(availableSize.Width) &&
+                    element is INaturalWidthMeasureCache { NaturalDesiredSize: { } naturalSize })
+                {
+                    return columns.CellMeasured(index, rowIndex, naturalSize);
+                }
+
+                if (previousConstraint == availableSize)
+                    return columns.CellMeasured(index, rowIndex, element.DesiredSize);
+            }
+
+            element.Measure(availableSize);
+
+            if (double.IsPositiveInfinity(availableSize.Width) &&
+                element is INaturalWidthMeasureCache cache)
+            {
+                cache.NaturalDesiredSize = element.DesiredSize;
+            }
+
+            return columns.CellMeasured(index, rowIndex, element.DesiredSize);
         }
 
         protected sealed override double CalculateSizeU(Size availableSize)
