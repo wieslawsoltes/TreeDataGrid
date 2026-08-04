@@ -454,6 +454,69 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void Keeps_Offscreen_Focused_Row_With_Its_Item_After_Insert()
+        {
+            var (target, scroll, items) = CreateTarget();
+            var element = target.RealizedElements[5]!;
+            var item = items[5];
+
+            element.Focusable = true;
+            element.Focus();
+            scroll.Offset = new Vector(0, 100);
+            Layout(target);
+
+            items.Insert(0, new Model { Id = -1, Title = "Inserted" });
+            scroll.Offset = default;
+            Layout(target);
+
+            Assert.Same(item, items[6]);
+            Assert.Same(element, target.RealizedElements[6]);
+            Assert.Equal(items.Take(10), target.RealizedElements.Select(x => x!.DataContext));
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Keeps_Offscreen_Focused_Row_With_Its_Item_After_Remove()
+        {
+            var (target, scroll, items) = CreateTarget();
+            var element = target.RealizedElements[5]!;
+            var item = items[5];
+
+            element.Focusable = true;
+            element.Focus();
+            scroll.Offset = new Vector(0, 100);
+            Layout(target);
+
+            items.RemoveAt(0);
+            scroll.Offset = default;
+            Layout(target);
+
+            Assert.Same(item, items[4]);
+            Assert.Same(element, target.RealizedElements[4]);
+            Assert.Equal(items.Take(10), target.RealizedElements.Select(x => x!.DataContext));
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Keeps_Offscreen_Focused_Row_With_Its_Item_After_Move()
+        {
+            var (target, scroll, items) = CreateTarget();
+            var element = target.RealizedElements[5]!;
+            var item = items[5];
+
+            element.Focusable = true;
+            element.Focus();
+            scroll.Offset = new Vector(0, 100);
+            Layout(target);
+
+            items.Move(0, 8);
+            scroll.Offset = default;
+            Layout(target);
+
+            Assert.Same(item, items[4]);
+            Assert.Same(element, target.RealizedElements[4]);
+            Assert.Equal(items.Take(10), target.RealizedElements.Select(x => x!.DataContext));
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void Handles_Move_After_Insert_Without_Duplicates()
         {
             // This tests the specific scenario: Add item at index 0, then move item from index 2 to position 1

@@ -891,12 +891,6 @@ namespace Avalonia.Controls.Primitives
 
         private void OnItemsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
-            void ClearFocusedElement(int index, int count)
-            {
-                if (_focusedElement is not null && _focusedIndex >= index && _focusedIndex < index + count)
-                    RecycleElementOnItemRemoved(_focusedElement);
-            }
-
             InvalidateMeasure();
 
             if (_realizedElements is null)
@@ -912,24 +906,29 @@ namespace Avalonia.Controls.Primitives
                 switch (e.Action)
                 {
                     case NotifyCollectionChangedAction.Add:
-                        _realizedElements.ItemsInserted(e.NewStartingIndex, e.NewItems!.Count, _updateElementIndex, _recycleElementOnItemRemoved);
+                        UpdateSpecialElementForInsert(ref _focusedElement, ref _focusedIndex, e.NewStartingIndex, e.NewItems!.Count);
+                        UpdateSpecialElementForInsert(ref _scrollToElement, ref _scrollToIndex, e.NewStartingIndex, e.NewItems.Count);
+                        _realizedElements.ItemsInserted(e.NewStartingIndex, e.NewItems.Count, _updateElementIndex, _recycleElementOnItemRemoved);
                         break;
                     case NotifyCollectionChangedAction.Remove:
                         _realizedElements.ItemsRemoved(e.OldStartingIndex, e.OldItems!.Count, _updateElementIndex, _recycleElementOnItemRemoved);
-                        ClearFocusedElement(e.OldStartingIndex, e.OldItems.Count);
+                        UpdateSpecialElementForRemove(ref _focusedElement, ref _focusedIndex, e.OldStartingIndex, e.OldItems.Count);
+                        UpdateSpecialElementForRemove(ref _scrollToElement, ref _scrollToIndex, e.OldStartingIndex, e.OldItems.Count);
                         break;
                     case NotifyCollectionChangedAction.Replace:
                         _realizedElements.ItemsReplaced(e.OldStartingIndex, e.OldItems!.Count, _recycleElementOnItemRemoved);
-                        ClearFocusedElement(e.OldStartingIndex, e.OldItems.Count);
+                        RecycleSpecialElementInRange(ref _focusedElement, ref _focusedIndex, e.OldStartingIndex, e.OldItems.Count);
+                        RecycleSpecialElementInRange(ref _scrollToElement, ref _scrollToIndex, e.OldStartingIndex, e.OldItems.Count);
                         break;
                     case NotifyCollectionChangedAction.Move:
                         _realizedElements.ItemsMoved(e.OldStartingIndex, e.NewStartingIndex, e.OldItems!.Count, _updateElementIndex, _recycleElementOnItemRemoved);
-                        ClearFocusedElement(e.OldStartingIndex, e.OldItems.Count);
+                        UpdateSpecialElementForMove(ref _focusedElement, ref _focusedIndex, e.OldStartingIndex, e.NewStartingIndex, e.OldItems.Count);
+                        UpdateSpecialElementForMove(ref _scrollToElement, ref _scrollToIndex, e.OldStartingIndex, e.NewStartingIndex, e.OldItems.Count);
                         break;
                     case NotifyCollectionChangedAction.Reset:
                         _realizedElements.ItemsReset(_recycleElementOnItemRemoved);
-                        if (_focusedElement is not null)
-                            RecycleElementOnItemRemoved(_focusedElement);
+                        RecycleSpecialElement(ref _focusedElement, ref _focusedIndex);
+                        RecycleSpecialElement(ref _scrollToElement, ref _scrollToIndex);
                         break;
                 }
             }
@@ -937,6 +936,82 @@ namespace Avalonia.Controls.Primitives
             {
                 _preserveRecycledElementVisualTreeMembership = previousVisualValue;
                 _preserveRecycledElementLogicalTreeMembership = previousLogicalValue;
+            }
+        }
+
+        private void UpdateSpecialElementForInsert(
+            ref Control? element,
+            ref int elementIndex,
+            int index,
+            int count)
+        {
+            if (element is not null && elementIndex >= index)
+                UpdateSpecialElementIndex(element, ref elementIndex, elementIndex + count);
+        }
+
+        private void UpdateSpecialElementForRemove(
+            ref Control? element,
+            ref int elementIndex,
+            int index,
+            int count)
+        {
+            if (element is null)
+                return;
+
+            if (elementIndex >= index && elementIndex < index + count)
+                RecycleSpecialElement(ref element, ref elementIndex);
+            else if (elementIndex >= index + count)
+                UpdateSpecialElementIndex(element, ref elementIndex, elementIndex - count);
+        }
+
+        private void UpdateSpecialElementForMove(
+            ref Control? element,
+            ref int elementIndex,
+            int oldIndex,
+            int newIndex,
+            int count)
+        {
+            if (element is null)
+                return;
+
+            var updatedIndex = elementIndex;
+
+            if (elementIndex >= oldIndex && elementIndex < oldIndex + count)
+                updatedIndex = newIndex + elementIndex - oldIndex;
+            else if (oldIndex < newIndex && elementIndex >= oldIndex + count && elementIndex < newIndex + count)
+                updatedIndex -= count;
+            else if (oldIndex > newIndex && elementIndex >= newIndex && elementIndex < oldIndex)
+                updatedIndex += count;
+
+            UpdateSpecialElementIndex(element, ref elementIndex, updatedIndex);
+        }
+
+        private void RecycleSpecialElementInRange(
+            ref Control? element,
+            ref int elementIndex,
+            int index,
+            int count)
+        {
+            if (element is not null && elementIndex >= index && elementIndex < index + count)
+                RecycleSpecialElement(ref element, ref elementIndex);
+        }
+
+        private void RecycleSpecialElement(ref Control? element, ref int elementIndex)
+        {
+            if (element is { } value)
+                RecycleElementOnItemRemoved(value);
+
+            element = null;
+            elementIndex = -1;
+        }
+
+        private void UpdateSpecialElementIndex(Control element, ref int elementIndex, int newIndex)
+        {
+            if (elementIndex != newIndex)
+            {
+                var oldIndex = elementIndex;
+                elementIndex = newIndex;
+                UpdateElementIndex(element, oldIndex, newIndex);
             }
         }
 
