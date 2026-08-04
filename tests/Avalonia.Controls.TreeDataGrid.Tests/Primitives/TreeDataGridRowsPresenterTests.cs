@@ -87,6 +87,35 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void Full_Row_Scroll_Reuses_Controls_Without_Tree_Reattachment()
+        {
+            var (target, scroll, _) = CreateTarget();
+            var rows = target.RealizedElements.Cast<TreeDataGridRow>().ToHashSet();
+            var logicalAttaches = 0;
+            var logicalDetaches = 0;
+            var visualAttaches = 0;
+            var visualDetaches = 0;
+
+            foreach (var row in rows)
+            {
+                row.AttachedToLogicalTree += (_, _) => ++logicalAttaches;
+                row.DetachedFromLogicalTree += (_, _) => ++logicalDetaches;
+                row.AttachedToVisualTree += (_, _) => ++visualAttaches;
+                row.DetachedFromVisualTree += (_, _) => ++visualDetaches;
+            }
+
+            scroll.Offset = new Vector(0, 10);
+            Layout(target);
+
+            Assert.Equal(rows, target.RealizedElements.Cast<TreeDataGridRow>().ToHashSet());
+            Assert.Equal(0, logicalAttaches);
+            Assert.Equal(0, logicalDetaches);
+            Assert.Equal(0, visualAttaches);
+            Assert.Equal(0, visualDetaches);
+            AssertRowIndexes(target, 1, 10);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void CacheLength_Buffers_Rows_Across_Small_Scrolls()
         {
             var (target, scroll, _) = CreateTarget(cacheLength: 0.5);

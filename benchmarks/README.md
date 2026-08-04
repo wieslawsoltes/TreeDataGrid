@@ -6,7 +6,8 @@ TreeDataGrid virtualization:
 - small vertical scroll updates;
 - forced stationary vertical layouts and one-row scrolls, isolating layout reuse and
   recycling costs from scroll batching;
-- buffered small vertical scroll updates;
+- buffered small vertical scroll updates and reversing scrolls that remain within the
+  cache window;
 - small horizontal scroll updates across many columns;
 - collection insert/remove and move bursts inside the realized range; and
 - repeated visual-tree detach/reattach cycles.
