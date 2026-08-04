@@ -12,6 +12,30 @@ namespace Avalonia.Controls.TreeDataGridTests.Bindings;
 public class TypedBindingTests
 {
     [AvaloniaFact]
+    public void OneWay_Delegate_Overload_Uses_Precompiled_Delegates()
+    {
+        var source = new TestViewModel { Name = "Test" };
+        var target = new TestTarget();
+        var binding = TypedBinding<TestViewModel>.OneWay(
+            static vm => vm.Name,
+            new Func<TestViewModel, object>[] { static vm => vm });
+
+        target.Bind(TestTarget.TextProperty, binding.Instance(source));
+        source.Name = "Updated";
+
+        Assert.Equal("Updated", target.Text);
+    }
+
+    [Fact]
+    public void OneWay_Delegate_Overload_Rejects_Null_Delegates()
+    {
+        Assert.Throws<ArgumentNullException>(() =>
+            TypedBinding<TestViewModel>.OneWay<string?>(null!, Array.Empty<Func<TestViewModel, object>>()));
+        Assert.Throws<ArgumentNullException>(() =>
+            TypedBinding<TestViewModel>.OneWay(static vm => vm.Name, null!));
+    }
+
+    [AvaloniaFact]
     public void OneWay_Binding_Single_Link_Should_Get_Value()
     {
         // Arrange

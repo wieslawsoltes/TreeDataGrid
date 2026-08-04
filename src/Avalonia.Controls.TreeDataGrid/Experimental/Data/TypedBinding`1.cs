@@ -16,13 +16,28 @@ namespace Avalonia.Experimental.Data
     public static class TypedBinding<TIn>
         where TIn : class
     {
+        /// <summary>
+        /// Creates a one-way binding from delegates supplied by generated code.
+        /// No expression compilation is performed.
+        /// </summary>
+        public static TypedBinding<TIn, TOut> OneWay<TOut>(
+            Func<TIn, TOut> read,
+            Func<TIn, object>[] links)
+        {
+            return new TypedBinding<TIn, TOut>
+            {
+                Read = read ?? throw new ArgumentNullException(nameof(read)),
+                Links = links ?? throw new ArgumentNullException(nameof(links)),
+            };
+        }
+
         public static TypedBinding<TIn, TOut> Default<TOut>(
             Expression<Func<TIn, TOut>> read,
             Action<TIn, TOut> write)
         {
             return new TypedBinding<TIn, TOut>
             {
-                Read = read.Compile(),
+                Read = read.Compile(preferInterpretation: true),
                 Write = write,
                 Links = ExpressionChainVisitor<TIn>.Build(read),
                 Mode = BindingMode.Default,
@@ -31,11 +46,9 @@ namespace Avalonia.Experimental.Data
 
         public static TypedBinding<TIn, TOut> OneWay<TOut>(Expression<Func<TIn, TOut>> read)
         {
-            return new TypedBinding<TIn, TOut>
-            {
-                Read = read.Compile(),
-                Links = ExpressionChainVisitor<TIn>.Build(read),
-            };
+            return OneWay(
+                read.Compile(preferInterpretation: true),
+                ExpressionChainVisitor<TIn>.Build(read));
         }
 
         public static TypedBinding<TIn, TOut> TwoWay<TOut>(Expression<Func<TIn, TOut>> expression)
@@ -71,7 +84,7 @@ namespace Avalonia.Experimental.Data
 
             return new TypedBinding<TIn, TOut>
             {
-                Read = expression.Compile(),
+                Read = expression.Compile(preferInterpretation: true),
                 Write = write,
                 Links = links,
                 Mode = BindingMode.TwoWay,
@@ -84,7 +97,7 @@ namespace Avalonia.Experimental.Data
         {
             return new TypedBinding<TIn, TOut>
             {
-                Read = read.Compile(),
+                Read = read.Compile(preferInterpretation: true),
                 Write = write,
                 Links = ExpressionChainVisitor<TIn>.Build(read),
                 Mode = BindingMode.TwoWay,
@@ -95,7 +108,7 @@ namespace Avalonia.Experimental.Data
         {
             return new TypedBinding<TIn, TOut>
             {
-                Read = read.Compile(),
+                Read = read.Compile(preferInterpretation: true),
                 Links = ExpressionChainVisitor<TIn>.Build(read),
                 Mode = BindingMode.OneTime,
             };
