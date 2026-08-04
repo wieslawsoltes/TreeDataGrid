@@ -13,8 +13,10 @@ namespace Avalonia.Controls.Primitives
     /// Implements common layout functionality between <see cref="TreeDataGridCellsPresenter"/>
     /// and <see cref="TreeDataGridColumnHeadersPresenter"/>.
     /// </remarks>
-    public abstract class TreeDataGridColumnarPresenterBase<TItem> : TreeDataGridPresenterBase<TItem> 
+    public abstract class TreeDataGridColumnarPresenterBase<TItem> : TreeDataGridPresenterBase<TItem>
     {
+        private double _lastEstimatedElementSizeU = 25;
+
         protected IColumns? Columns => Items as IColumns;
 
         protected sealed override Size GetInitialConstraint(Control element, int index, Size availableSize)
@@ -28,9 +30,32 @@ namespace Avalonia.Controls.Primitives
             double viewportEnd,
             int itemCount)
         {
-            if (Columns?.GetColumnAt(viewportStart) is var (index, position) && index >= 0)
+            if (Columns?.GetColumnAt(viewportStart) is (var index and >= 0, var position))
                 return (index, position);
+
+            if (Columns is IColumnViewportEstimator estimator &&
+                estimator.GetOrEstimateColumnAt(
+                    viewportStart,
+                    viewportEnd,
+                    itemCount,
+                    StartU,
+                    FirstIndex,
+                    ref _lastEstimatedElementSizeU) is { index: >= 0 } res)
+                return res;
+
             return base.GetOrEstimateAnchorElementForViewport(viewportStart, viewportEnd, itemCount);
+        }
+
+        protected override double EstimateElementSizeU()
+        {
+            if (Columns is not IColumnViewportEstimator estimator)
+                return _lastEstimatedElementSizeU;
+
+            var result = estimator.EstimateElementSize();
+            if (result >= 0)
+                _lastEstimatedElementSizeU = result;
+
+            return _lastEstimatedElementSizeU;
         }
 
         protected sealed override bool NeedsFinalMeasurePass(int firstIndex, IReadOnlyList<Control?> elements)
