@@ -271,6 +271,69 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void Move_Preserves_Every_Realized_Row_That_Remains_In_The_Viewport()
+        {
+            var (target, _, items) = CreateTarget();
+            var rowsByItem = target.RealizedElements
+                .Cast<TreeDataGridRow>()
+                .ToDictionary(x => (Model)x.DataContext!);
+
+            items.Move(2, 7);
+            Layout(target);
+
+            AssertRealizedRowsAreConsistent(target, items);
+            foreach (var item in items.Take(10))
+                Assert.Same(rowsByItem[item], target.TryGetElement(items.IndexOf(item)));
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Move_Crossing_Viewport_Boundary_Preserves_Rows_That_Stay_Visible()
+        {
+            var (target, scroll, items) = CreateTarget();
+            scroll.Offset = new Vector(0, 100);
+            Layout(target);
+
+            var rowsByItem = target.RealizedElements
+                .Cast<TreeDataGridRow>()
+                .ToDictionary(x => (Model)x.DataContext!);
+
+            items.Move(2, 15);
+            Layout(target);
+
+            AssertRealizedRowsAreConsistent(target, items);
+            foreach (var pair in rowsByItem)
+            {
+                var newIndex = items.IndexOf(pair.Key);
+                if (target.TryGetElement(newIndex) is { } row)
+                    Assert.Same(pair.Value, row);
+            }
+
+            scroll.Offset = default;
+            Layout(target);
+            AssertRealizedRowsAreConsistent(target, items);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Move_Preserves_Focus_And_Row_Identity_For_Visible_Item()
+        {
+            var (target, _, items) = CreateTarget();
+            var focusedRow = target.RealizedElements[5]!;
+            var focusedItem = focusedRow.DataContext;
+
+            focusedRow.Focusable = true;
+            focusedRow.Focus();
+            Assert.True(focusedRow.IsKeyboardFocusWithin);
+
+            items.Move(5, 8);
+            Layout(target);
+
+            Assert.Same(focusedItem, items[8]);
+            Assert.Same(focusedRow, target.TryGetElement(8));
+            Assert.True(focusedRow.IsKeyboardFocusWithin);
+            AssertRealizedRowsAreConsistent(target, items);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void Handles_Unrealized_Rows_Being_Removed_From_End()
         {
             var (target, scroll, items) = CreateTarget();

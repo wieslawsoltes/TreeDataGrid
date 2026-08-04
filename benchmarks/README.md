@@ -6,7 +6,7 @@ TreeDataGrid virtualization:
 - small vertical scroll updates;
 - buffered small vertical scroll updates;
 - small horizontal scroll updates across many columns;
-- collection insert/remove bursts inside the realized range; and
+- collection insert/remove and move bursts inside the realized range; and
 - repeated visual-tree detach/reattach cycles.
 
 Run it from the repository root:

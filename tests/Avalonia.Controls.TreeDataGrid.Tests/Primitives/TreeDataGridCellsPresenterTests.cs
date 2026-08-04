@@ -78,6 +78,29 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void Moving_Columns_Preserves_Realized_Cell_Identity()
+        {
+            var columns = new MovableColumnList<Model>();
+            for (var i = 0; i < 100; ++i)
+                columns.Add(new LayoutTestColumn<Model>("Column " + i));
+
+            var (target, _) = CreateTarget(columns);
+            var cells = target.RealizedElements.ToList();
+
+            columns.Move(2, 7);
+            Layout(target);
+
+            Assert.Same(cells[0], target.TryGetElement(0));
+            Assert.Same(cells[1], target.TryGetElement(1));
+            for (var oldIndex = 3; oldIndex <= 7; ++oldIndex)
+                Assert.Same(cells[oldIndex], target.TryGetElement(oldIndex - 1));
+            Assert.Same(cells[2], target.TryGetElement(7));
+            Assert.Same(cells[8], target.TryGetElement(8));
+            Assert.Same(cells[9], target.TryGetElement(9));
+            AssertColumnIndexes(target, 0, 10);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void DesiredSize_Takes_Min_Star_Column_Width_Into_Account()
         {
             var minWidth = new ColumnOptions<Model>
@@ -243,6 +266,11 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
         {
             public int Id { get; set; }
             public string? Title { get; set; }
+        }
+
+        private sealed class MovableColumnList<T> : ColumnList<T>
+        {
+            public void Move(int oldIndex, int newIndex) => MoveItem(oldIndex, newIndex);
         }
     }
 }

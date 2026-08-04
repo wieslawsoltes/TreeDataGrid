@@ -127,6 +127,28 @@ public class VirtualizationBenchmarks
         return _grid!.RowsPresenter!.GetRealizedElements().Count();
     }
 
+    [IterationSetup(Target = nameof(CollectionMoveBurst))]
+    public void SetupCollectionMoveBurst() => CreateGrid(rowCount: 10_000, columnCount: 12);
+
+    [IterationCleanup(Target = nameof(CollectionMoveBurst))]
+    public void CleanupCollectionMoveBurst() => CleanupGrid();
+
+    [Benchmark]
+    public int CollectionMoveBurst()
+    {
+        var items = _items!;
+
+        for (var i = 0; i < 100; ++i)
+        {
+            items.Move(2, 12);
+            _grid!.UpdateLayout();
+            items.Move(12, 2);
+            _grid.UpdateLayout();
+        }
+
+        return _grid!.RowsPresenter!.GetRealizedElements().Count();
+    }
+
     [IterationSetup(Target = nameof(DetachReattach))]
     public void SetupDetachReattach() => CreateGrid(rowCount: 10_000, columnCount: 50);
 
