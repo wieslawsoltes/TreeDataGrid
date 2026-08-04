@@ -339,14 +339,31 @@ namespace Avalonia.Controls.TreeDataGridTests
         {
             var (target, _) = CreateTarget();
             var source = target.Source!;
+            var columns = source.Columns;
+            var window = (Window)target.Parent!;
 
             Assert.Equal(1, EventSubscriberCount(source, typeof(Avalonia.Controls.Models.NotifyingBase), "PropertyChanged"));
             Assert.Equal(1, EventSubscriberCount(source, source.GetType(), "Sorted"));
+            Assert.Equal(2, EventSubscriberCount(columns, columns.GetType(), "LayoutInvalidated"));
 
-            ((Window)target.Parent!).Content = null;
+            for (var i = 0; i < 3; ++i)
+            {
+                window.Content = null;
+                window.UpdateLayout();
+                Dispatcher.UIThread.RunJobs();
 
-            Assert.Equal(0, EventSubscriberCount(source, typeof(Avalonia.Controls.Models.NotifyingBase), "PropertyChanged"));
-            Assert.Equal(0, EventSubscriberCount(source, source.GetType(), "Sorted"));
+                Assert.Equal(0, EventSubscriberCount(source, typeof(Avalonia.Controls.Models.NotifyingBase), "PropertyChanged"));
+                Assert.Equal(0, EventSubscriberCount(source, source.GetType(), "Sorted"));
+                Assert.Equal(0, EventSubscriberCount(columns, columns.GetType(), "LayoutInvalidated"));
+
+                window.Content = target;
+                window.UpdateLayout();
+                Dispatcher.UIThread.RunJobs();
+
+                Assert.Equal(1, EventSubscriberCount(source, typeof(Avalonia.Controls.Models.NotifyingBase), "PropertyChanged"));
+                Assert.Equal(1, EventSubscriberCount(source, source.GetType(), "Sorted"));
+                Assert.Equal(2, EventSubscriberCount(columns, columns.GetType(), "LayoutInvalidated"));
+            }
         }
 
         [AvaloniaFact(Timeout = 10000)]
