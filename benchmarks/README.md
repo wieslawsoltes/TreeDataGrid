@@ -18,3 +18,7 @@ Run it from the repository root:
 
 Use the same machine, .NET runtime, build configuration, and benchmark commit when
 comparing two TreeDataGrid revisions. Benchmark artifacts are intentionally ignored.
+
+The virtualization benchmarks execute hundreds or thousands of layout operations per
+iteration and report normalized per-operation results. This keeps each measured
+iteration long enough to avoid drawing conclusions from sub-100 ms layout samples.
