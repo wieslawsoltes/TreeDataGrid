@@ -106,7 +106,7 @@ namespace Avalonia.Controls.Models.TreeDataGrid
 
         double IUpdateColumnLayout.CellMeasured(double width, int rowIndex)
         {
-            _autoWidth = Math.Max(NonNaN(_autoWidth), CoerceActualWidth(width));
+            _autoWidth = Math.Max(NonNaN(_autoWidth), CoerceMeasuredWidth(width));
 
             if (Width.GridUnitType == GridUnitType.Auto)
                 return _autoWidth;
@@ -175,6 +175,27 @@ namespace Avalonia.Controls.Models.TreeDataGrid
             return Options.MaxWidth?.GridUnitType switch
             {
                 GridUnitType.Auto => Math.Min(width, _autoWidth),
+                GridUnitType.Pixel => Math.Min(width, Options.MaxWidth.Value.Value),
+                GridUnitType.Star => throw new NotImplementedException(),
+                _ => width
+            };
+        }
+
+        private double CoerceMeasuredWidth(double width)
+        {
+            // Auto min/max constraints are derived from the measured width itself. Applying them
+            // while _autoWidth is still NaN creates a circular NaN that can never initialize.
+            width = Options.MinWidth.GridUnitType switch
+            {
+                GridUnitType.Auto => width,
+                GridUnitType.Pixel => Math.Max(width, Options.MinWidth.Value),
+                GridUnitType.Star => throw new NotImplementedException(),
+                _ => width
+            };
+
+            return Options.MaxWidth?.GridUnitType switch
+            {
+                GridUnitType.Auto => width,
                 GridUnitType.Pixel => Math.Min(width, Options.MaxWidth.Value.Value),
                 GridUnitType.Star => throw new NotImplementedException(),
                 _ => width

@@ -207,6 +207,49 @@ namespace Avalonia.Controls.TreeDataGridTests.Models
             Assert.Equal(100, target[1].ActualWidth);
         }
 
+        [AvaloniaFact(Timeout = 10000)]
+        public void Star_Column_With_Auto_MinWidth_Initializes_From_First_Measurement()
+        {
+            var options = new TextColumnOptions<Model> { MinWidth = GridLength.Auto };
+            var target = CreateFixedAndStarColumns(options);
+
+            target.ViewportChanged(new Rect(0, 0, 200, 500));
+            var measured = target.CellMeasured(1, 0, new Size(80, 10));
+            target.CommitActualWidths();
+
+            Assert.Equal(80, measured.Width);
+            Assert.Equal(150, target[1].ActualWidth);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Star_Column_With_Auto_MaxWidth_Initializes_From_First_Measurement()
+        {
+            var options = new TextColumnOptions<Model> { MaxWidth = GridLength.Auto };
+            var target = CreateFixedAndStarColumns(options);
+
+            target.ViewportChanged(new Rect(0, 0, 200, 500));
+            target.CellMeasured(1, 0, new Size(80, 10));
+            target.CommitActualWidths();
+
+            Assert.Equal(80, target[1].ActualWidth);
+        }
+
+        private static ColumnList<Model> CreateFixedAndStarColumns(TextColumnOptions<Model> options)
+        {
+            return new ColumnList<Model>
+            {
+                new TextColumn<Model, string?>(
+                    null,
+                    x => x.Name,
+                    new GridLength(50, GridUnitType.Pixel)),
+                new TextColumn<Model, string?>(
+                    null,
+                    x => x.Country,
+                    new GridLength(1, GridUnitType.Star),
+                    options),
+            };
+        }
+
         private class Model
         {
             public string? Name { get; set; }
