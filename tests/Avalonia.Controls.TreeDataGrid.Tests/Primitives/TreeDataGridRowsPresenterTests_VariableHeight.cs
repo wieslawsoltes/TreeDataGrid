@@ -89,6 +89,53 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
             Assert.Equal(items.Count - 1, lastIndex);
         }
 
+        [AvaloniaFact]
+        public void Insert_And_Remove_Preserve_Variable_Height_Row_Identity_And_Positions()
+        {
+            var (target, _, items) = CreateTarget(rootSize: new Size(100, 400));
+            var originalRows = target.RealizedElements.Cast<TreeDataGridRow>().ToList();
+            var inserted = new Model { Id = -1, Height = 73 };
+
+            items.Insert(2, inserted);
+            Layout(target);
+
+            Assert.Same(inserted, target.TryGetElement(2)!.DataContext);
+            var preservedCount = 0;
+            for (var oldIndex = 2; oldIndex < originalRows.Count - 1; ++oldIndex)
+            {
+                if (target.TryGetElement(oldIndex + 1) is not { } shiftedRow)
+                    break;
+
+                Assert.Same(originalRows[oldIndex], shiftedRow);
+                ++preservedCount;
+            }
+            Assert.True(preservedCount > 0);
+            AssertContiguousRows(target, items);
+
+            items.RemoveAt(2);
+            Layout(target);
+
+            for (var index = 0; index < 2 + preservedCount; ++index)
+                Assert.Same(originalRows[index], target.TryGetElement(index));
+            AssertContiguousRows(target, items);
+        }
+
+        private static void AssertContiguousRows(
+            TreeDataGridRowsPresenter target,
+            IReadOnlyList<Model> items)
+        {
+            var rows = target.RealizedElements.Cast<TreeDataGridRow>().ToList();
+
+            for (var i = 0; i < rows.Count; ++i)
+            {
+                Assert.Equal(i, rows[i].RowIndex);
+                Assert.Same(items[i], rows[i].DataContext);
+
+                if (i > 0)
+                    Assert.True(Math.Abs(rows[i - 1].Bounds.Bottom - rows[i].Bounds.Top) < 0.001);
+            }
+        }
+
         private static int GetFirstRowIndex(TreeDataGridRowsPresenter target)
         {
             return target!.GetVisualChildren()

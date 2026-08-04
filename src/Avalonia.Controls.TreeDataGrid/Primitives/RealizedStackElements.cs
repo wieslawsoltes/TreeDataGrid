@@ -339,29 +339,39 @@ namespace Avalonia.Controls.Primitives
                 }
                 else
                 {
-                    // The insertion point is within the realized elements.
-                    // We need to recycle all elements from the insertion point onwards because
-                    // the data at each index has changed.
-                    // Example: [A, B, C, D] -> insert X at 1 -> [A, X, B, C, D]
-                    // Elements at indices 1, 2, 3... all have different data now.
+                    var suffixCount = _elements.Count - realizedIndex;
 
-                    var start = Math.Max(realizedIndex, 0);
-
-                    // Recycle all elements from the insertion point onwards
-                    for (var i = start; i < _elements.Count; ++i)
+                    if (count < suffixCount)
                     {
-                        if (_elements[i] is Control element)
+                        // Preserve existing elements that can remain in the current realization
+                        // window. They still represent the same items, only at shifted indexes.
+                        _elements.InsertRange(realizedIndex, new Control?[count]);
+                        var insertedSizes = new double[count];
+                        Array.Fill(insertedSizes, double.NaN);
+                        _sizes!.InsertRange(realizedIndex, insertedSizes);
+
+                        for (var i = realizedIndex + count; i < _elements.Count; ++i)
                         {
-                            _elements[i] = null;
-                            recycleElement(element);
+                            if (_elements[i] is Control element)
+                            {
+                                var oldIndex = first + i - count;
+                                updateElementIndex(element, oldIndex, oldIndex + count);
+                            }
                         }
                     }
+                    else
+                    {
+                        // A large insertion moves the whole suffix outside the current window;
+                        // keeping a sparse range would cost more than realizing it on demand.
+                        for (var i = realizedIndex; i < _elements.Count; ++i)
+                        {
+                            if (_elements[i] is Control element)
+                                recycleElement(element);
+                        }
 
-                    // Remove all recycled elements and their sizes
-                    _elements.RemoveRange(start, _elements.Count - start);
-                    _sizes!.RemoveRange(start, _sizes.Count - start);
-
-                    _startUUnstable = true;
+                        _elements.RemoveRange(realizedIndex, suffixCount);
+                        _sizes!.RemoveRange(realizedIndex, suffixCount);
+                    }
                 }
             }
         }
@@ -389,7 +399,7 @@ namespace Avalonia.Controls.Primitives
             var startIndex = index - first;
             var endIndex = (index + count) - first;
 
-            if (endIndex < 0)
+            if (endIndex <= 0)
             {
                 // The removed range was before the realized elements. Update the first index.
                 // No need to recycle - the data at each index is still correct.
@@ -406,14 +416,13 @@ namespace Avalonia.Controls.Primitives
             }
             else if (startIndex < _elements.Count)
             {
-                // The removal affects realized elements. We need to recycle all elements from
-                // the removal point onwards because the data at each index has changed.
-                // For example: [A, B, C, D, E] -> remove B -> [A, C, D, E]
-                // Elements at indices 2, 3, 4... all have different data now.
-                var start = Math.Max(startIndex, 0);
+                // Recycle only controls whose items were removed. Controls after the removed
+                // range still represent the same items and can be retained at their new indexes.
+                var removeStart = Math.Max(startIndex, 0);
+                var removeEnd = Math.Min(endIndex, _elements.Count);
+                var removeCount = Math.Max(removeEnd - removeStart, 0);
 
-                // Recycle all elements from the removal point onwards
-                for (var i = start; i < _elements.Count; ++i)
+                for (var i = removeStart; i < removeEnd; ++i)
                 {
                     if (_elements[i] is Control element)
                     {
@@ -422,18 +431,27 @@ namespace Avalonia.Controls.Primitives
                     }
                 }
 
-                // Remove all recycled elements and their sizes
-                _elements.RemoveRange(start, _elements.Count - start);
-                _sizes!.RemoveRange(start, _sizes.Count - start);
-
-                // Update FirstIndex if we removed elements from the beginning
-                if (start == 0)
+                if (removeCount > 0)
                 {
-                    _firstIndex = 0;
-                    _startU = 0;
+                    _elements.RemoveRange(removeStart, removeCount);
+                    _sizes!.RemoveRange(removeStart, removeCount);
                 }
 
-                _startUUnstable = true;
+                if (startIndex < 0)
+                {
+                    _firstIndex = first + removeCount - count;
+                    _startUUnstable = true;
+                }
+
+                // Elements following the removed range keep their data and move left by count.
+                for (var i = removeStart; i < _elements.Count; ++i)
+                {
+                    if (_elements[i] is Control element)
+                    {
+                        var oldIndex = first + i + removeCount;
+                        updateElementIndex(element, oldIndex, oldIndex - count);
+                    }
+                }
             }
         }
 

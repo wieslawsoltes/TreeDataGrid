@@ -88,6 +88,35 @@ namespace Avalonia.Controls.TreeDataGridTests
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void Collection_Edit_Preserves_Selected_Row_Control_With_Its_Item()
+        {
+            var (target, items) = CreateTarget();
+            var selectedItem = items[5];
+            var selectedRow = Assert.IsType<TreeDataGridRow>(target.RowsPresenter!.TryGetElement(5));
+
+            target.RowSelection!.Select(5);
+            Assert.True(selectedRow.IsSelected);
+
+            items.Insert(2, new Model { Id = -1, Title = "Inserted" });
+            Layout(target);
+
+            Assert.Same(selectedItem, items[6]);
+            Assert.Equal(6, target.RowSelection.SelectedIndex);
+            Assert.Same(selectedRow, target.RowsPresenter.TryGetElement(6));
+            Assert.True(selectedRow.IsSelected);
+            AssertModelSubscriptions(items);
+
+            items.RemoveAt(2);
+            Layout(target);
+
+            Assert.Same(selectedItem, items[5]);
+            Assert.Equal(5, target.RowSelection.SelectedIndex);
+            Assert.Same(selectedRow, target.RowsPresenter.TryGetElement(5));
+            Assert.True(selectedRow.IsSelected);
+            AssertModelSubscriptions(items);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void Should_Subscribe_To_Models_For_Initial_Rows()
         {
             var (target, items) = CreateTarget();
@@ -962,6 +991,12 @@ namespace Avalonia.Controls.TreeDataGridTests
             {
                 Assert.Equal(selected.Contains(i), selection.IsRowSelected(i));
             }
+        }
+
+        private static void AssertModelSubscriptions(IReadOnlyList<Model> items)
+        {
+            for (var i = 0; i < items.Count; ++i)
+                Assert.Equal(i < 10 ? 2 : 0, items[i].PropertyChangedSubscriberCount());
         }
 
         private static (TreeDataGrid, AvaloniaList<Model>) CreateTarget(IEnumerable<Model>? models = null,
