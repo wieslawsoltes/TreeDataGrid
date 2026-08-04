@@ -4,6 +4,8 @@ The BenchmarkDotNet suite measures the layout and allocation costs most affected
 TreeDataGrid virtualization:
 
 - small vertical scroll updates;
+- forced stationary vertical layouts and one-row scrolls, isolating layout reuse and
+  recycling costs from scroll batching;
 - buffered small vertical scroll updates;
 - small horizontal scroll updates across many columns;
 - collection insert/remove and move bursts inside the realized range; and

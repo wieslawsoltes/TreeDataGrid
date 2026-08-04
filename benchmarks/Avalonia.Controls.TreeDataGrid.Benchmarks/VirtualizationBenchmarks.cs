@@ -21,6 +21,7 @@ namespace TreeDataGridBenchmarks;
 public class VirtualizationBenchmarks
 {
     private const int VerticalScrollOperations = 2_500;
+    private const int StationaryLayoutOperations = 25_000;
     private const int HorizontalScrollOperations = 1_000;
     private const int CollectionEditOperations = 300;
     private const int CollectionMoveOperations = 1_000;
@@ -68,6 +69,50 @@ public class VirtualizationBenchmarks
         }
 
         return _grid!.RowsPresenter!.GetRealizedElements().Count();
+    }
+
+    [IterationSetup(Target = nameof(ForcedStationaryVerticalLayouts))]
+    public void SetupForcedStationaryVerticalLayouts() => CreateGrid(rowCount: 10_000, columnCount: 12);
+
+    [IterationCleanup(Target = nameof(ForcedStationaryVerticalLayouts))]
+    public void CleanupForcedStationaryVerticalLayouts() => CleanupGrid();
+
+    [Benchmark(OperationsPerInvoke = StationaryLayoutOperations)]
+    public int ForcedStationaryVerticalLayouts()
+    {
+        var grid = _grid!;
+        var presenter = grid.RowsPresenter!;
+
+        for (var i = 0; i < StationaryLayoutOperations; ++i)
+        {
+            presenter.InvalidateMeasure();
+            grid.UpdateLayout();
+        }
+
+        return presenter.GetRealizedElements().Count();
+    }
+
+    [IterationSetup(Target = nameof(VerticalRowScrolls))]
+    public void SetupVerticalRowScrolls() => CreateGrid(rowCount: 10_000, columnCount: 12);
+
+    [IterationCleanup(Target = nameof(VerticalRowScrolls))]
+    public void CleanupVerticalRowScrolls() => CleanupGrid();
+
+    [Benchmark(OperationsPerInvoke = VerticalScrollOperations)]
+    public int VerticalRowScrolls()
+    {
+        var grid = _grid!;
+        var presenter = grid.RowsPresenter!;
+        var scroll = _scroll!;
+
+        for (var i = 1; i <= VerticalScrollOperations; ++i)
+        {
+            scroll.Offset = new Vector(0, i * 24);
+            presenter.InvalidateMeasure();
+            grid.UpdateLayout();
+        }
+
+        return presenter.GetRealizedElements().Count();
     }
 
     [IterationSetup(Target = nameof(VerticalBufferedSmallScrolls))]
