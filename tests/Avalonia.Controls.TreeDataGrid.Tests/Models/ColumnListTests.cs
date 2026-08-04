@@ -234,6 +234,32 @@ namespace Avalonia.Controls.TreeDataGridTests.Models
             Assert.Equal(80, target[1].ActualWidth);
         }
 
+        [AvaloniaFact(Timeout = 10000)]
+        public void Star_Columns_Redistribute_Around_MinWidth_On_First_Layout()
+        {
+            var target = CreateConstrainedStarColumns(
+                new TextColumnOptions<Model> { MinWidth = new GridLength(200) });
+
+            target.ViewportChanged(new Rect(0, 0, 300, 500));
+            target.CommitActualWidths();
+
+            Assert.Equal(200, target[0].ActualWidth);
+            Assert.Equal(100, target[1].ActualWidth);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Star_Columns_Redistribute_Around_MaxWidth_On_First_Layout()
+        {
+            var target = CreateConstrainedStarColumns(
+                new TextColumnOptions<Model> { MaxWidth = new GridLength(100) });
+
+            target.ViewportChanged(new Rect(0, 0, 300, 500));
+            target.CommitActualWidths();
+
+            Assert.Equal(100, target[0].ActualWidth);
+            Assert.Equal(200, target[1].ActualWidth);
+        }
+
         private static ColumnList<Model> CreateFixedAndStarColumns(TextColumnOptions<Model> options)
         {
             return new ColumnList<Model>
@@ -247,6 +273,22 @@ namespace Avalonia.Controls.TreeDataGridTests.Models
                     x => x.Country,
                     new GridLength(1, GridUnitType.Star),
                     options),
+            };
+        }
+
+        private static ColumnList<Model> CreateConstrainedStarColumns(TextColumnOptions<Model> options)
+        {
+            return new ColumnList<Model>
+            {
+                new TextColumn<Model, string?>(
+                    null,
+                    x => x.Name,
+                    new GridLength(1, GridUnitType.Star),
+                    options),
+                new TextColumn<Model, string?>(
+                    null,
+                    x => x.Country,
+                    new GridLength(1, GridUnitType.Star)),
             };
         }
 
