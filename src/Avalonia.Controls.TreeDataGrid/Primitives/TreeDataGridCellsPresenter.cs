@@ -213,10 +213,26 @@ namespace Avalonia.Controls.Primitives
                     continue;
 
                 var columnIndex = firstIndex + i;
-                UnrealizeElement(cell);
+                var oldColumnIndex = cell.ColumnIndex;
+                var oldRowIndex = cell.RowIndex;
+                var model = cell.Model!;
 
-                if ((uint)columnIndex < (uint)items.Count)
-                    RealizeElement(cell, items[columnIndex], columnIndex);
+                cell.Unrealize();
+                ChildIndexChanged?.Invoke(this, new ChildIndexChangedEventArgs(cell, cell.RowIndex));
+
+                if (_rows is IReusableCellRows reusableRows &&
+                    reusableRows.TryReuseCell(items[columnIndex], model, RowIndex))
+                {
+                    cell.Realize(ElementFactory, GetSelection(), model, columnIndex, RowIndex);
+                }
+                else
+                {
+                    _rows.UnrealizeCell(model, oldColumnIndex, oldRowIndex);
+                    model = _rows.RealizeCell(items[columnIndex], columnIndex, RowIndex);
+                    cell.Realize(ElementFactory, GetSelection(), model, columnIndex, RowIndex);
+                }
+
+                ChildIndexChanged?.Invoke(this, new ChildIndexChangedEventArgs(cell, columnIndex));
             }
         }
 

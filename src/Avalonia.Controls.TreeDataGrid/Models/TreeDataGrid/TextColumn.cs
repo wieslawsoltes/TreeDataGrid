@@ -8,7 +8,8 @@ namespace Avalonia.Controls.Models.TreeDataGrid
     /// </summary>
     /// <typeparam name="TModel">The model type.</typeparam>
     /// <typeparam name="TValue">The column data type.</typeparam>
-    public class TextColumn<TModel, TValue> : ColumnBase<TModel, TValue>, ITextSearchableColumn<TModel>
+    public class TextColumn<TModel, TValue> : ColumnBase<TModel, TValue>,
+        ITextSearchableColumn<TModel>, IReusableCellColumn<TModel>
         where TModel : class
     {
         /// <summary>
@@ -68,6 +69,11 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         string? ITextSearchableColumn<TModel>.SelectValue(TModel model)
         {
             return ValueSelector(model)?.ToString();
+        }
+
+        bool IReusableCellColumn<TModel>.TryReuseCell(ICell cell, IRow<TModel> row)
+        {
+            return cell is TextCell<TValue?> textCell && textCell.TrySetSource(row.Model);
         }
     }
 }

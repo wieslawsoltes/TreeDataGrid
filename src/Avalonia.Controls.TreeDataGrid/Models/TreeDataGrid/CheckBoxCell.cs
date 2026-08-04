@@ -2,6 +2,7 @@
 using System.Reactive.Subjects;
 using System.Reflection;
 using Avalonia.Data;
+using Avalonia.Experimental.Data.Core;
 
 namespace Avalonia.Controls.Models.TreeDataGrid
 {
@@ -50,6 +51,12 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         }
 
         object? ICell.Value => Value;
+
+        internal bool TrySetSource(object? source)
+        {
+            return _binding is IRetargetableTypedBindingExpression retargetable &&
+                retargetable.TrySetRoot(source);
+        }
 
         public void Dispose()
         {

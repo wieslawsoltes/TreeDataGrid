@@ -4,7 +4,8 @@ using Avalonia.Experimental.Data;
 
 namespace Avalonia.Controls.Models.TreeDataGrid
 {
-    internal class ReflectionTextColumn : ColumnBase<object, object?>, ITextSearchableColumn<object>
+    internal class ReflectionTextColumn : ColumnBase<object, object?>,
+        ITextSearchableColumn<object>, IReusableCellColumn<object>
     {
         private readonly Func<object, object?> _getter;
         private readonly bool _isTextSearchEnabled;
@@ -34,6 +35,11 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         string? ITextSearchableColumn<object>.SelectValue(object model)
         {
             return _getter(model)?.ToString();
+        }
+
+        bool IReusableCellColumn<object>.TryReuseCell(ICell cell, IRow<object> row)
+        {
+            return cell is TextCell<object?> textCell && textCell.TrySetSource(row.Model);
         }
 
         private static TypedBinding<object, object?> CreateBinding(

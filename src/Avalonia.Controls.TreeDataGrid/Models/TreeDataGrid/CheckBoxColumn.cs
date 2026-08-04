@@ -8,7 +8,7 @@ namespace Avalonia.Controls.Models.TreeDataGrid
     /// A column in an <see cref="ITreeDataGridSource"/> which displays a check box.
     /// </summary>
     /// <typeparam name="TModel">The model type.</typeparam>
-    public class CheckBoxColumn<TModel> : ColumnBase<TModel, bool?>
+    public class CheckBoxColumn<TModel> : ColumnBase<TModel, bool?>, IReusableCellColumn<TModel>
         where TModel : class
     {
         /// <summary>
@@ -69,6 +69,11 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         public override ICell CreateCell(IRow<TModel> row)
         {
             return new CheckBoxCell(CreateBindingExpression(row.Model), Binding.Write is null, IsThreeState);
+        }
+
+        bool IReusableCellColumn<TModel>.TryReuseCell(ICell cell, IRow<TModel> row)
+        {
+            return cell is CheckBoxCell checkBoxCell && checkBoxCell.TrySetSource(row.Model);
         }
 
         private static Func<TModel, bool?> ToNullable(Expression<Func<TModel, bool>> getter)

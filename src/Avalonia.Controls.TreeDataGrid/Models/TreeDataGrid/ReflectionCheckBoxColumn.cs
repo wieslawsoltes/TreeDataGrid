@@ -3,7 +3,7 @@ using Avalonia.Experimental.Data;
 
 namespace Avalonia.Controls.Models.TreeDataGrid
 {
-    internal class ReflectionCheckBoxColumn : ColumnBase<object, bool?>
+    internal class ReflectionCheckBoxColumn : ColumnBase<object, bool?>, IReusableCellColumn<object>
     {
         private readonly bool _isThreeState;
 
@@ -23,6 +23,11 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         public override ICell CreateCell(IRow<object> row)
         {
             return new CheckBoxCell(CreateBindingExpression(row.Model), Binding.Write is null, _isThreeState);
+        }
+
+        bool IReusableCellColumn<object>.TryReuseCell(ICell cell, IRow<object> row)
+        {
+            return cell is CheckBoxCell checkBoxCell && checkBoxCell.TrySetSource(row.Model);
         }
 
         private static TypedBinding<object, bool?> CreateBinding(
