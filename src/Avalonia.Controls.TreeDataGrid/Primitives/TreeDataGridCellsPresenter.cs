@@ -45,7 +45,12 @@ namespace Avalonia.Controls.Primitives
             if (RowIndex == -1)
                 throw new InvalidOperationException("Row is not realized.");
             RowIndex = -1;
-            RecycleAllElements();
+            // The row itself is about to leave the TreeDataGrid's visual and logical trees.
+            // Keep its cell subtree intact so content-template visuals can be reused when the
+            // pooled row is realized again.
+            RecycleAllElements(
+                preserveVisualTreeMembership: true,
+                preserveLogicalTreeMembership: true);
         }
 
         public void UpdateRowIndex(int index)
@@ -157,7 +162,9 @@ namespace Avalonia.Controls.Primitives
             if (RowIndex == -1)
                 throw new InvalidOperationException("Row is not realized.");
             RowIndex = -1;
-            RecycleAllElementsOnItemRemoved();
+            RecycleAllElementsOnItemRemoved(
+                preserveVisualTreeMembership: true,
+                preserveLogicalTreeMembership: true);
         }
 
         private ITreeDataGridSelectionInteraction? GetSelection()
