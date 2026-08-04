@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Avalonia.Collections;
@@ -120,27 +120,20 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
 
             Assert.Equal(10, target.RealizedElements.Count);
 
-            items.Insert(2, new Model { Id = 100, Title = "New" });
+            var preservedPrefix = target.RealizedElements.Take(2).ToList();
 
-            Assert.Equal(11, target.RealizedElements.Count);
+            items.Insert(2, new Model { Id = 100, Title = "New" });
 
             var indexes = GetRealizedRowIndexes(target);
 
-            // Blank space inserted in realized elements and subsequent row indexes updated.
-            Assert.Equal(new[] { 0, 1, -1, 3, 4, 5, 6, 7, 8, 9, 10 }, indexes);
-
-            var elements = target.RealizedElements.ToList();
+            // The affected suffix is recycled so it cannot retain stale data.
+            Assert.Equal(new[] { 0, 1 }, indexes);
             Layout(target);
 
             indexes = GetRealizedRowIndexes(target);
 
-            // After layout an element for the new row is created.
             Assert.Equal(Enumerable.Range(0, 10), indexes);
-
-            // But apart from the new row and the removed last row, all existing elements should be the same.
-            elements[2] = target.RealizedElements.ElementAt(2);
-            elements.RemoveAt(elements.Count - 1);
-            Assert.Equal(elements, target.RealizedElements);
+            Assert.Equal(preservedPrefix, target.RealizedElements.Take(2));
         }
 
         [AvaloniaFact(Timeout = 10000)]
@@ -150,25 +143,19 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
 
             Assert.Equal(10, target.RealizedElements.Count);
 
-            var toRecycle = target.RealizedElements.ElementAt(2);
             items.RemoveAt(2);
 
             var indexes = GetRealizedRowIndexes(target);
 
-            // Item removed from realized elements and subsequent row indexes updated.
-            Assert.Equal(Enumerable.Range(0, 9), indexes);
-
-            var elements = target.RealizedElements.ToList();
+            Assert.Equal(new[] { 0, 1 }, indexes);
             Layout(target);
 
             indexes = GetRealizedRowIndexes(target);
 
-            // After layout an element for the newly visible last row is created and indexes updated.
             Assert.Equal(Enumerable.Range(0, 10), indexes);
-
-            // And the removed row should now have been recycled as the last row.
-            elements.Add(toRecycle);
-            Assert.Equal(elements, target.RealizedElements);
+            Assert.Equal(
+                items.Take(10),
+                target.RealizedElements.Cast<TreeDataGridRow>().Select(x => x.DataContext));
         }
 
         [AvaloniaFact(Timeout = 10000)]
@@ -266,34 +253,23 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
 
             Assert.Equal(10, target.RealizedElements.Count);
 
-            var toRecycle = target.RealizedElements.ElementAt(0);
             var item = items[0];
             items.RemoveAt(0);
 
             var indexes = GetRealizedRowIndexes(target);
 
-            // Item removed from realized elements and subsequent row indexes updated.
-            Assert.DoesNotContain(toRecycle, target.RealizedElements);
-            Assert.Equal(Enumerable.Range(0, 9), indexes);
+            Assert.Empty(indexes);
 
             items.Insert(0, item);
 
-            // Row indexes updated.
             indexes = GetRealizedRowIndexes(target);
-
-            Assert.Equal(new[] { -1, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, indexes);
-
-            var elements = target.RealizedElements.ToList();
+            Assert.Empty(indexes);
             Layout(target);
 
             indexes = GetRealizedRowIndexes(target);
 
-            // After layout an element for the newly visible last row is created and indexes updated.
             Assert.Equal(Enumerable.Range(0, 10), indexes);
-
-            // And the removed row should now have been recycled as the first row.
-            elements[0] = toRecycle;
-            Assert.Equal(elements, target.RealizedElements);
+            Assert.Same(item, target.RealizedElements[0]!.DataContext);
         }
 
         [AvaloniaFact(Timeout = 10000)]
@@ -436,6 +412,143 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
 
             // The correct element should be shown.
             Assert.Same(items[0], target.RealizedElements.ElementAt(0)!.DataContext);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Handles_Move_After_Insert_Without_Duplicates()
+        {
+            // This tests the specific scenario: Add item at index 0, then move item from index 2 to position 1
+            // The bug was that after this sequence, indices 2 and 3 would become duplicates of indices 0 and 1
+            var (target, scroll, items) = CreateTarget(itemCount: 4);
+
+            Layout(target);
+
+            // Initial state: [Item0, Item1, Item2, Item3] at indices 0-3
+            Assert.Equal(4, items.Count);
+            Assert.Equal("Item 0", ((Model)target.RealizedElements.ElementAt(0)!.DataContext!).Title);
+            Assert.Equal("Item 1", ((Model)target.RealizedElements.ElementAt(1)!.DataContext!).Title);
+            Assert.Equal("Item 2", ((Model)target.RealizedElements.ElementAt(2)!.DataContext!).Title);
+            Assert.Equal("Item 3", ((Model)target.RealizedElements.ElementAt(3)!.DataContext!).Title);
+
+            // Step 1: Add new item at index 0
+            items.Insert(0, new Model { Id = 100, Title = "Item 100" });
+            Layout(target);
+
+            // After insert: [Item100, Item0, Item1, Item2, Item3] at indices 0-4
+            Assert.Equal(5, items.Count);
+            Assert.Equal("Item 100", ((Model)target.RealizedElements.ElementAt(0)!.DataContext!).Title);
+            Assert.Equal("Item 0", ((Model)target.RealizedElements.ElementAt(1)!.DataContext!).Title);
+            Assert.Equal("Item 1", ((Model)target.RealizedElements.ElementAt(2)!.DataContext!).Title);
+            Assert.Equal("Item 2", ((Model)target.RealizedElements.ElementAt(3)!.DataContext!).Title);
+            Assert.Equal("Item 3", ((Model)target.RealizedElements.ElementAt(4)!.DataContext!).Title);
+
+            // Step 2: Move item at index 2 (Item1) to position 1
+            items.Move(2, 1);
+            Layout(target);
+
+            // After move: [Item100, Item1, Item0, Item2, Item3] at indices 0-4
+            Assert.Equal(5, items.Count);
+
+            // Verify no duplicates - each element should have the correct DataContext
+            var realizedModels = target.RealizedElements
+                .Cast<TreeDataGridRow>()
+                .Select(x => (Model)x.DataContext!)
+                .ToList();
+
+            Assert.Equal("Item 100", realizedModels[0].Title);
+            Assert.Equal("Item 1", realizedModels[1].Title);
+            Assert.Equal("Item 0", realizedModels[2].Title);
+            Assert.Equal("Item 2", realizedModels[3].Title);
+            Assert.Equal("Item 3", realizedModels[4].Title);
+
+            // Verify all IDs are unique (no duplicates)
+            var uniqueIds = realizedModels.Select(m => m.Id).Distinct().ToList();
+            Assert.Equal(5, uniqueIds.Count);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Handles_Remove_Updates_Subsequent_Element_Data()
+        {
+            // Test that when items are removed, elements after the removal get their data updated
+            var (target, scroll, items) = CreateTarget(itemCount: 5);
+
+            Layout(target);
+
+            // Initial state: [Item0, Item1, Item2, Item3, Item4] at indices 0-4
+            Assert.Equal(5, items.Count);
+            Assert.Equal("Item 0", ((Model)target.RealizedElements.ElementAt(0)!.DataContext!).Title);
+            Assert.Equal("Item 1", ((Model)target.RealizedElements.ElementAt(1)!.DataContext!).Title);
+            Assert.Equal("Item 2", ((Model)target.RealizedElements.ElementAt(2)!.DataContext!).Title);
+            Assert.Equal("Item 3", ((Model)target.RealizedElements.ElementAt(3)!.DataContext!).Title);
+            Assert.Equal("Item 4", ((Model)target.RealizedElements.ElementAt(4)!.DataContext!).Title);
+
+            // Remove Item1 at index 1
+            items.RemoveAt(1);
+            Layout(target);
+
+            // After remove: [Item0, Item2, Item3, Item4] at indices 0-3
+            Assert.Equal(4, items.Count);
+
+            // Verify all elements have correct DataContext (not stale data)
+            var realizedModels = target.RealizedElements
+                .Cast<TreeDataGridRow>()
+                .Select(x => (Model)x.DataContext!)
+                .ToList();
+
+            Assert.Equal(4, realizedModels.Count);
+            Assert.Equal("Item 0", realizedModels[0].Title);
+            Assert.Equal("Item 2", realizedModels[1].Title); // Not "Item 1"!
+            Assert.Equal("Item 3", realizedModels[2].Title); // Not "Item 2"!
+            Assert.Equal("Item 4", realizedModels[3].Title); // Not "Item 3"!
+
+            // Verify IDs match the titles (no stale data)
+            Assert.Equal(0, realizedModels[0].Id);
+            Assert.Equal(2, realizedModels[1].Id);
+            Assert.Equal(3, realizedModels[2].Id);
+            Assert.Equal(4, realizedModels[3].Id);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Handles_Insert_Updates_Subsequent_Element_Data()
+        {
+            // Test that when items are inserted, elements after the insertion get their data updated
+            var (target, scroll, items) = CreateTarget(itemCount: 4);
+
+            Layout(target);
+
+            // Initial state: [Item0, Item1, Item2, Item3] at indices 0-3
+            Assert.Equal(4, items.Count);
+            Assert.Equal("Item 0", ((Model)target.RealizedElements.ElementAt(0)!.DataContext!).Title);
+            Assert.Equal("Item 1", ((Model)target.RealizedElements.ElementAt(1)!.DataContext!).Title);
+            Assert.Equal("Item 2", ((Model)target.RealizedElements.ElementAt(2)!.DataContext!).Title);
+            Assert.Equal("Item 3", ((Model)target.RealizedElements.ElementAt(3)!.DataContext!).Title);
+
+            // Insert new item at index 1
+            items.Insert(1, new Model { Id = 100, Title = "Item 100" });
+            Layout(target);
+
+            // After insert: [Item0, Item100, Item1, Item2, Item3] at indices 0-4
+            Assert.Equal(5, items.Count);
+
+            // Verify all elements have correct DataContext (not stale data)
+            var realizedModels = target.RealizedElements
+                .Cast<TreeDataGridRow>()
+                .Select(x => (Model)x.DataContext!)
+                .ToList();
+
+            Assert.Equal(5, realizedModels.Count);
+            Assert.Equal("Item 0", realizedModels[0].Title);
+            Assert.Equal("Item 100", realizedModels[1].Title); // The inserted item
+            Assert.Equal("Item 1", realizedModels[2].Title);   // Not "Item 2"!
+            Assert.Equal("Item 2", realizedModels[3].Title);   // Not "Item 3"!
+            Assert.Equal("Item 3", realizedModels[4].Title);   // Not stale!
+
+            // Verify IDs match the titles (no stale data)
+            Assert.Equal(0, realizedModels[0].Id);
+            Assert.Equal(100, realizedModels[1].Id);
+            Assert.Equal(1, realizedModels[2].Id);
+            Assert.Equal(2, realizedModels[3].Id);
+            Assert.Equal(3, realizedModels[4].Id);
         }
 
         [AvaloniaFact(Timeout = 10000)]
