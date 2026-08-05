@@ -23,4 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Avalonia.Controls.TreeDataGrid\Avalonia.Controls.TreeDataGrid.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="TreeDataGridDemo.Tests" />
+  </ItemGroup>
 </Project>

@@ -11,6 +11,7 @@
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks.csproj" />
+    <Project Path="samples/TreeDataGridDemo.Tests/TreeDataGridDemo.Tests.csproj" />
     <Project Path="tests/Avalonia.Controls.TreeDataGrid.Tests/Avalonia.Controls.TreeDataGrid.Tests.csproj" />
   </Folder>
   <Project Path="src/Avalonia.Controls.TreeDataGrid/Avalonia.Controls.TreeDataGrid.csproj" />
