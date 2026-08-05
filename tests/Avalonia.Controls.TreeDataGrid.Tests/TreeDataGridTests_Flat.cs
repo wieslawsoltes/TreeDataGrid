@@ -96,6 +96,53 @@ namespace Avalonia.Controls.TreeDataGridTests
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void AutoDragDropRows_Should_Raise_RowDragStarted_From_Recycled_Row()
+        {
+            var (target, _) = CreateTarget();
+            var row = Assert.IsType<TreeDataGridRow>(target.RowsPresenter!.TryGetElement(0));
+            var pointer = new Pointer(0, PointerType.Mouse, true);
+            DragDropEffects? initialEffects = null;
+
+            target.Scroll!.Offset = new Vector(0, 10);
+            Layout(target);
+
+            Assert.Same(row, target.RowsPresenter.TryGetElement(10));
+
+            target.AutoDragDropRows = true;
+            target.RowSelection!.Select(10);
+            target.RowDragStarted += (_, e) =>
+            {
+                initialEffects = e.AllowedEffects;
+                e.AllowedEffects = DragDropEffects.None;
+            };
+
+            row.RaiseEvent(new PointerPressedEventArgs(
+                row,
+                pointer,
+                row,
+                new Point(1, 1),
+                0,
+                new PointerPointProperties(
+                    RawInputModifiers.LeftMouseButton,
+                    PointerUpdateKind.LeftButtonPressed),
+                KeyModifiers.None));
+
+            row.RaiseEvent(new PointerEventArgs(
+                InputElement.PointerMovedEvent,
+                row,
+                pointer,
+                row,
+                new Point(10, 10),
+                1,
+                new PointerPointProperties(
+                    RawInputModifiers.LeftMouseButton,
+                    PointerUpdateKind.Other),
+                KeyModifiers.None));
+
+            Assert.Equal(DragDropEffects.Move, initialEffects);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void MultiSelection_Should_Work_Correctly_With_Duplicates()
         {
             var items = new List<Model>
