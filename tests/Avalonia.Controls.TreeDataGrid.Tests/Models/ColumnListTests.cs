@@ -125,6 +125,76 @@ namespace Avalonia.Controls.TreeDataGridTests.Models
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void Actual_Width_Batch_Commits_All_Auto_Measurements_Once()
+        {
+            var target = new ColumnList<Model>
+            {
+                new TextColumn<Model, string?>(null, x => x.Name, GridLength.Auto),
+            };
+            var batch = (IColumnLayoutBatch)target;
+            var raised = 0;
+            target.LayoutInvalidated += (_, _) => ++raised;
+
+            batch.BeginActualWidthBatch();
+
+            for (var row = 0; row < 100; ++row)
+            {
+                target.CellMeasured(0, row, new Size(20 + row, 10));
+                target.CommitActualWidths();
+            }
+
+            Assert.True(double.IsNaN(target[0].ActualWidth));
+            Assert.Equal(0, raised);
+
+            var needsFinalMeasure = batch.EndActualWidthBatch();
+
+            Assert.False(needsFinalMeasure);
+            Assert.Equal(119, target[0].ActualWidth);
+            Assert.Equal(1, raised);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Actual_Width_Batch_Propagates_Deferred_Final_Measure_Request()
+        {
+            var target = new ColumnList<Model>();
+            var batch = (IColumnLayoutBatch)target;
+
+            batch.BeginActualWidthBatch();
+            batch.RequestFinalMeasure();
+
+            Assert.True(batch.EndActualWidthBatch());
+
+            batch.BeginActualWidthBatch();
+
+            Assert.False(batch.EndActualWidthBatch());
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Nested_Actual_Width_Batch_Commits_Only_At_Outer_Scope()
+        {
+            var target = new ColumnList<Model>
+            {
+                new TextColumn<Model, string?>(null, x => x.Name, GridLength.Auto),
+            };
+            var batch = (IColumnLayoutBatch)target;
+            var raised = 0;
+            target.LayoutInvalidated += (_, _) => ++raised;
+
+            batch.BeginActualWidthBatch();
+            target.CellMeasured(0, 0, new Size(42, 10));
+            batch.BeginActualWidthBatch();
+            batch.RequestFinalMeasure();
+
+            Assert.False(batch.EndActualWidthBatch());
+            Assert.True(double.IsNaN(target[0].ActualWidth));
+            Assert.Equal(0, raised);
+
+            Assert.True(batch.EndActualWidthBatch());
+            Assert.Equal(42, target[0].ActualWidth);
+            Assert.Equal(1, raised);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void Clean_Commit_Does_Not_Suppress_Later_Measurement_And_Viewport_Changes()
         {
             var starColumn = new TextColumn<Model, string?>(

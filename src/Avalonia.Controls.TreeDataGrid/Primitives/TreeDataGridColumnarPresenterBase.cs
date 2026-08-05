@@ -77,6 +77,24 @@ namespace Avalonia.Controls.Primitives
 
             columns.CommitActualWidths();
 
+            // A rows presenter can defer the shared column-width commit until all realized rows
+            // have contributed their natural sizes. Measuring against an earlier row's width here
+            // would only make the row invalid again when the batch commits its final maximum.
+            if (columns is IColumnLayoutBatch { IsActualWidthCommitDeferred: true } batch)
+            {
+                for (var i = 0; i < elements.Count; ++i)
+                {
+                    if (elements[i] is { } element &&
+                        ((IFinalMeasureSelector)this).NeedsFinalMeasure(element, i + firstIndex))
+                    {
+                        batch.RequestFinalMeasure();
+                        break;
+                    }
+                }
+
+                return false;
+            }
+
             // We need to do a second measure pass if any of the controls were measured with a width
             // that is greater than the final column width.
             for (var i = 0; i < elements.Count; i++)

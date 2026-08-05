@@ -20,8 +20,11 @@ namespace Avalonia.Controls.Models.TreeDataGrid
     /// <summary>
     /// An implementation of <see cref="IColumns"/> that stores its columns in a list.
     /// </summary>
-    public class ColumnList<TModel> : NotifyingListBase<IColumn<TModel>>, IColumns, IColumnViewportEstimator
+    public class ColumnList<TModel> : NotifyingListBase<IColumn<TModel>>, IColumns,
+        IColumnLayoutBatch, IColumnViewportEstimator
     {
+        private int _actualWidthBatchDepth;
+        private bool _actualWidthBatchNeedsFinalMeasure;
         private bool _initialized;
         private bool _columnWidthsDirty = true;
         private readonly List<(double min, double max)> _committedConstraints = new();
@@ -187,7 +190,11 @@ namespace Avalonia.Controls.Models.TreeDataGrid
             return totalMeasured;
         }
 
-        public void CommitActualWidths() => UpdateColumnSizes();
+        public void CommitActualWidths()
+        {
+            if (_actualWidthBatchDepth == 0)
+                UpdateColumnSizes();
+        }
 
         public void SetColumnWidth(int columnIndex, GridLength width)
         {
@@ -215,6 +222,36 @@ namespace Avalonia.Controls.Models.TreeDataGrid
 
         IColumn IReadOnlyList<IColumn>.this[int index] => this[index];
         IEnumerator<IColumn> IEnumerable<IColumn>.GetEnumerator() => GetEnumerator();
+
+        bool IColumnLayoutBatch.IsActualWidthCommitDeferred => _actualWidthBatchDepth > 0;
+
+        void IColumnLayoutBatch.BeginActualWidthBatch()
+        {
+            if (_actualWidthBatchDepth++ == 0)
+                _actualWidthBatchNeedsFinalMeasure = false;
+        }
+
+        bool IColumnLayoutBatch.EndActualWidthBatch()
+        {
+            if (_actualWidthBatchDepth <= 0)
+                throw new InvalidOperationException("No column width batch is active.");
+
+            if (--_actualWidthBatchDepth > 0)
+                return false;
+
+            try
+            {
+                UpdateColumnSizes();
+                return _actualWidthBatchNeedsFinalMeasure;
+            }
+            finally
+            {
+                _actualWidthBatchNeedsFinalMeasure = false;
+            }
+        }
+
+        void IColumnLayoutBatch.RequestFinalMeasure() =>
+            _actualWidthBatchNeedsFinalMeasure = true;
 
         protected override void ClearItems()
         {
