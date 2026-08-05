@@ -25,8 +25,8 @@ namespace Avalonia.Controls.Primitives
         private IColumns? _columns;
         private bool _isAttachedToVisualTree;
         private IColumns? _layoutInvalidatedColumns;
+        private bool _isMeasuringColumnLayoutBatch;
         private bool _pendingColumnLayoutInvalidation;
-        private double _lastEstimatedColumnsWidth = double.NaN;
 
         public event EventHandler<ChildIndexChangedEventArgs>? ChildIndexChanged;
 
@@ -111,42 +111,63 @@ namespace Avalonia.Controls.Primitives
 
         protected override Size MeasureOverride(Size availableSize)
         {
-            var result = base.MeasureOverride(availableSize);
+            var batch = Columns as IColumnLayoutBatch;
+            var needsFinalMeasure = false;
+            Size result;
+
+            _isMeasuringColumnLayoutBatch = true;
+            batch?.BeginActualWidthBatch();
+
+            try
+            {
+                result = base.MeasureOverride(availableSize);
+            }
+            finally
+            {
+                try
+                {
+                    needsFinalMeasure = batch?.EndActualWidthBatch() ?? false;
+                }
+                finally
+                {
+                    _isMeasuringColumnLayoutBatch = false;
+                }
+            }
 
             // If we have no rows, then get the width from the columns.
             if (Columns is not null && (Items is null || Items.Count == 0))
                 result = result.WithWidth(Columns.GetEstimatedWidth(availableSize.Width));
 
-            if (_pendingColumnLayoutInvalidation)
+            if (needsFinalMeasure || _pendingColumnLayoutInvalidation)
             {
                 _pendingColumnLayoutInvalidation = false;
-                if (Columns is not null)
+
+                foreach (var element in RealizedElements)
                 {
-                    var widthConstraint = double.IsFinite(availableSize.Width) ? availableSize.Width : Viewport.Width;
-                    var estimatedWidth = Columns.GetEstimatedWidth(widthConstraint);
+                    if (element is TreeDataGridRow row)
+                        row.CellsPresenter?.InvalidateMeasure();
+                }
 
-                    if (double.IsNaN(_lastEstimatedColumnsWidth) ||
-                        Math.Abs(_lastEstimatedColumnsWidth - estimatedWidth) > 0.5)
+                // Apply the widths gathered from all realized rows immediately. This avoids
+                // scheduling a complete parent layout pass just to give the same rows their final
+                // column constraints. Do not defer commits during this pass: a newly realized wider
+                // cell must still request the normal fallback below.
+                result = base.MeasureOverride(availableSize);
+
+                if (Columns is not null && (Items is null || Items.Count == 0))
+                    result = result.WithWidth(Columns.GetEstimatedWidth(availableSize.Width));
+
+                if (_pendingColumnLayoutInvalidation)
+                {
+                    _pendingColumnLayoutInvalidation = false;
+                    InvalidateMeasure();
+
+                    foreach (var element in RealizedElements)
                     {
-                        InvalidateMeasure();
-
-                        foreach (var element in RealizedElements)
-                        {
-                            if (element is TreeDataGridRow row)
-                                row.CellsPresenter?.InvalidateMeasure();
-                        }
+                        if (element is TreeDataGridRow row)
+                            row.CellsPresenter?.InvalidateMeasure();
                     }
                 }
-            }
-
-            if (Columns is not null)
-            {
-                var widthConstraint = double.IsFinite(availableSize.Width) ? availableSize.Width : Viewport.Width;
-                _lastEstimatedColumnsWidth = Columns.GetEstimatedWidth(widthConstraint);
-            }
-            else
-            {
-                _lastEstimatedColumnsWidth = double.NaN;
             }
 
             return result;
@@ -241,7 +262,7 @@ namespace Avalonia.Controls.Primitives
 
         private void OnColumnLayoutInvalidated(object? sender, EventArgs e)
         {
-            if (IsInLayout)
+            if (IsInLayout || _isMeasuringColumnLayoutBatch)
             {
                 _pendingColumnLayoutInvalidation = true;
                 return;

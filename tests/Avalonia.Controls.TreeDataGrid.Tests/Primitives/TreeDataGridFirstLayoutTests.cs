@@ -91,16 +91,128 @@ public class TreeDataGridFirstLayoutTests
         {
             (ColumnLayout.Fixed, 0) => 126,
             (ColumnLayout.Fixed, _) => 252,
-            (ColumnLayout.Auto, 0) => 366,
-            (ColumnLayout.Auto, _) => 618,
+            (ColumnLayout.Auto, 0) => 252,
+            (ColumnLayout.Auto, _) => 504,
             (ColumnLayout.Star, 0) => 246,
             (ColumnLayout.Star, _) => 492,
-            (ColumnLayout.Mixed, 0) => 246,
-            (ColumnLayout.Mixed, _) => 454,
+            (ColumnLayout.Mixed, 0) => 208,
+            (ColumnLayout.Mixed, _) => 416,
+            _ => throw new ArgumentOutOfRangeException(nameof(layout)),
+        };
+        var expectedRowsPresenterMeasures = layout switch
+        {
+            ColumnLayout.Fixed => 2,
+            ColumnLayout.Auto => 3,
+            ColumnLayout.Star => 3,
+            ColumnLayout.Mixed => 4,
+            _ => throw new ArgumentOutOfRangeException(nameof(layout)),
+        };
+        var expectedColumnInvalidations = layout switch
+        {
+            ColumnLayout.Fixed => 0,
+            ColumnLayout.Auto => 2,
+            ColumnLayout.Star => 2,
+            ColumnLayout.Mixed => 3,
             _ => throw new ArgumentOutOfRangeException(nameof(layout)),
         };
 
         Assert.Equal(expectedCellMeasures, counters.CellMeasures);
+        Assert.Equal(expectedRowsPresenterMeasures, counters.RowsPresenterMeasures);
+        Assert.Equal(expectedColumnInvalidations, counters.ColumnLayoutInvalidations);
+
+        for (var i = 0; i < source.Columns.Count; ++i)
+        {
+            var expectedWidth = layout switch
+            {
+                ColumnLayout.Fixed => 124,
+                ColumnLayout.Auto => 120,
+                ColumnLayout.Star => 800d / 6,
+                ColumnLayout.Mixed => (i % 3) switch
+                {
+                    0 => 120,
+                    1 => 156,
+                    _ => 124,
+                },
+                _ => throw new ArgumentOutOfRangeException(nameof(layout)),
+            };
+
+            Assert.Equal(expectedWidth, source.Columns[i].ActualWidth, 6);
+        }
+    }
+
+    [AvaloniaTheory(Timeout = 10000)]
+    [InlineData(0.0)]
+    [InlineData(0.5)]
+    public void Constrained_auto_cells_keep_final_measure_after_vertical_recycling(double cacheLength)
+    {
+        var counters = new LayoutCounters();
+        var items = new AvaloniaList<RowModel>(Enumerable.Range(0, 1_000)
+            .Select(x => new RowModel(x, $"Item {x} {new string('x', 60)}")));
+        var source = new FlatTreeDataGridSource<RowModel>(items);
+        source.Columns.Add(new TextColumn<RowModel, string>(
+            "Auto",
+            x => x.Title,
+            GridLength.Auto,
+            new TextColumnOptions<RowModel>
+            {
+                MinWidth = new GridLength(0),
+                MaxWidth = new GridLength(80),
+            }));
+        var target = new CountingTreeDataGrid(counters)
+        {
+            ElementFactory = new CountingElementFactory(counters),
+            Source = source,
+            Template = TreeDataGridTemplate(counters, cacheLength),
+        };
+        var root = new TestWindow(target, new Size(240, 160))
+        {
+            Styles =
+            {
+                new Style(x => x.Is<TreeDataGridRow>())
+                {
+                    Setters =
+                    {
+                        new Setter(TreeDataGridRow.TemplateProperty, RowTemplate(counters)),
+                    }
+                }
+            }
+        };
+
+        root.UpdateLayout();
+        Dispatcher.UIThread.RunJobs();
+        root.UpdateLayout();
+        AssertConstrainedRows(target, source.Columns[0]);
+
+        var initialRows = target.RowsPresenter!.GetRealizedElements().Cast<TreeDataGridRow>().ToHashSet();
+        var scroll = Assert.IsType<ScrollViewer>(target.Scroll);
+        scroll.Offset = new Vector(0, Math.Min(1_000, scroll.Extent.Height - scroll.Viewport.Height));
+        root.UpdateLayout();
+        Dispatcher.UIThread.RunJobs();
+        root.UpdateLayout();
+
+        AssertConstrainedRows(target, source.Columns[0]);
+        Assert.Contains(
+            target.RowsPresenter.GetRealizedElements().Cast<TreeDataGridRow>(),
+            initialRows.Contains);
+    }
+
+    private static void AssertConstrainedRows(TreeDataGrid target, IColumn column)
+    {
+        Assert.Equal(80, column.ActualWidth);
+
+        var rows = target.RowsPresenter!.GetRealizedElements().Cast<TreeDataGridRow>().ToList();
+        Assert.NotEmpty(rows);
+        Assert.Equal(rows.Count, rows.Distinct().Count());
+
+        foreach (var row in rows)
+        {
+            var cell = Assert.IsType<CountingTextCell>(row.TryGetCell(0));
+            var constraint = LayoutInformation.GetPreviousMeasureConstraint(cell);
+            Assert.True(constraint.HasValue);
+            Assert.Equal(80, constraint.GetValueOrDefault().Width);
+            Assert.True(cell.DesiredSize.Height > 24);
+            Assert.Equal(cell.DesiredSize.Height, row.DesiredSize.Height);
+        }
     }
 
     private static GridLength GetWidth(ColumnLayout layout, int index)
@@ -403,7 +515,9 @@ public class TreeDataGridFirstLayoutTests
             if (double.IsPositiveInfinity(availableSize.Height))
                 ++_counters.CellMeasuresWithInfiniteHeight;
             var width = ((Value?.Length ?? 0) * 4) + 8;
-            return new Size(Math.Min(width, availableSize.Width), 24);
+            var lines = double.IsFinite(availableSize.Width) && availableSize.Width > 0 ?
+                Math.Ceiling(width / availableSize.Width) : 1;
+            return new Size(Math.Min(width, availableSize.Width), lines * 24);
         }
 
         protected override Size ArrangeOverride(Size finalSize)
