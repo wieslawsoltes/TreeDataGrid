@@ -5,18 +5,28 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Avalonia.Collections;
 using Avalonia.Controls;
+using Avalonia.Controls.Models;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Media;
 using TreeDataGridDemo.Models;
 
 namespace TreeDataGridDemo.ViewModels
 {
-    internal class WikipediaPageViewModel
+    internal class WikipediaPageViewModel : NotifyingBase
     {
         private readonly AvaloniaList<OnThisDayArticle> _data = new();
+        private readonly HttpClient _httpClient;
+        private string? _loadError;
 
         public WikipediaPageViewModel()
+            : this(WikipediaHttpClient.Shared)
         {
+        }
+
+        internal WikipediaPageViewModel(HttpClient httpClient)
+        {
+            _httpClient = httpClient;
+
             var wrap = new TextColumnOptions<OnThisDayArticle>
             {
                 TextTrimming = TextTrimming.None,
@@ -33,26 +43,36 @@ namespace TreeDataGridDemo.ViewModels
                 }
             };
 
-            _ = LoadContent();
+            LoadingTask = LoadContent();
+        }
+
+        public string? LoadError
+        {
+            get => _loadError;
+            private set => RaiseAndSetIfChanged(ref _loadError, value);
         }
 
         public FlatTreeDataGridSource<OnThisDayArticle> Source { get; }
+
+        internal Task LoadingTask { get; }
 
         private async Task LoadContent()
         {
             try
             {
-                var client = new HttpClient();
                 var d = DateTimeOffset.Now.Day;
                 var m = DateTimeOffset.Now.Month;
                 var uri = $"https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/all/{m:00}/{d:00}";
-                var s = await client.GetStringAsync(uri);
+                var s = await _httpClient.GetStringAsync(uri);
                 var data = JsonSerializer.Deserialize(s, OnThisDayJsonSerializerContext.Default.OnThisDay);
 
                 if (data?.Selected is not null)
-                    _data.AddRange(data.Selected.SelectMany(x => x.Pages!));
+                    _data.AddRange(data.Selected.SelectMany(x => x.Pages ?? Array.Empty<OnThisDayArticle>()));
             }
-            catch { }
+            catch (Exception e)
+            {
+                LoadError = $"Unable to load Wikipedia content: {e.Message}";
+            }
         }
     }
 }

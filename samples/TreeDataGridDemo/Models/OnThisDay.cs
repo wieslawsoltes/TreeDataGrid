@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Controls.Models;
@@ -24,7 +23,6 @@ namespace TreeDataGridDemo.Models
 
     internal class OnThisDayArticle : NotifyingBase
     {
-        private const string UserAgent = @"AvaloniaTreeDataGridSample/1.0 (https://avaloniaui.net; team@avaloniaui.net)";
         private bool _loadedImage;
         private Bitmap? _image;
 
@@ -58,10 +56,7 @@ namespace TreeDataGridDemo.Models
             try
             {
                 // Load the image from the url.
-                var client = new HttpClient();
-                client.DefaultRequestHeaders.UserAgent.ParseAdd(UserAgent);
-
-                var bytes = await client.GetByteArrayAsync(Thumbnail!.Source);
+                var bytes = await WikipediaHttpClient.Shared.GetByteArrayAsync(Thumbnail!.Source);
                 var s = new MemoryStream(bytes);
                 Image = new Bitmap(s);
             }

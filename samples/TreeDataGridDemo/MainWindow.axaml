@@ -176,6 +176,10 @@
     </TabItem>
     <TabItem Header="Wikipedia">
       <DockPanel>
+        <TextBlock Text="{Binding Wikipedia.LoadError}"
+                   Margin="4"
+                   TextWrapping="Wrap"
+                   DockPanel.Dock="Top"/>
         <TextBlock Classes="realized-count" DockPanel.Dock="Bottom"/>
         <TreeDataGrid Name="wikipedia" Source="{Binding Wikipedia.Source}">
           <TreeDataGrid.Resources>
