@@ -151,5 +151,41 @@ namespace TreeDataGridDemo
             var unrealizedRowCount = rows.GetVisualChildren().Count() - realizedRowCount;
             textBlock.Text = $"{realizedRowCount} rows realized ({unrealizedRowCount} unrealized)";
         }
+
+        private void SelectingItemsControl_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+        {
+            var countries = this.FindControl<TreeDataGrid>("countries");
+            if (countries is null)
+                return;
+            var treeDataGrid = countries;
+            if (e.AddedItems.Count > 0)
+            {
+                var item = e.AddedItems[0];
+                var source = treeDataGrid.Source;
+                if (item is null || source is null)
+                    return;
+     
+                static int FindDisplayedRowIndex(
+                    ITreeDataGridSource source,
+                    object item)
+                {
+                    for (var i = 0; i < source.Rows.Count; i++)
+                    {
+                        if (ReferenceEquals(source.Rows[i].Model, item))
+                            return i;
+                    }
+
+                    return -1;
+                }
+
+                var rowIndex = FindDisplayedRowIndex(source, item);
+
+                Dispatcher.UIThread.Post(() =>
+                {
+                    if (rowIndex >= 0)
+                        treeDataGrid.RowsPresenter?.BringIntoView(rowIndex);
+                }, DispatcherPriority.Loaded);
+            }
+        }
     }
 }
