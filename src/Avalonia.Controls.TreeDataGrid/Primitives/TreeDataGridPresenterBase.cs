@@ -117,7 +117,12 @@ namespace Avalonia.Controls.Primitives
         {
             var items = Items;
 
-            if (_isInLayout || items is null || index < 0 || index >= items.Count || _realizedElements is null)
+            if (_isInLayout ||
+                items is null ||
+                index < 0 ||
+                index >= items.Count ||
+                _realizedElements is null ||
+                !IsEffectivelyVisible)
                 return null;
 
             if (GetRealizedElement(index) is Control element)
@@ -179,6 +184,14 @@ namespace Avalonia.Controls.Primitives
                     InvalidateMeasure();
                     UpdateLayout();
                 }
+
+                // The first request can use an out-of-date cross-axis extent when elements have
+                // different sizes. The intervening layout has now updated that extent, so retry
+                // the same request with the final geometry.
+                if (rect.HasValue)
+                    scrollToElement.BringIntoView(rect.Value);
+                else
+                    scrollToElement.BringIntoView();
 
                 _scrollToElement = null;
                 _scrollToIndex = -1;
@@ -365,7 +378,7 @@ namespace Avalonia.Controls.Primitives
             // If we're bringing an item into view, ignore any layout passes until we receive a new
             // effective viewport.
             if (_isWaitingForViewportUpdate)
-                return DesiredSize;
+                return EstimateDesiredSize(Orientation, items.Count);
 
             _isInLayout = true;
             var previousVisualValue = _preserveRecycledElementVisualTreeMembership;
@@ -659,6 +672,24 @@ namespace Avalonia.Controls.Primitives
             }
 
             return orientation == Orientation.Horizontal ? new(sizeU, sizeV) : new(sizeV, sizeU);
+        }
+
+        private Size EstimateDesiredSize(Orientation orientation, int itemCount)
+        {
+            if (_scrollToIndex >= 0 && _scrollToElement is not null)
+            {
+                var remaining = itemCount - _scrollToIndex - 1;
+                var realizedEndU = orientation == Orientation.Horizontal ?
+                    _scrollToElement.Bounds.Right :
+                    _scrollToElement.Bounds.Bottom;
+                var sizeU = realizedEndU + (remaining * _lastEstimatedElementSizeU);
+
+                return orientation == Orientation.Horizontal ?
+                    new Size(sizeU, DesiredSize.Height) :
+                    new Size(DesiredSize.Width, sizeU);
+            }
+
+            return DesiredSize;
         }
 
         private MeasureViewport CalculateMeasureViewport(IReadOnlyList<TItem> items, Size availableSize)
