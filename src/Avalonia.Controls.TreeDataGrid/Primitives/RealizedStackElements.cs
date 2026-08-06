@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Utils;
+using Avalonia.Layout;
 
 namespace Avalonia.Controls.Primitives
 {
@@ -315,6 +316,39 @@ namespace Avalonia.Controls.Primitives
             }
 
             // We don't have any elements on which to base our estimate.
+            if (divisor == 0 || total == 0)
+                return -1;
+
+            return total / divisor;
+        }
+
+        /// <summary>
+        /// Estimates the average U size from currently measured realized elements.
+        /// </summary>
+        /// <param name="orientation">The orientation of the owning presenter.</param>
+        /// <returns>
+        /// The estimated U size of an element, or -1 if not enough information is present to make
+        /// an estimate.
+        /// </returns>
+        public double EstimateElementSizeU(Orientation orientation)
+        {
+            var total = 0.0;
+            var divisor = 0.0;
+
+            if (_elements is not null)
+            {
+                foreach (var element in _elements)
+                {
+                    if (element is null || !element.IsMeasureValid)
+                        continue;
+
+                    total += orientation == Orientation.Horizontal ?
+                        element.DesiredSize.Width :
+                        element.DesiredSize.Height;
+                    ++divisor;
+                }
+            }
+
             if (divisor == 0 || total == 0)
                 return -1;
 
@@ -739,6 +773,36 @@ namespace Avalonia.Controls.Primitives
             _startUUnstable = false;
             _elements?.Clear();
             _sizes?.Clear();
+        }
+
+        /// <summary>
+        /// Marks the realized start position as unstable if a measured element's primary-axis
+        /// desired size has changed since the range was recorded.
+        /// </summary>
+        public void ValidateStartU(Orientation orientation)
+        {
+            if (_elements is null || _sizes is null || _startUUnstable)
+                return;
+
+            var changed = false;
+
+            for (var i = 0; i < _elements.Count; ++i)
+            {
+                if (_elements[i] is not { } element)
+                    continue;
+
+                var sizeU = orientation == Orientation.Horizontal ?
+                    element.DesiredSize.Width :
+                    element.DesiredSize.Height;
+
+                if (!DoubleUtils.AreClose(sizeU, _sizes[i]))
+                {
+                    _sizes[i] = sizeU;
+                    changed = true;
+                }
+            }
+
+            _startUUnstable = changed;
         }
     }
 }

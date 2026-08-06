@@ -5,11 +5,12 @@ using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using Avalonia.Controls.Presenters;
+using Avalonia.Controls.Utils;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
+using Avalonia.Logging;
 using Avalonia.LogicalTree;
 using Avalonia.Rendering;
-using Avalonia.Controls.Utils;
 using Avalonia.VisualTree;
 using CollectionExtensions = Avalonia.Controls.Models.TreeDataGrid.CollectionExtensions;
 
@@ -52,7 +53,7 @@ namespace Avalonia.Controls.Primitives
         private bool _isSubscribedToItemChanges;
         private RealizedStackElements? _measureElements;
         private RealizedStackElements? _realizedElements;
-        private ScrollViewer? _scrollViewer;
+        private IScrollAnchorProvider? _scrollAnchorProvider;
         private double _lastEstimatedElementSizeU = 25;
         private Control? _focusedElement;
         private int _focusedIndex = -1;
@@ -390,6 +391,8 @@ namespace Avalonia.Controls.Primitives
             {
                 var orientation = Orientation;
 
+                MeasureInvalidRealizedElements(availableSize);
+                _realizedElements?.ValidateStartU(orientation);
                 var traceRealizedElements = this is TreeDataGridRowsPresenter;
                 _realizedElements ??= new(traceRealizedElements);
                 _measureElements ??= new(traceRealizedElements);
@@ -439,6 +442,15 @@ namespace Avalonia.Controls.Primitives
                 (_measureElements, _realizedElements) = (_realizedElements, _measureElements);
                 _measureElements.ResetForReuse();
 
+                // A focused element is retained when it leaves the realized range. Keep its
+                // measurement current so that it can be positioned safely outside the viewport
+                // and re-used without losing keyboard focus.
+                if (_focusedElement is not null && _focusedIndex >= 0)
+                {
+                    var constraint = GetInitialConstraint(_focusedElement, _focusedIndex, availableSize);
+                    MeasureElement(_focusedIndex, _focusedElement, constraint);
+                }
+
                 TrimUnrealizedChildren();
 
                 return CalculateDesiredSize(orientation, items.Count, viewport);
@@ -476,9 +488,55 @@ namespace Avalonia.Controls.Primitives
                             new Rect(u, 0, sizeU, finalSize.Height) :
                             new Rect(0, u, finalSize.Width, sizeU);
                         rect = ArrangeElement(i + _realizedElements.FirstIndex, e, rect);
-                        _scrollViewer?.RegisterAnchorCandidate(e);
+
+                        if (e.IsVisible && Viewport != s_invalidViewport && Viewport.Intersects(rect))
+                        {
+                            try
+                            {
+                                _scrollAnchorProvider?.RegisterAnchorCandidate(e);
+                            }
+                            catch (InvalidOperationException ex)
+                            {
+                                // The element may have been reparented during virtualization.
+                                // It is no longer a valid anchor candidate in that case.
+                                Logger.TryGet(LogEventLevel.Verbose, LogArea.Layout)?.Log(
+                                    this,
+                                    "RegisterAnchorCandidate ignored for {Element}: {Message}",
+                                    e,
+                                    ex.Message);
+                            }
+                        }
+
                         u += orientation == Orientation.Horizontal ? rect.Width : rect.Height;
                     }
+                }
+
+                // Keep a retained focused element outside the realized range. Position estimates
+                // for non-uniform items are approximate, so clamp them to the nearest realized
+                // boundary to prevent a retained element from rendering over live rows or cells.
+                if (_focusedElement is not null && _focusedIndex >= 0)
+                {
+                    var realizedEndU = u;
+                    var sizeU = orientation == Orientation.Horizontal ?
+                        _focusedElement.DesiredSize.Width :
+                        _focusedElement.DesiredSize.Height;
+
+                    u = _realizedElements.GetOrEstimateElementU(
+                        _focusedIndex,
+                        ref _lastEstimatedElementSizeU);
+
+                    if (_realizedElements.Count > 0)
+                    {
+                        if (_focusedIndex < _realizedElements.FirstIndex)
+                            u = Math.Min(u, _realizedElements.StartU - sizeU);
+                        else if (_focusedIndex > _realizedElements.LastIndex)
+                            u = Math.Max(u, realizedEndU);
+                    }
+
+                    var rect = orientation == Orientation.Horizontal ?
+                        new Rect(u, 0, sizeU, finalSize.Height) :
+                        new Rect(0, u, finalSize.Width, sizeU);
+                    ArrangeElement(_focusedIndex, _focusedElement, rect);
                 }
 
                 return finalSize;
@@ -506,7 +564,7 @@ namespace Avalonia.Controls.Primitives
         protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
         {
             base.OnAttachedToVisualTree(e);
-            _scrollViewer = this.FindAncestorOfType<ScrollViewer>();
+            _scrollAnchorProvider = this.FindAncestorOfType<IScrollAnchorProvider>();
             Trace($"OnAttachedToVisualTree: Viewport={Viewport}, IsInvalid={Viewport == s_invalidViewport}, ItemCount={Items?.Count ?? 0}, CachedViewport={_cachedViewport}");
             // Subscribing to this event adds a reference to 'this' in the layout manager.
             // so this must be unsubscribed to avoid memory leaks.
@@ -527,7 +585,7 @@ namespace Avalonia.Controls.Primitives
             // The presenter is already leaving the visual tree, so keep recycled controls
             // parented logically until the next measure can reuse or trim them.
             RecycleAllElements(preserveLogicalTreeMembership: true);
-            _scrollViewer = null;
+            _scrollAnchorProvider = null;
         }
 
         protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
@@ -783,7 +841,7 @@ namespace Avalonia.Controls.Primitives
             var e = GetElementFromFactory(item, index);
             var wasRetained = !e.IsVisible &&
                 (ReferenceEquals(e.Parent, this) || ReferenceEquals(e.GetVisualParent(), this));
-            e.IsVisible = true;
+            e.SetCurrentValue(Visual.IsVisibleProperty, true);
 
             if (wasRetained && _retainedRecycledElementCount > 0)
                 --_retainedRecycledElementCount;
@@ -807,10 +865,26 @@ namespace Avalonia.Controls.Primitives
             if (_realizedElements is null)
                 return _lastEstimatedElementSizeU;
 
-            var result = _realizedElements.EstimateElementSizeU();
+            var result = _realizedElements.EstimateElementSizeU(Orientation);
             if (result >= 0)
                 _lastEstimatedElementSizeU = result;
             return _lastEstimatedElementSizeU;
+        }
+
+        private void MeasureInvalidRealizedElements(Size availableSize)
+        {
+            if (_realizedElements is null)
+                return;
+
+            for (var i = 0; i < _realizedElements.Count; ++i)
+            {
+                if (_realizedElements.Elements[i] is { IsMeasureValid: false } element)
+                {
+                    var index = _realizedElements.FirstIndex + i;
+                    var constraint = GetInitialConstraint(element, index, availableSize);
+                    MeasureElement(index, element, constraint);
+                }
+            }
         }
 
         protected virtual Rect? GetParentPresenterViewPort()
@@ -882,6 +956,8 @@ namespace Avalonia.Controls.Primitives
 
         private void RecycleElement(Control element, int index)
         {
+            _scrollAnchorProvider?.UnregisterAnchorCandidate(element);
+
             if (element.IsKeyboardFocusWithin)
             {
                 _focusedElement = element;
@@ -891,15 +967,16 @@ namespace Avalonia.Controls.Primitives
             else
             {
                 UnrealizeElement(element);
-                element.IsVisible = false;
+                element.SetCurrentValue(Visual.IsVisibleProperty, false);
                 DetachElement(element);
                 ElementFactory!.RecycleElement(element);
-                _scrollViewer?.UnregisterAnchorCandidate(element);
             }
         }
 
         private void RecycleElementOnItemRemoved(Control element)
         {
+            _scrollAnchorProvider?.UnregisterAnchorCandidate(element);
+
             if (element == _focusedElement)
             {
                 _focusedElement.LostFocus -= OnUnrealizedFocusedElementLostFocus;
@@ -908,10 +985,9 @@ namespace Avalonia.Controls.Primitives
             }
 
             UnrealizeElementOnItemRemoved(element);
-            element.IsVisible = false;
+            element.SetCurrentValue(Visual.IsVisibleProperty, false);
             DetachElement(element);
             ElementFactory!.RecycleElement(element);
-            _scrollViewer?.UnregisterAnchorCandidate(element);
         }
 
         private void DetachElement(Control element)
