@@ -678,9 +678,27 @@ namespace Avalonia.Controls.Primitives
             var viewportStart = Orientation == Orientation.Horizontal ? viewport.X : viewport.Y;
             var viewportEnd = Orientation == Orientation.Horizontal ? viewport.Right : viewport.Bottom;
 
-            // Get or estimate the anchor element from which to start realization.
+            // Get or estimate the anchor element from which to start realization. If we are
+            // scrolling to an element, use that as the anchor so that it is consumed by the
+            // realization pass instead of being left as a disjoint visible child.
             var itemCount = items.Count;
-            var (anchorIndex, anchorU) = GetOrEstimateAnchorElementForViewport(viewportStart, viewportEnd, itemCount);
+            int anchorIndex;
+            double anchorU;
+
+            if (_scrollToIndex >= 0 && _scrollToElement is not null)
+            {
+                anchorIndex = _scrollToIndex;
+                anchorU = Orientation == Orientation.Horizontal ?
+                    _scrollToElement.Bounds.Left :
+                    _scrollToElement.Bounds.Top;
+            }
+            else
+            {
+                (anchorIndex, anchorU) = GetOrEstimateAnchorElementForViewport(
+                    viewportStart,
+                    viewportEnd,
+                    itemCount);
+            }
 
             // Check if the anchor element is not within the currently realized elements.
             var disjunct = anchorIndex < _realizedElements.FirstIndex ||
