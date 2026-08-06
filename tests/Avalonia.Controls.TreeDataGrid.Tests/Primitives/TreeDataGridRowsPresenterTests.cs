@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Avalonia.Collections;
@@ -132,6 +132,55 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
             Layout(target);
 
             AssertRowIndexes(target, 6, 20);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Viewport_Shrink_And_Grow_Preserves_Realized_Coverage()
+        {
+            var (target, scroll, items) = CreateTarget(cacheLength: 0.5);
+            var root = Assert.IsType<TestWindow>(TopLevel.GetTopLevel(target));
+
+            root.Height = 10;
+            root.InvalidateMeasure();
+            Layout(target);
+
+            root.Height = 100;
+            root.InvalidateMeasure();
+            Layout(target);
+
+            AssertRealizedRowsAreConsistent(target, items);
+            Assert.True(target.RealizedElements[0]!.Bounds.Top <= scroll.Offset.Y);
+            Assert.True(target.RealizedElements[^1]!.Bounds.Bottom >= scroll.Offset.Y + scroll.Viewport.Height);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Registers_Only_Viewport_Rows_With_Nearest_Anchor_Provider()
+        {
+            var (target, scroll, _) = CreateTarget(cacheLength: 0.5);
+            scroll.Content = null;
+            scroll.UpdateLayout();
+            Dispatcher.UIThread.RunJobs();
+
+            var provider = new TestAnchorProvider { Child = target };
+            scroll.Content = provider;
+            Layout(target);
+
+            var expected = target.RealizedElements
+                .Cast<TreeDataGridRow>()
+                .Where(x => x.IsVisible && target.Viewport.Intersects(x.Bounds))
+                .ToHashSet();
+
+            Assert.NotEmpty(expected);
+            Assert.True(provider.Candidates.SetEquals(expected));
+            Assert.True(target.RealizedElements.Count > provider.Candidates.Count);
+
+            var focused = expected.First();
+            focused.Focusable = true;
+            focused.Focus();
+            target.RecycleAllElements();
+
+            Assert.Contains(focused, provider.Unregistered);
+            Assert.DoesNotContain(focused, provider.Candidates);
         }
 
         [AvaloniaFact(Timeout = 10000)]
@@ -962,6 +1011,60 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void BringIntoView_Rejects_Invalid_Indexes_Without_Changing_Viewport()
+        {
+            var (target, scroll, items) = CreateTarget();
+            var originalOffset = scroll.Offset;
+            var originalRows = target.RealizedElements.ToList();
+
+            Assert.Null(target.BringIntoView(-1));
+            Assert.Null(target.BringIntoView(items.Count));
+            Layout(target);
+
+            Assert.Equal(originalOffset, scroll.Offset);
+            Assert.Equal(originalRows, target.RealizedElements);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void BringIntoView_Does_Nothing_When_Presenter_Is_Effectively_Invisible()
+        {
+            var (target, scroll, _) = CreateTarget();
+            scroll.IsVisible = false;
+            Layout(target);
+
+            Assert.False(target.IsEffectivelyVisible);
+            Assert.Null(target.BringIntoView(50));
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void IsVisible_Binding_Persists_After_Row_Recycling()
+        {
+            var visibilityStyle = new Style(x => x.OfType<TreeDataGridRow>())
+            {
+                Setters =
+                {
+                    new Setter(Visual.IsVisibleProperty, new Binding(nameof(Model.IsRowVisible))),
+                }
+            };
+            var (target, scroll, items) = CreateTarget(additionalStyles: new() { visibilityStyle });
+            var original = Assert.IsType<TreeDataGridRow>(target.TryGetElement(2));
+
+            Assert.NotNull(BindingOperations.GetBindingExpressionBase(original, Visual.IsVisibleProperty));
+
+            scroll.Offset = new Vector(0, 200);
+            Layout(target);
+            scroll.Offset = default;
+            Layout(target);
+
+            var current = Assert.IsType<TreeDataGridRow>(target.TryGetElement(2));
+            items[2].IsRowVisible = false;
+            Layout(target);
+
+            Assert.NotNull(BindingOperations.GetBindingExpressionBase(current, Visual.IsVisibleProperty));
+            Assert.False(current.IsVisible);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void Handles_Bringing_Item_Into_View_Which_Will_Already_Be_In_View_When_Created()
         {
             var (target, scroll, _) = CreateTarget();
@@ -1196,10 +1299,37 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
                 });
         }
 
-        private class Model
+        private class Model : NotifyingBase
         {
+            private bool _isRowVisible = true;
+
             public int Id { get; set; }
             public string? Title { get; set; }
+
+            public bool IsRowVisible
+            {
+                get => _isRowVisible;
+                set => RaiseAndSetIfChanged(ref _isRowVisible, value);
+            }
+        }
+
+        private sealed class TestAnchorProvider : Border, IScrollAnchorProvider
+        {
+            public HashSet<Control> Candidates { get; } = new();
+            public HashSet<Control> Unregistered { get; } = new();
+            public Control? CurrentAnchor => null;
+
+            public void RegisterAnchorCandidate(Control element)
+            {
+                Assert.True(this.IsVisualAncestorOf(element));
+                Candidates.Add(element);
+            }
+
+            public void UnregisterAnchorCandidate(Control element)
+            {
+                Candidates.Remove(element);
+                Unregistered.Add(element);
+            }
         }
 
         private sealed class CountingRowsPresenter : TreeDataGridRowsPresenter

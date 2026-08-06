@@ -45,6 +45,26 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
             Assert.Equal(220, target.GetOrEstimateElementU(11, ref estimatedSize));
         }
 
+        [AvaloniaFact]
+        public void ValidateStartU_Uses_Current_Measured_Row_Heights()
+        {
+            var first = new Border { Height = 20 };
+            var second = new Border { Height = 20 };
+            first.Measure(Size.Infinity);
+            second.Measure(Size.Infinity);
+
+            var target = new RealizedStackElements(traceEnabled: false);
+            target.Add(10, first, 200, 20);
+            target.Add(11, second, 220, 20);
+
+            first.Height = 40;
+            first.Measure(Size.Infinity);
+            target.ValidateStartU(Orientation.Vertical);
+
+            Assert.True(double.IsNaN(target.GetElementU(10)));
+            Assert.Equal(30, target.EstimateElementSizeU(Orientation.Vertical));
+        }
+
         [AvaloniaTheory(Timeout = 10000)]
         [InlineData(10)]
         [InlineData(20)]
@@ -124,6 +144,95 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
                         $"Rows {visibleRows[i - 1].RowIndex} and {visibleRows[i].RowIndex} overlap or have a gap.");
                 }
             }
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void BringIntoView_Correctly_Scrolls_Down_To_A_Page_Of_Smaller_Rows()
+        {
+            var heights = Enumerable.Range(0, 20)
+                .Select(x => ((29 - x) / 10) * 10d)
+                .ToArray();
+            var (target, scroll, _) = CreateTarget(
+                rootSize: new Size(100, 100),
+                rowHeights: heights);
+
+            var brought = Assert.IsType<TreeDataGridRow>(target.BringIntoView(19));
+
+            Assert.Equal(19, brought.RowIndex);
+            Assert.Equal(new Rect(0, 380, 100, 10), brought.Bounds);
+            Assert.Equal(new Size(100, 100), scroll.Viewport);
+            Assert.Equal(new Size(100, 390), scroll.Extent);
+            Assert.Equal(new Vector(0, 290), scroll.Offset);
+            Assert.Equal(Enumerable.Range(10, 10), target.RealizedElements.Select(x => ((TreeDataGridRow)x!).RowIndex));
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void BringIntoView_Correctly_Scrolls_Down_To_A_Page_Of_Larger_Rows()
+        {
+            var heights = Enumerable.Range(0, 20)
+                .Select(x => ((x / 10) + 1) * 10d)
+                .ToArray();
+            var (target, scroll, _) = CreateTarget(
+                rootSize: new Size(100, 100),
+                rowHeights: heights);
+
+            var brought = Assert.IsType<TreeDataGridRow>(target.BringIntoView(19));
+
+            Assert.Equal(19, brought.RowIndex);
+            Assert.Equal(new Rect(0, 190, 100, 20), brought.Bounds);
+            Assert.Equal(new Size(100, 100), scroll.Viewport);
+            Assert.Equal(new Size(100, 210), scroll.Extent);
+            Assert.Equal(new Vector(0, 110), scroll.Offset);
+            Assert.Equal(Enumerable.Range(15, 5), target.RealizedElements.Select(x => ((TreeDataGridRow)x!).RowIndex));
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Extent_And_Offset_Are_Updated_When_Realized_Row_Heights_Change()
+        {
+            var (target, scroll, items) = CreateTarget(
+                rootSize: new Size(100, 100),
+                rowHeights: Enumerable.Repeat(50d, 20).ToArray());
+
+            target.BringIntoView(5);
+
+            Assert.Equal(Enumerable.Range(4, 2), target.RealizedElements.Select(x => ((TreeDataGridRow)x!).RowIndex));
+            Assert.Equal(new Size(100, 1000), scroll.Extent);
+            Assert.Equal(new Vector(0, 200), scroll.Offset);
+
+            foreach (var item in items)
+                item.Height = 25;
+            Layout(target);
+
+            Assert.Equal(new Size(100, 500), scroll.Extent);
+            Assert.Equal(new Vector(0, 200), scroll.Offset);
+            Assert.Equal(Enumerable.Range(8, 4), target.RealizedElements.Select(x => ((TreeDataGridRow)x!).RowIndex));
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Focused_Row_Is_Kept_Outside_Viewport_When_Row_Heights_Change()
+        {
+            var (target, scroll, items) = CreateTarget(
+                rootSize: new Size(100, 100),
+                rowHeights: Enumerable.Repeat(50d, 20).ToArray());
+
+            target.BringIntoView(5);
+            var focused = Assert.IsType<TreeDataGridRow>(target.TryGetElement(5));
+            focused.Focusable = true;
+            focused.Focus();
+
+            foreach (var item in items)
+                item.Height = 25;
+            Layout(target);
+
+            var viewport = new Rect(
+                scroll.Offset.X,
+                scroll.Offset.Y,
+                scroll.Viewport.Width,
+                scroll.Viewport.Height);
+            Assert.True(focused.IsKeyboardFocusWithin);
+            Assert.Equal(new Rect(0, 125, 100, 25), focused.Bounds);
+            Assert.False(focused.Bounds.Intersects(viewport));
+            Assert.DoesNotContain(focused, target.RealizedElements);
         }
 
         [AvaloniaFact(Timeout = 30000)]
@@ -283,17 +392,18 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
         }
 
         private static (TreeDataGridRowsPresenter, ScrollViewer, AvaloniaList<Model>) CreateTarget(
-            IColumns? columns = null, 
+            IColumns? columns = null,
             List<IStyle>? additionalStyles = null,
             int itemCount = 100,
-            Size? rootSize = null)
+            Size? rootSize = null,
+            IReadOnlyList<double>? rowHeights = null)
         {
-            var rnd = new Random(0);
-            var items = new AvaloniaList<Model>(Enumerable.Range(0, itemCount).Select(x =>
+            var heights = rowHeights ?? CreateRandomHeights(itemCount);
+            var items = new AvaloniaList<Model>(heights.Select((height, index) =>
                 new Model
                 {
-                    Id = x,
-                    Height = rnd.Next(90) + 10,
+                    Id = index,
+                    Height = height,
                 }));
 
             var itemsView = new TreeDataGridItemsSourceView<Model>(items);
@@ -324,7 +434,6 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
                         }
                     }
                 },
-                Height = 1000,
             };
 
             if (additionalStyles != null)
@@ -339,6 +448,14 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
             Dispatcher.UIThread.RunJobs();
 
             return (target, scrollViewer, items);
+
+            static IReadOnlyList<double> CreateRandomHeights(int count)
+            {
+                var random = new Random(0);
+                return Enumerable.Range(0, count)
+                    .Select(_ => (double)(random.Next(90) + 10))
+                    .ToArray();
+            }
         }
 
         private static void Layout(TreeDataGridRowsPresenter target)
@@ -346,10 +463,17 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
             target.UpdateLayout();
         }
 
-        private class Model
+        private class Model : NotifyingBase
         {
+            private double _height;
+
             public int Id { get; set; }
-            public double Height { get; set; }
+
+            public double Height
+            {
+                get => _height;
+                set => RaiseAndSetIfChanged(ref _height, value);
+            }
         }
     }
 }
