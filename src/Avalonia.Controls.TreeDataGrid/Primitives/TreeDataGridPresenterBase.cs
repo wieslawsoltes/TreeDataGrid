@@ -391,8 +391,6 @@ namespace Avalonia.Controls.Primitives
             {
                 var orientation = Orientation;
 
-                MeasureInvalidRealizedElements(availableSize);
-                _realizedElements?.ValidateStartU(orientation);
                 var traceRealizedElements = this is TreeDataGridRowsPresenter;
                 _realizedElements ??= new(traceRealizedElements);
                 _measureElements ??= new(traceRealizedElements);
@@ -865,26 +863,10 @@ namespace Avalonia.Controls.Primitives
             if (_realizedElements is null)
                 return _lastEstimatedElementSizeU;
 
-            var result = _realizedElements.EstimateElementSizeU(Orientation);
+            var result = _realizedElements.EstimateElementSizeU();
             if (result >= 0)
                 _lastEstimatedElementSizeU = result;
             return _lastEstimatedElementSizeU;
-        }
-
-        private void MeasureInvalidRealizedElements(Size availableSize)
-        {
-            if (_realizedElements is null)
-                return;
-
-            for (var i = 0; i < _realizedElements.Count; ++i)
-            {
-                if (_realizedElements.Elements[i] is { IsMeasureValid: false } element)
-                {
-                    var index = _realizedElements.FirstIndex + i;
-                    var constraint = GetInitialConstraint(element, index, availableSize);
-                    MeasureElement(index, element, constraint);
-                }
-            }
         }
 
         protected virtual Rect? GetParentPresenterViewPort()
