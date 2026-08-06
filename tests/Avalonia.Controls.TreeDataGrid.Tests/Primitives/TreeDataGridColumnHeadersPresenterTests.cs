@@ -94,6 +94,26 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void BringIntoView_Realizes_And_Scrolls_To_Distant_Column()
+        {
+            var (target, scroll) = CreateTarget();
+
+            var brought = Assert.IsType<TreeDataGridColumnHeader>(target.BringIntoView(50));
+            Layout(target);
+
+            Assert.Equal(50, brought.ColumnIndex);
+            Assert.Contains(brought, target.RealizedElements);
+            Assert.True(scroll.Offset.X > 0);
+
+            var viewport = new Rect(
+                scroll.Offset.X,
+                scroll.Offset.Y,
+                scroll.Viewport.Width,
+                scroll.Viewport.Height);
+            Assert.True(brought.Bounds.Intersects(viewport));
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void Moving_Columns_Preserves_Realized_Header_Identity()
         {
             var (target, _) = CreateTarget();
@@ -233,7 +253,7 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
         {
             target.UpdateLayout();
         }
-        
+
         private class TestColumn : ColumnBase<string>
         {
             public TestColumn(string header, GridLength width)
