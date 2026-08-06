@@ -90,6 +90,43 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
         }
 
         [AvaloniaFact(Timeout = 30000)]
+        public void BringIntoView_Does_Not_Leave_Unrealized_Row_Visible()
+        {
+            var (target, _, items) = CreateTarget(itemCount: 227, rootSize: new Size(100, 600));
+            var targetIndexes = new[] { 206, 5, 185, 25, 220, 100, 200, 0 };
+
+            foreach (var targetIndex in targetIndexes)
+            {
+                var brought = Assert.IsType<TreeDataGridRow>(target.BringIntoView(targetIndex));
+                Layout(target);
+
+                Assert.Equal(targetIndex, brought.RowIndex);
+                Assert.Same(items[targetIndex], brought.DataContext);
+
+                var visibleRows = target.GetVisualChildren()
+                    .Cast<TreeDataGridRow>()
+                    .Where(x => x.IsVisible)
+                    .OrderBy(x => x.Bounds.Top)
+                    .ToList();
+                var realizedRows = target.RealizedElements
+                    .Cast<TreeDataGridRow>()
+                    .OrderBy(x => x.Bounds.Top)
+                    .ToList();
+
+                Assert.Contains(brought, realizedRows);
+                Assert.Equal(realizedRows, visibleRows);
+
+                for (var i = 1; i < visibleRows.Count; ++i)
+                {
+                    Assert.Equal(visibleRows[i - 1].RowIndex + 1, visibleRows[i].RowIndex);
+                    Assert.True(
+                        Math.Abs(visibleRows[i - 1].Bounds.Bottom - visibleRows[i].Bounds.Top) < 0.001,
+                        $"Rows {visibleRows[i - 1].RowIndex} and {visibleRows[i].RowIndex} overlap or have a gap.");
+                }
+            }
+        }
+
+        [AvaloniaFact(Timeout = 30000)]
         public void Pixel_Scrolls_In_Both_Directions_Preserve_Variable_Height_Virtualization()
         {
             var (target, scroll, items) = CreateTarget(itemCount: 40, rootSize: new Size(100, 200));
