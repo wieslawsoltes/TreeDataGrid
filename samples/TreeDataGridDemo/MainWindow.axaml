@@ -57,13 +57,7 @@
       </DockPanel>
     </TabItem>
     <TabItem Header="Countries">
-      <Grid RowDefinitions="30*,70*">
-        <ListBox ItemsSource="{Binding Countries.Source.Items}" SelectionChanged="SelectingItemsControl_OnSelectionChanged" >
-          </ListBox>
-        <DockPanel Grid.Row="1">
-        
-        <CheckBox Grid.Row="0" IsChecked="True" Name="IsVisibleCheckBox"  DockPanel.Dock="Top"></CheckBox>
-
+      <DockPanel>
         <TextBlock Classes="realized-count" DockPanel.Dock="Bottom"/>
         <StackPanel DockPanel.Dock="Right" Spacing="4" Margin="4 0 0 0">
           <CheckBox IsChecked="{Binding Countries.CellSelection}">Cell Selection</CheckBox>
@@ -88,7 +82,6 @@
         </StackPanel>
         <TreeDataGrid Name="countries"
                       Source="{Binding Countries.Source}"
-                      IsVisible="{Binding #IsVisibleCheckBox.IsChecked}"
                       AutoDragDropRows="True">
           <TreeDataGrid.Resources>
             <!-- Template for Region column cells -->
@@ -114,8 +107,38 @@
           </TreeDataGrid.Styles>
         </TreeDataGrid>
       </DockPanel>
+    </TabItem>
+    <TabItem Header="BringIntoView (Non-uniform rows)">
+      <Grid RowDefinitions="30*,70*">
+        <ListBox ItemsSource="{Binding BringIntoViewNonUniformRows.Source.Items}"
+                 SelectionChanged="BringIntoViewNonUniformRows_SelectionChanged"/>
+        <DockPanel Grid.Row="1">
+          <CheckBox Name="bringIntoViewNonUniformRowsVisible"
+                    IsChecked="True"
+                    DockPanel.Dock="Top">
+            Show TreeDataGrid
+          </CheckBox>
+          <TextBlock Classes="realized-count" DockPanel.Dock="Bottom"/>
+          <TreeDataGrid Name="bringIntoViewNonUniformRowsGrid"
+                        Source="{Binding BringIntoViewNonUniformRows.Source}"
+                        IsVisible="{Binding #bringIntoViewNonUniformRowsVisible.IsChecked}">
+            <TreeDataGrid.Resources>
+              <DataTemplate x:Key="RegionCell" DataType="m:Country">
+                <TextBlock Text="{Binding Region}"/>
+              </DataTemplate>
+              <DataTemplate x:Key="RegionEditCell" DataType="m:Country">
+                <ComboBox ItemsSource="{x:Static m:Countries.Regions}"
+                          SelectedItem="{Binding Region}"/>
+              </DataTemplate>
+            </TreeDataGrid.Resources>
+            <TreeDataGrid.Styles>
+              <Style Selector="TreeDataGrid TreeDataGridRow:nth-last-child(2n)">
+                <Setter Property="Background" Value="#20808080"/>
+              </Style>
+            </TreeDataGrid.Styles>
+          </TreeDataGrid>
+        </DockPanel>
       </Grid>
-
     </TabItem>
     <TabItem Header="Files">
       <DockPanel>

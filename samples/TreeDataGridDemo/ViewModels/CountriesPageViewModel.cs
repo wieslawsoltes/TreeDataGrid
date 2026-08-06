@@ -1,4 +1,6 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Selection;
@@ -14,9 +16,11 @@ namespace TreeDataGridDemo.ViewModels
         private bool _cellSelection;
         private string _filterText = string.Empty;
 
-        public CountriesPageViewModel()
+        public CountriesPageViewModel(bool useVariableHeightRows = false)
         {
-            _data = new ObservableCollection<Country>(Countries.All);
+            _data = new ObservableCollection<Country>(useVariableHeightRows ?
+                CreateCountriesWithVariableHeightRows() :
+                Countries.All);
 
             Source = new FlatTreeDataGridSource<Country>(_data)
                 .WithRowHeaderColumn()
@@ -86,6 +90,32 @@ namespace TreeDataGridDemo.ViewModels
             for (var i = selection.Count - 1; i >= 0; --i)
             {
                 _data.RemoveAt(selection[i][0]);
+            }
+        }
+
+        private static IEnumerable<Country> CreateCountriesWithVariableHeightRows()
+        {
+            var random = new Random(42);
+
+            foreach (var country in Countries.All)
+            {
+                var name = country.Name ?? string.Empty;
+                var lineCount = random.Next(1, 6);
+
+                yield return new Country(
+                    string.Join(Environment.NewLine, Enumerable.Repeat(name, lineCount)),
+                    country.Region,
+                    country.Population,
+                    country.Area,
+                    country.PopulationDensity,
+                    country.CoastLine,
+                    country.NetMigration,
+                    country.InfantMortality,
+                    country.GDP,
+                    country.LiteracyPercent,
+                    country.Phones,
+                    country.BirthRate,
+                    country.DeathRate);
             }
         }
 

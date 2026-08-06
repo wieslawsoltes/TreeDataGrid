@@ -152,19 +152,18 @@ namespace TreeDataGridDemo
             textBlock.Text = $"{realizedRowCount} rows realized ({unrealizedRowCount} unrealized)";
         }
 
-        private void SelectingItemsControl_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+        private void BringIntoViewNonUniformRows_SelectionChanged(object? sender, SelectionChangedEventArgs e)
         {
-            var countries = this.FindControl<TreeDataGrid>("countries");
-            if (countries is null)
+            var treeDataGrid = this.FindControl<TreeDataGrid>("bringIntoViewNonUniformRowsGrid");
+            if (treeDataGrid is null)
                 return;
-            var treeDataGrid = countries;
+
             if (e.AddedItems.Count > 0)
             {
                 var item = e.AddedItems[0];
                 var source = treeDataGrid.Source;
                 if (item is null || source is null)
                     return;
-     
                 static int FindDisplayedRowIndex(
                     ITreeDataGridSource source,
                     object item)

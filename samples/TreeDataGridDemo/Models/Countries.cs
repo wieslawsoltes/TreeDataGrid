@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace TreeDataGridDemo.Models
@@ -239,23 +238,7 @@ namespace TreeDataGridDemo.Models
             yield return new Country("Zimbabwe", "SUB-SAHARAN AFRICA", 12236805, 390580, 31.3, 0, 0, 67.69, 1900, 90.7, 26.8, 28.01, 21.84);
         }
 
-        public static IReadOnlyList<Country> All => _all ??= CreateCountriesWithVariableLineCounts();
+        public static IReadOnlyList<Country> All => _all ??= GetCountries().ToList();
         public static IReadOnlyList<string> Regions => _regions ??= All.Select(x => x.Region).ToList();
-
-        private static IReadOnlyList<Country> CreateCountriesWithVariableLineCounts()
-        {
-            var random = new Random(42);
-            var result = GetCountries().ToList();
-
-            foreach (var country in result)
-            {
-                var lineCount = random.Next(1, 6);
-                country.Name = string.Join(
-                    Environment.NewLine,
-                    Enumerable.Repeat(country.Name, lineCount));
-            }
-
-            return result;
-        }
     }
 }

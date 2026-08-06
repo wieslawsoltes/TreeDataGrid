@@ -3,6 +3,7 @@
     internal class MainWindowViewModel
     {
         private CountriesPageViewModel? _countries;
+        private CountriesPageViewModel? _bringIntoViewNonUniformRows;
         private FilesPageViewModel? _files;
         private WikipediaPageViewModel? _wikipedia;
         private DragDropPageViewModel? _dragDrop;
@@ -11,6 +12,11 @@
         public CountriesPageViewModel Countries
         {
             get => _countries ??= new CountriesPageViewModel();
+        }
+
+        public CountriesPageViewModel BringIntoViewNonUniformRows
+        {
+            get => _bringIntoViewNonUniformRows ??= new CountriesPageViewModel(useVariableHeightRows: true);
         }
 
         public PeopleXamlPageViewModel PeopleXaml
