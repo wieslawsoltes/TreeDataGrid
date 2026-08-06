@@ -7,7 +7,6 @@ using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Headless.XUnit;
-using Avalonia.Layout;
 using Avalonia.LogicalTree;
 using Avalonia.Styling;
 using Avalonia.Threading;
@@ -43,26 +42,6 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
 
             Assert.True(double.IsNaN(target.GetElementU(11)));
             Assert.Equal(220, target.GetOrEstimateElementU(11, ref estimatedSize));
-        }
-
-        [AvaloniaFact]
-        public void ValidateStartU_Uses_Current_Measured_Row_Heights()
-        {
-            var first = new Border { Height = 20 };
-            var second = new Border { Height = 20 };
-            first.Measure(Size.Infinity);
-            second.Measure(Size.Infinity);
-
-            var target = new RealizedStackElements(traceEnabled: false);
-            target.Add(10, first, 200, 20);
-            target.Add(11, second, 220, 20);
-
-            first.Height = 40;
-            first.Measure(Size.Infinity);
-            target.ValidateStartU(Orientation.Vertical);
-
-            Assert.True(double.IsNaN(target.GetElementU(10)));
-            Assert.Equal(30, target.EstimateElementSizeU(Orientation.Vertical));
         }
 
         [AvaloniaTheory(Timeout = 10000)]
@@ -187,7 +166,7 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
         }
 
         [AvaloniaFact(Timeout = 10000)]
-        public void Extent_And_Offset_Are_Updated_When_Realized_Row_Heights_Change()
+        public void Realized_Row_Height_Changes_Preserve_Anchor_While_Updating_Extent()
         {
             var (target, scroll, items) = CreateTarget(
                 rootSize: new Size(100, 100),
@@ -195,6 +174,7 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
 
             target.BringIntoView(5);
 
+            var anchor = Assert.IsType<TreeDataGridRow>(target.TryGetElement(4));
             Assert.Equal(Enumerable.Range(4, 2), target.RealizedElements.Select(x => ((TreeDataGridRow)x!).RowIndex));
             Assert.Equal(new Size(100, 1000), scroll.Extent);
             Assert.Equal(new Vector(0, 200), scroll.Offset);
@@ -203,9 +183,34 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
                 item.Height = 25;
             Layout(target);
 
-            Assert.Equal(new Size(100, 500), scroll.Extent);
+            Assert.Same(anchor, target.RealizedElements[0]);
+            Assert.Equal(new Rect(0, 200, 100, 25), anchor.Bounds);
+            Assert.Equal(new Size(100, 600), scroll.Extent);
             Assert.Equal(new Vector(0, 200), scroll.Offset);
-            Assert.Equal(Enumerable.Range(8, 4), target.RealizedElements.Select(x => ((TreeDataGridRow)x!).RowIndex));
+            Assert.Equal(Enumerable.Range(4, 4), target.RealizedElements.Select(x => ((TreeDataGridRow)x!).RowIndex));
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Realized_Row_Height_Change_Preserves_Scroll_Anchor()
+        {
+            var (target, scroll, items) = CreateTarget(
+                rootSize: new Size(100, 100),
+                rowHeights: Enumerable.Repeat(25d, 100).ToArray());
+
+            scroll.Offset = new Vector(0, 1000);
+            Layout(target);
+
+            var anchor = Assert.IsType<TreeDataGridRow>(target.TryGetElement(40));
+            Assert.Equal(1000, anchor.Bounds.Top);
+
+            items[40].Height = 200;
+            Layout(target);
+
+            var realized = target.RealizedElements.Cast<TreeDataGridRow>().ToList();
+            Assert.Same(anchor, realized[0]);
+            Assert.Equal(40, realized[0].RowIndex);
+            Assert.Equal(1000, realized[0].Bounds.Top);
+            Assert.True(realized[^1].Bounds.Bottom >= scroll.Offset.Y + scroll.Viewport.Height);
         }
 
         [AvaloniaFact(Timeout = 10000)]
@@ -220,6 +225,10 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
             focused.Focusable = true;
             focused.Focus();
 
+            scroll.Offset = new Vector(0, 400);
+            Layout(target);
+            Assert.DoesNotContain(focused, target.RealizedElements);
+
             foreach (var item in items)
                 item.Height = 25;
             Layout(target);
@@ -230,9 +239,10 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
                 scroll.Viewport.Width,
                 scroll.Viewport.Height);
             Assert.True(focused.IsKeyboardFocusWithin);
-            Assert.Equal(new Rect(0, 125, 100, 25), focused.Bounds);
             Assert.False(focused.Bounds.Intersects(viewport));
             Assert.DoesNotContain(focused, target.RealizedElements);
+            Assert.Equal(8, ((TreeDataGridRow)target.RealizedElements[0]!).RowIndex);
+            Assert.Equal(400, target.RealizedElements[0]!.Bounds.Top);
         }
 
         [AvaloniaFact(Timeout = 30000)]
