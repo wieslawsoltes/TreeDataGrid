@@ -22,6 +22,7 @@
     <PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaSamplesVersion)" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaSamplesVersion)" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="$(AvaloniaSamplesVersion)" />
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />
     <PackageReference Include="ReactiveUI.Avalonia" Version="$(ReactiveUIAvaloniaVersion)" />
     <PackageReference Include="Bogus" Version="34.0.2" />
   </ItemGroup>
