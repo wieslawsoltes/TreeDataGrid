@@ -60,7 +60,7 @@
         </TreeDataGrid>
       </DockPanel>
     </TabItem>
-    <TabItem Header="Countries">
+    <TabItem Header="Countries" IsSelected="True">
       <DockPanel>
         <TextBlock Classes="realized-count" DockPanel.Dock="Bottom"/>
         <StackPanel DockPanel.Dock="Right" Spacing="4" Margin="4 0 0 0">
