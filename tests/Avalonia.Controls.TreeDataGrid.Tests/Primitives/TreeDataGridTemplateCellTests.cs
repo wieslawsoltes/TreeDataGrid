@@ -13,8 +13,18 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
         {
             var firstTemplate = new FuncDataTemplate<object>((_, _) => new TextBlock());
             var secondTemplate = new FuncDataTemplate<object>((_, _) => new Border());
-            var firstModel = new TemplateCell(new object(), _ => firstTemplate, null, null);
-            var secondModel = new TemplateCell(new object(), _ => secondTemplate, null, null);
+            var firstEditingTemplate = new FuncDataTemplate<object>((_, _) => new TextBox());
+            var secondEditingTemplate = new FuncDataTemplate<object>((_, _) => new CheckBox());
+            var firstModel = new TemplateCell(
+                new object(),
+                _ => firstTemplate,
+                _ => firstEditingTemplate,
+                null);
+            var secondModel = new TemplateCell(
+                new object(),
+                _ => secondTemplate,
+                _ => secondEditingTemplate,
+                null);
             var factory = new TreeDataGridElementFactory();
             var cell = new TreeDataGridTemplateCell();
             var panel = new StackPanel();
@@ -27,6 +37,7 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
                 window.Show();
 
                 Assert.IsType<TextBlock>(cell.ContentTemplate!.Build(firstModel.Value));
+                Assert.IsType<TextBox>(cell.EditingTemplate!.Build(firstModel.Value));
 
                 panel.Children.Remove(cell);
                 cell.Unrealize();
@@ -34,6 +45,7 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
                 panel.Children.Add(cell);
 
                 Assert.IsType<Border>(cell.ContentTemplate!.Build(secondModel.Value));
+                Assert.IsType<CheckBox>(cell.EditingTemplate!.Build(secondModel.Value));
             }
             finally
             {
