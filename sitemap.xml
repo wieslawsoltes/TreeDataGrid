@@ -1,19 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/samples</loc>
+    <lastmod>2026-08-07</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/get-started-flat</loc>
+    <lastmod>2026-08-07</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid</loc>
+    <lastmod>2026-08-07</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/license</loc>
+    <lastmod>2026-08-07</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/expand-and-collapse</loc>
+    <lastmod>2026-08-07</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles</loc>
+    <lastmod>2026-08-07</lastmod>
+  </url>
+  <url>
     <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/intro</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/advanced/custom-element-factory</loc>
-    <lastmod>2026-08-07</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/build-and-package</loc>
-    <lastmod>2026-08-07</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/advanced/accessibility-and-ui-automation</loc>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/filtering</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
@@ -25,23 +41,19 @@
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/installation</loc>
-    <lastmod>2026-08-07</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles</loc>
-    <lastmod>2026-08-07</lastmod>
-  </url>
-  <url>
     <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/sorting</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/samples</loc>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/advanced/custom-element-factory</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid</loc>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/advanced/custom-rows-columns-pipeline</loc>
+    <lastmod>2026-08-07</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/breaking-changes-v12</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
@@ -49,7 +61,7 @@
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/advanced/performance-virtualization-and-realization</loc>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/advanced</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
@@ -57,11 +69,11 @@
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/advanced</loc>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/advanced/accessibility-and-ui-automation</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/license</loc>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/advanced/selection-internals-and-batch-update</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
@@ -69,11 +81,11 @@
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/getting-started/installation</loc>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/build-and-package</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/getting-started/overview</loc>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/getting-started/installation</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
@@ -81,15 +93,19 @@
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/getting-started/overview</loc>
+    <lastmod>2026-08-07</lastmod>
+  </url>
+  <url>
     <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/getting-started/quickstart-hierarchical</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/getting-started</loc>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/concepts/architecture-and-data-flow</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/concepts/architecture-and-data-flow</loc>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/concepts/glossary</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
@@ -101,27 +117,15 @@
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/concepts/glossary</loc>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/getting-started</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/column-types</loc>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/concepts</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/get-started-flat</loc>
-    <lastmod>2026-08-07</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/xaml/overview</loc>
-    <lastmod>2026-08-07</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/xaml</loc>
-    <lastmod>2026-08-07</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/xaml/control-theme-overrides-basedon</loc>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/concepts/selection-models</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
@@ -129,15 +133,23 @@
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/xaml/control-theme-overrides-basedon</loc>
+    <lastmod>2026-08-07</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/xaml/overview</loc>
+    <lastmod>2026-08-07</lastmod>
+  </url>
+  <url>
     <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/xaml/samples-walkthrough</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/xaml/template-resource-keys-from-model</loc>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/xaml/theme-customization</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/xaml/theme-customization</loc>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/xaml/template-resource-keys-from-model</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
@@ -153,15 +165,19 @@
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/get-started-hierarchical</loc>
+    <lastmod>2026-08-07</lastmod>
+  </url>
+  <url>
     <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/reference/lunet-docs-pipeline</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/reference/namespace-automation-peers</loc>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/reference/namespace-converters-and-models</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/reference/namespace-converters-and-models</loc>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/reference/namespace-automation-peers</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
@@ -177,11 +193,11 @@
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/reference/namespace-experimental-data-core</loc>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/reference/namespace-experimental</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/reference/namespace-experimental</loc>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/reference/namespace-experimental-data-core</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
@@ -189,19 +205,19 @@
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/expand-and-collapse</loc>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/installation</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/reference/api-coverage-index</loc>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/reference/namespace-models</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/concepts/selection-models</loc>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/reference/namespace-models-treedatagrid</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/reference/namespace-primitives</loc>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/reference/namespace-selection</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
@@ -210,10 +226,6 @@
   </url>
   <url>
     <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/reference</loc>
-    <lastmod>2026-08-07</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/reference/namespace-selection</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
@@ -233,15 +245,23 @@
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/guides/drag-and-drop-rows</loc>
-    <lastmod>2026-08-07</lastmod>
-  </url>
-  <url>
     <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/guides/events-and-user-interaction</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
     <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/guides/editing-and-begin-edit-gestures</loc>
+    <lastmod>2026-08-07</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/guides/drag-and-drop-rows</loc>
+    <lastmod>2026-08-07</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/reference/api-coverage-index</loc>
+    <lastmod>2026-08-07</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/column-types</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
@@ -253,19 +273,7 @@
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/guides/selection-row</loc>
-    <lastmod>2026-08-07</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/guides/selection-cell</loc>
-    <lastmod>2026-08-07</lastmod>
-  </url>
-  <url>
     <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/guides/sorting-and-column-widths</loc>
-    <lastmod>2026-08-07</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/guides/sources-hierarchical</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
@@ -273,39 +281,7 @@
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/guides/templates-and-styling</loc>
-    <lastmod>2026-08-07</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/concepts</loc>
-    <lastmod>2026-08-07</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/advanced/selection-internals-and-batch-update</loc>
-    <lastmod>2026-08-07</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/guides/working-with-itemssourceview</loc>
-    <lastmod>2026-08-07</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/reference/namespace-models-treedatagrid</loc>
-    <lastmod>2026-08-07</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/guides/validation-snippets</loc>
-    <lastmod>2026-08-07</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/filtering</loc>
-    <lastmod>2026-08-07</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/get-started-hierarchical</loc>
-    <lastmod>2026-08-07</lastmod>
-  </url>
-  <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/reference/namespace-models</loc>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/guides/sources-hierarchical</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
@@ -313,11 +289,35 @@
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/advanced/custom-rows-columns-pipeline</loc>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/guides/templates-and-styling</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
   <url>
-    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/breaking-changes-v12</loc>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/guides/validation-snippets</loc>
+    <lastmod>2026-08-07</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/xaml</loc>
+    <lastmod>2026-08-07</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/guides/working-with-itemssourceview</loc>
+    <lastmod>2026-08-07</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/guides/selection-row</loc>
+    <lastmod>2026-08-07</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/reference/namespace-primitives</loc>
+    <lastmod>2026-08-07</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/advanced/performance-virtualization-and-realization</loc>
+    <lastmod>2026-08-07</lastmod>
+  </url>
+  <url>
+    <loc>https://wieslawsoltes.github.io/TreeDataGrid/TreeDataGrid/articles/guides/selection-cell</loc>
     <lastmod>2026-08-07</lastmod>
   </url>
 </urlset>
