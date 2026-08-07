@@ -1,0 +1,91 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:TreeDataGridDemo.Models"
+             xmlns:vm="using:TreeDataGridDemo.ViewModels"
+             x:Class="TreeDataGridDemo.Views.FindDisplayedRowIndexPage"
+             x:CompileBindings="True"
+             x:DataType="vm:CountriesPageViewModel">
+  <Grid Margin="8"
+        RowDefinitions="Auto,*"
+        ColumnDefinitions="260,*">
+    <StackPanel Grid.ColumnSpan="2"
+                Margin="0 0 0 8"
+                Spacing="6">
+      <TextBlock Text="Select a country from the complete model list. The grid finds and brings its current displayed row into view after filtering or sorting."
+                 TextWrapping="Wrap"/>
+      <Grid ColumnDefinitions="Auto,260,Auto"
+            ColumnSpacing="8">
+        <Label Target="displayedRowFilterTextBox"
+               VerticalAlignment="Center">
+          _Filter
+        </Label>
+        <TextBox Name="displayedRowFilterTextBox"
+                 Grid.Column="1"
+                 PlaceholderText="Filter by country or region"
+                 Text="{CompiledBinding FilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        <Button Grid.Column="2"
+                Click="ClearSortClick">
+          Clear sort
+        </Button>
+      </Grid>
+      <TextBlock Text="Click a sortable column header to reorder the displayed rows."
+                 Opacity="0.7"/>
+    </StackPanel>
+
+    <Border Grid.Row="1"
+            Margin="0 0 8 0"
+            Padding="4"
+            BorderBrush="{DynamicResource ThemeBorderLowBrush}"
+            BorderThickness="1"
+            CornerRadius="4">
+      <DockPanel>
+        <TextBlock DockPanel.Dock="Top"
+                   Margin="4"
+                   FontWeight="SemiBold"
+                   Text="All country models"/>
+        <ListBox Name="displayedRowCountryList"
+                 ItemsSource="{CompiledBinding Source.Items}"
+                 SelectionChanged="CountrySelectionChanged">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="m:Country">
+              <StackPanel Margin="4 2">
+                <TextBlock Text="{CompiledBinding Name}"/>
+                <TextBlock FontSize="11"
+                           Opacity="0.65"
+                           Text="{CompiledBinding Region}"/>
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+    </Border>
+
+    <DockPanel Grid.Row="1"
+               Grid.Column="1">
+      <TextBlock Name="displayedRowStatus"
+                 DockPanel.Dock="Bottom"
+                 Margin="4 8 4 0"
+                 Text="Select a country to find its displayed row."
+                 TextWrapping="Wrap"/>
+      <TreeDataGrid Name="displayedRowGrid"
+                    Source="{CompiledBinding Source}">
+        <TreeDataGrid.Resources>
+          <DataTemplate x:Key="RegionCell"
+                        x:DataType="m:Country">
+            <TextBlock Text="{CompiledBinding Region}"/>
+          </DataTemplate>
+          <DataTemplate x:Key="RegionEditCell"
+                        x:DataType="m:Country">
+            <ComboBox ItemsSource="{x:Static m:Countries.Regions}"
+                      SelectedItem="{CompiledBinding Region}"/>
+          </DataTemplate>
+        </TreeDataGrid.Resources>
+        <TreeDataGrid.Styles>
+          <Style Selector="TreeDataGrid TreeDataGridRow:nth-last-child(2n)">
+            <Setter Property="Background" Value="#20808080"/>
+          </Style>
+        </TreeDataGrid.Styles>
+      </TreeDataGrid>
+    </DockPanel>
+  </Grid>
+</UserControl>

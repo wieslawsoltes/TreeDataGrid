@@ -112,6 +112,9 @@
         </TreeDataGrid>
       </DockPanel>
     </TabItem>
+    <TabItem Header="Find Displayed Row">
+      <views:FindDisplayedRowIndexPage DataContext="{Binding FindDisplayedRowIndex}"/>
+    </TabItem>
     <TabItem Header="BringIntoView (Non-uniform rows)">
       <Grid RowDefinitions="30*,70*">
         <ListBox ItemsSource="{Binding BringIntoViewNonUniformRows.Source.Items}"
