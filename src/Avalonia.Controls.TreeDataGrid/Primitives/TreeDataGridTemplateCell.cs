@@ -98,7 +98,9 @@ namespace Avalonia.Controls.Primitives
         {
             base.OnAttachedToLogicalTree(e);
 
-            if (ContentTemplate is null && DataContext is TemplateCell cell)
+            // A detached cell can be recycled into a different template column while retaining
+            // its previous ContentTemplate, so always resolve the current model's templates here.
+            if (DataContext is TemplateCell cell)
             {
                 SetCellTemplate(cell.GetCellTemplate(this));
                 EditingTemplate = cell.GetCellEditingTemplate?.Invoke(this);
