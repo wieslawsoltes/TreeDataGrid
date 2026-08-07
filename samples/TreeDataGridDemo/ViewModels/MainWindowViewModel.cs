@@ -3,6 +3,7 @@
     internal class MainWindowViewModel
     {
         private CountriesPageViewModel? _countries;
+        private CountriesPageViewModel? _findDisplayedRowIndex;
         private CountriesPageViewModel? _bringIntoViewNonUniformRows;
         private FilesPageViewModel? _files;
         private WikipediaPageViewModel? _wikipedia;
@@ -13,6 +14,11 @@
         public CountriesPageViewModel Countries
         {
             get => _countries ??= new CountriesPageViewModel();
+        }
+
+        public CountriesPageViewModel FindDisplayedRowIndex
+        {
+            get => _findDisplayedRowIndex ??= new CountriesPageViewModel();
         }
 
         public CountriesPageViewModel BringIntoViewNonUniformRows

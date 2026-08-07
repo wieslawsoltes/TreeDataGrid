@@ -60,7 +60,7 @@
         </TreeDataGrid>
       </DockPanel>
     </TabItem>
-    <TabItem Header="Countries">
+    <TabItem Header="Countries" IsSelected="True">
       <DockPanel>
         <TextBlock Classes="realized-count" DockPanel.Dock="Bottom"/>
         <StackPanel DockPanel.Dock="Right" Spacing="4" Margin="4 0 0 0">
@@ -111,6 +111,9 @@
           </TreeDataGrid.Styles>
         </TreeDataGrid>
       </DockPanel>
+    </TabItem>
+    <TabItem Header="Find Displayed Row">
+      <views:FindDisplayedRowIndexPage DataContext="{Binding FindDisplayedRowIndex}"/>
     </TabItem>
     <TabItem Header="BringIntoView (Non-uniform rows)">
       <Grid RowDefinitions="30*,70*">

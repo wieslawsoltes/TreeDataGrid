@@ -8,6 +8,7 @@ using Avalonia.LogicalTree;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using TreeDataGridDemo.Internal.TreeDataGrid;
 using TreeDataGridDemo.Models;
 using TreeDataGridDemo.ViewModels;
 
@@ -167,20 +168,7 @@ namespace TreeDataGridDemo
                 var source = treeDataGrid.Source;
                 if (item is null || source is null)
                     return;
-                static int FindDisplayedRowIndex(
-                    ITreeDataGridSource source,
-                    object item)
-                {
-                    for (var i = 0; i < source.Rows.Count; i++)
-                    {
-                        if (ReferenceEquals(source.Rows[i].Model, item))
-                            return i;
-                    }
-
-                    return -1;
-                }
-
-                var rowIndex = FindDisplayedRowIndex(source, item);
+                var rowIndex = source.FindDisplayedRowIndex(item);
 
                 Dispatcher.UIThread.Post(() =>
                 {
