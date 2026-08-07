@@ -4,12 +4,16 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:m="using:TreeDataGridDemo.Models"
         xmlns:vm="using:TreeDataGridDemo.ViewModels"
+        xmlns:views="using:TreeDataGridDemo.Views"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="TreeDataGridDemo.MainWindow"
         x:CompileBindings="True"
         x:DataType="vm:MainWindowViewModel"
         Title="TreeDataGridDemo">
   <TabControl Name="tabs">
+    <TabItem Header="Template Column Reuse">
+      <views:TemplateColumnBugPage DataContext="{Binding TemplateColumnBug}"/>
+    </TabItem>
     <TabItem Header="People (v12 XAML)">
       <DockPanel>
         <TextBlock Name="peopleSelectionText"
