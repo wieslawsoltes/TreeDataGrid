@@ -8,6 +8,7 @@
         private WikipediaPageViewModel? _wikipedia;
         private DragDropPageViewModel? _dragDrop;
         private PeopleXamlPageViewModel? _peopleXaml;
+        private TemplateColumnBugPageViewModel? _templateColumnBug;
 
         public CountriesPageViewModel Countries
         {
@@ -22,6 +23,11 @@
         public PeopleXamlPageViewModel PeopleXaml
         {
             get => _peopleXaml ??= new PeopleXamlPageViewModel();
+        }
+
+        public TemplateColumnBugPageViewModel TemplateColumnBug
+        {
+            get => _templateColumnBug ??= new TemplateColumnBugPageViewModel();
         }
 
         public FilesPageViewModel Files
