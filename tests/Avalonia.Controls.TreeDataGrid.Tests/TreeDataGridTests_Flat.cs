@@ -169,6 +169,45 @@ namespace Avalonia.Controls.TreeDataGridTests
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void Collection_Edit_Preserves_Row_Cell_Controls_And_Models_With_Their_Item()
+        {
+            var (target, items) = CreateTarget();
+            var retainedItem = items[5];
+            var retainedRow = Assert.IsType<TreeDataGridRow>(target.RowsPresenter!.TryGetElement(5));
+            var retainedCells = retainedRow.CellsPresenter!.RealizedElements
+                .Cast<TreeDataGridCell>()
+                .ToList();
+            var retainedCellModels = retainedCells.Select(x => x.Model).ToList();
+
+            Assert.Equal(2, retainedCells.Count);
+
+            items.Insert(2, new Model { Id = -1, Title = "Inserted" });
+            Layout(target);
+
+            AssertRetainedRowAndCells(6);
+
+            items.RemoveAt(2);
+            Layout(target);
+
+            AssertRetainedRowAndCells(5);
+
+            void AssertRetainedRowAndCells(int rowIndex)
+            {
+                var row = Assert.IsType<TreeDataGridRow>(target.RowsPresenter.TryGetElement(rowIndex));
+                Assert.Same(retainedItem, items[rowIndex]);
+                Assert.Same(retainedRow, row);
+                Assert.Same(retainedItem, row.DataContext);
+                Assert.Equal(retainedCells, row.CellsPresenter!.RealizedElements);
+
+                foreach (var (cell, model) in retainedCells.Zip(retainedCellModels))
+                {
+                    Assert.Equal(rowIndex, cell.RowIndex);
+                    Assert.Same(model, cell.Model);
+                }
+            }
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void Should_Subscribe_To_Models_For_Initial_Rows()
         {
             var (target, items) = CreateTarget();
