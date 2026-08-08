@@ -129,6 +129,58 @@ namespace Avalonia.Controls.TreeDataGridTests
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void Collection_Edit_Preserves_Expanded_Row_And_Expander_Cell_With_Their_Model()
+        {
+            var (target, source) = CreateTarget();
+            var rootItems = (AvaloniaList<Model>)source.Items;
+            var retainedItem = rootItems[0];
+
+            source.Expand(0);
+            Layout(target);
+
+            var retainedRow = Assert.IsType<TreeDataGridRow>(target.TryGetRow(0));
+            var retainedExpander = Assert.IsType<TreeDataGridExpanderCell>(retainedRow.TryGetCell(0));
+            var retainedCellModel = Assert.IsAssignableFrom<IExpanderCell>(retainedExpander.Model);
+
+            Assert.True(retainedExpander.ShowExpander);
+            Assert.True(retainedExpander.IsExpanded);
+
+            rootItems.Insert(0, new Model { Id = -1, Title = "Inserted" });
+            Layout(target);
+
+            AssertRetainedExpander(1, isExpanded: true);
+
+            retainedExpander.IsExpanded = false;
+            Layout(target);
+            AssertRetainedExpander(1, isExpanded: false);
+            Assert.False(retainedCellModel.IsExpanded);
+
+            retainedExpander.IsExpanded = true;
+            Layout(target);
+            AssertRetainedExpander(1, isExpanded: true);
+            Assert.True(retainedCellModel.IsExpanded);
+
+            rootItems.RemoveAt(0);
+            Layout(target);
+
+            AssertRetainedExpander(0, isExpanded: true);
+
+            void AssertRetainedExpander(int rowIndex, bool isExpanded)
+            {
+                var row = Assert.IsType<TreeDataGridRow>(target.TryGetRow(rowIndex));
+                var expander = Assert.IsType<TreeDataGridExpanderCell>(row.TryGetCell(0));
+                Assert.Same(retainedItem, source.Rows[rowIndex].Model);
+                Assert.Same(retainedRow, row);
+                Assert.Same(retainedItem, row.DataContext);
+                Assert.Same(retainedExpander, expander);
+                Assert.Same(retainedCellModel, expander.Model);
+                Assert.Equal(rowIndex, expander.RowIndex);
+                Assert.True(expander.ShowExpander);
+                Assert.Equal(isExpanded, expander.IsExpanded);
+            }
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void RowIndexes_Should_Be_Correct_After_Expanding_Node_While_Scrolled()
         {
             var (target, source) = CreateTarget();
