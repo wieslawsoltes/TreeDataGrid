@@ -184,6 +184,43 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void Buffered_Rows_Remain_Attached_When_Realized_Count_Shrinks_And_Grows()
+        {
+            var (target, _, _) = CreateTarget(cacheLength: 0.5);
+            var rows = target.RealizedElements.Cast<TreeDataGridRow>().ToHashSet();
+            var logicalAttaches = 0;
+            var logicalDetaches = 0;
+            var visualAttaches = 0;
+            var visualDetaches = 0;
+
+            Assert.Equal(20, rows.Count);
+
+            foreach (var row in rows)
+            {
+                row.AttachedToLogicalTree += (_, _) => ++logicalAttaches;
+                row.DetachedFromLogicalTree += (_, _) => ++logicalDetaches;
+                row.AttachedToVisualTree += (_, _) => ++visualAttaches;
+                row.DetachedFromVisualTree += (_, _) => ++visualDetaches;
+            }
+
+            target.CacheLength = 0;
+            target.UpdateLayout();
+
+            Assert.Equal(10, target.RealizedElements.Count);
+            AssertRecyclable(target, 10);
+
+            target.CacheLength = 0.5;
+            target.UpdateLayout();
+
+            Assert.Equal(rows, target.RealizedElements.Cast<TreeDataGridRow>().ToHashSet());
+            Assert.Equal(0, logicalAttaches);
+            Assert.Equal(0, logicalDetaches);
+            Assert.Equal(0, visualAttaches);
+            Assert.Equal(0, visualDetaches);
+            AssertRecyclable(target, 0);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void Small_Scrolls_Within_Realized_Rows_Do_Not_Repeat_Measure()
         {
             var presenter = new CountingRowsPresenter();

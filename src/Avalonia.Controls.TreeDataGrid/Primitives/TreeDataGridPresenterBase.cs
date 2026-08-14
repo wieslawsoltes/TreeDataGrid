@@ -357,6 +357,10 @@ namespace Avalonia.Controls.Primitives
         protected abstract void UpdateElementIndex(Control element, int oldIndex, int newIndex);
         protected abstract void UnrealizeElement(Control element);
 
+        protected virtual void FinalizeRecycledElement(Control element)
+        {
+        }
+
         protected virtual double CalculateSizeU(Size availableSize)
         {
             if (Items is null)
@@ -1000,33 +1004,55 @@ namespace Avalonia.Controls.Primitives
             if (_retainedRecycledElementCount == 0)
                 return;
 
+            var itemCount = Items?.Count ?? 0;
             var children = VisualChildren;
 
-            for (var i = children.Count - 1; i >= 0; --i)
+            foreach (var child in LogicalChildren)
             {
-                var child = children[i];
-
-                if (!child.IsVisible)
-                {
-                    children.RemoveAt(i);
-                }
+                if (child is Control { IsVisible: false } control)
+                    FinalizeRecycledElement(control);
             }
 
+            // Keep normally recycled controls parented and hidden so that a later layout pass can
+            // reuse them without reattaching their logical trees and reapplying styles. Only trim
+            // the pool when it can no longer correspond to the source collection.
             var logicalChildren = LogicalChildren;
-            for (var i = logicalChildren.Count - 1; i >= 0; --i)
+            var trimVisualChildren = children.Count > itemCount;
+            var trimLogicalChildren = logicalChildren.Count > itemCount;
+
+            if (!trimVisualChildren && !trimLogicalChildren)
+                return;
+
+            if (trimVisualChildren)
             {
-                var child = logicalChildren[i];
-
-                if (child is Visual { IsVisible: false })
+                for (var i = children.Count - 1; i >= 0; --i)
                 {
-                    logicalChildren.RemoveAt(i);
+                    var child = children[i];
 
-                    if (ReferenceEquals(child.LogicalParent, this))
-                        ((ISetLogicalParent)child).SetParent(null);
+                    if (!child.IsVisible)
+                        children.RemoveAt(i);
                 }
             }
 
-            _retainedRecycledElementCount = 0;
+            if (trimLogicalChildren)
+            {
+                for (var i = logicalChildren.Count - 1; i >= 0; --i)
+                {
+                    var child = logicalChildren[i];
+
+                    if (child is Visual { IsVisible: false })
+                    {
+                        logicalChildren.RemoveAt(i);
+
+                        if (ReferenceEquals(child.LogicalParent, this))
+                            ((ISetLogicalParent)child).SetParent(null);
+                    }
+                }
+            }
+
+            _retainedRecycledElementCount = logicalChildren
+                .OfType<Control>()
+                .Count(x => !x.IsVisible && ReferenceEquals(x.Parent, this));
         }
 
         private void OnItemsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)

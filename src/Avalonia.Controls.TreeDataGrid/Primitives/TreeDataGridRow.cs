@@ -114,6 +114,11 @@ namespace Avalonia.Controls.Primitives
             CellsPresenter?.Unrealize();
         }
 
+        internal void FinalizeUnrealize()
+        {
+            CellsPresenter?.FinalizeUnrealize();
+        }
+
         protected override AutomationPeer OnCreateAutomationPeer()
         {
             return new TreeDataGridRowAutomationPeer(this);

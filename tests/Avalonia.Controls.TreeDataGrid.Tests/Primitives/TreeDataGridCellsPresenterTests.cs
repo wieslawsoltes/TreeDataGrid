@@ -153,6 +153,48 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
         }
 
         [AvaloniaFact(Timeout = 10000)]
+        public void Deferred_Row_Cells_Are_Recycled_Without_Tree_Reattachment_When_Finalized()
+        {
+            var (target, _) = CreateTarget(rowCount: 2);
+            var cells = target.RealizedElements.Cast<TreeDataGridCell>().ToHashSet();
+            var logicalAttaches = 0;
+            var logicalDetaches = 0;
+            var visualAttaches = 0;
+            var visualDetaches = 0;
+
+            foreach (var cell in cells)
+            {
+                cell.AttachedToLogicalTree += (_, _) => ++logicalAttaches;
+                cell.DetachedFromLogicalTree += (_, _) => ++logicalDetaches;
+                cell.AttachedToVisualTree += (_, _) => ++visualAttaches;
+                cell.DetachedFromVisualTree += (_, _) => ++visualDetaches;
+            }
+
+            target.Unrealize();
+            target.FinalizeUnrealize();
+
+            Assert.Empty(target.RealizedElements);
+            Assert.All(cells, cell =>
+            {
+                Assert.Equal(-1, cell.ColumnIndex);
+                Assert.Equal(-1, cell.RowIndex);
+                Assert.Null(cell.Model);
+                Assert.False(cell.IsVisible);
+                Assert.Contains(cell, target.GetLogicalChildren());
+                Assert.Contains(cell, target.GetVisualChildren());
+            });
+
+            target.Realize(1);
+            Layout(target);
+
+            Assert.Equal(cells, target.RealizedElements.Cast<TreeDataGridCell>().ToHashSet());
+            Assert.Equal(0, logicalAttaches);
+            Assert.Equal(0, logicalDetaches);
+            Assert.Equal(0, visualAttaches);
+            Assert.Equal(0, visualDetaches);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
         public void Deferred_Row_Cells_Are_Recycled_When_Presenter_Detaches()
         {
             var (target, scroll) = CreateTarget(rowCount: 2);
