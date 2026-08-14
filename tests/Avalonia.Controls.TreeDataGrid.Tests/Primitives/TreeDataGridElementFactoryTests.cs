@@ -65,6 +65,16 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
             GC.KeepAlive(factory);
         }
 
+        [Fact]
+        public void CanReuseElement_Uses_The_Factorys_Recycle_Keys()
+        {
+            var target = new KeyedElementFactory();
+            var element = new Border { Tag = "group" };
+
+            Assert.True(target.CanReuseElement(element, "group"));
+            Assert.False(target.CanReuseElement(element, "leaf"));
+        }
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static (TestElementFactory Factory, WeakReference Element) CreateUnreferencedCheckedOutElement()
         {
@@ -91,6 +101,13 @@ namespace Avalonia.Controls.TreeDataGridTests.Primitives
             protected override string GetDataRecycleKey(object? data) => "element";
 
             protected override string GetElementRecycleKey(Control element) => "element";
+        }
+
+        private sealed class KeyedElementFactory : TreeDataGridElementFactory
+        {
+            protected override string GetDataRecycleKey(object? data) => (string)data!;
+
+            protected override string GetElementRecycleKey(Control element) => (string)element.Tag!;
         }
     }
 }

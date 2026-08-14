@@ -39,6 +39,19 @@ namespace Avalonia.Controls.Primitives
             pool.Add(element);
         }
 
+        /// <summary>
+        /// Determines whether an existing element can be reused for the supplied data without
+        /// returning it to this factory's recycle pool.
+        /// </summary>
+        /// <remarks>
+        /// This is useful for controls which retain a realized child in the visual tree while
+        /// changing its model, avoiding a detach and subsequent style reapplication.
+        /// </remarks>
+        public bool CanReuseElement(Control element, object? data)
+        {
+            return GetElementRecycleKey(element) == GetDataRecycleKey(data);
+        }
+
         protected virtual Control CreateElement(object? data)
         {
             return data switch
