@@ -88,6 +88,7 @@ namespace Avalonia.Controls.Primitives
             RowIndex = rowIndex;
             UpdateSelection(selection);
             CellsPresenter?.Realize(rowIndex);
+            OnRealized(rowIndex);
             _treeDataGrid?.RaiseRowPrepared(this, RowIndex);
         }
 
@@ -101,17 +102,49 @@ namespace Avalonia.Controls.Primitives
             if (RowIndex == -1)
                 throw new InvalidOperationException("Row is not realized.");
 
+            var oldIndex = RowIndex;
             RowIndex = index;
             CellsPresenter?.UpdateRowIndex(index);
+            OnRowIndexChanged(oldIndex, index);
         }
 
         public void Unrealize()
         {
             _treeDataGrid?.RaiseRowClearing(this, RowIndex);
+            OnUnrealizing(RowIndex, TreeDataGridRowUnrealizeReason.Recycle);
             RowIndex = -1;
             DataContext = null;
             IsSelected = false;
             CellsPresenter?.Unrealize();
+        }
+
+        /// <summary>
+        /// Called after this row has been realized and its primary cells presenter has been
+        /// updated.
+        /// </summary>
+        /// <param name="rowIndex">The realized row index.</param>
+        protected virtual void OnRealized(int rowIndex)
+        {
+        }
+
+        /// <summary>
+        /// Called after the index of this realized row and its primary cells has changed.
+        /// </summary>
+        /// <param name="oldRowIndex">The previous row index.</param>
+        /// <param name="newRowIndex">The new row index.</param>
+        protected virtual void OnRowIndexChanged(int oldRowIndex, int newRowIndex)
+        {
+        }
+
+        /// <summary>
+        /// Called before this row and its primary cells presenter are unrealized.
+        /// </summary>
+        /// <param name="rowIndex">The row index that is about to be cleared.</param>
+        /// <param name="reason">The reason the row is being unrealized.</param>
+        protected virtual void OnUnrealizing(
+            int rowIndex,
+            TreeDataGridRowUnrealizeReason reason)
+        {
         }
 
         internal void FinalizeUnrealize()
@@ -226,6 +259,7 @@ namespace Avalonia.Controls.Primitives
         public void UnrealizeOnItemRemoved()
         {
             _treeDataGrid?.RaiseRowClearing(this, RowIndex);
+            OnUnrealizing(RowIndex, TreeDataGridRowUnrealizeReason.ItemRemoved);
             RowIndex = -1;
             DataContext = null;
             IsSelected = false;
