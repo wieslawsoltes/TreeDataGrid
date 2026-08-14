@@ -108,6 +108,11 @@ namespace Avalonia.Controls.Primitives
             ChildIndexChanged?.Invoke(this, new ChildIndexChangedEventArgs(element, ((TreeDataGridRow)element).RowIndex));
         }
 
+        protected override void FinalizeRecycledElement(Control element)
+        {
+            ((TreeDataGridRow)element).FinalizeUnrealize();
+        }
+
         protected override Size MeasureOverride(Size availableSize)
         {
             var batch = Columns as IColumnLayoutBatch;

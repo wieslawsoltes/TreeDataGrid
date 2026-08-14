@@ -172,6 +172,11 @@ namespace Avalonia.Controls.Primitives
                 preserveLogicalTreeMembership: true);
         }
 
+        internal void FinalizeUnrealize()
+        {
+            RecycleDeferredCells();
+        }
+
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
         {
             // If the owning row was not reused during the layout pass, release the deferred cell
