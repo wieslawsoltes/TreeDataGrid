@@ -298,7 +298,7 @@ namespace Avalonia.Controls
             var options = new HierarchicalExpanderColumnCreateOptions<TModel>();
             configure?.Invoke(options);
             var inner = innerColumn.CreateTyped<TModel>();
-            ApplyCommonOptions(inner.Options, options);
+            TreeDataGridColumnOptionsFactory.ApplyCommonOptions(inner.Options, options);
             inner.Header = header ?? inner.Header;
             source.Columns.Add(new HierarchicalExpanderColumn<TModel>(inner, childSelector, options.HasChildren, options.IsExpanded));
             return source;
@@ -312,8 +312,7 @@ namespace Avalonia.Controls
         {
             var options = new ColumnCreateOptions<TModel>();
             configure?.Invoke(options);
-            var internalOptions = new ColumnOptions<TModel>();
-            ApplyCommonOptions(internalOptions, options);
+            var internalOptions = TreeDataGridColumnOptionsFactory.CreateCommonOptions<TModel>(options);
             columns.Add(new TreeDataGridRowHeaderColumnInternal<TModel>(header, options.Width, internalOptions));
         }
 
@@ -328,19 +327,7 @@ namespace Avalonia.Controls
             configure?.Invoke(options);
             header ??= TreeDataGridExpressionHelper.TryGetMemberName(getter) ?? string.Empty;
 
-            var internalOptions = new TextColumnOptions<TModel>
-            {
-                IsTextSearchEnabled = options.IsTextSearchEnabled,
-                StringFormat = options.StringFormat,
-                TextAlignment = options.TextAlignment,
-                TextTrimming = options.TextTrimming,
-                TextWrapping = options.TextWrapping,
-            };
-
-            if (options.Culture is System.Globalization.CultureInfo culture)
-                internalOptions.Culture = culture;
-
-            ApplyCommonOptions(internalOptions, options);
+            var internalOptions = TreeDataGridColumnOptionsFactory.CreateTextOptions<TModel>(options);
 
             var setter = options.IsReadOnly ? null : TreeDataGridExpressionHelper.TryCreateSetter(getter);
             columns.Add(setter is null
@@ -359,8 +346,7 @@ namespace Avalonia.Controls
             configure?.Invoke(options);
             header ??= TreeDataGridExpressionHelper.TryGetMemberName(getter) ?? string.Empty;
 
-            var internalOptions = new CheckBoxColumnOptions<TModel>();
-            ApplyCommonOptions(internalOptions, options);
+            var internalOptions = TreeDataGridColumnOptionsFactory.CreateCheckBoxOptions<TModel>(options);
 
             var inferredSetter = options.IsReadOnly ? null : TreeDataGridExpressionHelper.TryCreateNonNullableSetter(getter);
             columns.Add(new CheckBoxColumn<TModel>(header, getter, inferredSetter, options.Width, internalOptions));
@@ -377,8 +363,7 @@ namespace Avalonia.Controls
             configure?.Invoke(options);
             header ??= TreeDataGridExpressionHelper.TryGetMemberName(getter) ?? string.Empty;
 
-            var internalOptions = new CheckBoxColumnOptions<TModel>();
-            ApplyCommonOptions(internalOptions, options);
+            var internalOptions = TreeDataGridColumnOptionsFactory.CreateCheckBoxOptions<TModel>(options);
 
             var setter = options.IsReadOnly ? null : TreeDataGridExpressionHelper.TryCreateSetter(getter);
             columns.Add(new CheckBoxColumn<TModel>(header, getter, setter, options.Width, internalOptions));
@@ -394,9 +379,9 @@ namespace Avalonia.Controls
         {
             var options = new TemplateColumnCreateOptions<TModel>();
             configure?.Invoke(options);
-            var internalOptions = new TemplateColumnOptions<TModel>();
-            ApplyCommonOptions(internalOptions, options);
-            internalOptions.TextSearchValueSelector = TreeDataGridBindingAccessor.TryCreateTextSelector<TModel>(options.TextSearchBinding);
+            var internalOptions = TreeDataGridColumnOptionsFactory.CreateTemplateOptions<TModel>(
+                options,
+                TreeDataGridBindingAccessor.TryCreateTextSelector<TModel>(options.TextSearchBinding));
             columns.Add(new TemplateColumn<TModel>(header, cellTemplate, cellEditingTemplate, options.Width, internalOptions));
         }
 
@@ -410,9 +395,9 @@ namespace Avalonia.Controls
         {
             var options = new TemplateColumnCreateOptions<TModel>();
             configure?.Invoke(options);
-            var internalOptions = new TemplateColumnOptions<TModel>();
-            ApplyCommonOptions(internalOptions, options);
-            internalOptions.TextSearchValueSelector = TreeDataGridBindingAccessor.TryCreateTextSelector<TModel>(options.TextSearchBinding);
+            var internalOptions = TreeDataGridColumnOptionsFactory.CreateTemplateOptions<TModel>(
+                options,
+                TreeDataGridBindingAccessor.TryCreateTextSelector<TModel>(options.TextSearchBinding));
             columns.Add(new TemplateColumn<TModel>(header, cellTemplateResourceKey, cellEditingTemplateResourceKey, options.Width, internalOptions));
         }
 
@@ -430,25 +415,13 @@ namespace Avalonia.Controls
             {
                 Width = options.Width,
             };
-            var internalOptions = new TextColumnOptions<TModel>();
-            ApplyCommonOptions(internalOptions, innerOptions);
+            var internalOptions = TreeDataGridColumnOptionsFactory.CreateTextOptions<TModel>(innerOptions);
             var setter = TreeDataGridExpressionHelper.TryCreateSetter(getter);
             var innerHeader = header ?? TreeDataGridExpressionHelper.TryGetMemberName(getter) ?? string.Empty;
             var inner = setter is null
                 ? new TextColumn<TModel, TValue>(innerHeader, getter, options.Width, internalOptions)
                 : new TextColumn<TModel, TValue>(innerHeader, getter, setter, options.Width, internalOptions);
             columns.Add(new HierarchicalExpanderColumn<TModel>(inner, childSelector, options.HasChildren, options.IsExpanded));
-        }
-
-        private static void ApplyCommonOptions<TModel>(ColumnOptions<TModel> target, ColumnCreateOptions source)
-        {
-            target.CanUserResizeColumn = source.CanUserResize;
-            target.CanUserSortColumn = source.CanUserSortColumn;
-            target.MinWidth = source.MinWidth;
-            target.MaxWidth = source.MaxWidth;
-            target.BeginEditGestures = source.BeginEditGestures;
-            target.CompareAscending = source.CompareAscending is null ? null : (a, b) => source.CompareAscending(a, b);
-            target.CompareDescending = source.CompareDescending is null ? null : (a, b) => source.CompareDescending(a, b);
         }
     }
 }

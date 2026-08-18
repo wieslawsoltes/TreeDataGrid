@@ -4,9 +4,20 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+#if TREE_DATAGRID_UNO
+using Uno.Controls;
+#else
 using Avalonia.Controls;
+#endif
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Selection
+
+#else
 
 namespace Avalonia.Controls.Selection
+
+#endif
 {
     /// <summary>
     /// Stores and manipulates the selection state of of items in a hierarchical data source.

@@ -1,4 +1,8 @@
-﻿namespace Avalonia.Controls.Models.TreeDataGrid
+﻿#if TREE_DATAGRID_UNO
+namespace Uno.Controls.Models.TreeDataGrid
+#else
+namespace Avalonia.Controls.Models.TreeDataGrid
+#endif
 {
     /// <summary>
     /// Represents a row from an integer indexed data source.

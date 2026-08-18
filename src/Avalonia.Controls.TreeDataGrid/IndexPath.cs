@@ -8,7 +8,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls
+
+#else
+
 namespace Avalonia.Controls
+
+#endif
 {
     public readonly struct IndexPath : IReadOnlyList<int>,
         IComparable<IndexPath>,

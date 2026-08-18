@@ -2,7 +2,15 @@
 using System.Linq.Expressions;
 using Avalonia.Experimental.Data;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Models.TreeDataGrid
+
+#else
+
 namespace Avalonia.Controls.Models.TreeDataGrid
+
+#endif
 {
     /// <summary>
     /// A column in an <see cref="ITreeDataGridSource"/> which displays a check box.

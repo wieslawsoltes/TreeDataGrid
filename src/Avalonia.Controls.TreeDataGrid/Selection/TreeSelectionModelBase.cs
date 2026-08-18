@@ -3,11 +3,22 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+#if TREE_DATAGRID_UNO
+using Uno.Controls;
+#else
 using Avalonia.Controls;
-
+#endif
 #nullable enable
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Selection
+
+#else
+
 namespace Avalonia.Controls.Selection
+
+#endif
 {
     public abstract class TreeSelectionModelBase<T> : ITreeSelectionModel, INotifyPropertyChanged
     {

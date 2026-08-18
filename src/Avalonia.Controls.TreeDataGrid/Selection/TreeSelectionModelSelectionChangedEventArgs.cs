@@ -2,7 +2,15 @@
 using System.Collections;
 using System.Collections.Generic;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Selection
+
+#else
+
 namespace Avalonia.Controls.Selection
+
+#endif
 {
     public abstract class TreeSelectionModelSelectionChangedEventArgs : EventArgs
     {

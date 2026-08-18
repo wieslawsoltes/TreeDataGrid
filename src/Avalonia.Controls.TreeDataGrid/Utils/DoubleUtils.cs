@@ -1,6 +1,14 @@
 using System;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Utils
+
+#else
+
 namespace Avalonia.Controls.Utils
+
+#endif
 {
     internal static class DoubleUtils
     {

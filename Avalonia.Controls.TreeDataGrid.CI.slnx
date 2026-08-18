@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/Build/">
+    <File Path="Directory.Build.props" />
+  </Folder>
+  <Folder Name="/Props/">
+    <File Path="build/SharedVersion.props" />
+    <File Path="build/SourceLink.props" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="tests/Avalonia.Controls.TreeDataGrid.Tests/Avalonia.Controls.TreeDataGrid.Tests.csproj" />
+    <Project Path="tests/TreeDataGrid.Uno.Tests/TreeDataGrid.Uno.Tests.csproj" />
+  </Folder>
+  <Project Path="src/Avalonia.Controls.TreeDataGrid/Avalonia.Controls.TreeDataGrid.csproj" />
+  <Project Path="src/TreeDataGrid.Uno/TreeDataGrid.Uno.csproj" />
+</Solution>

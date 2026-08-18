@@ -1,8 +1,20 @@
 ﻿using System;
+#if TREE_DATAGRID_UNO
+using Uno.Controls.Models.TreeDataGrid;
+#else
 using Avalonia.Controls.Models.TreeDataGrid;
+#endif
 using Avalonia.Input;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Selection
+
+#else
+
 namespace Avalonia.Controls.Selection
+
+#endif
 {
     /// <summary>
     /// Defines the interaction between a <see cref="TreeDataGrid"/> and an

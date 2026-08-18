@@ -2,11 +2,22 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+#if TREE_DATAGRID_UNO
+using Uno.Controls.Utils;
+#else
 using Avalonia.Controls.Utils;
-
+#endif
 #nullable enable
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Selection
+
+#else
+
 namespace Avalonia.Controls.Selection
+
+#endif
 {
     /// <summary>
     /// Base class for selection models.

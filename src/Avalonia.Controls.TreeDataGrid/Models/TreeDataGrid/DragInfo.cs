@@ -1,7 +1,15 @@
 ﻿using System.Collections.Generic;
 using Avalonia.Input;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Models.TreeDataGrid
+
+#else
+
 namespace Avalonia.Controls.Models.TreeDataGrid
+
+#endif
 {
     /// <summary>
     /// Holds information about an automatic row drag/drop operation carried out

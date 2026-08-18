@@ -1,0 +1,382 @@
+<Page
+    x:Class="TreeDataGridUnoActivityMonitor.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:views="using:TreeDataGridUnoActivityMonitor.Views"
+    Background="{StaticResource AppBackgroundBrush}">
+    <Grid Padding="18">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220" />
+            <ColumnDefinition Width="16" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="16" />
+            <ColumnDefinition Width="280" />
+        </Grid.ColumnDefinitions>
+
+        <Border
+            Grid.Column="0"
+            Background="{StaticResource PanelChromeBrush}"
+            BorderBrush="{StaticResource PanelBorderBrush}"
+            BorderThickness="1"
+            CornerRadius="{StaticResource PanelCornerRadius}"
+            Padding="18">
+            <Grid RowSpacing="18">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel>
+                    <TextBlock
+                        Foreground="{StaticResource PanelTextBrush}"
+                        FontFamily="SF Pro Display, Segoe UI Variable Display, Segoe UI"
+                        FontSize="30"
+                        FontWeight="SemiBold"
+                        Style="{StaticResource TwoLineEllipsisTextStyle}"
+                        Text="Activity Monitor" />
+                    <TextBlock
+                        Margin="0,4,0,0"
+                        Foreground="{StaticResource PanelTextSubtleBrush}"
+                        Style="{StaticResource ThreeLineEllipsisTextStyle}"
+                        Text="Uno TreeDataGrid sample with native macOS telemetry and a demo fallback." />
+                </StackPanel>
+
+                <Border
+                    Grid.Row="1"
+                    Background="#1AFFFFFF"
+                    BorderBrush="#33FFFFFF"
+                    BorderThickness="1"
+                    CornerRadius="18"
+                    Padding="14,12">
+                    <StackPanel Spacing="4">
+                        <TextBlock
+                            Foreground="{StaticResource PanelMutedBrush}"
+                            FontSize="11"
+                            Text="Host" />
+                        <TextBlock
+                            Foreground="{StaticResource PanelTextBrush}"
+                            FontSize="16"
+                            FontWeight="SemiBold"
+                            Style="{StaticResource SingleLineEllipsisTextStyle}"
+                            Text="{x:Bind ViewModel.HostName, Mode=OneWay}" />
+                        <TextBlock
+                            Foreground="{StaticResource PanelTextSubtleBrush}"
+                            FontSize="12"
+                            Style="{StaticResource TwoLineEllipsisTextStyle}"
+                            Text="{x:Bind ViewModel.PlatformLabel, Mode=OneWay}" />
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Grid.Row="2" Spacing="10">
+                    <ToggleButton
+                        Style="{StaticResource RailToggleButtonStyle}"
+                        Background="{x:Bind ViewModel.CpuSectionButtonBackground, Mode=OneWay}"
+                        BorderBrush="{x:Bind ViewModel.CpuSectionButtonBorderBrush, Mode=OneWay}"
+                        Click="CpuSectionClick"
+                        IsChecked="{x:Bind ViewModel.IsCpuSelected, Mode=OneWay}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Ellipse Width="10" Height="10" Fill="{StaticResource CpuAccentBrush}" VerticalAlignment="Center" />
+                            <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                                <TextBlock Foreground="{StaticResource PanelTextBrush}" FontWeight="SemiBold" Text="CPU" />
+                                <TextBlock Foreground="{StaticResource PanelTextSubtleBrush}" FontSize="11" Style="{StaticResource SingleLineEllipsisTextStyle}" Text="{x:Bind ViewModel.CpuSection.SummaryText, Mode=OneWay}" />
+                            </StackPanel>
+                        </Grid>
+                    </ToggleButton>
+
+                    <ToggleButton
+                        Style="{StaticResource RailToggleButtonStyle}"
+                        Background="{x:Bind ViewModel.MemorySectionButtonBackground, Mode=OneWay}"
+                        BorderBrush="{x:Bind ViewModel.MemorySectionButtonBorderBrush, Mode=OneWay}"
+                        Click="MemorySectionClick"
+                        IsChecked="{x:Bind ViewModel.IsMemorySelected, Mode=OneWay}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Ellipse Width="10" Height="10" Fill="{StaticResource MemoryAccentBrush}" VerticalAlignment="Center" />
+                            <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                                <TextBlock Foreground="{StaticResource PanelTextBrush}" FontWeight="SemiBold" Text="Memory" />
+                                <TextBlock Foreground="{StaticResource PanelTextSubtleBrush}" FontSize="11" Style="{StaticResource SingleLineEllipsisTextStyle}" Text="{x:Bind ViewModel.MemorySection.SummaryText, Mode=OneWay}" />
+                            </StackPanel>
+                        </Grid>
+                    </ToggleButton>
+
+                    <ToggleButton
+                        Style="{StaticResource RailToggleButtonStyle}"
+                        Background="{x:Bind ViewModel.EnergySectionButtonBackground, Mode=OneWay}"
+                        BorderBrush="{x:Bind ViewModel.EnergySectionButtonBorderBrush, Mode=OneWay}"
+                        Click="EnergySectionClick"
+                        IsChecked="{x:Bind ViewModel.IsEnergySelected, Mode=OneWay}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Ellipse Width="10" Height="10" Fill="{StaticResource EnergyAccentBrush}" VerticalAlignment="Center" />
+                            <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                                <TextBlock Foreground="{StaticResource PanelTextBrush}" FontWeight="SemiBold" Text="Energy" />
+                                <TextBlock Foreground="{StaticResource PanelTextSubtleBrush}" FontSize="11" Style="{StaticResource SingleLineEllipsisTextStyle}" Text="{x:Bind ViewModel.EnergySection.SummaryText, Mode=OneWay}" />
+                            </StackPanel>
+                        </Grid>
+                    </ToggleButton>
+
+                    <ToggleButton
+                        Style="{StaticResource RailToggleButtonStyle}"
+                        Background="{x:Bind ViewModel.DiskSectionButtonBackground, Mode=OneWay}"
+                        BorderBrush="{x:Bind ViewModel.DiskSectionButtonBorderBrush, Mode=OneWay}"
+                        Click="DiskSectionClick"
+                        IsChecked="{x:Bind ViewModel.IsDiskSelected, Mode=OneWay}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Ellipse Width="10" Height="10" Fill="{StaticResource DiskAccentBrush}" VerticalAlignment="Center" />
+                            <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                                <TextBlock Foreground="{StaticResource PanelTextBrush}" FontWeight="SemiBold" Text="Disk" />
+                                <TextBlock Foreground="{StaticResource PanelTextSubtleBrush}" FontSize="11" Style="{StaticResource SingleLineEllipsisTextStyle}" Text="{x:Bind ViewModel.DiskSection.SummaryText, Mode=OneWay}" />
+                            </StackPanel>
+                        </Grid>
+                    </ToggleButton>
+
+                    <ToggleButton
+                        Style="{StaticResource RailToggleButtonStyle}"
+                        Background="{x:Bind ViewModel.NetworkSectionButtonBackground, Mode=OneWay}"
+                        BorderBrush="{x:Bind ViewModel.NetworkSectionButtonBorderBrush, Mode=OneWay}"
+                        Click="NetworkSectionClick"
+                        IsChecked="{x:Bind ViewModel.IsNetworkSelected, Mode=OneWay}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Ellipse Width="10" Height="10" Fill="{StaticResource NetworkAccentBrush}" VerticalAlignment="Center" />
+                            <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                                <TextBlock Foreground="{StaticResource PanelTextBrush}" FontWeight="SemiBold" Text="Network" />
+                                <TextBlock Foreground="{StaticResource PanelTextSubtleBrush}" FontSize="11" Style="{StaticResource SingleLineEllipsisTextStyle}" Text="{x:Bind ViewModel.NetworkSection.SummaryText, Mode=OneWay}" />
+                            </StackPanel>
+                        </Grid>
+                    </ToggleButton>
+                </StackPanel>
+
+                <Border
+                    Grid.Row="3"
+                    Background="#12000000"
+                    BorderBrush="#22FFFFFF"
+                    BorderThickness="1"
+                    CornerRadius="18"
+                    Padding="14">
+                    <StackPanel Spacing="8">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Ellipse
+                                x:Name="liveDot"
+                                Width="8"
+                                Height="8"
+                                Fill="{x:Bind ViewModel.ModeAccentBrush, Mode=OneWay}"
+                                VerticalAlignment="Center" />
+                            <TextBlock
+                                Foreground="{StaticResource PanelTextBrush}"
+                                FontSize="12"
+                                FontWeight="SemiBold"
+                                Style="{StaticResource SingleLineEllipsisTextStyle}"
+                                Text="{x:Bind ViewModel.ModeLabel, Mode=OneWay}" />
+                        </StackPanel>
+                        <TextBlock
+                            Foreground="{StaticResource PanelTextSubtleBrush}"
+                            FontSize="12"
+                            Style="{StaticResource TwoLineEllipsisTextStyle}"
+                            Text="{x:Bind ViewModel.ModeDescription, Mode=OneWay}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Column="2" RowSpacing="16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Border
+                Background="{StaticResource PanelSurfaceBrush}"
+                BorderBrush="{StaticResource PanelBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="{StaticResource PanelCornerRadius}"
+                Padding="{StaticResource PanelPadding}">
+                <Grid ColumnSpacing="14">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource MetricCaptionTextStyle}" Text="CPU Load" />
+                        <TextBlock Foreground="{StaticResource PanelTextBrush}" FontSize="20" FontWeight="SemiBold" Text="{x:Bind ViewModel.CpuHeadline, Mode=OneWay}" />
+                        <TextBlock Foreground="{StaticResource PanelTextSubtleBrush}" FontSize="11" Style="{StaticResource SingleLineEllipsisTextStyle}" Text="{x:Bind ViewModel.CpuDetail, Mode=OneWay}" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Style="{StaticResource MetricCaptionTextStyle}" Text="Memory Pressure" />
+                        <TextBlock Foreground="{StaticResource PanelTextBrush}" FontSize="20" FontWeight="SemiBold" Text="{x:Bind ViewModel.MemoryHeadline, Mode=OneWay}" />
+                        <TextBlock Foreground="{StaticResource PanelTextSubtleBrush}" FontSize="11" Style="{StaticResource SingleLineEllipsisTextStyle}" Text="{x:Bind ViewModel.MemoryDetail, Mode=OneWay}" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Style="{StaticResource MetricCaptionTextStyle}" Text="Energy" />
+                        <TextBlock Foreground="{StaticResource PanelTextBrush}" FontSize="20" FontWeight="SemiBold" Text="{x:Bind ViewModel.EnergyHeadline, Mode=OneWay}" />
+                        <TextBlock Foreground="{StaticResource PanelTextSubtleBrush}" FontSize="11" Style="{StaticResource SingleLineEllipsisTextStyle}" Text="{x:Bind ViewModel.EnergyDetail, Mode=OneWay}" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="3">
+                        <TextBlock Style="{StaticResource MetricCaptionTextStyle}" Text="Disk" />
+                        <TextBlock Foreground="{StaticResource PanelTextBrush}" FontSize="20" FontWeight="SemiBold" Text="{x:Bind ViewModel.DiskHeadline, Mode=OneWay}" />
+                        <TextBlock Foreground="{StaticResource PanelTextSubtleBrush}" FontSize="11" Style="{StaticResource SingleLineEllipsisTextStyle}" Text="{x:Bind ViewModel.DiskDetail, Mode=OneWay}" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="4">
+                        <TextBlock Style="{StaticResource MetricCaptionTextStyle}" Text="Network" />
+                        <TextBlock Foreground="{StaticResource PanelTextBrush}" FontSize="20" FontWeight="SemiBold" Text="{x:Bind ViewModel.NetworkHeadline, Mode=OneWay}" />
+                        <TextBlock Foreground="{StaticResource PanelTextSubtleBrush}" FontSize="11" Style="{StaticResource SingleLineEllipsisTextStyle}" Text="{x:Bind ViewModel.NetworkDetail, Mode=OneWay}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Border
+                Grid.Row="1"
+                Background="{StaticResource PanelSurfaceBrush}"
+                BorderBrush="{StaticResource PanelBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="{StaticResource PanelCornerRadius}"
+                Padding="0">
+                <views:MetricSectionView Section="{x:Bind ViewModel.CurrentSection, Mode=OneWay}" />
+            </Border>
+        </Grid>
+
+        <Border
+            Grid.Column="4"
+            Background="{StaticResource PanelChromeBrush}"
+            BorderBrush="{StaticResource PanelBorderBrush}"
+            BorderThickness="1"
+            CornerRadius="{StaticResource PanelCornerRadius}"
+            Padding="18">
+            <Grid RowSpacing="16">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <StackPanel>
+                    <TextBlock
+                        Foreground="{StaticResource PanelMutedBrush}"
+                        FontSize="11"
+                        Text="Selection" />
+                    <TextBlock
+                        Foreground="{StaticResource PanelTextBrush}"
+                        FontSize="22"
+                        FontWeight="SemiBold"
+                        Style="{StaticResource SingleLineEllipsisTextStyle}"
+                        Text="{x:Bind ViewModel.CurrentSection.InspectorTitle, Mode=OneWay}" />
+                    <TextBlock
+                        Foreground="{StaticResource PanelTextSubtleBrush}"
+                        Style="{StaticResource SingleLineEllipsisTextStyle}"
+                        Text="{x:Bind ViewModel.CurrentSection.InspectorSubtitle, Mode=OneWay}" />
+                </StackPanel>
+
+                <Border
+                    Grid.Row="1"
+                    Background="#16000000"
+                    BorderBrush="#24FFFFFF"
+                    BorderThickness="1"
+                    CornerRadius="18"
+                    Padding="14">
+                    <StackPanel Spacing="6">
+                        <TextBlock Foreground="{StaticResource PanelMutedBrush}" FontSize="11" Text="Current Window" />
+                        <TextBlock Foreground="{StaticResource PanelTextBrush}" FontSize="18" FontWeight="SemiBold" Text="{x:Bind ViewModel.CurrentSection.CurrentValueText, Mode=OneWay}" />
+                        <TextBlock Foreground="{StaticResource PanelTextSubtleBrush}" FontSize="12" Style="{StaticResource TwoLineEllipsisTextStyle}" Text="{x:Bind ViewModel.CurrentSection.InsightText, Mode=OneWay}" />
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Grid.Row="2" Spacing="10">
+                    <TextBlock Foreground="{StaticResource PanelMutedBrush}" FontSize="11" Text="Inspector" />
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Foreground="{StaticResource PanelTextSubtleBrush}" Style="{StaticResource SingleLineEllipsisTextStyle}" Text="{x:Bind ViewModel.CurrentSection.InspectorPrimaryLabel, Mode=OneWay}" />
+                        <TextBlock Grid.Column="1" Foreground="{StaticResource PanelTextBrush}" FontWeight="SemiBold" Style="{StaticResource SingleLineEllipsisTextStyle}" Text="{x:Bind ViewModel.CurrentSection.InspectorPrimaryValue, Mode=OneWay}" TextAlignment="Right" />
+                    </Grid>
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Foreground="{StaticResource PanelTextSubtleBrush}" Style="{StaticResource SingleLineEllipsisTextStyle}" Text="{x:Bind ViewModel.CurrentSection.InspectorSecondaryLabel, Mode=OneWay}" />
+                        <TextBlock Grid.Column="1" Foreground="{StaticResource PanelTextBrush}" FontWeight="SemiBold" Style="{StaticResource SingleLineEllipsisTextStyle}" Text="{x:Bind ViewModel.CurrentSection.InspectorSecondaryValue, Mode=OneWay}" TextAlignment="Right" />
+                    </Grid>
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Foreground="{StaticResource PanelTextSubtleBrush}" Style="{StaticResource SingleLineEllipsisTextStyle}" Text="{x:Bind ViewModel.CurrentSection.InspectorTertiaryLabel, Mode=OneWay}" />
+                        <TextBlock Grid.Column="1" Foreground="{StaticResource PanelTextBrush}" FontWeight="SemiBold" Style="{StaticResource SingleLineEllipsisTextStyle}" Text="{x:Bind ViewModel.CurrentSection.InspectorTertiaryValue, Mode=OneWay}" TextAlignment="Right" />
+                    </Grid>
+                </StackPanel>
+
+                <Border
+                    Grid.Row="3"
+                    Background="#14000000"
+                    BorderBrush="#20FFFFFF"
+                    BorderThickness="1"
+                    CornerRadius="18"
+                    Padding="14">
+                    <StackPanel Spacing="4">
+                        <TextBlock Foreground="{StaticResource PanelMutedBrush}" FontSize="11" Text="Rows" />
+                        <TextBlock Foreground="{StaticResource PanelTextBrush}" FontSize="18" FontWeight="SemiBold" Text="{x:Bind ViewModel.CurrentSection.RowCountText, Mode=OneWay}" />
+                        <TextBlock Foreground="{StaticResource PanelTextSubtleBrush}" FontSize="12" Style="{StaticResource SingleLineEllipsisTextStyle}" Text="{x:Bind ViewModel.CurrentSection.SelectionStatusText, Mode=OneWay}" />
+                    </StackPanel>
+                </Border>
+
+                <Border
+                    Grid.Row="4"
+                    Background="#14000000"
+                    BorderBrush="#20FFFFFF"
+                    BorderThickness="1"
+                    CornerRadius="18"
+                    Padding="14">
+                    <StackPanel Spacing="4">
+                        <TextBlock Foreground="{StaticResource PanelMutedBrush}" FontSize="11" Text="Sample Refresh" />
+                        <TextBlock Foreground="{StaticResource PanelTextBrush}" FontSize="18" FontWeight="SemiBold" Text="{x:Bind ViewModel.TimestampLabel, Mode=OneWay}" />
+                        <TextBlock Foreground="{StaticResource PanelTextSubtleBrush}" FontSize="12" Style="{StaticResource SingleLineEllipsisTextStyle}" Text="{x:Bind ViewModel.TimestampDetail, Mode=OneWay}" />
+                    </StackPanel>
+                </Border>
+
+                <StackPanel
+                    Grid.Row="5"
+                    VerticalAlignment="Bottom"
+                    Spacing="8">
+                    <TextBlock Foreground="{StaticResource PanelMutedBrush}" FontSize="11" Text="Notes" />
+                    <TextBlock
+                        Foreground="{StaticResource PanelTextSubtleBrush}"
+                        Style="{StaticResource FiveLineEllipsisTextStyle}"
+                        Text="{x:Bind ViewModel.NotesText, Mode=OneWay}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Page>

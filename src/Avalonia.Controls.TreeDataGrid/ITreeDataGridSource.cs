@@ -1,11 +1,27 @@
-﻿using Avalonia.Controls.Models.TreeDataGrid;
+﻿#if TREE_DATAGRID_UNO
+using Uno.Controls.Models.TreeDataGrid;
+#else
+using Avalonia.Controls.Models.TreeDataGrid;
+#endif
+#if TREE_DATAGRID_UNO
+using Uno.Controls.Selection;
+#else
 using Avalonia.Controls.Selection;
+#endif
 using Avalonia.Input;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls
+
+#else
+
 namespace Avalonia.Controls
+
+#endif
 {
     /// <summary>
     /// Represents a data source for a <see cref="TreeDataGrid"/> control.

@@ -2,7 +2,15 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Models.TreeDataGrid
+
+#else
+
 namespace Avalonia.Controls.Models.TreeDataGrid
+
+#endif
 {
     /// <summary>
     /// Represents a collection of rows in an <see cref="ITreeDataGridSource"/>.

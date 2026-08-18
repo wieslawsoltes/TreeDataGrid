@@ -342,6 +342,7 @@ healthchecksdb
 # Documentation output
 /site/.lunet/build/
 /plan
+/pr-summary-uno-treedatagrid-port.md
 /.tmp-lunet-sample-articles
 /.tmp-lunet-sample-lite
 /.tmp-lunet-sample

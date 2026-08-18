@@ -2,7 +2,15 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls
+
+#else
+
 namespace Avalonia.Controls
+
+#endif
 {
     internal static class TreeDataGridExpressionHelper
     {

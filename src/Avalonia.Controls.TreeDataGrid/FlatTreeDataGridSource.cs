@@ -2,12 +2,32 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+#if TREE_DATAGRID_UNO
+using Uno.Controls.Models;
+#else
 using Avalonia.Controls.Models;
+#endif
+#if TREE_DATAGRID_UNO
+using Uno.Controls.Models.TreeDataGrid;
+#else
 using Avalonia.Controls.Models.TreeDataGrid;
+#endif
+#if TREE_DATAGRID_UNO
+using Uno.Controls.Selection;
+#else
 using Avalonia.Controls.Selection;
+#endif
 using Avalonia.Input;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls
+
+#else
+
 namespace Avalonia.Controls
+
+#endif
 {
     /// <summary>
     /// A data source for a <see cref="TreeDataGrid"/> which displays a flat grid.

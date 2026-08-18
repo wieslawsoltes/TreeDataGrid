@@ -2,7 +2,15 @@
 using System.Collections;
 using System.Collections.Generic;
 
+#if TREE_DATAGRID_UNO
+
+namespace Uno.Controls.Models
+
+#else
+
 namespace Avalonia.Controls.Models
+
+#endif
 {
     public abstract class ReadOnlyListBase<T> : IReadOnlyList<T>, IList
     {
