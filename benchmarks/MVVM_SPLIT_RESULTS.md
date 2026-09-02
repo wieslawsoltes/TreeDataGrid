@@ -1,5 +1,7 @@
 # MVVM split: Avalonia 11
 
+Historical split/adapter results. See [native Core correction results](NATIVE_CORE_RESULTS.md) for the primary API implementation.
+
 Measured sequentially on 2026-09-02, macOS ARM64, .NET 8.0.19, BenchmarkDotNet 0.15.8, Release, 5 warm-ups and 10 measured iterations. Baseline: `origin/release/11.x` at `b93f4ce0e69a501c8245b38fdc59ac6f11c0e739`. The existing virtualization workloads are unchanged; a parameter selects the new neutral source adapter. A creation-and-layout workload was added to both checkouts.
 
 | Workload | Original baseline | Split legacy API | Neutral source + adapter |

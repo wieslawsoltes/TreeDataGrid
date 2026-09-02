@@ -1,12 +1,14 @@
 # Framework-neutral models
 
-`TreeDataGrid.Core` contains the `TreeDataGridCore` namespaces and has no Avalonia dependency. The namespace intentionally differs from the package name: a top-level `TreeDataGrid` namespace would shadow the existing Avalonia control in consumers.
+`TreeDataGrid.Core` is the primary model API. It uses the `TreeDataGridCore` namespace and has no Avalonia dependency. The namespace differs from the package name so it does not shadow Avalonia's `TreeDataGrid` control.
 
-The existing `TreeDataGrid` package, assembly, namespaces, sources, columns, cell selection and control API remain available. Existing consumers can keep their source code. Binary compatibility is not promised; rebuild consumers. The legacy model implementation remains available during migration, with shared input handling. The opt-in adapter delegates to Core's row projection and selection; it does not build a second row source or selection engine.
+The control consumes Core rows directly. Each view owns its column layout, cell bindings and input handling. Core models are not converted into legacy sources, rows, columns or selection models. The earlier unpublished `TreeDataGridSourceAdapter` API has been removed.
+
+The existing `TreeDataGrid` package, assembly, source and column APIs remain available. Existing applications can continue to bind `Source`; the compatibility presentation connects those sources to the same renderer. Binary compatibility is broken, so rebuild consumers. Legacy sources retain their model behavior and share keyboard, pointer and search handling with Core.
 
 ## ViewModel
 
-Reference only `TreeDataGrid.Core` and use these namespaces:
+Reference only `TreeDataGrid.Core`:
 
 ```csharp
 using TreeDataGridCore;
@@ -22,39 +24,51 @@ public FlatTreeDataGridSource<Person> People { get; } = new(people)
 };
 ```
 
-Flat and hierarchical sources own items, stable sorting, row index paths, selection and expansion. Column definitions hold visibility, ordering, requested sizes, optional presentation keys, comparisons and value accessors. There is no new grouping engine: consumers such as VirtualGrid continue to own grouping and project their existing grouped rows.
+Flat and hierarchical sources own items, sorting, row index paths, selection and expansion. Columns contain visibility, order, requested sizes, presentation keys, comparisons and accessors. VirtualGrid retains its existing grouping, sorting and keyed selection engine and supplies its projected rows to a Core flat source with TreeDataGrid selection disabled.
 
-`HierarchicalExpanderColumn` accepts child, optional has-children and optional read/write expansion selectors. Bound expansion works before a view exists and responds to `INotifyPropertyChanged`. `Expand`, `Collapse`, recursive expansion and row selection also work without an Avalonia runtime.
+`ValueColumn<TModel, TValue>.FromDelegate` accepts an existing accessor without building or compiling an expression. Its default view binding observes `INotifyPropertyChanged` on the row model; expression-based columns also support observation through nested property paths. Generated consumers such as VirtualGrid can retain their compiled delegates.
 
-Core notifications run on the caller's thread. Serialize model updates; when presenting a source, marshal its changes to the UI thread in the application. The legacy API retains its existing dispatcher behavior.
+`HierarchicalExpanderColumn` accepts child, optional has-children and read/write expansion selectors. Bound expansion, `Expand`, `Collapse`, recursive expansion and row selection work without an Avalonia runtime. Core notifications run on the caller's thread. Serialize model updates and marshal changes to the UI thread while a source is displayed.
 
 ## View
 
-Reference `TreeDataGrid` and change the binding from `Source` to `Model`:
+Reference `TreeDataGrid` and bind the Core source directly:
 
 ```xml
 <TreeDataGrid Model="{Binding People}" />
 ```
 
-The control creates a typed adapter without reflection. It disposes presentation subscriptions on detach and recreates them on reattach, preserving the model and selection. The `Source` property continues to accept existing Avalonia sources.
+No adapter is required. The control creates view state using typed visitors without reflection. Detachment suspends model subscriptions and preserves view-owned columns; reattachment synchronizes changes and resumes input. Replacing the model or presentation options disposes the old view state. It never disposes the model. Use the Core source's `RowSelection` in new consumers; `TreeDataGrid.Source` and `TreeDataGrid.RowSelection` remain the legacy API and are not populated by a Core model.
 
-For named templates or custom UI columns, the view can construct an adapter explicitly:
+Named templates are registered in the view:
 
 ```csharp
+using Avalonia.Controls.Presentation;
+
 var options = new TreeDataGridPresentationOptions<Person>();
-options.Columns["person-card"] = column => new TemplateColumn<Person>(
+options.Columns["person-card"] = column => new Avalonia.Controls.Models.TreeDataGrid.TemplateColumn<Person>(
     column.Header, personTemplate);
-var presentation = new TreeDataGridSourceAdapter<Person>(viewModel.People, options);
-grid.Source = presentation;
+grid.PresentationOptions = options;
+grid.Model = viewModel.People;
 ```
 
-The ViewModel supplies a neutral `TemplateColumn<Person>("Person", "person-card")`; the view supplies the Avalonia template. Detach `grid.Source` and dispose the explicit adapter when that presentation ends. Disposing an adapter never disposes its model. Default `Model` binding resolves built-in text, checkbox and hierarchy presentations; custom presentation factories use the explicit adapter.
+The model supplies `new TreeDataGridCore.Models.TemplateColumn<Person>("Person", "person-card")`. Set view options before assigning a model that needs custom presentations. Built-in text, checkbox and hierarchy columns need no options.
 
-Core currently provides row selection. Consumers needing the existing cell/column selection APIs can retain the legacy source API until they choose to migrate. UI input remains in the Avalonia assembly, and both source paths share the same keyboard, pointer and search implementation.
+Custom cell presentations implement `ICellColumn<TModel>`, which creates cells directly from Core rows and supplies UI layout behavior. The existing UI text, checkbox and template column classes implement this contract, so their cell implementations are shared. Requested widths, visibility and sorting belong to Core; actual measured widths belong to each view. Multiple views have separate cell/layout objects over the same models.
 
-## Boundaries and validation
+A custom renderer or overlay can explicitly own `TreeDataGridPresentation.Create(model, options)`. This is view state, not a data source or compatibility adapter. Dispose it after unrealizing its cells. Core row objects and collection-change arguments are preserved by reference, and disposing view state leaves the Core model usable.
 
-`build/FrameworkNeutral.targets` rejects Avalonia references at build time. `build/check-neutral-dependencies.py` inspects the restored Core and Core.Tests package graphs and exercises the negative reference guard against a real UI DLL. Core tests run without Avalonia; the original UI suite and adapter tests cover compatibility, rendering, edits, selection, expansion and lifecycle.
+## Compatibility
+
+Normal legacy source construction and `Source` binding continue to work. Existing custom `IColumn<TModel>`, `IRow<TModel>` and `IExpanderCell` implementations remain supported on that path. Their neutral row contracts use default interface implementations without allocating row wrappers.
+
+Low-level renderer customizations should use `ITreeDataGridRows` and `TreeDataGridCore.Models.IRow`: the control and row presenters now render this common row contract. `IExpanderCellPresentation` is the corresponding native expander-cell contract. Legacy interfaces remain available. For drag data, old sources continue to use `DragInfo.Source`; Core sources use `DragInfo.Model`.
+
+Core currently provides row selection. Existing cell/column selection remains available through the legacy API.
+
+## Validation
+
+`build/FrameworkNeutral.targets` rejects Avalonia references in Core. `build/check-neutral-dependencies.py` checks package graphs and exercises the negative reference guard against a real UI DLL. Tests cover legacy behavior, Core rendering/editing, direct row identity, notifications, templates, selection, expansion, accessibility, multiple views and disposal.
 
 ```sh
 dotnet test tests/TreeDataGrid.Core.Tests -c Release
@@ -62,4 +76,6 @@ dotnet test tests/Avalonia.Controls.TreeDataGrid.Tests -c Release
 python3 build/check-neutral-dependencies.py
 ```
 
-`VirtualizationBenchmarks.NeutralSource` compares legacy and neutral adapter rendering with the same workloads. `NeutralSourceBenchmarks` compares creation, sorting and expansion. See `benchmarks/README.md` for reproducible runs.
+`VirtualizationBenchmarks.NeutralSource` compares legacy and native Core rendering with the same workloads. `NeutralSourceBenchmarks` covers source/presentation creation, sorting and expansion. Historical split measurements remain in `benchmarks/MVVM_SPLIT_RESULTS.md`; the native API correction is measured separately.
+
+Compiled expression delegates are weakly cached in the UI assembly. Mutable binding settings, link arrays, layout, and cell subscriptions remain separate for each view. Detach/reattach preserves view-owned column state while removing Core event subscriptions, so the source does not retain a detached control.

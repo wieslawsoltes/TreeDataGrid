@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 
 namespace Avalonia.Controls.Models.TreeDataGrid
@@ -9,7 +9,7 @@ namespace Avalonia.Controls.Models.TreeDataGrid
     /// <typeparam name="TModel">The model type.</typeparam>
     /// <typeparam name="TValue">The column data type.</typeparam>
     public class TextColumn<TModel, TValue> : ColumnBase<TModel, TValue>,
-        ITextSearchableColumn<TModel>, IReusableCellColumn<TModel>
+        ITextSearchableColumn<TModel>, IReusableCellColumn<TModel>, global::Avalonia.Controls.Presentation.ICellColumn<TModel>
         where TModel : class
     {
         /// <summary>
@@ -57,6 +57,11 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         {
         }
 
+        internal TextColumn(global::TreeDataGridCore.Models.ValueColumn<TModel, TValue?> column, TextColumnOptions<TModel> options)
+            : base(column.Header, column.GetterExpression is null ? column.Getter : column.GetValue,
+                global::Avalonia.Controls.Presentation.CellBinding.Create(column),
+                new GridLength(column.Width.Value, (GridUnitType)column.Width.GridUnitType), options) { }
+
         public new TextColumnOptions<TModel> Options => (TextColumnOptions<TModel>)base.Options;
 
         bool ITextSearchableColumn<TModel>.IsTextSearchEnabled => Options?.IsTextSearchEnabled ?? false;
@@ -65,6 +70,12 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         {
             return new TextCell<TValue?>(CreateBindingExpression(row.Model), Binding.Write is null, Options);
         }
+        public ICell CreateCell(global::TreeDataGridCore.Models.IRow<TModel> row)
+        {
+            return new TextCell<TValue?>(CreateBindingExpression(row.Model), Binding.Write is null, Options);
+        }
+        public bool TryReuseCell(ICell cell, global::TreeDataGridCore.Models.IRow<TModel> row) => cell is TextCell<TValue?> typed && typed.TrySetSource(row.Model);
+
 
         string? ITextSearchableColumn<TModel>.SelectValue(TModel model)
         {

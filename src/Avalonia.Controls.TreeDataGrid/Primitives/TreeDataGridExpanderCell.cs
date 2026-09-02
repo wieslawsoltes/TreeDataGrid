@@ -1,4 +1,5 @@
-﻿using System;
+using IExpanderCell = Avalonia.Controls.Models.TreeDataGrid.IExpanderCellPresentation;
+using System;
 using System.ComponentModel;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Selection;
@@ -64,7 +65,7 @@ namespace Avalonia.Controls.Primitives
             {
                 _factory = factory;
                 _model = expanderModel;
-                Indent = (_model.Row as IIndentedRow)?.Indent ?? 0;
+                Indent = (_model.Row as global::TreeDataGridCore.Models.IIndentedRow)?.Indent ?? 0;
                 ShowExpander = _model.ShowExpander;
 
                 // We can't go via the `IsExpanded` property here as that contains the implementation

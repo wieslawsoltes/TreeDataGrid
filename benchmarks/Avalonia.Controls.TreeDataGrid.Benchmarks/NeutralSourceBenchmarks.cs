@@ -1,3 +1,4 @@
+using Avalonia.Controls.Presentation;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -19,9 +20,9 @@ public class NeutralSourceBenchmarks
 {
     [Params(false, true)] public bool NeutralSource { get; set; }
     private Row[] _items = null!;
-    private ITreeDataGridSource _flat = null!;
+    private TreeDataGridPresentation _flat = null!;
     private IDisposable _flatLifetime = null!;
-    private ITreeDataGridSource _tree = null!;
+    private TreeDataGridPresentation _tree = null!;
     private IDisposable _treeLifetime = null!;
     private Action _expand = null!;
     private Action _collapse = null!;
@@ -37,7 +38,7 @@ public class NeutralSourceBenchmarks
         {
             var model = new Core.HierarchicalTreeDataGridSource<Row>(new[] { root });
             model.Columns.Add(new Core.Models.HierarchicalExpanderColumn<Row>(new Core.Models.TextColumn<Row, int>("ID", x => x.Id), x => x.Children));
-            _tree = new TreeDataGridSourceAdapter<Row>(model);
+            _tree = new TreeDataGridPresentation<Row>(model);
             _treeLifetime = model;
             _expand = () => model.Expand(0);
             _collapse = () => model.Collapse(0);
@@ -46,7 +47,7 @@ public class NeutralSourceBenchmarks
         {
             var model = new HierarchicalTreeDataGridSource<Row>(new[] { root });
             model.Columns.Add(new HierarchicalExpanderColumn<Row>(new TextColumn<Row, int>("ID", x => x.Id), x => x.Children));
-            _tree = model;
+            _tree = new LegacySourcePresentation(model);
             _treeLifetime = model;
             _expand = () => model.Expand(0);
             _collapse = () => model.Collapse(0);
@@ -60,7 +61,7 @@ public class NeutralSourceBenchmarks
     [GlobalCleanup]
     public void Cleanup()
     {
-        if (NeutralSource) { ((IDisposable)_flat).Dispose(); ((IDisposable)_tree).Dispose(); }
+        _flat.Dispose(); _tree.Dispose();
         _flatLifetime.Dispose(); _treeLifetime.Dispose();
     }
     [Benchmark]
@@ -68,7 +69,7 @@ public class NeutralSourceBenchmarks
     {
         var (source, lifetime) = CreateFlat();
         var count = source.Rows.Count;
-        if (NeutralSource) ((IDisposable)source).Dispose();
+        source.Dispose();
         lifetime.Dispose();
         return count;
     }
@@ -87,21 +88,21 @@ public class NeutralSourceBenchmarks
         _collapse();
         return count;
     }
-    private (ITreeDataGridSource source, IDisposable lifetime) CreateFlat()
+    private (TreeDataGridPresentation source, IDisposable lifetime) CreateFlat()
     {
         if (NeutralSource)
         {
             var model = new Core.FlatTreeDataGridSource<Row>(_items);
             model.Columns.Add(new Core.Models.TextColumn<Row, int>("ID", x => x.Id));
             model.Columns.Add(new Core.Models.TextColumn<Row, string>("Title", x => x.Title));
-            return (new TreeDataGridSourceAdapter<Row>(model), model);
+            return (new TreeDataGridPresentation<Row>(model), model);
         }
         var source = new FlatTreeDataGridSource<Row>(_items);
         source.Columns.Add(new TextColumn<Row, int>("ID", x => x.Id));
         source.Columns.Add(new TextColumn<Row, string>("Title", x => x.Title));
-        // Match the adapter's creation of selection and rows.
+        // Match native presentation's creation of selection and rows.
         _ = source.Selection;
-        return (source, source);
+        return (new LegacySourcePresentation(source), source);
     }
     private sealed class Row
     {

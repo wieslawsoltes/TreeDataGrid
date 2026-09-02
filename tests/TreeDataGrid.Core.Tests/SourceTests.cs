@@ -10,6 +10,22 @@ namespace TreeDataGridCore.Tests
     public class SourceTests
     {
         [Fact]
+        public void Existing_delegate_is_used_directly_for_values_sorting_and_edits()
+        {
+            Func<Node, string> getter = x => x.Name;
+            var column = ValueColumn<Node, string>.FromDelegate("Name", getter, nameof(Node.Name), (x, value) => x.Name = value);
+            using var source = new FlatTreeDataGridSource<Node>(new[] { new Node("B"), new Node("A") });
+            source.Columns.Add(column);
+            Assert.Same(getter, column.Getter);
+            Assert.Null(column.GetterExpression);
+            source.SortBy(column, ListSortDirection.Ascending);
+            var first = (Node)source.Rows[0].Model!;
+            Assert.Equal("A", first.Name);
+            column.SetValue(first, "Changed");
+            Assert.Equal("Changed", column.GetValue(first));
+        }
+
+        [Fact]
         public void Flat_sort_edits_and_selection_work_without_a_UI_runtime()
         {
             var items = new ObservableCollection<Node> { new("B"), new("A"), new("C") };

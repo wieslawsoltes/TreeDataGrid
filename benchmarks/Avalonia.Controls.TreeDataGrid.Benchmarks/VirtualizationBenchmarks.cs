@@ -35,7 +35,6 @@ public class VirtualizationBenchmarks
     public bool NeutralSource { get; set; }
 
     private IDisposable? _sourceLifetime;
-    private IDisposable? _adapterLifetime;
     private AppBuilder? _appBuilder;
     private Window? _window;
     private TreeDataGridControl? _grid;
@@ -353,7 +352,8 @@ public class VirtualizationBenchmarks
         _items = new AvaloniaList<RowModel>(Enumerable.Range(0, rowCount)
             .Select(x => new RowModel(x, $"Item {x}")));
 
-        ITreeDataGridSource source;
+        ITreeDataGridSource? source = null;
+        Core.ITreeDataGridSource? neutralModel = null;
         if (NeutralSource)
         {
             var model = new Core.FlatTreeDataGridSource<RowModel>(_items);
@@ -363,10 +363,8 @@ public class VirtualizationBenchmarks
                 var column = i;
                 model.Columns.Add(new Core.Models.TextColumn<RowModel, string>($"Column {column}", x => $"{x.Title}-{column}", new Core.GridLength(100)));
             }
-            var adapter = new TreeDataGridSourceAdapter<RowModel>(model);
-            source = adapter;
+            neutralModel = model;
             _sourceLifetime = model;
-            _adapterLifetime = adapter;
         }
         else
         {
@@ -394,6 +392,7 @@ public class VirtualizationBenchmarks
         _grid = new TreeDataGridControl
         {
             Source = source,
+            Model = neutralModel,
             Template = TreeDataGridTemplate(cacheLength, alwaysMeasureViewportChanges),
         };
 
@@ -427,9 +426,7 @@ public class VirtualizationBenchmarks
     {
         _window?.Close();
         Dispatcher.UIThread.RunJobs();
-        _adapterLifetime?.Dispose();
         _sourceLifetime?.Dispose();
-        _adapterLifetime = null;
         _sourceLifetime = null;
         _window = null;
         _grid = null;

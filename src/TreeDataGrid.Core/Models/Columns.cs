@@ -72,10 +72,21 @@ namespace TreeDataGridCore.Models
             Action<TModel, TValue>? setter = null, GridLength? width = null,
             ColumnOptions<TModel>? options = null, string? id = null) : base(header, width, options, id)
         { GetterExpression = getter ?? throw new ArgumentNullException(nameof(getter)); Setter = setter; }
-        public Expression<Func<TModel, TValue>> GetterExpression { get; }
+        private ValueColumn(object? header, Func<TModel, TValue> getter, string? propertyName,
+            Action<TModel, TValue>? setter, GridLength? width, ColumnOptions<TModel>? options, string? id)
+            : base(header, width, options, id)
+        { _getter = getter ?? throw new ArgumentNullException(nameof(getter)); PropertyName = propertyName; Setter = setter; }
+
+        /// <summary>Uses an existing accessor without building or compiling an expression.
+        /// Default view bindings observe changes on the row model; custom views may use PropertyName.</summary>
+        public static ValueColumn<TModel, TValue> FromDelegate(object? header, Func<TModel, TValue> getter,
+            string? propertyName = null, Action<TModel, TValue>? setter = null, GridLength? width = null,
+            ColumnOptions<TModel>? options = null, string? id = null) => new(header, getter, propertyName, setter, width, options, id);
+        public string? PropertyName { get; }
+        public Expression<Func<TModel, TValue>>? GetterExpression { get; }
         // UI bindings can consume the expression directly. Compile a Core accessor only
         // when neutral sorting or value access needs it, then reuse it.
-        public Func<TModel, TValue> Getter => _getter ??= GetterExpression.Compile();
+        public Func<TModel, TValue> Getter => _getter ??= GetterExpression!.Compile();
         public Action<TModel, TValue>? Setter { get; }
         public TValue GetValue(TModel model) => Getter(model);
         public void SetValue(TModel model, TValue value)
