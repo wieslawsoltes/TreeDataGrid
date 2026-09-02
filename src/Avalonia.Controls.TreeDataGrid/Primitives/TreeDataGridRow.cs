@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using Avalonia.Automation.Peers;
 using Avalonia.Controls.Automation.Peers;
@@ -32,15 +32,15 @@ namespace Avalonia.Controls.Primitives
                 nameof(IsSelected),
                 o => o.IsSelected);
 
-        public static readonly DirectProperty<TreeDataGridRow, IRows?> RowsProperty =
-            AvaloniaProperty.RegisterDirect<TreeDataGridRow, IRows?>(
+        public static readonly DirectProperty<TreeDataGridRow, ITreeDataGridRows?> RowsProperty =
+            AvaloniaProperty.RegisterDirect<TreeDataGridRow, ITreeDataGridRows?>(
                 nameof(Rows),
                 o => o.Rows);
 
         private IColumns? _columns;
         private TreeDataGridElementFactory? _elementFactory;
         private bool _isSelected;
-        private IRows? _rows;
+        private ITreeDataGridRows? _rows;
         private Point _mouseDownPosition = s_InvalidPoint;
         private PointerPressedEventArgs? _pressedEventArgs;
         private TreeDataGrid? _treeDataGrid;
@@ -65,7 +65,7 @@ namespace Avalonia.Controls.Primitives
 
         public object? Model => DataContext;
 
-        public IRows? Rows
+        public ITreeDataGridRows? Rows
         {
             get => _rows;
             private set => SetAndRaise(RowsProperty, ref _rows, value);
@@ -78,7 +78,7 @@ namespace Avalonia.Controls.Primitives
             TreeDataGridElementFactory? elementFactory,
             ITreeDataGridSelectionInteraction? selection,
             IColumns? columns,
-            IRows? rows,
+            ITreeDataGridRows? rows,
             int rowIndex)
         {
             ElementFactory = elementFactory;

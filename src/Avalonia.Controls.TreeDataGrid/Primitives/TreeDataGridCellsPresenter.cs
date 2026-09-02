@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Xml.Linq;
 using Avalonia.Controls.Models.TreeDataGrid;
@@ -12,18 +12,18 @@ namespace Avalonia.Controls.Primitives
 {
     public class TreeDataGridCellsPresenter : TreeDataGridColumnarPresenterBase<IColumn>, IChildIndexProvider
     {
-        public static readonly DirectProperty<TreeDataGridCellsPresenter, IRows?> RowsProperty =
-            AvaloniaProperty.RegisterDirect<TreeDataGridCellsPresenter, IRows?>(
+        public static readonly DirectProperty<TreeDataGridCellsPresenter, ITreeDataGridRows?> RowsProperty =
+            AvaloniaProperty.RegisterDirect<TreeDataGridCellsPresenter, ITreeDataGridRows?>(
                 nameof(Rows),
                 o => o.Rows,
                 (o, v) => o.Rows = v);
 
-        private IRows? _rows;
+        private ITreeDataGridRows? _rows;
         private bool _rebindRealizedCells;
 
         public event EventHandler<ChildIndexChangedEventArgs>? ChildIndexChanged;
 
-        public IRows? Rows
+        public ITreeDataGridRows? Rows
         {
             get => _rows;
             set

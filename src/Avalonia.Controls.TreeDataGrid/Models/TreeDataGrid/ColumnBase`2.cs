@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq.Expressions;
@@ -48,8 +48,11 @@ namespace Avalonia.Controls.Models.TreeDataGrid
                 TypedBinding<TModel>.OneWay(getter) :
                 TypedBinding<TModel>.TwoWay(getter, setter);
             _canUserSort = options?.CanUserSortColumn ?? true;
-            _sortAscending = options?.CompareAscending ?? DefaultSortAscending;
-            _sortDescending = options?.CompareDescending ?? DefaultSortDescending;
+            if (_canUserSort)
+            {
+                _sortAscending = options?.CompareAscending ?? DefaultSortAscending;
+                _sortDescending = options?.CompareDescending ?? DefaultSortDescending;
+            }
         }
 
 
@@ -78,8 +81,11 @@ namespace Avalonia.Controls.Models.TreeDataGrid
             ValueSelector = valueSelector;
             Binding = binding;
             _canUserSort = options?.CanUserSortColumn ?? true;
-            _sortAscending = options?.CompareAscending ?? DefaultSortAscending;
-            _sortDescending = options?.CompareDescending ?? DefaultSortDescending;
+            if (_canUserSort)
+            {
+                _sortAscending = options?.CompareAscending ?? DefaultSortAscending;
+                _sortDescending = options?.CompareDescending ?? DefaultSortDescending;
+            }
         }
 
         /// <summary>
