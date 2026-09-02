@@ -207,3 +207,7 @@ Generated docs output is written to `site/.lunet/build/www`.
 
 - Main project license: [licence.md](licence.md)
 - Preserved original upstream license: [LICENSE-AVALONIA](LICENSE-AVALONIA)
+
+## Framework-neutral ViewModels
+
+Use the optional `TreeDataGrid.Core` package for ViewModel-owned sources, columns, sorting, selection and expansion without an Avalonia dependency. Existing APIs remain available. See [migration and ownership](docs/framework-neutral-core.md).

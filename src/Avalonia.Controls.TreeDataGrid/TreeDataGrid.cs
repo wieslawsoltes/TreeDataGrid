@@ -176,6 +176,7 @@ namespace Avalonia.Controls
             {
                 if (!ReferenceEquals(_explicitSource, value))
                 {
+                    if (!_settingCoreSource && Model is not null) SetCurrentValue(ModelProperty, null);
                     _explicitSource = value;
                     UpdateActiveSource();
                 }
@@ -307,6 +308,7 @@ namespace Avalonia.Controls
         {
             base.OnAttachedToVisualTree(e);
             _isAttachedToVisualTree = true;
+            if (Model is not null && _corePresentation is null) UpdateCorePresentation();
             SelectionInteraction = _source?.Selection as ITreeDataGridSelectionInteraction;
             SubscribeSourceEvents();
             SubscribeSelectionInteraction();
@@ -359,6 +361,7 @@ namespace Avalonia.Controls
             _isAttachedToVisualTree = false;
             base.OnDetachedFromVisualTree(e);
             StopDrag();
+            ReleaseCorePresentation();
         }
 
         private void SubscribeSourceEvents()
@@ -407,6 +410,8 @@ namespace Avalonia.Controls
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);
+
+            if (change.Property == ModelProperty) UpdateCorePresentation();
 
             if (change.Property == AutoDragDropRowsProperty)
             {

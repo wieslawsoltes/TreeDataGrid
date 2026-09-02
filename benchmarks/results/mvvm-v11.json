@@ -1,0 +1,1799 @@
+{
+  "baseline": "b93f4ce0e69a501c8245b38fdc59ac6f11c0e739",
+  "date": "2026-09-02",
+  "runtime": ".NET 8.0.19 ARM64",
+  "benchmarkDotNet": "0.15.8",
+  "warmups": 5,
+  "iterations": 10,
+  "runs": {
+    "base": [
+      {
+        "Method": "VerticalRowScrolls",
+        "Parameters": "",
+        "Statistics": {
+          "OriginalValues": [
+            33671.7125,
+            33547.0666,
+            33323.1166,
+            33659.7041,
+            33844.4458,
+            33731.2625,
+            33721.8125,
+            33956.0416,
+            33907.4625
+          ],
+          "N": 9,
+          "Min": 33323.1166,
+          "LowerFence": 33382.591550000005,
+          "Q1": 33659.7041,
+          "Median": 33721.8125,
+          "Mean": 33706.958300000006,
+          "Q3": 33844.4458,
+          "UpperFence": 34121.55835,
+          "Max": 33956.0416,
+          "InterquartileRange": 184.74169999999867,
+          "LowerOutliers": [
+            33323.1166
+          ],
+          "UpperOutliers": [],
+          "AllOutliers": [
+            33323.1166
+          ],
+          "StandardError": 64.37019786092337,
+          "Variance": 37291.70135388981,
+          "StandardDeviation": 193.1105935827701,
+          "Skewness": -0.5347578658247383,
+          "Kurtosis": 2.252368928931487,
+          "ConfidenceInterval": {
+            "N": 9,
+            "Mean": 33706.958300000006,
+            "StandardError": 64.37019786092337,
+            "Level": 12,
+            "Margin": 324.50982804702716,
+            "Lower": 33382.44847195298,
+            "Upper": 34031.46812804703
+          },
+          "Percentiles": {
+            "P0": 33323.1166,
+            "P25": 33659.7041,
+            "P50": 33721.8125,
+            "P67": 33772.008488,
+            "P80": 33869.652480000004,
+            "P85": 33894.85916,
+            "P90": 33917.17832,
+            "P95": 33936.60996,
+            "P100": 33956.0416
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 8,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 10000,
+          "BytesAllocatedPerOperation": 7368
+        }
+      },
+      {
+        "Method": "HorizontalColumnScrolls",
+        "Parameters": "",
+        "Statistics": {
+          "OriginalValues": [
+            197919.542,
+            200422.042,
+            199546.791,
+            198309.792,
+            200480.875,
+            200052.291,
+            200157.291,
+            195660.916,
+            198320.583,
+            198884.541
+          ],
+          "N": 10,
+          "Min": 195660.916,
+          "LowerFence": 195584.66287499995,
+          "Q1": 198312.48974999998,
+          "Median": 199215.666,
+          "Mean": 198975.4664,
+          "Q3": 200131.041,
+          "UpperFence": 202858.86787500003,
+          "Max": 200480.875,
+          "InterquartileRange": 1818.5512500000186,
+          "LowerOutliers": [],
+          "UpperOutliers": [],
+          "AllOutliers": [],
+          "StandardError": 474.0252128526076,
+          "Variance": 2246999.0241995994,
+          "StandardDeviation": 1498.999340960362,
+          "Skewness": -0.8504082790222751,
+          "Kurtosis": 2.6785042333696327,
+          "ConfidenceInterval": {
+            "N": 10,
+            "Mean": 198975.4664,
+            "StandardError": 474.0252128526076,
+            "Level": 12,
+            "Margin": 2266.2731055529625,
+            "Lower": 196709.19329444703,
+            "Upper": 201241.73950555298
+          },
+          "Percentiles": {
+            "P0": 195660.916,
+            "P25": 198312.48974999998,
+            "P50": 199215.666,
+            "P67": 200055.441,
+            "P80": 200210.2412,
+            "P85": 200329.37915,
+            "P90": 200427.9253,
+            "P95": 200454.40015,
+            "P100": 200480.875
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 20,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1000,
+          "BytesAllocatedPerOperation": 172228
+        }
+      },
+      {
+        "Method": "CollectionInsertRemoveBurst",
+        "Parameters": "",
+        "Statistics": {
+          "OriginalValues": [
+            62432.76433333333,
+            60091.59766666667,
+            59909.347,
+            54855.09766666667,
+            52904.59766666667,
+            52843.81966666667,
+            52991.041666666664,
+            54279.791666666664,
+            52917.736333333334,
+            52859.541666666664
+          ],
+          "N": 10,
+          "Min": 52843.81966666667,
+          "LowerFence": 44301.02883333334,
+          "Q1": 52907.882333333335,
+          "Median": 53635.416666666664,
+          "Mean": 55608.533533333335,
+          "Q3": 58645.78466666667,
+          "UpperFence": 67252.63816666667,
+          "Max": 62432.76433333333,
+          "InterquartileRange": 5737.902333333332,
+          "LowerOutliers": [],
+          "UpperOutliers": [],
+          "AllOutliers": [],
+          "StandardError": 1174.2691747347517,
+          "Variance": 13789080.94732235,
+          "StandardDeviation": 3713.3651782880647,
+          "Skewness": 0.7530531324649471,
+          "Kurtosis": 1.6759495897466263,
+          "ConfidenceInterval": {
+            "N": 10,
+            "Mean": 55608.533533333335,
+            "StandardError": 1174.2691747347517,
+            "Level": 12,
+            "Margin": 5614.0782752176365,
+            "Lower": 49994.4552581157,
+            "Upper": 61222.61180855097
+          },
+          "Percentiles": {
+            "P0": 52843.81966666667,
+            "P25": 52907.882333333335,
+            "P50": 53635.416666666664,
+            "P67": 55006.72514666667,
+            "P80": 59945.79713333333,
+            "P85": 60027.80993333334,
+            "P90": 60325.71433333334,
+            "P95": 61379.23933333333,
+            "P100": 62432.76433333333
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 6,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1500,
+          "BytesAllocatedPerOperation": 33864
+        }
+      },
+      {
+        "Method": "CollectionMoveBurst",
+        "Parameters": "",
+        "Statistics": {
+          "OriginalValues": [
+            18954.472166666666,
+            19195.513833333334,
+            18842.215166666665,
+            19019.111,
+            18975.507,
+            18453.708333333332,
+            18809.861,
+            18680.715166666665,
+            19013.027666666665
+          ],
+          "N": 9,
+          "Min": 18453.708333333332,
+          "LowerFence": 18505.111000000004,
+          "Q1": 18809.861,
+          "Median": 18954.472166666666,
+          "Mean": 18882.681259259258,
+          "Q3": 19013.027666666665,
+          "UpperFence": 19317.77766666666,
+          "Max": 19195.513833333334,
+          "InterquartileRange": 203.16666666666424,
+          "LowerOutliers": [
+            18453.708333333332
+          ],
+          "UpperOutliers": [],
+          "AllOutliers": [
+            18453.708333333332
+          ],
+          "StandardError": 72.55136117087164,
+          "Variance": 47373.30006971635,
+          "StandardDeviation": 217.65408351261493,
+          "Skewness": -0.5505490413206433,
+          "Kurtosis": 2.271035125374161,
+          "ConfidenceInterval": {
+            "N": 9,
+            "Mean": 18882.681259259258,
+            "StandardError": 72.55136117087164,
+            "Level": 12,
+            "Margin": 365.75357107034364,
+            "Lower": 18516.927688188913,
+            "Upper": 19248.434830329603
+          },
+          "Percentiles": {
+            "P0": 18453.708333333332,
+            "P25": 18809.861,
+            "P50": 18954.472166666666,
+            "P67": 18989.01444,
+            "P80": 19015.461,
+            "P85": 19017.894333333334,
+            "P90": 19054.39156666667,
+            "P95": 19124.9527,
+            "P100": 19195.513833333334
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 3,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 6000,
+          "BytesAllocatedPerOperation": 4336
+        }
+      },
+      {
+        "Method": "DetachReattach",
+        "Parameters": "",
+        "Statistics": {
+          "OriginalValues": [
+            859584.58,
+            840646.875,
+            836444.585,
+            831424.165,
+            835248.955,
+            838829.375,
+            846581.25,
+            836491.665,
+            844816.04
+          ],
+          "N": 9,
+          "Min": 831424.165,
+          "LowerFence": 823887.4024999999,
+          "Q1": 836444.585,
+          "Median": 838829.375,
+          "Mean": 841118.61,
+          "Q3": 844816.04,
+          "UpperFence": 857373.2225000001,
+          "Max": 859584.58,
+          "InterquartileRange": 8371.455000000075,
+          "LowerOutliers": [],
+          "UpperOutliers": [
+            859584.58
+          ],
+          "AllOutliers": [
+            859584.58
+          ],
+          "StandardError": 2792.989354868793,
+          "Variance": 70207105.82769357,
+          "StandardDeviation": 8378.968064606379,
+          "Skewness": 0.9790974719948785,
+          "Kurtosis": 2.8929627310044204,
+          "ConfidenceInterval": {
+            "N": 9,
+            "Mean": 841118.61,
+            "StandardError": 2792.989354868793,
+            "Level": 12,
+            "Margin": 14080.312402392978,
+            "Lower": 827038.297597607,
+            "Upper": 855198.922402393
+          },
+          "Percentiles": {
+            "P0": 831424.165,
+            "P25": 836444.585,
+            "P50": 838829.375,
+            "P67": 842147.7744,
+            "P80": 845522.1240000001,
+            "P85": 846228.2080000001,
+            "P90": 849181.916,
+            "P95": 854383.2479999999,
+            "P100": 859584.58
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 19,
+          "Gen1Collections": 7,
+          "Gen2Collections": 2,
+          "TotalOperations": 200,
+          "BytesAllocatedPerOperation": 741893
+        }
+      }
+    ],
+    "baseCreation": [
+      {
+        "Method": "CreateAndLayoutGrid",
+        "Parameters": "",
+        "Statistics": {
+          "OriginalValues": [
+            2141214.1953125,
+            2057866.5390625,
+            2091411.4609375,
+            2082146.484375,
+            2096951.8203125,
+            2114297.1953125,
+            2124865.234375,
+            2103259.1171875,
+            2111434.890625,
+            2089914.7109375
+          ],
+          "N": 10,
+          "Min": 2057866.5390625,
+          "LowerFence": 2055349.8173828125,
+          "Q1": 2090288.8984375,
+          "Median": 2100105.46875,
+          "Mean": 2101336.16484375,
+          "Q3": 2113581.619140625,
+          "UpperFence": 2148520.7001953125,
+          "Max": 2141214.1953125,
+          "InterquartileRange": 23292.720703125,
+          "LowerOutliers": [],
+          "UpperOutliers": [],
+          "AllOutliers": [],
+          "StandardError": 7396.37207013509,
+          "Variance": 547063197.9987446,
+          "StandardDeviation": 23389.38216368155,
+          "Skewness": -0.09458100722814229,
+          "Kurtosis": 2.2077645944063518,
+          "ConfidenceInterval": {
+            "N": 10,
+            "Mean": 2101336.16484375,
+            "StandardError": 7396.37207013509,
+            "Level": 12,
+            "Margin": 35361.40831062134,
+            "Lower": 2065974.756533129,
+            "Upper": 2136697.5731543717
+          },
+          "Percentiles": {
+            "P0": 2057866.5390625,
+            "P25": 2090288.8984375,
+            "P50": 2100105.46875,
+            "P67": 2111520.759765625,
+            "P80": 2116410.803125,
+            "P85": 2121166.420703125,
+            "P90": 2126500.13046875,
+            "P95": 2133857.1628906247,
+            "P100": 2141214.1953125
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 30,
+          "Gen1Collections": 13,
+          "Gen2Collections": 4,
+          "TotalOperations": 128,
+          "BytesAllocatedPerOperation": 1761835
+        }
+      }
+    ],
+    "final": [
+      {
+        "Method": "VerticalRowScrolls",
+        "Parameters": "NeutralSource=False",
+        "Statistics": {
+          "OriginalValues": [
+            33534.9917,
+            33441.6042,
+            33273.8208,
+            33749.9667,
+            33378.625,
+            33146.4375,
+            33709.0749,
+            33691.4542,
+            33408.0958,
+            33413.7625
+          ],
+          "N": 10,
+          "Min": 33146.4375,
+          "LowerFence": 32986.473887500004,
+          "Q1": 33385.9927,
+          "Median": 33427.68335,
+          "Mean": 33474.78333,
+          "Q3": 33652.338575,
+          "UpperFence": 34051.8573875,
+          "Max": 33749.9667,
+          "InterquartileRange": 266.34587499999907,
+          "LowerOutliers": [],
+          "UpperOutliers": [],
+          "AllOutliers": [],
+          "StandardError": 62.174013025446804,
+          "Variance": 38656.07895688429,
+          "StandardDeviation": 196.61149243338826,
+          "Skewness": -0.011516377168548907,
+          "Kurtosis": 1.6288161706507243,
+          "ConfidenceInterval": {
+            "N": 10,
+            "Mean": 33474.78333,
+            "StandardError": 62.174013025446804,
+            "Level": 12,
+            "Margin": 297.24852130952337,
+            "Lower": 33177.53480869048,
+            "Upper": 33772.03185130952
+          },
+          "Percentiles": {
+            "P0": 33146.4375,
+            "P25": 33385.9927,
+            "P50": 33427.68335,
+            "P67": 33539.685574999996,
+            "P80": 33694.97834,
+            "P85": 33702.907655,
+            "P90": 33713.16408,
+            "P95": 33731.565389999996,
+            "P100": 33749.9667
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 8,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 10000,
+          "BytesAllocatedPerOperation": 7368
+        }
+      },
+      {
+        "Method": "HorizontalColumnScrolls",
+        "Parameters": "NeutralSource=False",
+        "Statistics": {
+          "OriginalValues": [
+            201718.958,
+            199785.416,
+            197013.416,
+            199396.958,
+            196597.832,
+            196141.124,
+            194963.999,
+            197736.958,
+            197493.999,
+            199003.874
+          ],
+          "N": 10,
+          "Min": 194963.999,
+          "LowerFence": 192806.28949999996,
+          "Q1": 196701.728,
+          "Median": 197615.47850000003,
+          "Mean": 197985.25340000005,
+          "Q3": 199298.68700000003,
+          "UpperFence": 203194.12550000008,
+          "Max": 201718.958,
+          "InterquartileRange": 2596.9590000000317,
+          "LowerOutliers": [],
+          "UpperOutliers": [],
+          "AllOutliers": [],
+          "StandardError": 631.6892009064659,
+          "Variance": 3990312.4654184943,
+          "StandardDeviation": 1997.5766481961323,
+          "Skewness": 0.30337480287499846,
+          "Kurtosis": 1.9433616131275846,
+          "ConfidenceInterval": {
+            "N": 10,
+            "Mean": 197985.25340000005,
+            "StandardError": 631.6892009064659,
+            "Level": 12,
+            "Margin": 3020.0508501806175,
+            "Lower": 194965.20254981943,
+            "Upper": 201005.30425018066
+          },
+          "Percentiles": {
+            "P0": 194963.999,
+            "P25": 196701.728,
+            "P50": 197615.47850000003,
+            "P67": 199015.66652,
+            "P80": 199474.6496,
+            "P85": 199649.4557,
+            "P90": 199978.7702,
+            "P95": 200848.8641,
+            "P100": 201718.958
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 20,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1000,
+          "BytesAllocatedPerOperation": 172228
+        }
+      },
+      {
+        "Method": "CollectionInsertRemoveBurst",
+        "Parameters": "NeutralSource=False",
+        "Statistics": {
+          "OriginalValues": [
+            62571.166666666664,
+            61022.05533333333,
+            57886.778,
+            53462.02733333333,
+            52025.55533333333,
+            53155.99933333333,
+            51767.80533333333,
+            51544.02733333333,
+            50941.388666666666,
+            51602.666
+          ],
+          "N": 10,
+          "Min": 50941.388666666666,
+          "LowerFence": 43938.99158333332,
+          "Q1": 51643.95083333333,
+          "Median": 52590.77733333333,
+          "Mean": 54597.94693333333,
+          "Q3": 56780.59033333333,
+          "UpperFence": 64485.54958333334,
+          "Max": 62571.166666666664,
+          "InterquartileRange": 5136.639500000005,
+          "LowerOutliers": [],
+          "UpperOutliers": [],
+          "AllOutliers": [],
+          "StandardError": 1355.3301722582914,
+          "Variance": 18369198.758336905,
+          "StandardDeviation": 4285.930325884557,
+          "Skewness": 0.8372599393762747,
+          "Kurtosis": 1.8735109021708642,
+          "ConfidenceInterval": {
+            "N": 10,
+            "Mean": 54597.94693333333,
+            "StandardError": 1355.3301722582914,
+            "Level": 12,
+            "Margin": 6479.715076861304,
+            "Lower": 48118.231856472026,
+            "Upper": 61077.66201019464
+          },
+          "Percentiles": {
+            "P0": 50941.388666666666,
+            "P25": 51643.95083333333,
+            "P50": 52590.77733333333,
+            "P67": 53594.76985333333,
+            "P80": 58513.83346666666,
+            "P85": 59924.70826666666,
+            "P90": 61176.966466666665,
+            "P95": 61874.06656666666,
+            "P100": 62571.166666666664
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 6,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1500,
+          "BytesAllocatedPerOperation": 33864
+        }
+      },
+      {
+        "Method": "CollectionMoveBurst",
+        "Parameters": "NeutralSource=False",
+        "Statistics": {
+          "OriginalValues": [
+            18648.277666666665,
+            18609.6805,
+            18631.458166666667,
+            19346.493,
+            18856.576333333334,
+            18971,
+            19043.111166666666,
+            18882,
+            19208.236166666666,
+            18869.645666666667
+          ],
+          "N": 10,
+          "Min": 18609.6805,
+          "LowerFence": 18213.255770833333,
+          "Q1": 18700.352333333332,
+          "Median": 18875.82283333333,
+          "Mean": 18906.647866666666,
+          "Q3": 19025.083375,
+          "UpperFence": 19512.179937499997,
+          "Max": 19346.493,
+          "InterquartileRange": 324.731041666666,
+          "LowerOutliers": [],
+          "UpperOutliers": [],
+          "AllOutliers": [],
+          "StandardError": 77.6273620152944,
+          "Variance": 60260.073334535715,
+          "StandardDeviation": 245.4792727187689,
+          "Skewness": 0.3438533563797492,
+          "Kurtosis": 1.7636274161638883,
+          "ConfidenceInterval": {
+            "N": 10,
+            "Mean": 18906.647866666666,
+            "StandardError": 77.6273620152944,
+            "Level": 12,
+            "Margin": 371.12963196956997,
+            "Lower": 18535.518234697098,
+            "Upper": 19277.777498636235
+          },
+          "Percentiles": {
+            "P0": 18609.6805,
+            "P25": 18700.352333333332,
+            "P50": 18875.82283333333,
+            "P67": 18973.163335,
+            "P80": 19076.136166666667,
+            "P85": 19150.442416666665,
+            "P90": 19222.06185,
+            "P95": 19284.277425,
+            "P100": 19346.493
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 3,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 6000,
+          "BytesAllocatedPerOperation": 4336
+        }
+      },
+      {
+        "Method": "DetachReattach",
+        "Parameters": "NeutralSource=False",
+        "Statistics": {
+          "OriginalValues": [
+            826274.8925,
+            825186.5625,
+            821662.3925,
+            835004.2675,
+            813918.6475,
+            821588.8525,
+            832314.4825,
+            835879.6875,
+            813705.7275,
+            841518.6475
+          ],
+          "N": 10,
+          "Min": 813705.7275,
+          "LowerFence": 802520.3618750002,
+          "Q1": 821607.2375,
+          "Median": 825730.7275,
+          "Mean": 826705.416,
+          "Q3": 834331.8212499999,
+          "UpperFence": 853418.6968749997,
+          "Max": 841518.6475,
+          "InterquartileRange": 12724.583749999874,
+          "LowerOutliers": [],
+          "UpperOutliers": [],
+          "AllOutliers": [],
+          "StandardError": 2963.722457631058,
+          "Variance": 87836508.05866681,
+          "StandardDeviation": 9372.113318706022,
+          "Skewness": 0.0264092529240955,
+          "Kurtosis": 1.5242013736394282,
+          "ConfidenceInterval": {
+            "N": 10,
+            "Mean": 826705.416,
+            "StandardError": 2963.722457631058,
+            "Level": 12,
+            "Margin": 14169.297995001469,
+            "Lower": 812536.1180049985,
+            "Upper": 840874.7139950014
+          },
+          "Percentiles": {
+            "P0": 813705.7275,
+            "P25": 821607.2375,
+            "P50": 825730.7275,
+            "P67": 832395.17605,
+            "P80": 835179.3515,
+            "P85": 835573.2905,
+            "P90": 836443.5835000001,
+            "P95": 838981.1155,
+            "P100": 841518.6475
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 19,
+          "Gen1Collections": 7,
+          "Gen2Collections": 2,
+          "TotalOperations": 200,
+          "BytesAllocatedPerOperation": 741893
+        }
+      },
+      {
+        "Method": "CreateAndLayoutGrid",
+        "Parameters": "NeutralSource=False",
+        "Statistics": {
+          "OriginalValues": [
+            2113471.03125,
+            2098962.890625,
+            2134572.9140625,
+            2120234.0546875,
+            2065712.234375,
+            2124805.3359375,
+            2089301.1015625,
+            2108387.3671875,
+            2135965.1640625,
+            2092730.46875
+          ],
+          "N": 10,
+          "Min": 2065712.234375,
+          "LowerFence": 2050227.662109375,
+          "Q1": 2094288.57421875,
+          "Median": 2110929.19921875,
+          "Mean": 2108414.25625,
+          "Q3": 2123662.515625,
+          "UpperFence": 2167723.427734375,
+          "Max": 2135965.1640625,
+          "InterquartileRange": 29373.94140625,
+          "LowerOutliers": [],
+          "UpperOutliers": [],
+          "AllOutliers": [],
+          "StandardError": 6993.139162807772,
+          "Variance": 489039953.50395787,
+          "StandardDeviation": 22114.24774899562,
+          "Skewness": -0.4119681416148622,
+          "Kurtosis": 1.9500343390716497,
+          "ConfidenceInterval": {
+            "N": 10,
+            "Mean": 2108414.25625,
+            "StandardError": 6993.139162807772,
+            "Level": 12,
+            "Margin": 33433.58702944831,
+            "Lower": 2074980.6692205518,
+            "Upper": 2141847.8432794483
+          },
+          "Percentiles": {
+            "P0": 2065712.234375,
+            "P25": 2094288.57421875,
+            "P50": 2110929.19921875,
+            "P67": 2120371.1931249998,
+            "P80": 2126758.8515625,
+            "P85": 2131154.26171875,
+            "P90": 2134712.1390625,
+            "P95": 2135338.6515625,
+            "P100": 2135965.1640625
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 31,
+          "Gen1Collections": 13,
+          "Gen2Collections": 4,
+          "TotalOperations": 128,
+          "BytesAllocatedPerOperation": 1761971
+        }
+      },
+      {
+        "Method": "VerticalRowScrolls",
+        "Parameters": "NeutralSource=True",
+        "Statistics": {
+          "OriginalValues": [
+            41949.475,
+            42097.0458,
+            42092.3041,
+            42100.6708,
+            42704.3499,
+            42156.2333,
+            42277.9667,
+            42365.9375,
+            42443.8208
+          ],
+          "N": 9,
+          "Min": 41949.475,
+          "LowerFence": 41693.708249999996,
+          "Q1": 42097.0458,
+          "Median": 42156.2333,
+          "Mean": 42243.08932222222,
+          "Q3": 42365.9375,
+          "UpperFence": 42769.27505,
+          "Max": 42704.3499,
+          "InterquartileRange": 268.8917000000001,
+          "LowerOutliers": [],
+          "UpperOutliers": [],
+          "AllOutliers": [],
+          "StandardError": 77.05191440341424,
+          "Variance": 53432.97761907968,
+          "StandardDeviation": 231.15574321024272,
+          "Skewness": 0.6542114808249992,
+          "Kurtosis": 2.179051981995276,
+          "ConfidenceInterval": {
+            "N": 9,
+            "Mean": 42243.08932222222,
+            "StandardError": 77.05191440341424,
+            "Level": 12,
+            "Margin": 388.4422345224019,
+            "Lower": 41854.64708769982,
+            "Upper": 42631.53155674462
+          },
+          "Percentiles": {
+            "P0": 41949.475,
+            "P25": 42097.0458,
+            "P50": 42156.2333,
+            "P67": 42309.636188,
+            "P80": 42397.09082,
+            "P85": 42428.24414,
+            "P90": 42495.92662,
+            "P95": 42600.13826,
+            "P100": 42704.3499
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 8,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 10000,
+          "BytesAllocatedPerOperation": 7368
+        }
+      },
+      {
+        "Method": "HorizontalColumnScrolls",
+        "Parameters": "NeutralSource=True",
+        "Statistics": {
+          "OriginalValues": [
+            210681.333,
+            208964.499,
+            207673.875,
+            203986.375,
+            208130.625,
+            207417.958,
+            207880.541,
+            204802.875,
+            206539.124
+          ],
+          "N": 9,
+          "Min": 203986.375,
+          "LowerFence": 204151.87250000003,
+          "Q1": 206539.124,
+          "Median": 207673.875,
+          "Mean": 207341.91166666668,
+          "Q3": 208130.625,
+          "UpperFence": 210517.87649999998,
+          "Max": 210681.333,
+          "InterquartileRange": 1591.5009999999893,
+          "LowerOutliers": [
+            203986.375
+          ],
+          "UpperOutliers": [
+            210681.333
+          ],
+          "AllOutliers": [
+            203986.375,
+            210681.333
+          ],
+          "StandardError": 678.6782398119534,
+          "Variance": 4145437.3787482628,
+          "StandardDeviation": 2036.0347194358603,
+          "Skewness": -0.16418264450362535,
+          "Kurtosis": 1.9431464695751672,
+          "ConfidenceInterval": {
+            "N": 9,
+            "Mean": 207341.91166666668,
+            "StandardError": 678.6782398119534,
+            "Level": 12,
+            "Margin": 3421.4242960146903,
+            "Lower": 203920.487370652,
+            "Upper": 210763.33596268136
+          },
+          "Percentiles": {
+            "P0": 203986.375,
+            "P25": 206539.124,
+            "P50": 207673.875,
+            "P67": 207970.57124000002,
+            "P80": 208464.17460000003,
+            "P85": 208797.7242,
+            "P90": 209307.86580000003,
+            "P95": 209994.5994,
+            "P100": 210681.333
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 20,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1000,
+          "BytesAllocatedPerOperation": 172228
+        }
+      },
+      {
+        "Method": "CollectionInsertRemoveBurst",
+        "Parameters": "NeutralSource=True",
+        "Statistics": {
+          "OriginalValues": [
+            50436.583333333336,
+            51385.472,
+            50718.944,
+            50031.05533333333,
+            50641.278,
+            51768.5,
+            51404.75,
+            51950.388666666666,
+            52048.30533333333
+          ],
+          "N": 9,
+          "Min": 50031.05533333333,
+          "LowerFence": 48950.44499999999,
+          "Q1": 50641.278,
+          "Median": 51385.472,
+          "Mean": 51153.91962962962,
+          "Q3": 51768.5,
+          "UpperFence": 53459.333,
+          "Max": 52048.30533333333,
+          "InterquartileRange": 1127.2220000000016,
+          "LowerOutliers": [],
+          "UpperOutliers": [],
+          "AllOutliers": [],
+          "StandardError": 240.2524988076551,
+          "Variance": 519491.3686499008,
+          "StandardDeviation": 720.7574964229652,
+          "Skewness": -0.15456369794537797,
+          "Kurtosis": 1.2973752634372442,
+          "ConfidenceInterval": {
+            "N": 9,
+            "Mean": 51153.91962962962,
+            "StandardError": 240.2524988076551,
+            "Level": 12,
+            "Margin": 1211.1862269615583,
+            "Lower": 49942.73340266806,
+            "Upper": 52365.10585659118
+          },
+          "Percentiles": {
+            "P0": 50031.05533333333,
+            "P25": 50641.278,
+            "P50": 51385.472,
+            "P67": 51535.700000000004,
+            "P80": 51841.25546666667,
+            "P85": 51914.01093333334,
+            "P90": 51969.972,
+            "P95": 52009.138666666666,
+            "P100": 52048.30533333333
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 6,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1500,
+          "BytesAllocatedPerOperation": 34073
+        }
+      },
+      {
+        "Method": "CollectionMoveBurst",
+        "Parameters": "NeutralSource=True",
+        "Statistics": {
+          "OriginalValues": [
+            19216.152666666665,
+            18889.041666666668,
+            18945.784666666666,
+            19364.756833333333,
+            19549.833333333332,
+            18631.284666666666,
+            18619.4305,
+            19242.118,
+            18979.25,
+            18669.520833333332
+          ],
+          "N": 10,
+          "Min": 18619.4305,
+          "LowerFence": 17957.562604166676,
+          "Q1": 18724.401041666668,
+          "Median": 18962.517333333333,
+          "Mean": 19010.717316666665,
+          "Q3": 19235.626666666663,
+          "UpperFence": 20002.46510416666,
+          "Max": 19549.833333333332,
+          "InterquartileRange": 511.2256249999955,
+          "LowerOutliers": [],
+          "UpperOutliers": [],
+          "AllOutliers": [],
+          "StandardError": 102.4825715233891,
+          "Variance": 105026.77466046563,
+          "StandardDeviation": 324.0783464850215,
+          "Skewness": 0.19322559784798193,
+          "Kurtosis": 1.4758312241500517,
+          "ConfidenceInterval": {
+            "N": 10,
+            "Mean": 19010.717316666665,
+            "StandardError": 102.4825715233891,
+            "Level": 12,
+            "Margin": 489.9602159001214,
+            "Lower": 18520.757100766543,
+            "Upper": 19500.677532566788
+          },
+          "Percentiles": {
+            "P0": 18619.4305,
+            "P25": 18724.401041666668,
+            "P50": 18962.517333333333,
+            "P67": 19216.931626666665,
+            "P80": 19266.645766666665,
+            "P85": 19321.833241666667,
+            "P90": 19383.264483333332,
+            "P95": 19466.54890833333,
+            "P100": 19549.833333333332
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 3,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 6000,
+          "BytesAllocatedPerOperation": 4640
+        }
+      },
+      {
+        "Method": "DetachReattach",
+        "Parameters": "NeutralSource=True",
+        "Statistics": {
+          "OriginalValues": [
+            828639.375,
+            842132.5,
+            828586.455,
+            871252.5,
+            865461.46,
+            837163.96,
+            832265.415,
+            831422.29,
+            818416.875,
+            849326.25
+          ],
+          "N": 10,
+          "Min": 818416.875,
+          "LowerFence": 802046.040625,
+          "Q1": 829335.10375,
+          "Median": 834714.6875,
+          "Mean": 840466.708,
+          "Q3": 847527.8125,
+          "UpperFence": 874816.875625,
+          "Max": 871252.5,
+          "InterquartileRange": 18192.70874999999,
+          "LowerOutliers": [],
+          "UpperOutliers": [],
+          "AllOutliers": [],
+          "StandardError": 5355.123366970548,
+          "Variance": 286773462.7547398,
+          "StandardDeviation": 16934.386990816638,
+          "Skewness": 0.6200891927887843,
+          "Kurtosis": 1.9235797284984804,
+          "ConfidenceInterval": {
+            "N": 10,
+            "Mean": 840466.708,
+            "StandardError": 5355.123366970548,
+            "Level": 12,
+            "Margin": 25602.376697328076,
+            "Lower": 814864.3313026719,
+            "Upper": 866069.084697328
+          },
+          "Percentiles": {
+            "P0": 818416.875,
+            "P25": 829335.10375,
+            "P50": 834714.6875,
+            "P67": 842348.3125,
+            "P80": 852553.2919999999,
+            "P85": 859814.1365,
+            "P90": 866040.5639999999,
+            "P95": 868646.5319999999,
+            "P100": 871252.5
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 19,
+          "Gen1Collections": 7,
+          "Gen2Collections": 2,
+          "TotalOperations": 200,
+          "BytesAllocatedPerOperation": 741890
+        }
+      },
+      {
+        "Method": "CreateAndLayoutGrid",
+        "Parameters": "NeutralSource=True",
+        "Statistics": {
+          "OriginalValues": [
+            2137463.8671875,
+            2163343.75,
+            2168691.078125,
+            2183618.1640625,
+            2177220.3828125,
+            2155186.8515625,
+            2172867.1875,
+            2144100.265625,
+            2160348.6328125,
+            2165177.0859375
+          ],
+          "N": 10,
+          "Min": 2137463.8671875,
+          "LowerFence": 2133458.501953125,
+          "Q1": 2156477.296875,
+          "Median": 2164260.41796875,
+          "Mean": 2162801.7265625,
+          "Q3": 2171823.16015625,
+          "UpperFence": 2194841.955078125,
+          "Max": 2183618.1640625,
+          "InterquartileRange": 15345.86328125,
+          "LowerOutliers": [],
+          "UpperOutliers": [],
+          "AllOutliers": [],
+          "StandardError": 4520.215769974503,
+          "Variance": 204323506.07126194,
+          "StandardDeviation": 14294.177348531182,
+          "Skewness": -0.34268819411705187,
+          "Kurtosis": 1.8692676123200327,
+          "ConfidenceInterval": {
+            "N": 10,
+            "Mean": 2162801.7265625,
+            "StandardError": 4520.215769974503,
+            "Level": 12,
+            "Margin": 21610.75645985703,
+            "Lower": 2141190.970102643,
+            "Upper": 2184412.483022357
+          },
+          "Percentiles": {
+            "P0": 2137463.8671875,
+            "P25": 2156477.296875,
+            "P50": 2164260.41796875,
+            "P67": 2168816.36140625,
+            "P80": 2173737.8265625,
+            "P85": 2175696.764453125,
+            "P90": 2177860.1609375,
+            "P95": 2180739.1625,
+            "P100": 2183618.1640625
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 31,
+          "Gen1Collections": 13,
+          "Gen2Collections": 4,
+          "TotalOperations": 128,
+          "BytesAllocatedPerOperation": 1772200
+        }
+      }
+    ],
+    "models": [
+      {
+        "Method": "CollectionMoveBurst",
+        "Parameters": "NeutralSource=False",
+        "Statistics": {
+          "OriginalValues": [
+            18828.465333333334,
+            19098.597166666666,
+            19377.472166666666,
+            19301.152666666665,
+            19235.034666666666,
+            19324.687333333335,
+            19112.729,
+            19247.9445,
+            18877.8195,
+            19420.201333333334
+          ],
+          "N": 10,
+          "Min": 18828.465333333334,
+          "LowerFence": 18777.1198125,
+          "Q1": 19102.130125,
+          "Median": 19241.489583333336,
+          "Mean": 19182.41036666667,
+          "Q3": 19318.803666666667,
+          "UpperFence": 19643.81397916667,
+          "Max": 19420.201333333334,
+          "InterquartileRange": 216.673541666667,
+          "LowerOutliers": [],
+          "UpperOutliers": [],
+          "AllOutliers": [],
+          "StandardError": 63.76458319612214,
+          "Variance": 40659.22070175182,
+          "StandardDeviation": 201.6413169510451,
+          "Skewness": -0.5815360932399539,
+          "Kurtosis": 1.793780779697957,
+          "ConfidenceInterval": {
+            "N": 10,
+            "Mean": 19182.41036666667,
+            "StandardError": 63.76458319612214,
+            "Level": 12,
+            "Margin": 304.8528982552221,
+            "Lower": 18877.557468411447,
+            "Upper": 19487.263264921894
+          },
+          "Percentiles": {
+            "P0": 18828.465333333334,
+            "P25": 19102.130125,
+            "P50": 19241.489583333336,
+            "P67": 19301.858706666666,
+            "P80": 19335.244300000002,
+            "P85": 19358.997475,
+            "P90": 19381.745083333335,
+            "P95": 19400.973208333333,
+            "P100": 19420.201333333334
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 3,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 6000,
+          "BytesAllocatedPerOperation": 4336
+        }
+      },
+      {
+        "Method": "CollectionMoveBurst",
+        "Parameters": "NeutralSource=True",
+        "Statistics": {
+          "OriginalValues": [
+            18850.58341666667,
+            19101.70825,
+            19178.881916666665,
+            19020.152916666666,
+            18728.95825,
+            19068.91658333333,
+            18633.201416666667,
+            18609.993083333335,
+            18744.868083333335,
+            18776.798583333333
+          ],
+          "N": 10,
+          "Min": 18609.993083333335,
+          "LowerFence": 18247.250770833336,
+          "Q1": 18732.935708333334,
+          "Median": 18813.691,
+          "Mean": 18871.40625,
+          "Q3": 19056.725666666665,
+          "UpperFence": 19542.41060416666,
+          "Max": 19178.881916666665,
+          "InterquartileRange": 323.789958333331,
+          "LowerOutliers": [],
+          "UpperOutliers": [],
+          "AllOutliers": [],
+          "StandardError": 64.9343366667481,
+          "Variance": 42164.680783505864,
+          "StandardDeviation": 205.34040221910996,
+          "Skewness": 0.1747206088421843,
+          "Kurtosis": 1.2599690715586052,
+          "ConfidenceInterval": {
+            "N": 10,
+            "Mean": 18871.40625,
+            "StandardError": 64.9343366667481,
+            "Level": 12,
+            "Margin": 310.4453873438376,
+            "Lower": 18560.960862656164,
+            "Upper": 19181.851637343836
+          },
+          "Percentiles": {
+            "P0": 18609.993083333335,
+            "P25": 18732.935708333334,
+            "P50": 18813.691,
+            "P67": 19021.615826666664,
+            "P80": 19075.474916666666,
+            "P85": 19090.231166666665,
+            "P90": 19109.425616666667,
+            "P95": 19144.153766666663,
+            "P100": 19178.881916666665
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 3,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 6000,
+          "BytesAllocatedPerOperation": 4640
+        }
+      },
+      {
+        "Method": "CreateSourceAndPresentation",
+        "Parameters": "NeutralSource=False",
+        "Statistics": {
+          "OriginalValues": [
+            3646.9291076660156,
+            3673.3897552490234,
+            3647.583641052246,
+            3722.5446701049805,
+            3672.064781188965,
+            3684.7982482910156,
+            3717.873260498047,
+            3697.8661193847656,
+            3642.772041320801,
+            3724.737808227539
+          ],
+          "N": 10,
+          "Min": 3642.772041320801,
+          "LowerFence": 3564.9526023864746,
+          "Q1": 3653.703926086426,
+          "Median": 3679.0940017700195,
+          "Mean": 3683.05594329834,
+          "Q3": 3712.8714752197266,
+          "UpperFence": 3801.6227989196777,
+          "Max": 3724.737808227539,
+          "InterquartileRange": 59.16754913330078,
+          "LowerOutliers": [],
+          "UpperOutliers": [],
+          "AllOutliers": [],
+          "StandardError": 10.072970433606212,
+          "Variance": 1014.6473335630494,
+          "StandardDeviation": 31.853529373729522,
+          "Skewness": 0.0620873353120278,
+          "Kurtosis": 1.254113580271645,
+          "ConfidenceInterval": {
+            "N": 10,
+            "Mean": 3683.05594329834,
+            "StandardError": 10.072970433606212,
+            "Level": 12,
+            "Margin": 48.1579911105067,
+            "Lower": 3634.897952187833,
+            "Upper": 3731.213934408847
+          },
+          "Percentiles": {
+            "P0": 3642.772041320801,
+            "P25": 3653.703926086426,
+            "P50": 3679.0940017700195,
+            "P67": 3698.466333618164,
+            "P80": 3718.8075424194335,
+            "P85": 3720.9096767425535,
+            "P90": 3722.763983917236,
+            "P95": 3723.750896072387,
+            "P100": 3724.737808227539
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 175,
+          "Gen1Collections": 3,
+          "Gen2Collections": 0,
+          "TotalOperations": 131072,
+          "BytesAllocatedPerOperation": 11192
+        }
+      },
+      {
+        "Method": "SortThousandRows",
+        "Parameters": "NeutralSource=False",
+        "Statistics": {
+          "OriginalValues": [
+            682780.6396484375,
+            682465.0068359375,
+            682884.1962890625,
+            682920.9794921875,
+            682798.501953125,
+            682499.6748046875,
+            682717.85546875,
+            686408.0810546875,
+            688721.8427734375
+          ],
+          "N": 9,
+          "Min": 682465.0068359375,
+          "LowerFence": 682413.1694335938,
+          "Q1": 682717.85546875,
+          "Median": 682798.501953125,
+          "Mean": 683799.6420355903,
+          "Q3": 682920.9794921875,
+          "UpperFence": 683225.6655273438,
+          "Max": 688721.8427734375,
+          "InterquartileRange": 203.1240234375,
+          "LowerOutliers": [],
+          "UpperOutliers": [
+            686408.0810546875,
+            688721.8427734375
+          ],
+          "AllOutliers": [
+            686408.0810546875,
+            688721.8427734375
+          ],
+          "StandardError": 739.0325735523211,
+          "Variance": 4915522.302942302,
+          "StandardDeviation": 2217.0977206569632,
+          "Skewness": 1.3014988519346309,
+          "Kurtosis": 2.9617784965606875,
+          "ConfidenceInterval": {
+            "N": 9,
+            "Mean": 683799.6420355903,
+            "StandardError": 739.0325735523211,
+            "Level": 12,
+            "Margin": 3725.688926462086,
+            "Lower": 680073.9531091282,
+            "Upper": 687525.3309620523
+          },
+          "Percentiles": {
+            "P0": 682465.0068359375,
+            "P25": 682717.85546875,
+            "P50": 682798.501953125,
+            "P67": 682897.4382421875,
+            "P80": 684315.8201171875,
+            "P85": 685710.6607421875,
+            "P90": 686870.8333984375,
+            "P95": 687796.3380859375,
+            "P100": 688721.8427734375
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 394,
+          "Gen1Collections": 11,
+          "Gen2Collections": 0,
+          "TotalOperations": 1024,
+          "BytesAllocatedPerOperation": 3221400
+        }
+      },
+      {
+        "Method": "ExpandCollapseThousandRows",
+        "Parameters": "NeutralSource=False",
+        "Statistics": {
+          "OriginalValues": [
+            8248.116821289062,
+            8391.29702758789,
+            8391.83235168457,
+            8390.909194946289,
+            8377.012893676758,
+            8318.245574951172,
+            8179.500579833984,
+            8359.590545654297
+          ],
+          "N": 8,
+          "Min": 8179.500579833984,
+          "LowerFence": 8165.274236679077,
+          "Q1": 8300.713386535645,
+          "Median": 8368.301719665527,
+          "Mean": 8332.063123703003,
+          "Q3": 8391.00615310669,
+          "UpperFence": 8526.445302963257,
+          "Max": 8391.83235168457,
+          "InterquartileRange": 90.29276657104492,
+          "LowerOutliers": [],
+          "UpperOutliers": [],
+          "AllOutliers": [],
+          "StandardError": 27.97810144877751,
+          "Variance": 6262.193285424691,
+          "StandardDeviation": 79.134021036623,
+          "Skewness": -0.8597337820834065,
+          "Kurtosis": 2.0182223099643304,
+          "ConfidenceInterval": {
+            "N": 8,
+            "Mean": 8332.063123703003,
+            "StandardError": 27.97810144877751,
+            "Level": 12,
+            "Margin": 151.30228570953952,
+            "Lower": 8180.760837993464,
+            "Upper": 8483.365409412543
+          },
+          "Percentiles": {
+            "P0": 8179.500579833984,
+            "P25": 8300.713386535645,
+            "P50": 8368.301719665527,
+            "P67": 8386.601341552734,
+            "P80": 8391.14189453125,
+            "P85": 8391.27763595581,
+            "P90": 8391.457624816894,
+            "P95": 8391.644988250733,
+            "P100": 8391.83235168457
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 65,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 65536,
+          "BytesAllocatedPerOperation": 8320
+        }
+      },
+      {
+        "Method": "CreateSourceAndPresentation",
+        "Parameters": "NeutralSource=True",
+        "Statistics": {
+          "OriginalValues": [
+            4940.031051635742,
+            4814.577102661133,
+            4880.002990722656,
+            4891.049713134766,
+            4903.776184082031,
+            4930.0963134765625,
+            4831.78076171875,
+            4818.833679199219,
+            4877.328887939453,
+            4860.6593017578125
+          ],
+          "N": 10,
+          "Min": 4814.577102661133,
+          "LowerFence": 4746.609142303467,
+          "Q1": 4839.000396728516,
+          "Median": 4878.665939331055,
+          "Mean": 4874.8135986328125,
+          "Q3": 4900.594566345215,
+          "UpperFence": 4992.985820770264,
+          "Max": 4940.031051635742,
+          "InterquartileRange": 61.59416961669922,
+          "LowerOutliers": [],
+          "UpperOutliers": [],
+          "AllOutliers": [],
+          "StandardError": 13.848204848323821,
+          "Variance": 1917.7277752113941,
+          "StandardDeviation": 43.79186882528986,
+          "Skewness": -0.0017166934225981037,
+          "Kurtosis": 1.486267378454007,
+          "ConfidenceInterval": {
+            "N": 10,
+            "Mean": 4874.8135986328125,
+            "StandardError": 13.848204848323821,
+            "Level": 12,
+            "Margin": 66.20705683371074,
+            "Lower": 4808.606541799102,
+            "Upper": 4941.020655466523
+          },
+          "Percentiles": {
+            "P0": 4814.577102661133,
+            "P25": 4839.000396728516,
+            "P50": 4878.665939331055,
+            "P67": 4891.431507263183,
+            "P80": 4909.040209960937,
+            "P85": 4920.884268188476,
+            "P90": 4931.089787292481,
+            "P95": 4935.560419464111,
+            "P100": 4940.031051635742
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 119,
+          "Gen1Collections": 1,
+          "Gen2Collections": 0,
+          "TotalOperations": 65536,
+          "BytesAllocatedPerOperation": 15288
+        }
+      },
+      {
+        "Method": "SortThousandRows",
+        "Parameters": "NeutralSource=True",
+        "Statistics": {
+          "OriginalValues": [
+            82539.36254882812,
+            82526.75366210938,
+            82853.57666015625,
+            82945.76013183594,
+            82178.09033203125,
+            82722.52392578125,
+            82427.95300292969,
+            82425.49633789062,
+            82741.20080566406,
+            82734.24780273438
+          ],
+          "N": 10,
+          "Min": 82178.09033203125,
+          "LowerFence": 82022.43908691406,
+          "Q1": 82452.65316772461,
+          "Median": 82630.94323730469,
+          "Mean": 82609.4965209961,
+          "Q3": 82739.46255493164,
+          "UpperFence": 83169.67663574219,
+          "Max": 82945.76013183594,
+          "InterquartileRange": 286.80938720703125,
+          "LowerOutliers": [],
+          "UpperOutliers": [],
+          "AllOutliers": [],
+          "StandardError": 73.2592805191073,
+          "Variance": 53669.22182177255,
+          "StandardDeviation": 231.66618618558158,
+          "Skewness": -0.2829518767408795,
+          "Kurtosis": 1.87412384868475,
+          "ConfidenceInterval": {
+            "N": 10,
+            "Mean": 82609.4965209961,
+            "StandardError": 73.2592805191073,
+            "Level": 12,
+            "Margin": 350.2462161738148,
+            "Lower": 82259.25030482229,
+            "Upper": 82959.7427371699
+          },
+          "Percentiles": {
+            "P0": 82178.09033203125,
+            "P25": 82452.65316772461,
+            "P50": 82630.94323730469,
+            "P67": 82734.45639282226,
+            "P80": 82763.6759765625,
+            "P85": 82814.24511108399,
+            "P90": 82862.79500732422,
+            "P95": 82904.27756958007,
+            "P100": 82945.76013183594
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 4,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 8192,
+          "BytesAllocatedPerOperation": 4264
+        }
+      },
+      {
+        "Method": "ExpandCollapseThousandRows",
+        "Parameters": "NeutralSource=True",
+        "Statistics": {
+          "OriginalValues": [
+            7798.186614990234,
+            7785.954162597656,
+            7789.719909667969,
+            7776.172012329102,
+            7783.009216308594,
+            7789.371490478516,
+            7785.207122802734,
+            7793.094635009766,
+            7801.866546630859
+          ],
+          "N": 9,
+          "Min": 7776.172012329102,
+          "LowerFence": 7773.3758544921875,
+          "Q1": 7785.207122802734,
+          "Median": 7789.371490478516,
+          "Mean": 7789.175745646159,
+          "Q3": 7793.094635009766,
+          "UpperFence": 7804.9259033203125,
+          "Max": 7801.866546630859,
+          "InterquartileRange": 7.88751220703125,
+          "LowerOutliers": [],
+          "UpperOutliers": [],
+          "AllOutliers": [],
+          "StandardError": 2.611927899079953,
+          "Variance": 61.39950614992995,
+          "StandardDeviation": 7.835783697239859,
+          "Skewness": 0.07081025898353745,
+          "Kurtosis": 1.8616310793907833,
+          "ConfidenceInterval": {
+            "N": 9,
+            "Mean": 7789.175745646159,
+            "StandardError": 2.611927899079953,
+            "Level": 12,
+            "Margin": 13.16752630204685,
+            "Lower": 7776.008219344112,
+            "Upper": 7802.343271948206
+          },
+          "Percentiles": {
+            "P0": 7776.172012329102,
+            "P25": 7785.207122802734,
+            "P50": 7789.371490478516,
+            "P67": 7790.9348107910155,
+            "P80": 7795.131427001953,
+            "P85": 7797.16821899414,
+            "P90": 7798.922601318359,
+            "P95": 7800.39457397461,
+            "P100": 7801.866546630859
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 66,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 65536,
+          "BytesAllocatedPerOperation": 8528
+        }
+      }
+    ],
+    "scrollRepeat": [
+      {
+        "Method": "VerticalRowScrolls",
+        "Parameters": "NeutralSource=False",
+        "Statistics": {
+          "OriginalValues": [
+            32545.5708,
+            32964.3833,
+            33256.7083,
+            33022.7125,
+            33010.35,
+            32756.4999,
+            32589.8417,
+            33309.4583,
+            33109.1583,
+            32596.9666
+          ],
+          "N": 10,
+          "Min": 32545.5708,
+          "LowerFence": 31960.8045375,
+          "Q1": 32636.849925,
+          "Median": 32987.366649999996,
+          "Mean": 32916.16497,
+          "Q3": 33087.54685,
+          "UpperFence": 33763.5922375,
+          "Max": 33309.4583,
+          "InterquartileRange": 450.6969250000002,
+          "LowerOutliers": [],
+          "UpperOutliers": [],
+          "AllOutliers": [],
+          "StandardError": 88.29568261735983,
+          "Variance": 77961.27568865541,
+          "StandardDeviation": 279.2154646301945,
+          "Skewness": -0.05772954794351581,
+          "Kurtosis": 1.3196492584473318,
+          "ConfidenceInterval": {
+            "N": 10,
+            "Mean": 32916.16497,
+            "StandardError": 88.29568261735983,
+            "Level": 12,
+            "Margin": 422.13394019271743,
+            "Lower": 32494.03102980728,
+            "Upper": 33338.298910192716
+          },
+          "Percentiles": {
+            "P0": 32545.5708,
+            "P25": 32636.849925,
+            "P50": 32987.366649999996,
+            "P67": 33025.305874000005,
+            "P80": 33138.668300000005,
+            "P85": 33205.0658,
+            "P90": 33261.9833,
+            "P95": 33285.720799999996,
+            "P100": 33309.4583
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 8,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 10000,
+          "BytesAllocatedPerOperation": 7368
+        }
+      },
+      {
+        "Method": "VerticalRowScrolls",
+        "Parameters": "NeutralSource=True",
+        "Statistics": {
+          "OriginalValues": [
+            33065.32295,
+            33234.61035,
+            33310.93545,
+            32820.21465,
+            32667.32705,
+            33180.95625,
+            32612.10625,
+            32833.81045,
+            33163.20625,
+            32728.34375
+          ],
+          "N": 10,
+          "Min": 32612.10625,
+          "LowerFence": 32113.5005625,
+          "Q1": 32751.311475000002,
+          "Median": 32949.566699999996,
+          "Mean": 32961.68334,
+          "Q3": 33176.51875,
+          "UpperFence": 33814.32966250001,
+          "Max": 33310.93545,
+          "InterquartileRange": 425.20727500000066,
+          "LowerOutliers": [],
+          "UpperOutliers": [],
+          "AllOutliers": [],
+          "StandardError": 81.34709228066764,
+          "Variance": 66173.49422519456,
+          "StandardDeviation": 257.2420926388109,
+          "Skewness": -0.0180958665246581,
+          "Kurtosis": 1.1550119503828884,
+          "ConfidenceInterval": {
+            "N": 10,
+            "Mean": 32961.68334,
+            "StandardError": 81.34709228066764,
+            "Level": 12,
+            "Margin": 388.913337206675,
+            "Lower": 32572.770002793328,
+            "Upper": 33350.596677206675
+          },
+          "Percentiles": {
+            "P0": 32612.10625,
+            "P25": 32751.311475000002,
+            "P50": 32949.566699999996,
+            "P67": 33163.738750000004,
+            "P80": 33191.68707,
+            "P85": 33215.831415,
+            "P90": 33242.24286,
+            "P95": 33276.589155,
+            "P100": 33310.93545
+          }
+        },
+        "Memory": {
+          "Gen0Collections": 8,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 10000,
+          "BytesAllocatedPerOperation": 7368
+        }
+      }
+    ]
+  }
+}

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -94,7 +94,7 @@ namespace Avalonia.Controls.Models.TreeDataGrid
 
         public ICell CreateCell(IRow<TModel> row)
         {
-            if (row is HierarchicalRow<TModel> r)
+            if (row is IExpanderRow<TModel> r)
             {
                 var showExpander = new ShowExpanderObservable<TModel>(
                     _childSelector,
