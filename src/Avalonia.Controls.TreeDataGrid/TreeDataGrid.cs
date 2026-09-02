@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -17,7 +17,7 @@ using Avalonia.VisualTree;
 
 namespace Avalonia.Controls
 {
-    public class TreeDataGrid : TemplatedControl
+    public partial class TreeDataGrid : TemplatedControl
     {
         public static readonly StyledProperty<bool> AutoDragDropRowsProperty =
             AvaloniaProperty.Register<TreeDataGrid, bool>(nameof(AutoDragDropRows));
@@ -173,6 +173,7 @@ namespace Avalonia.Controls
             {
                 if (_source != value)
                 {
+                    if (!_settingCoreSource && Model is not null) SetCurrentValue(ModelProperty, null);
                     UnsubscribeSourceEvents();
 
                     var oldSource = _source;
@@ -316,6 +317,7 @@ namespace Avalonia.Controls
         {
             base.OnAttachedToVisualTree(e);
             _isAttachedToVisualTree = true;
+            if (Model is not null && _corePresentation is null) UpdateCorePresentation();
             SelectionInteraction = _source?.Selection as ITreeDataGridSelectionInteraction;
             SubscribeSourceEvents();
             SubscribeSelectionInteraction();
@@ -366,6 +368,7 @@ namespace Avalonia.Controls
             _isAttachedToVisualTree = false;
             base.OnDetachedFromVisualTree(e);
             StopDrag();
+            ReleaseCorePresentation();
         }
 
         private void SubscribeSourceEvents()
@@ -414,6 +417,8 @@ namespace Avalonia.Controls
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);
+
+            if (change.Property == ModelProperty) UpdateCorePresentation();
 
             if (change.Property == AutoDragDropRowsProperty)
             {

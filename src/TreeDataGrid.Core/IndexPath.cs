@@ -8,7 +8,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Avalonia.Controls
+namespace TreeDataGridCore
 {
     public readonly struct IndexPath : IReadOnlyList<int>,
         IComparable<IndexPath>,
@@ -48,16 +48,17 @@ namespace Avalonia.Controls
         private IndexPath(int[] basePath, int index)
         {
             basePath = basePath ?? throw new ArgumentNullException(nameof(basePath));
-            
+
             _index = 0;
             _path = new int[basePath.Length + 1];
             Array.Copy(basePath, _path, basePath.Length);
             _path[basePath.Length] = index;
         }
 
-        internal global::TreeDataGridCore.IndexPath ToCoreIndexPath() => new(_index, _path);
-        internal static IndexPath FromCore(global::TreeDataGridCore.IndexPath path) => new(path.EncodedIndex, path.Path);
-        private IndexPath(int encodedIndex, int[]? path) { _index = encodedIndex; _path = path; }
+        // Shared with the presentation adapter without allocating paths during virtualization.
+        internal int EncodedIndex => _index;
+        internal int[]? Path => _path;
+        internal IndexPath(int encodedIndex, int[]? path) { _index = encodedIndex; _path = path; }
 
         public int Count => _path?.Length ?? (_index == 0 ? 0 : 1);
 

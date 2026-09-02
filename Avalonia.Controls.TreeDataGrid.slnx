@@ -15,4 +15,6 @@
     <Project Path="tests/Avalonia.Controls.TreeDataGrid.Tests/Avalonia.Controls.TreeDataGrid.Tests.csproj" />
   </Folder>
   <Project Path="src/Avalonia.Controls.TreeDataGrid/Avalonia.Controls.TreeDataGrid.csproj" />
+  <Project Path="src/TreeDataGrid.Core/TreeDataGrid.Core.csproj" />
+  <Project Path="tests/TreeDataGrid.Core.Tests/TreeDataGrid.Core.Tests.csproj" />
 </Solution>
