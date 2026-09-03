@@ -151,6 +151,7 @@ namespace TreeDataGridCore.Models
         private readonly Func<TModel, bool>? _hasChildren;
         private readonly Action<TModel, bool>? _setExpanded;
         private readonly Func<TModel, bool>? _getExpanded;
+        private readonly PropertyPathSubscriptionFactory<TModel>? _isExpandedSubscriptionFactory;
         public Expression<Func<TModel, bool>>? HasChildrenSelector { get; }
         public Expression<Func<TModel, bool>>? IsExpandedSelector { get; }
         public HierarchicalExpanderColumn(IColumn<TModel> inner, Func<TModel, IEnumerable<TModel>?> childSelector,
@@ -163,6 +164,8 @@ namespace TreeDataGridCore.Models
             IsExpandedSelector = isExpandedSelector;
             _hasChildren = hasChildrenSelector?.Compile();
             _getExpanded = isExpandedSelector?.Compile();
+            _isExpandedSubscriptionFactory = isExpandedSelector is null ? null :
+                PropertyPathSubscriptionFactory<TModel>.TryCreate(isExpandedSelector);
             _setExpanded = setIsExpanded;
             if (isExpandedSelector is not null && _setExpanded is null)
             {
@@ -172,8 +175,7 @@ namespace TreeDataGridCore.Models
         }
         public bool? GetModelIsExpanded(TModel model) => _getExpanded?.Invoke(model);
         internal IDisposable? SubscribeToIsExpanded(TModel model, Action changed) =>
-            IsExpandedSelector is { } expression ?
-                PropertyPathSubscription<TModel>.TryCreate(model, expression, changed) : null;
+            _isExpandedSubscriptionFactory?.Subscribe(model, changed);
         public IColumn<TModel> Inner { get; }
         public string Id => Inner.Id;
         public object? Header => Inner.Header;

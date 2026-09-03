@@ -7,54 +7,26 @@ using System.Reflection;
 namespace TreeDataGridCore.Models
 {
     /// <summary>
-    /// Observes the notifying objects along a member-access expression and rebuilds downstream
-    /// subscriptions when an intermediate member changes.
+    /// Parses a nested member-access expression once and creates lightweight row subscriptions.
     /// </summary>
-    internal sealed class PropertyPathSubscription<TSource> : IDisposable
+    internal sealed class PropertyPathSubscriptionFactory<TSource>
     {
-        private readonly Action _changed;
-        private readonly PropertyChangedEventHandler[] _handlers;
         private readonly MemberInfo[] _members;
-        private readonly INotifyPropertyChanged?[] _notifiers;
-        private readonly TSource _source;
-        private readonly object?[] _values;
-        private bool _disposed;
 
-        private PropertyPathSubscription(TSource source, MemberInfo[] members, Action changed)
+        private PropertyPathSubscriptionFactory(MemberInfo[] members)
         {
-            _source = source;
             _members = members;
-            _changed = changed;
-            _handlers = new PropertyChangedEventHandler[members.Length];
-            _notifiers = new INotifyPropertyChanged?[members.Length];
-            _values = new object?[members.Length];
-
-            for (var i = 0; i < members.Length; ++i)
-            {
-                var index = i;
-                _handlers[i] = (_, e) => OnPropertyChanged(index, e);
-            }
-
-            Rebuild(0);
         }
 
-        public static IDisposable? TryCreate(
-            TSource source,
-            Expression<Func<TSource, bool>> expression,
-            Action changed)
+        public static PropertyPathSubscriptionFactory<TSource>? TryCreate(
+            Expression<Func<TSource, bool>> expression)
         {
             var members = GetMemberPath(expression);
-            return members is null ? null : new PropertyPathSubscription<TSource>(source, members, changed);
+            return members is { Length: > 1 } ? new PropertyPathSubscriptionFactory<TSource>(members) : null;
         }
 
-        public void Dispose()
-        {
-            if (_disposed)
-                return;
-
-            _disposed = true;
-            Unsubscribe(0);
-        }
+        public IDisposable Subscribe(TSource source, Action changed) =>
+            new PropertyPathSubscription<TSource>(source, _members, changed);
 
         private static MemberInfo[]? GetMemberPath(Expression<Func<TSource, bool>> expression)
         {
@@ -74,13 +46,6 @@ namespace TreeDataGridCore.Models
             return result.ToArray();
         }
 
-        private static object? GetValue(MemberInfo member, object owner) => member switch
-        {
-            PropertyInfo property => property.GetValue(owner),
-            FieldInfo field => field.GetValue(owner),
-            _ => throw new NotSupportedException($"Member '{member.Name}' is not a field or property."),
-        };
-
         private static Expression? StripConvert(Expression? expression)
         {
             while (expression is UnaryExpression unary &&
@@ -91,14 +56,62 @@ namespace TreeDataGridCore.Models
 
             return expression;
         }
+    }
 
-        private void OnPropertyChanged(int index, PropertyChangedEventArgs e)
+    /// <summary>
+    /// Tracks notifying objects along a cached member path and rebuilds only the affected tail.
+    /// </summary>
+    internal sealed class PropertyPathSubscription<TSource> : IDisposable
+    {
+        private readonly Action _changed;
+        private readonly PropertyChangedEventHandler _handler;
+        private readonly MemberInfo[] _members;
+        private readonly TSource _source;
+        private readonly object?[] _values;
+        private bool _disposed;
+
+        internal PropertyPathSubscription(TSource source, MemberInfo[] members, Action changed)
         {
-            if (_disposed || (!string.IsNullOrEmpty(e.PropertyName) && e.PropertyName != _members[index].Name))
+            _source = source;
+            _members = members;
+            _changed = changed;
+            _handler = OnPropertyChanged;
+            _values = new object?[members.Length];
+            Rebuild(0);
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
                 return;
 
-            Rebuild(index);
-            _changed();
+            _disposed = true;
+            Unsubscribe(0);
+        }
+
+        private static object? GetValue(MemberInfo member, object owner) => member switch
+        {
+            PropertyInfo property => property.GetValue(owner),
+            FieldInfo field => field.GetValue(owner),
+            _ => throw new NotSupportedException($"Member '{member.Name}' is not a field or property."),
+        };
+
+        private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (_disposed)
+                return;
+
+            for (var i = 0; i < _members.Length; ++i)
+            {
+                var owner = i == 0 ? _source : _values[i - 1];
+                if (ReferenceEquals(owner, sender) &&
+                    (string.IsNullOrEmpty(e.PropertyName) || e.PropertyName == _members[i].Name))
+                {
+                    Rebuild(i);
+                    _changed();
+                    return;
+                }
+            }
         }
 
         private void Rebuild(int startIndex)
@@ -110,8 +123,7 @@ namespace TreeDataGridCore.Models
             {
                 if (owner is INotifyPropertyChanged notifier)
                 {
-                    _notifiers[i] = notifier;
-                    notifier.PropertyChanged += _handlers[i];
+                    notifier.PropertyChanged += _handler;
                 }
 
                 owner = owner is null ? null : GetValue(_members[i], owner);
@@ -121,13 +133,11 @@ namespace TreeDataGridCore.Models
 
         private void Unsubscribe(int startIndex)
         {
-            for (var i = startIndex; i < _notifiers.Length; ++i)
+            for (var i = _members.Length - 1; i >= startIndex; --i)
             {
-                if (_notifiers[i] is { } notifier)
-                {
-                    notifier.PropertyChanged -= _handlers[i];
-                    _notifiers[i] = null;
-                }
+                var owner = i == 0 ? _source : _values[i - 1];
+                if (owner is INotifyPropertyChanged notifier)
+                    notifier.PropertyChanged -= _handler;
 
                 _values[i] = null;
             }

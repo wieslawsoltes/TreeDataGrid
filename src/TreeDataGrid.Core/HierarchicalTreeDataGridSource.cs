@@ -368,10 +368,7 @@ namespace TreeDataGridCore
                     break;
 
                 case NotifyCollectionChangedAction.Reset:
-                    if (_expanderColumn is not null)
-                    {
-                        throw new InvalidOperationException("The expander column cannot be removed by a reset.");
-                    }
+                    _expanderColumn = Columns.OfType<IExpanderColumn<TModel>>().SingleOrDefault();
                     break;
 
                 default:
@@ -415,9 +412,98 @@ namespace TreeDataGridCore
 
         private sealed class HierarchicalColumnList : ColumnList<TModel>
         {
+            private bool _applyingReset;
+
+            public override void InsertRange(int index, Action<Action<IColumn<TModel>>> action)
+            {
+                var proposed = new List<IColumn<TModel>>();
+                action(proposed.Add);
+
+                if (this.Count(x => x is IExpanderColumn<TModel>) +
+                    proposed.Count(x => x is IExpanderColumn<TModel>) > 1)
+                {
+                    throw new InvalidOperationException("Only one expander column is allowed.");
+                }
+
+                base.InsertRange(index, add =>
+                {
+                    foreach (var column in proposed)
+                        add(column);
+                });
+            }
+
+            public override void RemoveRange(int index, int count)
+            {
+                for (var i = 0; i < count; ++i)
+                {
+                    if (this[index + i] is IExpanderColumn<TModel>)
+                        throw new InvalidOperationException("The expander column cannot be removed.");
+                }
+
+                base.RemoveRange(index, count);
+            }
+
+            public override void Reset(Action<IList<IColumn<TModel>>> action)
+            {
+                var currentExpander = this.OfType<IExpanderColumn<TModel>>().SingleOrDefault();
+                var proposed = new List<IColumn<TModel>>(this);
+                action(proposed);
+                var proposedExpanders = proposed.OfType<IExpanderColumn<TModel>>().ToArray();
+
+                if (proposedExpanders.Length > 1 ||
+                    (currentExpander is not null &&
+                        (proposedExpanders.Length == 0 || !ReferenceEquals(currentExpander, proposedExpanders[0]))))
+                {
+                    throw new InvalidOperationException("A reset cannot remove or replace the expander column.");
+                }
+
+                _applyingReset = true;
+                try
+                {
+                    base.Reset(columns =>
+                    {
+                        columns.Clear();
+                        foreach (var column in proposed)
+                            columns.Add(column);
+                    });
+                }
+                finally
+                {
+                    _applyingReset = false;
+                }
+            }
+
+            protected override void ClearItems()
+            {
+                if (!_applyingReset && this.Any(x => x is IExpanderColumn<TModel>))
+                    throw new InvalidOperationException("The expander column cannot be removed.");
+
+                base.ClearItems();
+            }
+
+            protected override void InsertItem(int index, IColumn<TModel> item)
+            {
+                if (!_applyingReset && item is IExpanderColumn<TModel> &&
+                    this.Any(x => x is IExpanderColumn<TModel>))
+                {
+                    throw new InvalidOperationException("Only one expander column is allowed.");
+                }
+
+                base.InsertItem(index, item);
+            }
+
+            protected override void RemoveItem(int index)
+            {
+                if (!_applyingReset && this[index] is IExpanderColumn<TModel>)
+                    throw new InvalidOperationException("The expander column cannot be removed.");
+
+                base.RemoveItem(index);
+            }
+
             protected override void SetItem(int index, IColumn<TModel> item)
             {
-                if (this[index] is IExpanderColumn<TModel> || item is IExpanderColumn<TModel>)
+                if (!_applyingReset &&
+                    (this[index] is IExpanderColumn<TModel> || item is IExpanderColumn<TModel>))
                 {
                     throw new InvalidOperationException("The expander column cannot be replaced.");
                 }
