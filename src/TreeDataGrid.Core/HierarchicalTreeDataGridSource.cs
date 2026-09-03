@@ -54,6 +54,7 @@ namespace TreeDataGridCore
                     _rows?.SetItems(_itemsView);
                     if (_selection is object)
                         _selection.Source = value;
+                    RaisePropertyChanged();
                 }
             }
         }
@@ -261,6 +262,12 @@ namespace TreeDataGridCore
 
             var orderedIndexes = indexes.OrderBy(x => x).ToArray();
 
+            for (var i = 1; i < orderedIndexes.Length; ++i)
+            {
+                if (orderedIndexes[i] == orderedIndexes[i - 1])
+                    throw new ArgumentException("Duplicate source index.", nameof(indexes));
+            }
+
             foreach (var sourceIndex in orderedIndexes)
             {
                 if (sourceIndex.IsAncestorOf(targetIndex) ||
@@ -307,7 +314,8 @@ namespace TreeDataGridCore
             var insertIndex = ti;
             var selection = _selection as ITreeSelectionModel;
             var originalPrimarySelection = selection?.SelectedIndex ?? default;
-            var movedSelections = selection?.SelectedIndexes
+            var originalSelections = selection?.SelectedIndexes.ToArray();
+            var movedSelections = originalSelections?
                 .Select(selected =>
                 {
                     for (var i = 0; i < sourceItems.Length; ++i)
@@ -350,7 +358,7 @@ namespace TreeDataGridCore
             foreach (var item in sourceItems)
                 targetItems.Insert(ti++, item.Item);
 
-            if (selection is not null && movedSelections is { Length: > 0 })
+            if (selection is not null && originalSelections is { Length: > 0 })
             {
                 IndexPath? FindItemsPath(IEnumerable<TModel> models, IndexPath parentPath)
                 {
@@ -372,15 +380,40 @@ namespace TreeDataGridCore
                 var targetParentPath = FindItemsPath(_items, default) ??
                     throw new InvalidOperationException("Could not resolve the moved rows' destination.");
 
-                var retainedPrimarySelection = selection.SelectedIndex;
-                var retainedSelections = selection.SelectedIndexes.ToArray();
-                var restoredSelections = movedSelections
-                    .Select(selected =>
+                IndexPath MapRetainedSelection(IndexPath original)
+                {
+                    var indexes = original.ToArray();
+
+                    for (var depth = 0; depth < indexes.Length; ++depth)
                     {
-                        var path = targetParentPath.Append(insertIndex + selected.SourceOffset);
-                        foreach (var relativeIndex in selected.Relative)
-                            path = path.Append(relativeIndex);
-                        return (selected.Original, Path: path);
+                        var parent = original.Slice(0, depth);
+                        indexes[depth] -= sourceItems.Count(x =>
+                            x.Parent == parent && x.Index < original[depth]);
+                    }
+
+                    var afterRemoval = new IndexPath(indexes);
+                    if (targetParentPath.IsAncestorOf(afterRemoval) &&
+                        indexes[targetParentPath.Count] >= insertIndex)
+                    {
+                        indexes[targetParentPath.Count] += sourceItems.Length;
+                    }
+
+                    return new IndexPath(indexes);
+                }
+
+                var restoredSelections = originalSelections!
+                    .Select(original =>
+                    {
+                        var moved = movedSelections!.FirstOrDefault(x => x.Original == original);
+                        if (moved.Found)
+                        {
+                            var path = targetParentPath.Append(insertIndex + moved.SourceOffset);
+                            foreach (var relativeIndex in moved.Relative)
+                                path = path.Append(relativeIndex);
+                            return (Original: original, Path: path);
+                        }
+
+                        return (Original: original, Path: MapRetainedSelection(original));
                     })
                     .ToArray();
                 var primaryMovedIndex = Array.FindIndex(restoredSelections,
@@ -393,14 +426,6 @@ namespace TreeDataGridCore
 
                     if (primaryMovedIndex >= 0)
                         selection.Select(restoredSelections[primaryMovedIndex].Path);
-                    else if (retainedPrimarySelection.Count > 0)
-                        selection.Select(retainedPrimarySelection);
-
-                    foreach (var retained in retainedSelections)
-                    {
-                        if (retained != retainedPrimarySelection)
-                            selection.Select(retained);
-                    }
 
                     for (var i = 0; i < restoredSelections.Length; ++i)
                     {

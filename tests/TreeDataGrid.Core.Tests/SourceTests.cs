@@ -119,6 +119,18 @@ namespace TreeDataGridCore.Tests
             source.Expand(0);
             Assert.Equal(4, source.Rows.Count);
         }
+
+        [Fact]
+        public void Hierarchical_items_replacement_raises_property_changed()
+        {
+            using var source = new HierarchicalTreeDataGridSource<Node>(new[] { new Node("Old") });
+            string? propertyName = null;
+            source.PropertyChanged += (_, e) => propertyName = e.PropertyName;
+
+            source.Items = new[] { new Node("New") };
+
+            Assert.Equal(nameof(source.Items), propertyName);
+        }
         [Fact]
         public void Bound_expansion_is_initialized_and_changes_without_a_view()
         {
@@ -379,6 +391,48 @@ namespace TreeDataGridCore.Tests
         }
 
         [Fact]
+        public void Hierarchical_move_on_plain_list_preserves_moved_primary_and_retained_selection()
+        {
+            var primary = new Node("Primary");
+            var retained = new Node("Retained");
+            var target = new Node("Target");
+            var items = new List<Node> { primary, retained, target };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+            source.RowSelection!.SingleSelect = false;
+            source.RowSelection.Select(new IndexPath(0));
+            source.RowSelection.Select(new IndexPath(1));
+
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(2),
+                RowDropPosition.After, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { retained, target, primary }, items);
+            Assert.Equal(new IndexPath(2), source.RowSelection.SelectedIndex);
+            Assert.Same(primary, source.RowSelection.SelectedItem);
+            Assert.Equal(new[] { new IndexPath(0), new IndexPath(2) },
+                source.RowSelection.SelectedIndexes);
+        }
+
+        [Fact]
+        public void Hierarchical_move_on_plain_list_remaps_an_unmoved_selection()
+        {
+            var moved = new Node("Moved");
+            var selected = new Node("Selected");
+            var target = new Node("Target");
+            var items = new List<Node> { moved, selected, target };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.RowSelection!.SelectedIndex = new IndexPath(1);
+
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(2),
+                RowDropPosition.After, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { selected, target, moved }, items);
+            Assert.Equal(new IndexPath(0), source.RowSelection.SelectedIndex);
+            Assert.Same(selected, source.RowSelection.SelectedItem);
+        }
+
+        [Fact]
         public void Hierarchical_move_prefers_exact_selected_source_paths()
         {
             var child = new Node("Child");
@@ -425,6 +479,24 @@ namespace TreeDataGridCore.Tests
 
             Assert.Same(parent, Assert.Single(items));
             Assert.Same(child, Assert.Single(parent.Children));
+        }
+
+        [Fact]
+        public void Hierarchical_move_rejects_duplicate_source_paths_before_mutation()
+        {
+            var first = new Node("First");
+            var second = new Node("Second");
+            var items = new ObservableCollection<Node> { first, second };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+
+            Assert.Throws<ArgumentException>(() => source.MoveRows(
+                source,
+                new[] { new IndexPath(0), new IndexPath(0) },
+                new IndexPath(1),
+                RowDropPosition.After,
+                RowMoveEffects.Move));
+
+            Assert.Equal(new[] { first, second }, items);
         }
 
         [Fact]
