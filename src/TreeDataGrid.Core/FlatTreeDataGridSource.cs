@@ -188,6 +188,18 @@ namespace TreeDataGridCore
             return false;
         }
 
+        /// <summary>Restores the source order and clears all column sort indicators.</summary>
+        public void ClearSort()
+        {
+            if (_comparer is null)
+                return;
+            _comparer = null;
+            _rows?.Sort(null);
+            foreach (var column in Columns)
+                column.SortDirection = null;
+            Sorted?.Invoke();
+        }
+
         IEnumerable<object> ITreeDataGridSource.GetModelChildren(object model)
         {
             return Enumerable.Empty<object>();
