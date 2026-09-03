@@ -395,6 +395,26 @@ namespace TreeDataGridCore
             var insertIndex = ti;
             var targetParentPath = MapAfterRemovals(originalTargetParentPath);
 
+            bool IsValidModelPath(IndexPath path)
+            {
+                if (path.Count == 0)
+                    return false;
+
+                try
+                {
+                    var items = GetItems(path[..^1]);
+                    return (uint)path[^1] < (uint)items.Count;
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    return false;
+                }
+                catch (InvalidOperationException)
+                {
+                    return false;
+                }
+            }
+
             (IndexPath Path, bool Moved) MapFinalPath(IndexPath original)
             {
                 var occurrences = Enumerable.Range(0, original.Count)
@@ -447,9 +467,11 @@ namespace TreeDataGridCore
             var selection = _selection as ITreeSelectionModel;
             var originalPrimarySelection = selection?.SelectedIndex ?? default;
             var originalSelections = selection?.SelectedIndexes.ToArray();
-            var mappedAnchor = selection?.AnchorIndex.Count > 0 ?
+            var mappedAnchor = selection?.AnchorIndex.Count > 0 &&
+                IsValidModelPath(selection.AnchorIndex) ?
                 MapFinalPath(selection.AnchorIndex).Path : default;
-            var mappedRangeAnchor = selection?.RangeAnchorIndex.Count > 0 ?
+            var mappedRangeAnchor = selection?.RangeAnchorIndex.Count > 0 &&
+                IsValidModelPath(selection.RangeAnchorIndex) ?
                 MapFinalPath(selection.RangeAnchorIndex).Path : default;
             var mappedSelections = originalSelections?
                 .Select(original => (Original: original, Mapped: MapFinalPath(original)))
