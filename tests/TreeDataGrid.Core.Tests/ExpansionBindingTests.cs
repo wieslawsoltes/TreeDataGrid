@@ -90,4 +90,3 @@ public class ExpansionBindingTests
         public bool IsExpanded { get => _expanded; set { if (_expanded == value) return; _expanded = value; Notify(nameof(IsExpanded)); } }
     }
 }
-
