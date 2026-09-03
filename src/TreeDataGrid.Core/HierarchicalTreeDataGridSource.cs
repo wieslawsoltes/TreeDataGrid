@@ -38,7 +38,7 @@ namespace TreeDataGridCore
         {
             _items = items;
             _itemsView = TreeDataGridItemsSourceView<TModel>.GetOrCreate(items);
-            Columns = new ColumnList<TModel>();
+            Columns = new HierarchicalColumnList();
             Columns.CollectionChanged += OnColumnsCollectionChanged;
         }
 
@@ -360,7 +360,7 @@ namespace TreeDataGridCore
                     break;
 
                 case NotifyCollectionChangedAction.Replace:
-                    HandleRemoveReplaceOrMove(e.NewItems, "replaced");
+                    HandleRemoveReplaceOrMove(e.OldItems, "replaced");
                     break;
 
                 case NotifyCollectionChangedAction.Move:
@@ -410,6 +410,19 @@ namespace TreeDataGridCore
                         throw new InvalidOperationException($"The expander column cannot be {action}.");
                     }
                 }
+            }
+        }
+
+        private sealed class HierarchicalColumnList : ColumnList<TModel>
+        {
+            protected override void SetItem(int index, IColumn<TModel> item)
+            {
+                if (this[index] is IExpanderColumn<TModel> || item is IExpanderColumn<TModel>)
+                {
+                    throw new InvalidOperationException("The expander column cannot be replaced.");
+                }
+
+                base.SetItem(index, item);
             }
         }
     }
