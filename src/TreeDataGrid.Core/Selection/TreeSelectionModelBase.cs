@@ -95,7 +95,7 @@ namespace TreeDataGridCore.Selection
             get => _anchorIndex;
             set
             {
-                if (!TryGetItemAt(value, out _))
+                if (value != default && !TryGetItemAt(value, out _))
                     return;
                 using var update = BatchUpdate();
                 update.Operation.AnchorIndex = value;
@@ -107,7 +107,7 @@ namespace TreeDataGridCore.Selection
             get => _rangeAnchorIndex;
             set
             {
-                if (!TryGetItemAt(value, out _))
+                if (value != default && !TryGetItemAt(value, out _))
                     return;
                 using var update = BatchUpdate();
                 update.Operation.RangeAnchorIndex = value;
