@@ -20,10 +20,7 @@ namespace TreeDataGridCore.Models
         /// Method called by a row when it finishes expanding or collapsing.
         /// </summary>
         /// <param name="row">The row.</param>
-        /// <remarks>
-        /// This method should always be called, even if expanding the row failed due to there
-        /// being no children.
-        /// </remarks>
+        /// <remarks>This method is called only after a matching begin notification.</remarks>
         void OnEndExpandCollapse(IExpanderRow<TModel> row);
 
         /// <summary>
