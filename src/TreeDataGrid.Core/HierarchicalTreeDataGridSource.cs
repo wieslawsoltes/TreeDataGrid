@@ -305,10 +305,22 @@ namespace TreeDataGridCore
                 })
                 .ToArray();
 
-            foreach (var item in sourceItems)
+            var originalTargetOffset = ti;
+            ti -= sourceItems.Count(item =>
+                ReferenceEquals(item.Items, targetItems) && item.Index < originalTargetOffset);
+
+            IndexPath MapAfterRemovals(IndexPath original)
             {
-                if (ReferenceEquals(item.Items, targetItems) && item.Index < ti)
-                    --ti;
+                var result = original.ToArray();
+
+                for (var depth = 0; depth < result.Length; ++depth)
+                {
+                    var parent = original.Slice(0, depth);
+                    result[depth] -= sourceItems.Count(x =>
+                        x.Parent == parent && x.Index < original[depth]);
+                }
+
+                return new IndexPath(result);
             }
 
             var insertIndex = ti;
@@ -327,15 +339,24 @@ namespace TreeDataGridCore
                         }
                     }
 
+                    var sourceOffset = -1;
+                    var sourceDepth = -1;
                     for (var i = 0; i < sourceItems.Length; ++i)
                     {
                         var sourcePath = sourceItems[i].Path;
-                        if (sourcePath.IsAncestorOf(selected))
+                        if (sourcePath.IsAncestorOf(selected) && sourcePath.Count > sourceDepth)
                         {
-                            return (Found: true, SourceOffset: i,
-                                Relative: selected.Slice(sourcePath.Count, selected.Count - sourcePath.Count),
-                                Original: selected);
+                            sourceOffset = i;
+                            sourceDepth = sourcePath.Count;
                         }
+                    }
+
+                    if (sourceOffset >= 0)
+                    {
+                        var afterRemovals = MapAfterRemovals(selected);
+                        return (Found: true, SourceOffset: sourceOffset,
+                            Relative: afterRemovals.Slice(sourceDepth, afterRemovals.Count - sourceDepth),
+                            Original: selected);
                     }
 
                     return (Found: false, SourceOffset: -1, Relative: default(IndexPath), Original: selected);
@@ -382,16 +403,8 @@ namespace TreeDataGridCore
 
                 IndexPath MapRetainedSelection(IndexPath original)
                 {
-                    var indexes = original.ToArray();
-
-                    for (var depth = 0; depth < indexes.Length; ++depth)
-                    {
-                        var parent = original.Slice(0, depth);
-                        indexes[depth] -= sourceItems.Count(x =>
-                            x.Parent == parent && x.Index < original[depth]);
-                    }
-
-                    var afterRemoval = new IndexPath(indexes);
+                    var afterRemoval = MapAfterRemovals(original);
+                    var indexes = afterRemoval.ToArray();
                     if (targetParentPath.IsAncestorOf(afterRemoval) &&
                         indexes[targetParentPath.Count] >= insertIndex)
                     {
