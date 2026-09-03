@@ -304,7 +304,7 @@ namespace TreeDataGridCore.Selection
         {
             if (_operation?.UpdateCount > 0)
                 throw new InvalidOperationException("Source collection was modified during selection update.");
-            if (shiftDelta == 0 && !(removed?.Count > 0) && !raiseIndexesChanged)
+            if (shiftDelta == 0 && !(removed?.Count > 0) && !raiseIndexesChanged && replaceOldIndex < 0)
                 return;
 
             if (raiseIndexesChanged)

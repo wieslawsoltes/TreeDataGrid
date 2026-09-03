@@ -279,7 +279,7 @@ namespace TreeDataGridCore.Selection
                 }
             }
 
-            if (shiftDelta != 0 || removed?.Count > 0)
+            if (shiftDelta != 0 || removed?.Count > 0 || replaceOldIndex >= 0)
             {
                 if (shiftEndIndex == -1)
                     shiftEndIndex = ItemsView?.Count ?? 0;
