@@ -231,23 +231,31 @@ namespace TreeDataGridCore.Models
             if (ReferenceEquals(_childModels, childModels))
                 return;
 
-            _controller.OnBeginExpandCollapse(this);
             var oldExpanded = _isExpanded;
-            _childModels = childModels;
-            _childRows?.Dispose();
-            _childRows = new ChildRows(
+            var replacement = new ChildRows(
                 this,
                 TreeDataGridItemsSourceView<TModel>.GetOrCreate(childModels),
                 _comparison);
-            _isExpanded = _childRows.Count > 0;
+            var newExpanded = replacement.Count > 0;
+            if (newExpanded != oldExpanded)
+                _controller.OnBeginExpandCollapse(this);
+            _childModels = childModels;
+            _childRows?.Dispose();
+            _childRows = replacement;
+            _isExpanded = newExpanded;
             if (_isExpanded)
                 ClearShowExpander();
             else
+            {
                 ShowExpander = false;
+                replacement.ObserveChangesWhileEmpty();
+            }
             _controller.OnChildCollectionChanged(this, CollectionExtensions.ResetEvent);
             if (_isExpanded != oldExpanded)
+            {
                 RaisePropertyChanged(nameof(IsExpanded));
-            _controller.OnEndExpandCollapse(this);
+                _controller.OnEndExpandCollapse(this);
+            }
 
             if (_isExpanded != oldExpanded)
                 _expanderColumn.SetModelIsExpanded(this);
@@ -310,8 +318,14 @@ namespace TreeDataGridCore.Models
                     _owner._comparison);
             }
 
+            public void ObserveChangesWhileEmpty()
+            {
+                using var enumerator = GetEnumerator();
+            }
+
             private void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
             {
+                _owner.ClearShowExpander();
                 if (_owner.IsExpanded)
                     _owner._controller.OnChildCollectionChanged(_owner, e);
             }

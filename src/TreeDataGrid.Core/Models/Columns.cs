@@ -35,6 +35,29 @@ namespace TreeDataGridCore.Models
     }
     public class ColumnList<TModel> : NotifyingListBase<IColumn<TModel>>
     {
+        public override void InsertRange(int index, Action<Action<IColumn<TModel>>> action)
+        {
+            var proposed = new List<IColumn<TModel>>();
+            action(proposed.Add);
+            ValidateUnique(proposed, includeExisting: true);
+            base.InsertRange(index, add =>
+            {
+                foreach (var column in proposed)
+                    add(column);
+            });
+        }
+        public override void Reset(Action<IList<IColumn<TModel>>> action)
+        {
+            var proposed = new List<IColumn<TModel>>(this);
+            action(proposed);
+            ValidateUnique(proposed, includeExisting: false);
+            base.Reset(columns =>
+            {
+                columns.Clear();
+                foreach (var column in proposed)
+                    columns.Add(column);
+            });
+        }
         public void SetColumnWidth(int columnIndex, GridLength width) => this[columnIndex].Width = width;
         public void Move(int oldIndex, int newIndex)
         {
@@ -44,6 +67,43 @@ namespace TreeDataGridCore.Models
                 throw new ArgumentOutOfRangeException(nameof(newIndex));
             if (oldIndex != newIndex)
                 MoveItem(oldIndex, newIndex);
+        }
+        protected override void InsertItem(int index, IColumn<TModel> item)
+        {
+            if (ContainsReference(item))
+                throw new InvalidOperationException("A column instance can only appear once.");
+            base.InsertItem(index, item);
+        }
+        protected override void SetItem(int index, IColumn<TModel> item)
+        {
+            for (var i = 0; i < Count; ++i)
+            {
+                if (i != index && ReferenceEquals(this[i], item))
+                    throw new InvalidOperationException("A column instance can only appear once.");
+            }
+            base.SetItem(index, item);
+        }
+        private void ValidateUnique(IReadOnlyList<IColumn<TModel>> proposed, bool includeExisting)
+        {
+            for (var i = 0; i < proposed.Count; ++i)
+            {
+                if (includeExisting && ContainsReference(proposed[i]))
+                    throw new InvalidOperationException("A column instance can only appear once.");
+                for (var j = 0; j < i; ++j)
+                {
+                    if (ReferenceEquals(proposed[i], proposed[j]))
+                        throw new InvalidOperationException("A column instance can only appear once.");
+                }
+            }
+        }
+        private bool ContainsReference(IColumn<TModel> column)
+        {
+            for (var i = 0; i < Count; ++i)
+            {
+                if (ReferenceEquals(this[i], column))
+                    return true;
+            }
+            return false;
         }
     }
     public abstract class ColumnBase<TModel> : NotifyingBase, IColumn<TModel>

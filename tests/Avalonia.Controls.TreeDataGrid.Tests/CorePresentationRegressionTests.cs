@@ -92,6 +92,21 @@ public class CorePresentationRegressionTests
     }
 
     [AvaloniaFact]
+    public void Duplicate_core_column_is_rejected_before_the_presentation_changes()
+    {
+        using var source = new Core.FlatTreeDataGridSource<Node>(new[] { new Node() });
+        var model = new Core.Models.TextColumn<Node, string>("Name", x => x.Name);
+        source.Columns.Add(model);
+        using var view = new TreeDataGridPresentation<Node>(source);
+        var cell = view.Columns[0];
+
+        Assert.Throws<InvalidOperationException>(() => source.Columns.Add(model));
+
+        Assert.Same(model, Assert.Single(source.Columns));
+        Assert.Same(cell, Assert.Single(view.Columns));
+    }
+
+    [AvaloniaFact]
     public void Show_expander_observable_detaches_from_children_when_unsubscribed()
     {
         var children = new TrackingCollection<Node>();
