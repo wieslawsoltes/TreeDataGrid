@@ -102,7 +102,7 @@ namespace TreeDataGridCore.Models
 
         public bool ShowExpander
         {
-            get => _showExpander ??= _expanderColumn.HasChildren(Model);
+            get => _showExpander ?? _expanderColumn.HasChildren(Model);
             private set => RaiseAndSetIfChanged(ref _showExpander, value);
         }
 

@@ -32,15 +32,23 @@ namespace Avalonia.Controls.Presentation
             _factory = new(options ?? new());
             _columns = new(this);
             _columnNotifications = model.Columns as INotifyCollectionChanged;
-            foreach (Core.Models.IColumn<TModel> column in model.Columns)
+            try
             {
-                var cell = CreateColumn(column);
-                if (column.IsVisible) _columns.Add(cell);
+                foreach (Core.Models.IColumn<TModel> column in model.Columns)
+                {
+                    var cell = CreateColumn(column);
+                    if (column.IsVisible) _columns.Add(cell);
+                }
+                UpdateSelection();
+                if (_columnNotifications is not null) _columnNotifications.CollectionChanged += OnColumnsChanged;
+                Model.PropertyChanged += OnModelPropertyChanged;
+                Model.Sorted += OnSorted;
             }
-            UpdateSelection();
-            if (_columnNotifications is not null) _columnNotifications.CollectionChanged += OnColumnsChanged;
-            Model.PropertyChanged += OnModelPropertyChanged;
-            Model.Sorted += OnSorted;
+            catch
+            {
+                Dispose();
+                throw;
+            }
         }
         public override object SourceIdentity => Model;
         public override bool CanSelectMultiple => _selection?.SingleSelect == false;
@@ -126,11 +134,21 @@ namespace Avalonia.Controls.Presentation
         private ICellColumn<TModel> CreateColumn(Core.Models.IColumn<TModel> model)
         {
             var cell = model.Accept(_factory);
-            if (cell.Width != model.Width.ToAvalonia()) cell.SetWidth(model.Width.ToAvalonia());
-            cell.SortDirection = model.SortDirection;
-            _cells.Add(model, new(cell, model.PresentationKey));
-            if (!_suspended) model.PropertyChanged += _columnChanged;
-            return cell;
+            try
+            {
+                if (cell.Width != model.Width.ToAvalonia()) cell.SetWidth(model.Width.ToAvalonia());
+                cell.SortDirection = model.SortDirection;
+                _cells.Add(model, new(cell, model.PresentationKey));
+                if (!_suspended) model.PropertyChanged += _columnChanged;
+                return cell;
+            }
+            catch
+            {
+                if (_cells.Remove(model))
+                    model.PropertyChanged -= _columnChanged;
+                (cell as IDisposable)?.Dispose();
+                throw;
+            }
         }
         private void RemoveColumn(Core.Models.IColumn<TModel> model)
         {

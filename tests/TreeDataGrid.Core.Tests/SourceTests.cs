@@ -339,6 +339,28 @@ namespace TreeDataGridCore.Tests
         }
 
         [Fact]
+        public void Hierarchical_move_prefers_exact_selected_source_paths()
+        {
+            var child = new Node("Child");
+            var parent = new Node("Parent") { Children = { child } };
+            var target = new Node("Target");
+            var items = new ObservableCollection<Node> { parent, target };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+            source.RowSelection!.SingleSelect = false;
+            source.RowSelection.Select(new IndexPath(0));
+            source.RowSelection.Select(new IndexPath(0, 0));
+
+            source.MoveRows(source, new[] { new IndexPath(0), new IndexPath(0, 0) },
+                new IndexPath(1), RowDropPosition.Inside, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { parent, child }, target.Children);
+            Assert.Equal(new[] { new IndexPath(0, 0), new IndexPath(0, 1) },
+                source.RowSelection.SelectedIndexes);
+        }
+
+        [Fact]
         public void Moving_an_expanded_root_recomputes_the_flattened_destination()
         {
             var first = new Node("First") { Children = { new("Child") } };
@@ -403,9 +425,37 @@ namespace TreeDataGridCore.Tests
         }
 
         [Fact]
+        public void ShowExpander_reflects_child_collection_changes_without_a_presentation()
+        {
+            var parent = new Node("Parent");
+            using var source = new HierarchicalTreeDataGridSource<Node>(new[] { parent });
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+            var row = Assert.IsType<HierarchicalRow<Node>>(source.Rows[0]);
+
+            Assert.False(row.ShowExpander);
+            parent.Children.Add(new Node("Child"));
+            Assert.True(row.ShowExpander);
+            parent.Children.Clear();
+            Assert.False(row.ShowExpander);
+        }
+
+        [Fact]
         public void Core_has_no_Avalonia_assembly_references()
         {
             Assert.DoesNotContain(typeof(FlatTreeDataGridSource<>).Assembly.GetReferencedAssemblies(), a => a.Name!.Contains("Avalonia", StringComparison.OrdinalIgnoreCase));
+        }
+
+        [Fact]
+        public void Equal_single_index_paths_have_equal_hash_codes()
+        {
+            var encoded = new IndexPath(0);
+            var array = new IndexPath(new[] { 0 });
+            var paths = new HashSet<IndexPath> { encoded };
+
+            Assert.Equal(encoded, array);
+            Assert.Equal(encoded.GetHashCode(), array.GetHashCode());
+            Assert.Contains(array, paths);
         }
         public sealed class Node
         {
