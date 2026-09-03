@@ -359,6 +359,32 @@ namespace TreeDataGridCore.Tests
             Assert.Equal(2, source.Rows.Count);
         }
         [Fact]
+        public void Failed_expansion_observes_empty_children_without_lifecycle_events()
+        {
+            var parent = new BoundNode();
+            using var source = new HierarchicalTreeDataGridSource<BoundNode>(new[] { parent });
+            source.Columns.Add(new HierarchicalExpanderColumn<BoundNode>(
+                new TextColumn<BoundNode, bool>("Expanded", x => x.IsExpanded),
+                x => x.Children,
+                hasChildrenSelector: x => true));
+            var row = Assert.IsType<HierarchicalRow<BoundNode>>(source.Rows[0]);
+            var lifecycleEvents = 0;
+            source.RowExpanding += (_, _) => ++lifecycleEvents;
+            source.RowExpanded += (_, _) => ++lifecycleEvents;
+            source.RowCollapsing += (_, _) => ++lifecycleEvents;
+            source.RowCollapsed += (_, _) => ++lifecycleEvents;
+
+            source.Expand(0);
+
+            Assert.False(row.IsExpanded);
+            Assert.False(row.ShowExpander);
+            Assert.Equal(0, lifecycleEvents);
+            parent.Children.Add(new BoundNode());
+            Assert.True(row.ShowExpander);
+            Assert.False(row.IsExpanded);
+            Assert.Single(source.Rows);
+        }
+        [Fact]
         public void Replacing_a_child_collection_resets_its_selection_subtree()
         {
             var oldChild = new BoundNode();

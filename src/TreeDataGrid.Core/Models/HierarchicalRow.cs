@@ -193,8 +193,6 @@ namespace TreeDataGridCore.Models
                 return;
             }
 
-            _controller.OnBeginExpandCollapse(this);
-
             var oldExpanded = _isExpanded;
             var childModels = _expanderColumn.GetChildModels(Model);
 
@@ -210,17 +208,22 @@ namespace TreeDataGridCore.Models
 
             if (_childRows?.Count > 0)
             {
+                _controller.OnBeginExpandCollapse(this);
                 _isExpanded = true;
             }
             else
+            {
                 ShowExpander = false;
+                _childRows?.ObserveChangesWhileEmpty();
+            }
 
             _controller.OnChildCollectionChanged(this, CollectionExtensions.ResetEvent);
 
             if (_isExpanded != oldExpanded)
                 RaisePropertyChanged(nameof(IsExpanded));
 
-            _controller.OnEndExpandCollapse(this);
+            if (_isExpanded != oldExpanded)
+                _controller.OnEndExpandCollapse(this);
             _expanderColumn.SetModelIsExpanded(this);
             UpdateModelChangeSubscription();
         }
