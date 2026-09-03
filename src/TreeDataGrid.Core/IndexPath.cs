@@ -153,15 +153,8 @@ namespace TreeDataGridCore
         {
             var hashCode = -504981047;
 
-            if (_path != null)
-            {
-                foreach (var i in _path)
-                    hashCode = hashCode * -1521134295 + i.GetHashCode();
-            }
-            else
-            {
-                hashCode = hashCode * -1521134295 + _index.GetHashCode();
-            }
+            for (var i = 0; i < Count; ++i)
+                hashCode = hashCode * -1521134295 + this[i].GetHashCode();
 
             return hashCode;
         }

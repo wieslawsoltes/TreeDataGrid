@@ -289,8 +289,17 @@ namespace TreeDataGridCore
                 {
                     for (var i = 0; i < sourceItems.Length; ++i)
                     {
+                        if (selected == sourceItems[i].Path)
+                        {
+                            return (Found: true, SourceOffset: i,
+                                Relative: default(IndexPath), Original: selected);
+                        }
+                    }
+
+                    for (var i = 0; i < sourceItems.Length; ++i)
+                    {
                         var sourcePath = sourceItems[i].Path;
-                        if (selected == sourcePath || sourcePath.IsAncestorOf(selected))
+                        if (sourcePath.IsAncestorOf(selected))
                         {
                             return (Found: true, SourceOffset: i,
                                 Relative: selected.Slice(sourcePath.Count, selected.Count - sourcePath.Count),

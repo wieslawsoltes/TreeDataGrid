@@ -368,6 +368,22 @@ namespace Avalonia.Controls.TreeDataGridTests
             Assert.True(inner!.IsDisposed);
         }
 
+        [AvaloniaFact]
+        public void Failed_presentation_construction_disposes_columns_created_before_the_failure()
+        {
+            using var source = new Core.FlatTreeDataGridSource<Node>(new[] { new Node("A") });
+            source.Columns.Add(new Core.Models.TemplateColumn<Node>("First", "disposable"));
+            source.Columns.Add(new Core.Models.TemplateColumn<Node>("Second", "missing"));
+            var options = new TreeDataGridPresentationOptions<Node>();
+            DisposableTemplateColumn? first = null;
+            options.Columns.Add("disposable", _ => first = new DisposableTemplateColumn());
+
+            Assert.Throws<InvalidOperationException>(() => new TreeDataGridPresentation<Node>(source, options));
+
+            Assert.NotNull(first);
+            Assert.True(first!.IsDisposed);
+        }
+
         private sealed class BoundValue : INotifyPropertyChanged
         {
             private string _value = "";
