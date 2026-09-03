@@ -306,6 +306,7 @@ namespace TreeDataGridCore
 
             var insertIndex = ti;
             var selection = _selection as ITreeSelectionModel;
+            var originalPrimarySelection = selection?.SelectedIndex ?? default;
             var movedSelections = selection?.SelectedIndexes
                 .Select(selected =>
                 {
@@ -371,12 +372,45 @@ namespace TreeDataGridCore
                 var targetParentPath = FindItemsPath(_items, default) ??
                     throw new InvalidOperationException("Could not resolve the moved rows' destination.");
 
-                foreach (var selected in movedSelections)
+                var retainedPrimarySelection = selection.SelectedIndex;
+                var retainedSelections = selection.SelectedIndexes.ToArray();
+                var restoredSelections = movedSelections
+                    .Select(selected =>
+                    {
+                        var path = targetParentPath.Append(insertIndex + selected.SourceOffset);
+                        foreach (var relativeIndex in selected.Relative)
+                            path = path.Append(relativeIndex);
+                        return (selected.Original, Path: path);
+                    })
+                    .ToArray();
+                var primaryMovedIndex = Array.FindIndex(restoredSelections,
+                    x => x.Original == originalPrimarySelection);
+
+                selection.BeginBatchUpdate();
+                try
                 {
-                    var path = targetParentPath.Append(insertIndex + selected.SourceOffset);
-                    foreach (var relativeIndex in selected.Relative)
-                        path = path.Append(relativeIndex);
-                    selection.Select(path);
+                    selection.Clear();
+
+                    if (primaryMovedIndex >= 0)
+                        selection.Select(restoredSelections[primaryMovedIndex].Path);
+                    else if (retainedPrimarySelection.Count > 0)
+                        selection.Select(retainedPrimarySelection);
+
+                    foreach (var retained in retainedSelections)
+                    {
+                        if (retained != retainedPrimarySelection)
+                            selection.Select(retained);
+                    }
+
+                    for (var i = 0; i < restoredSelections.Length; ++i)
+                    {
+                        if (i != primaryMovedIndex)
+                            selection.Select(restoredSelections[i].Path);
+                    }
+                }
+                finally
+                {
+                    selection.EndBatchUpdate();
                 }
             }
         }

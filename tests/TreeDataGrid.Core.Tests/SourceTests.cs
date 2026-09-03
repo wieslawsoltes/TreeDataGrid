@@ -355,6 +355,30 @@ namespace TreeDataGridCore.Tests
         }
 
         [Fact]
+        public void Hierarchical_move_preserves_the_primary_selection()
+        {
+            var first = new Node("First");
+            var primary = new Node("Primary");
+            var target = new Node("Target");
+            var items = new ObservableCollection<Node> { first, primary, target };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+            source.RowSelection!.SingleSelect = false;
+            source.RowSelection.Select(new IndexPath(1));
+            source.RowSelection.Select(new IndexPath(0));
+
+            source.MoveRows(source, new[] { new IndexPath(0), new IndexPath(1) },
+                new IndexPath(2), RowDropPosition.After, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { target, first, primary }, items);
+            Assert.Equal(new IndexPath(2), source.RowSelection.SelectedIndex);
+            Assert.Same(primary, source.RowSelection.SelectedItem);
+            Assert.Equal(new[] { new IndexPath(1), new IndexPath(2) },
+                source.RowSelection.SelectedIndexes);
+        }
+
+        [Fact]
         public void Hierarchical_move_prefers_exact_selected_source_paths()
         {
             var child = new Node("Child");
