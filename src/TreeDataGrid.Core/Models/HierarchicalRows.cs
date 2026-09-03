@@ -10,7 +10,8 @@ namespace TreeDataGridCore.Models
         IRows,
 
         IDisposable,
-        IExpanderRowController<TModel>
+        IExpanderRowController<TModel>,
+        IChildCollectionReplacementController<TModel>
     {
         private readonly IExpanderRowController<TModel> _controller;
         private readonly RootRows _roots;
@@ -234,6 +235,14 @@ namespace TreeDataGridCore.Models
                 OnCollectionChanged(h.ModelIndexPath, e);
             else
                 throw new NotSupportedException("Unexpected row type.");
+        }
+
+        void IChildCollectionReplacementController<TModel>.OnChildCollectionReplaced(
+            IExpanderRow<TModel> row,
+            IEnumerable<TModel>? children)
+        {
+            if (_controller is IChildCollectionReplacementController<TModel> controller)
+                controller.OnChildCollectionReplaced(row, children);
         }
 
         internal bool TryGetRowIndex(in IndexPath modelIndex, out int rowIndex, int fromRowIndex = 0)

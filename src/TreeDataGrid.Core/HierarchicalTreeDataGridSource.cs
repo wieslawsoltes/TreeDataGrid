@@ -18,7 +18,8 @@ namespace TreeDataGridCore
     public class HierarchicalTreeDataGridSource<TModel> : NotifyingBase,
         ITreeDataGridSource<TModel>,
         IDisposable,
-        IExpanderRowController<TModel>
+        IExpanderRowController<TModel>,
+        IChildCollectionReplacementController<TModel>
         where TModel : class
     {
         private IEnumerable<TModel> _items;
@@ -572,6 +573,18 @@ namespace TreeDataGridCore
             IExpanderRow<TModel> row,
             NotifyCollectionChangedEventArgs e)
         {
+        }
+
+
+        void IChildCollectionReplacementController<TModel>.OnChildCollectionReplaced(
+            IExpanderRow<TModel> row,
+            IEnumerable<TModel>? children)
+        {
+            if (_selection is TreeSelectionModelBase<TModel> selection &&
+                row is IModelIndexableRow indexable)
+            {
+                selection.ResetChildrenSource(indexable.ModelIndexPath, children);
+            }
         }
 
         internal IEnumerable<TModel>? GetModelChildren(TModel model)
