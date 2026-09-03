@@ -66,6 +66,10 @@ Low-level renderer customizations should use `ITreeDataGridRows` and `TreeDataGr
 
 Core currently provides row selection. Existing cell/column selection remains available through the legacy API.
 
+## Complete Core sample
+
+`samples/TreeDataGridCoreDemo` mirrors the full demo catalog while using `TreeDataGrid.Model` and Core sources/columns exclusively. It source-links the legacy demo's common country, file-system, Wikipedia, and drag/drop models, keeping Avalonia templates in `TreeDataGridPresentationOptions`. Its headless test verifies all eight grids avoid the legacy `Source` path and captures Countries and nested People renderings.
+
 ## Validation
 
 `build/FrameworkNeutral.targets` rejects Avalonia references in Core. `build/check-neutral-dependencies.py` checks package graphs and exercises the negative reference guard against a real UI DLL. Tests cover legacy behavior, Core rendering/editing, direct row identity, notifications, templates, selection, expansion, accessibility, multiple views and disposal.

@@ -18,6 +18,7 @@ namespace TreeDataGridCore
         IEnumerable<object> Items { get; }
         IEnumerable<object>? GetModelChildren(object model);
         bool SortBy(IColumn? column, ListSortDirection direction);
+        void ClearSort();
         event Action? Sorted;
         void MoveRows(ITreeDataGridSource source, IEnumerable<IndexPath> indexes, IndexPath targetIndex, RowDropPosition position, RowMoveEffects effects = RowMoveEffects.Move);
     }

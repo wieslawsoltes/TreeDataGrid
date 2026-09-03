@@ -47,6 +47,22 @@ namespace TreeDataGridCore.Tests
         }
 
         [Fact]
+        public void Flat_clear_sort_restores_source_order_and_column_state()
+        {
+            var items = new ObservableCollection<Node> { new("B"), new("A"), new("C") };
+            using var source = new FlatTreeDataGridSource<Node>(items);
+            var column = new TextColumn<Node, string>("Name", x => x.Name);
+            source.Columns.Add(column);
+            source.SortBy(column, ListSortDirection.Ascending);
+
+            ((ITreeDataGridSource)source).ClearSort();
+
+            Assert.False(source.IsSorted);
+            Assert.Null(column.SortDirection);
+            Assert.Equal(new[] { "B", "A", "C" }, source.Rows.Select(x => ((Node)x.Model!).Name));
+        }
+
+        [Fact]
         public void Flat_move_preserves_selected_rows()
         {
             var first = new Node("First");

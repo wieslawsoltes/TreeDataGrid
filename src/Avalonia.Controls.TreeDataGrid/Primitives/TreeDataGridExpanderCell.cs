@@ -90,9 +90,9 @@ namespace Avalonia.Controls.Primitives
             if (_model is INotifyPropertyChanged inpc)
                 inpc.PropertyChanged -= ModelPropertyChanged;
             _model = null;
-            base.Unrealize();
             if (_factory is object)
                 UpdateContent(_factory);
+            base.Unrealize();
         }
 
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)

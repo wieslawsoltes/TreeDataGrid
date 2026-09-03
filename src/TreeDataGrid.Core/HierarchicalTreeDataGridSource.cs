@@ -216,6 +216,17 @@ namespace TreeDataGridCore
             return false;
         }
 
+        /// <summary>Restores the source order and clears all column sort indicators.</summary>
+        public void ClearSort()
+        {
+            if (_comparison is null)
+                return;
+            Sort(null);
+            foreach (var column in Columns)
+                column.SortDirection = null;
+            Sorted?.Invoke();
+        }
+
         public void MoveRows(
             ITreeDataGridSource source,
             IEnumerable<IndexPath> indexes,
