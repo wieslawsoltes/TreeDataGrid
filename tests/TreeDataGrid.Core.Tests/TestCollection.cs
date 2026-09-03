@@ -22,5 +22,18 @@ namespace TreeDataGridCore.Tests
             for (var i = 0; i < count; ++i) { removed[i] = Items[index]; Items.RemoveAt(index); }
             OnCollectionChanged(new(NotifyCollectionChangedAction.Remove, (IList)removed, index));
         }
+        public void MoveRange(int oldIndex, int newIndex, int count)
+        {
+            var moved = new T[count];
+            for (var i = 0; i < count; ++i)
+            {
+                moved[i] = Items[oldIndex];
+                Items.RemoveAt(oldIndex);
+            }
+            for (var i = 0; i < count; ++i)
+                Items.Insert(newIndex + i, moved[i]);
+            OnCollectionChanged(new(
+                NotifyCollectionChangedAction.Move, (IList)moved, newIndex, oldIndex));
+        }
     }
 }

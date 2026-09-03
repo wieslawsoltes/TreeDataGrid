@@ -172,11 +172,6 @@ namespace TreeDataGridCore.Selection
                     var removeMoveChange = OnItemsRemoved(e.OldStartingIndex, e.OldItems!);
                     var insertIndex = e.NewStartingIndex;
 
-                    if (e.NewStartingIndex > e.OldStartingIndex)
-                    {
-                        insertIndex -= moveCount - 1;
-                    }
-
                     OnItemsAdded(insertIndex, e.NewItems!);
                     moveInsertIndex = insertIndex;
 

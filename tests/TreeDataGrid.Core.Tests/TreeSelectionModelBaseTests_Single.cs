@@ -1215,6 +1215,39 @@ namespace TreeDataGridCore.Tests
             }
 
             [Fact]
+            public void Moving_Selected_Root_Range_Uses_Reported_Destination()
+            {
+                var data = CreateData();
+                var target = CreateTarget(data);
+                var movedItem = data[1];
+                target.Select(new IndexPath(1));
+                target.RangeAnchorIndex = new IndexPath(1);
+
+                data.MoveRange(1, 3, 2);
+
+                Assert.Same(movedItem, target.SelectedItem);
+                Assert.Equal(new IndexPath(3), target.SelectedIndex);
+                Assert.Equal(new[] { new IndexPath(3) }, target.SelectedIndexes);
+                Assert.Equal(new IndexPath(3), target.AnchorIndex);
+                Assert.Equal(new IndexPath(3), target.RangeAnchorIndex);
+            }
+
+            [Fact]
+            public void Moving_Root_Range_Repositions_Selected_Child_Node()
+            {
+                var data = CreateData();
+                var target = CreateTarget(data);
+                target.Select(new IndexPath(1, 0));
+                var movedChild = target.SelectedItem;
+
+                data.MoveRange(1, 3, 2);
+
+                Assert.Same(movedChild, target.SelectedItem);
+                Assert.Equal(new IndexPath(3, 0), target.SelectedIndex);
+                Assert.Equal(new[] { new IndexPath(3, 0) }, target.SelectedIndexes);
+            }
+
+            [Fact]
             public void Moving_Selected_Child_Item_Updates_State()
             {
                 var data = CreateData();
