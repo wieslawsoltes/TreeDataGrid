@@ -335,6 +335,14 @@ namespace TreeDataGridCore
                 throw new ArgumentException("Duplicate physical source index.", nameof(indexes));
             }
 
+            if (position == RowDropPosition.Inside &&
+                TryGetModelAt(targetIndex, out var targetModel) &&
+                sourceItems.Any(x => ReferenceEquals(x.Item, targetModel)))
+            {
+                throw new InvalidOperationException(
+                    "A row cannot be moved into an aliased occurrence of itself.");
+            }
+
             if (sourceItems.Any(x => x.Items.IsReadOnly))
                 throw new InvalidOperationException("One or more source collections are read-only.");
 
@@ -364,12 +372,17 @@ namespace TreeDataGridCore
             var mappedSelections = originalSelections?
                 .Select(original =>
                 {
-                    var insertionDepths = Enumerable.Range(0, original.Count)
-                        .Where(depth => ReferenceEquals(
-                            GetItems(original.Slice(0, depth)), targetItems))
+                    var occurrences = Enumerable.Range(0, original.Count)
+                        .Select(depth => (Items: GetItems(original.Slice(0, depth)),
+                            Index: original[depth]))
+                        .ToArray();
+                    var insertionDepths = occurrences
+                        .Select((occurrence, depth) => (occurrence, depth))
+                        .Where(x => ReferenceEquals(x.occurrence.Items, targetItems))
+                        .Select(x => x.depth)
                         .ToArray();
                     return (Original: original, AfterRemoval: MapAfterRemovals(original),
-                        InsertionDepths: insertionDepths);
+                        InsertionDepths: insertionDepths, Occurrences: occurrences);
                 })
                 .ToArray();
             var targetParentPath = MapAfterRemovals(originalTargetParentPath);
@@ -377,24 +390,19 @@ namespace TreeDataGridCore
                 .Select(mapped =>
                 {
                     var selected = mapped.Original;
-                    for (var i = 0; i < sourceItems.Length; ++i)
-                    {
-                        if (selected == sourceItems[i].Path)
-                        {
-                            return (Found: true, SourceOffset: i,
-                                Relative: default(IndexPath), Original: selected);
-                        }
-                    }
-
                     var sourceOffset = -1;
                     var sourceDepth = -1;
                     for (var i = 0; i < sourceItems.Length; ++i)
                     {
-                        var sourcePath = sourceItems[i].Path;
-                        if (sourcePath.IsAncestorOf(selected) && sourcePath.Count > sourceDepth)
+                        for (var depth = 0; depth < mapped.Occurrences.Length; ++depth)
                         {
-                            sourceOffset = i;
-                            sourceDepth = sourcePath.Count;
+                            var occurrence = mapped.Occurrences[depth];
+                            if (ReferenceEquals(occurrence.Items, sourceItems[i].Items) &&
+                                occurrence.Index == sourceItems[i].Index && depth + 1 > sourceDepth)
+                            {
+                                sourceOffset = i;
+                                sourceDepth = depth + 1;
+                            }
                         }
                     }
 
