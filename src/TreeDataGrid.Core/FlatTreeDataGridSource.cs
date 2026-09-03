@@ -99,6 +99,11 @@ namespace TreeDataGridCore
                 throw new NotSupportedException("Only move is currently supported for drag/drop.");
             if (IsSorted)
                 throw new NotSupportedException("Drag/drop is not supported on sorted data.");
+            if (position is not RowDropPosition.None and not RowDropPosition.Before and
+                not RowDropPosition.After and not RowDropPosition.Inside)
+            {
+                throw new ArgumentOutOfRangeException(nameof(position));
+            }
             if (position == RowDropPosition.Inside)
                 throw new ArgumentException("Invalid drop position.", nameof(position));
             var orderedIndexes = indexes.OrderByDescending(x => x).ToArray();
@@ -113,6 +118,15 @@ namespace TreeDataGridCore
                 throw new ArgumentException("Invalid target index.", nameof(targetIndex));
             if (_items is not IList<TModel> items)
                 throw new InvalidOperationException("Items does not implement IList<T>.");
+
+            foreach (var index in orderedIndexes)
+            {
+                if ((uint)index[0] >= (uint)items.Count)
+                    throw new ArgumentOutOfRangeException(nameof(indexes));
+            }
+
+            if ((uint)targetIndex[0] >= (uint)items.Count)
+                throw new ArgumentOutOfRangeException(nameof(targetIndex));
 
             if (position == RowDropPosition.None)
                 return;
