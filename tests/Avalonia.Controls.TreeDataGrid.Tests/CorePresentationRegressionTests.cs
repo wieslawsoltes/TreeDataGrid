@@ -81,6 +81,24 @@ public class CorePresentationRegressionTests
         Assert.Equal(0, children.SubscriberCount);
     }
 
+    [AvaloniaFact]
+    public void Unrealized_core_expander_recomputes_show_expander_without_a_cached_override()
+    {
+        var item = new Node();
+        item.Children.Add(new Node());
+        using var source = new Core.HierarchicalTreeDataGridSource<Node>(new[] { item });
+        source.Columns.Add(new Core.Models.HierarchicalExpanderColumn<Node>(
+            new Core.Models.TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+        using var view = new TreeDataGridPresentation<Node>(source);
+        var cell = view.Rows.RealizeCell(view.Columns[0], 0, 0);
+        Assert.True(((Core.Models.IExpanderRow<Node>)source.Rows[0]).ShowExpander);
+
+        view.Rows.UnrealizeCell(cell, 0, 0);
+        item.Children.Clear();
+
+        Assert.False(((Core.Models.IExpanderRow<Node>)source.Rows[0]).ShowExpander);
+    }
+
     public sealed class DisposableColumn : TextColumn<Node, string>, IDisposable
     {
         public DisposableColumn() : base("Name", x => x.Name) { }

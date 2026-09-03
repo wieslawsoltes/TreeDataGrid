@@ -393,62 +393,75 @@ namespace TreeDataGridCore
             }
 
             var insertIndex = ti;
+            var targetParentPath = MapAfterRemovals(originalTargetParentPath);
+
+            (IndexPath Path, bool Moved) MapFinalPath(IndexPath original)
+            {
+                var occurrences = Enumerable.Range(0, original.Count)
+                    .Select(depth => (Items: GetItems(original.Slice(0, depth)),
+                        Index: original[depth]))
+                    .ToArray();
+                var afterRemoval = MapAfterRemovals(original);
+                var sourceOffset = -1;
+                var sourceDepth = -1;
+
+                for (var i = 0; i < sourceItems.Length; ++i)
+                {
+                    for (var depth = 0; depth < occurrences.Length; ++depth)
+                    {
+                        var occurrence = occurrences[depth];
+                        if (ReferenceEquals(occurrence.Items, sourceItems[i].Items) &&
+                            occurrence.Index == sourceItems[i].Index && depth + 1 > sourceDepth)
+                        {
+                            sourceOffset = i;
+                            sourceDepth = depth + 1;
+                        }
+                    }
+                }
+
+                if (sourceOffset >= 0)
+                {
+                    var path = targetParentPath.Append(insertIndex + sourceOffset);
+                    foreach (var relativeIndex in afterRemoval.Slice(
+                        sourceDepth, afterRemoval.Count - sourceDepth))
+                    {
+                        path = path.Append(relativeIndex);
+                    }
+
+                    return (path, true);
+                }
+
+                var indexes = afterRemoval.ToArray();
+                for (var depth = 0; depth < occurrences.Length; ++depth)
+                {
+                    if (ReferenceEquals(occurrences[depth].Items, targetItems) &&
+                        indexes[depth] >= insertIndex)
+                    {
+                        indexes[depth] += sourceItems.Length;
+                    }
+                }
+
+                return (new IndexPath(indexes), false);
+            }
+
             var selection = _selection as ITreeSelectionModel;
             var originalPrimarySelection = selection?.SelectedIndex ?? default;
             var originalSelections = selection?.SelectedIndexes.ToArray();
             var mappedSelections = originalSelections?
-                .Select(original =>
-                {
-                    var occurrences = Enumerable.Range(0, original.Count)
-                        .Select(depth => (Items: GetItems(original.Slice(0, depth)),
-                            Index: original[depth]))
-                        .ToArray();
-                    var insertionDepths = occurrences
-                        .Select((occurrence, depth) => (occurrence, depth))
-                        .Where(x => ReferenceEquals(x.occurrence.Items, targetItems))
-                        .Select(x => x.depth)
-                        .ToArray();
-                    return (Original: original, AfterRemoval: MapAfterRemovals(original),
-                        InsertionDepths: insertionDepths, Occurrences: occurrences);
-                })
+                .Select(original => (Original: original, Mapped: MapFinalPath(original)))
                 .ToArray();
-            var targetParentPath = MapAfterRemovals(originalTargetParentPath);
-            var movedSelections = mappedSelections?
-                .Select(mapped =>
-                {
-                    var selected = mapped.Original;
-                    var sourceOffset = -1;
-                    var sourceDepth = -1;
-                    for (var i = 0; i < sourceItems.Length; ++i)
-                    {
-                        for (var depth = 0; depth < mapped.Occurrences.Length; ++depth)
-                        {
-                            var occurrence = mapped.Occurrences[depth];
-                            if (ReferenceEquals(occurrence.Items, sourceItems[i].Items) &&
-                                occurrence.Index == sourceItems[i].Index && depth + 1 > sourceDepth)
-                            {
-                                sourceOffset = i;
-                                sourceDepth = depth + 1;
-                            }
-                        }
-                    }
-
-                    if (sourceOffset >= 0)
-                    {
-                        return (Found: true, SourceOffset: sourceOffset,
-                            Relative: mapped.AfterRemoval.Slice(
-                                sourceDepth, mapped.AfterRemoval.Count - sourceDepth),
-                            Original: selected);
-                    }
-
-                    return (Found: false, SourceOffset: -1, Relative: default(IndexPath), Original: selected);
-                })
-                .Where(x => x.Found)
+            var mappedExpansions = _rows?.GetExpandedModelIndexes()
+                .Select(x => MapFinalPath(x).Path)
+                .Distinct()
+                .OrderBy(x => x.Count)
                 .ToArray();
+            var refreshRows = _rows is not null &&
+                (targetItems is not INotifyCollectionChanged ||
+                    sourceItems.Any(x => x.Items is not INotifyCollectionChanged));
 
-            if (selection is not null && movedSelections is not null)
+            if (selection is not null && mappedSelections is not null)
             {
-                foreach (var selected in movedSelections)
+                foreach (var selected in mappedSelections.Where(x => x.Mapped.Moved))
                     selection.Deselect(selected.Original);
             }
 
@@ -461,37 +474,19 @@ namespace TreeDataGridCore
             foreach (var item in sourceItems)
                 targetItems.Insert(ti++, item.Item);
 
+            if (refreshRows)
+                _rows!.SetItems(_itemsView);
+
+            if (_rows is not null && mappedExpansions is not null)
+            {
+                foreach (var expanded in mappedExpansions)
+                    _rows.Expand(expanded);
+            }
+
             if (selection is not null && originalSelections is { Length: > 0 })
             {
-                IndexPath MapRetainedSelection(
-                    IndexPath afterRemoval,
-                    IReadOnlyList<int> insertionDepths)
-                {
-                    var indexes = afterRemoval.ToArray();
-                    foreach (var depth in insertionDepths)
-                    {
-                        if (indexes[depth] >= insertIndex)
-                            indexes[depth] += sourceItems.Length;
-                    }
-
-                    return new IndexPath(indexes);
-                }
-
                 var restoredSelections = mappedSelections!
-                    .Select(mapped =>
-                    {
-                        var moved = movedSelections!.FirstOrDefault(x => x.Original == mapped.Original);
-                        if (moved.Found)
-                        {
-                            var path = targetParentPath.Append(insertIndex + moved.SourceOffset);
-                            foreach (var relativeIndex in moved.Relative)
-                                path = path.Append(relativeIndex);
-                            return (Original: mapped.Original, Path: path);
-                        }
-
-                        return (Original: mapped.Original, Path: MapRetainedSelection(
-                            mapped.AfterRemoval, mapped.InsertionDepths));
-                    })
+                    .Select(x => (x.Original, Path: x.Mapped.Path))
                     .ToArray();
                 var primaryMovedIndex = Array.FindIndex(restoredSelections,
                     x => x.Original == originalPrimarySelection);
