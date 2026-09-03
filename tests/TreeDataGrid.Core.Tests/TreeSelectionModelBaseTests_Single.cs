@@ -1248,6 +1248,57 @@ namespace TreeDataGridCore.Tests
             }
 
             [Fact]
+            public void Moving_Root_Rebases_Selected_Grandchild_Node()
+            {
+                var data = CreateData(depth: 3);
+                var target = CreateTarget(data);
+                target.Select(new IndexPath(1, 0, 0));
+                var movedGrandchild = target.SelectedItem;
+
+                data.Move(1, 3);
+
+                Assert.Same(movedGrandchild, target.SelectedItem);
+                Assert.Equal(new IndexPath(3, 0, 0), target.SelectedIndex);
+                Assert.Equal(new[] { new IndexPath(3, 0, 0) }, target.SelectedIndexes);
+            }
+
+            [Fact]
+            public void Moving_Unselected_Item_Does_Not_Shift_Anchors_Outside_Affected_Interval()
+            {
+                var data = CreateData();
+                var target = CreateTarget(data);
+                target.Select(new IndexPath(1));
+                var selectedItem = target.SelectedItem;
+                target.AnchorIndex = new IndexPath(3);
+                target.RangeAnchorIndex = new IndexPath(3);
+
+                data.Move(0, 2);
+
+                Assert.Same(selectedItem, target.SelectedItem);
+                Assert.Equal(new IndexPath(0), target.SelectedIndex);
+                Assert.Equal(new IndexPath(3), target.AnchorIndex);
+                Assert.Equal(new IndexPath(3), target.RangeAnchorIndex);
+            }
+
+            [Fact]
+            public void Moving_Item_To_The_Same_Index_Does_Not_Change_Selection_Or_Anchors()
+            {
+                var data = CreateData();
+                var target = CreateTarget(data);
+                target.Select(new IndexPath(2));
+                var selectedItem = target.SelectedItem;
+                target.AnchorIndex = new IndexPath(3);
+                target.RangeAnchorIndex = new IndexPath(4);
+
+                data.Move(1, 1);
+
+                Assert.Same(selectedItem, target.SelectedItem);
+                Assert.Equal(new IndexPath(2), target.SelectedIndex);
+                Assert.Equal(new IndexPath(3), target.AnchorIndex);
+                Assert.Equal(new IndexPath(4), target.RangeAnchorIndex);
+            }
+
+            [Fact]
             public void Moving_Selected_Child_Item_Updates_State()
             {
                 var data = CreateData();
