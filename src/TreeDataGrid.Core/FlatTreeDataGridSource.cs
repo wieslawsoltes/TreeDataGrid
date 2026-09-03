@@ -104,6 +104,8 @@ namespace TreeDataGridCore
             {
                 throw new ArgumentOutOfRangeException(nameof(position));
             }
+            if (position == RowDropPosition.None)
+                return;
             if (position == RowDropPosition.Inside)
                 throw new ArgumentException("Invalid drop position.", nameof(position));
             var orderedIndexes = indexes.OrderByDescending(x => x).ToArray();
@@ -129,9 +131,6 @@ namespace TreeDataGridCore
 
             if ((uint)targetIndex[0] >= (uint)items.Count)
                 throw new ArgumentOutOfRangeException(nameof(targetIndex));
-
-            if (position == RowDropPosition.None)
-                return;
 
             var ti = targetIndex[0];
 

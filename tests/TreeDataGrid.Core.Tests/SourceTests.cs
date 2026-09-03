@@ -158,6 +158,19 @@ namespace TreeDataGridCore.Tests
 
             Assert.Equal(new[] { "First", "Second" }, items.Select(x => x.Name));
         }
+
+        [Fact]
+        public void Flat_move_none_is_a_no_op_for_a_read_only_list()
+        {
+            var items = new[] { new Node("First"), new Node("Second") };
+            using var source = new FlatTreeDataGridSource<Node>(items);
+
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(1),
+                RowDropPosition.None, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { "First", "Second" }, items.Select(x => x.Name));
+        }
+
         [Fact]
         public void Hierarchy_expansion_sorting_and_incremental_updates_share_model_indexes()
         {
