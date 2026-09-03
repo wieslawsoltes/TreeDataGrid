@@ -13,6 +13,7 @@ namespace Avalonia.Controls.Presentation
         private readonly Core.Models.HierarchicalExpanderColumn<T> _model;
         private readonly ICellColumn<T> _inner;
         private readonly TypedBinding<T, bool>? _hasChildren;
+        private bool _disposed;
         public ExpanderColumnPresentation(Core.Models.HierarchicalExpanderColumn<T> model, ICellColumn<T> inner)
         { _model = model; _inner = inner; _hasChildren = model.HasChildrenSelector is { } expr ? TypedBinding<T>.OneWay(expr) : null; }
         public object? Header => _model.Header;
@@ -35,7 +36,12 @@ namespace Avalonia.Controls.Presentation
         public bool CommitActualWidth() => Layout.CommitActualWidth();
         public void CalculateStarWidth(double availableWidth, double totalStars) => Layout.CalculateStarWidth(availableWidth, totalStars);
         public void SetWidth(GridLength width) => Layout.SetWidth(width);
-        public void Dispose() => (_inner as IDisposable)?.Dispose();
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+            (_inner as IDisposable)?.Dispose();
+        }
         bool ITextSearchableColumn<T>.IsTextSearchEnabled => (_inner as ITextSearchableColumn<T>)?.IsTextSearchEnabled ?? false;
         string? ITextSearchableColumn<T>.SelectValue(T model) => (_inner as ITextSearchableColumn<T>)?.SelectValue(model);
     }

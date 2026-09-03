@@ -2,6 +2,11 @@ using System.Collections.Generic;
 
 namespace TreeDataGridCore.Models
 {
+    internal interface IModelExpansionObserver<TModel>
+    {
+        Utils.PropertyPathObserver<TModel>? ExpansionObserver { get; }
+    }
+
     /// <summary>
     /// Defines a column whose cells show an expander to reveal nested data.
     /// </summary>

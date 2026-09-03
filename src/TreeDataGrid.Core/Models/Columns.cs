@@ -145,13 +145,13 @@ namespace TreeDataGridCore.Models
             Options.CanUserSortColumn == false ? null :
             direction == ListSortDirection.Ascending ? Options.CompareAscending : Options.CompareDescending;
     }
-    public class HierarchicalExpanderColumn<TModel> : IExpanderColumn<TModel>
+    public class HierarchicalExpanderColumn<TModel> : IExpanderColumn<TModel>, IModelExpansionObserver<TModel>
     {
         private readonly Func<TModel, IEnumerable<TModel>?> _children;
         private readonly Func<TModel, bool>? _hasChildren;
         private readonly Action<TModel, bool>? _setExpanded;
         private readonly Func<TModel, bool>? _getExpanded;
-        private readonly PropertyPathSubscriptionFactory<TModel>? _isExpandedSubscriptionFactory;
+        private readonly Utils.PropertyPathObserver<TModel>? _expandedObserver;
         public Expression<Func<TModel, bool>>? HasChildrenSelector { get; }
         public Expression<Func<TModel, bool>>? IsExpandedSelector { get; }
         public HierarchicalExpanderColumn(IColumn<TModel> inner, Func<TModel, IEnumerable<TModel>?> childSelector,
@@ -164,8 +164,8 @@ namespace TreeDataGridCore.Models
             IsExpandedSelector = isExpandedSelector;
             _hasChildren = hasChildrenSelector?.Compile();
             _getExpanded = isExpandedSelector?.Compile();
-            _isExpandedSubscriptionFactory = isExpandedSelector is null ? null :
-                PropertyPathSubscriptionFactory<TModel>.TryCreate(isExpandedSelector);
+            _expandedObserver = isExpandedSelector is null ? null :
+                Utils.PropertyPathObserver<TModel>.Create(isExpandedSelector);
             _setExpanded = setIsExpanded;
             if (isExpandedSelector is not null && _setExpanded is null)
             {
@@ -174,8 +174,7 @@ namespace TreeDataGridCore.Models
             }
         }
         public bool? GetModelIsExpanded(TModel model) => _getExpanded?.Invoke(model);
-        internal IDisposable? SubscribeToIsExpanded(TModel model, Action changed) =>
-            _isExpandedSubscriptionFactory?.Subscribe(model, changed);
+        Utils.PropertyPathObserver<TModel>? IModelExpansionObserver<TModel>.ExpansionObserver => _expandedObserver;
         public IColumn<TModel> Inner { get; }
         public string Id => Inner.Id;
         public object? Header => Inner.Header;

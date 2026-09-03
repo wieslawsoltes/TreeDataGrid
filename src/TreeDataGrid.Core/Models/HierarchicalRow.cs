@@ -49,7 +49,7 @@ namespace TreeDataGridCore.Models
             if (expanded.HasValue)
             {
                 _isExpandedSubscription =
-                    (expanderColumn as HierarchicalExpanderColumn<TModel>)?.SubscribeToIsExpanded(
+                    (expanderColumn as IModelExpansionObserver<TModel>)?.ExpansionObserver?.Subscribe(
                         model, OnModelIsExpandedChanged);
                 if (_isExpandedSubscription is null && model is INotifyPropertyChanged notify)
                     notify.PropertyChanged += OnModelPropertyChanged;
