@@ -671,6 +671,36 @@ namespace TreeDataGridCore.Tests
         }
 
         [Fact]
+        public void Empty_moves_do_not_rebuild_materialized_plain_list_rows()
+        {
+            var flatItems = new List<Node> { new("Flat") };
+            using var flat = new FlatTreeDataGridSource<Node>(flatItems);
+            var flatRow = flat.Rows[0];
+            var flatChanges = 0;
+            flat.Rows.CollectionChanged += (_, _) => ++flatChanges;
+
+            flat.MoveRows(flat, Array.Empty<IndexPath>(), new IndexPath(0),
+                RowDropPosition.Before, RowMoveEffects.Move);
+
+            Assert.Same(flatRow, flat.Rows[0]);
+            Assert.Equal(0, flatChanges);
+
+            var hierarchicalItems = new List<Node> { new("Hierarchical") };
+            using var hierarchical = new HierarchicalTreeDataGridSource<Node>(hierarchicalItems);
+            hierarchical.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+            var hierarchicalRow = hierarchical.Rows[0];
+            var hierarchicalChanges = 0;
+            hierarchical.Rows.CollectionChanged += (_, _) => ++hierarchicalChanges;
+
+            hierarchical.MoveRows(hierarchical, Array.Empty<IndexPath>(), new IndexPath(0),
+                RowDropPosition.Before, RowMoveEffects.Move);
+
+            Assert.Same(hierarchicalRow, hierarchical.Rows[0]);
+            Assert.Equal(0, hierarchicalChanges);
+        }
+
+        [Fact]
         public void Hierarchical_move_rejects_an_invalid_target_before_mutation()
         {
             var first = new Node("First");

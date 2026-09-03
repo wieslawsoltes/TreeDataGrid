@@ -266,6 +266,8 @@ namespace TreeDataGridCore
                 return;
 
             var orderedIndexes = indexes.OrderBy(x => x).ToArray();
+            if (orderedIndexes.Length == 0)
+                return;
 
             for (var i = 1; i < orderedIndexes.Length; ++i)
             {
