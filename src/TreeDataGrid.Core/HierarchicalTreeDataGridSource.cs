@@ -335,12 +335,38 @@ namespace TreeDataGridCore
                 throw new ArgumentException("Duplicate physical source index.", nameof(indexes));
             }
 
-            if (position == RowDropPosition.Inside &&
-                TryGetModelAt(targetIndex, out var targetModel) &&
-                sourceItems.Any(x => ReferenceEquals(x.Item, targetModel)))
+            bool ContainsTargetCollection(TModel root)
+            {
+                if (_expanderColumn is null)
+                    return false;
+
+                var pending = new Stack<TModel>();
+                var visited = new HashSet<TModel>(ReferenceEqualityComparer.Instance);
+                pending.Push(root);
+
+                while (pending.Count > 0)
+                {
+                    var model = pending.Pop();
+                    if (!visited.Add(model))
+                        continue;
+
+                    var children = GetModelChildren(model);
+                    if (ReferenceEquals(children, targetItems))
+                        return true;
+                    if (children is not null)
+                    {
+                        foreach (var child in children)
+                            pending.Push(child);
+                    }
+                }
+
+                return false;
+            }
+
+            if (sourceItems.Any(x => ContainsTargetCollection(x.Item)))
             {
                 throw new InvalidOperationException(
-                    "A row cannot be moved into an aliased occurrence of itself.");
+                    "A row cannot be moved into a collection in its own subtree.");
             }
 
             if (sourceItems.Any(x => x.Items.IsReadOnly))

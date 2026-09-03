@@ -728,6 +728,25 @@ namespace TreeDataGridCore.Tests
         }
 
         [Fact]
+        public void Hierarchical_move_rejects_a_target_collection_aliased_into_the_moved_subtree()
+        {
+            var sharedChildren = new ObservableCollection<SharedNode>();
+            var first = new SharedNode("First", sharedChildren);
+            var second = new SharedNode("Second", sharedChildren);
+            var items = new ObservableCollection<SharedNode> { first, second };
+            using var source = new HierarchicalTreeDataGridSource<SharedNode>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<SharedNode>(
+                new TextColumn<SharedNode, string>("Name", x => x.Name), x => x.Children));
+
+            Assert.Throws<InvalidOperationException>(() => source.MoveRows(source,
+                new[] { new IndexPath(0) }, new IndexPath(1),
+                RowDropPosition.Inside, RowMoveEffects.Move));
+
+            Assert.Equal(new[] { first, second }, items);
+            Assert.Empty(sharedChildren);
+        }
+
+        [Fact]
         public void Hierarchical_move_restores_a_selection_reached_through_an_alias()
         {
             var moved = new SharedNode("Moved");
