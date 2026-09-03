@@ -8,12 +8,12 @@ on:
       - develop
       - "release/**"
       - "feature/**"
-      - "release/**"
   pull_request:
     branches:
       - master
       - main
       - develop
+      - "release/**"
 
 env:
   DOTNET_NOLOGO: true
