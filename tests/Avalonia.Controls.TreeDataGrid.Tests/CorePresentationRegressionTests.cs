@@ -82,6 +82,31 @@ public class CorePresentationRegressionTests
     }
 
     [AvaloniaFact]
+    public void Show_expander_observable_rebinds_when_the_child_collection_is_replaced()
+    {
+        var oldChildren = new TrackingCollection<ReplaceableNode>();
+        var newChildren = new TrackingCollection<ReplaceableNode> { new() };
+        var model = new ReplaceableNode { Children = oldChildren };
+        var observable = new ShowExpanderObservable<ReplaceableNode>(
+            x => x.Children, null, model);
+        var observer = new BooleanObserver();
+        var subscription = observable.Subscribe(observer);
+
+        Assert.False(observer.Value);
+        Assert.Equal(1, oldChildren.SubscriberCount);
+
+        model.Children = newChildren;
+
+        Assert.True(observer.Value);
+        Assert.Equal(0, oldChildren.SubscriberCount);
+        Assert.Equal(1, newChildren.SubscriberCount);
+
+        subscription.Dispose();
+
+        Assert.Equal(0, newChildren.SubscriberCount);
+    }
+
+    [AvaloniaFact]
     public void Unrealized_core_expander_recomputes_show_expander_without_a_cached_override()
     {
         var item = new Node();
@@ -117,11 +142,26 @@ public class CorePresentationRegressionTests
         public bool IsExpanded { get => _expanded; set { _expanded = value; PropertyChanged?.Invoke(this, new(nameof(IsExpanded))); } }
         public event PropertyChangedEventHandler? PropertyChanged;
     }
+    private sealed class ReplaceableNode : INotifyPropertyChanged
+    {
+        private TrackingCollection<ReplaceableNode> _children = new();
+        public TrackingCollection<ReplaceableNode> Children
+        {
+            get => _children;
+            set
+            {
+                _children = value;
+                PropertyChanged?.Invoke(this, new(nameof(Children)));
+            }
+        }
+        public event PropertyChangedEventHandler? PropertyChanged;
+    }
     private sealed class BooleanObserver : IObserver<bool>
     {
+        public bool Value { get; private set; }
         public void OnCompleted() { }
         public void OnError(Exception error) { }
-        public void OnNext(bool value) { }
+        public void OnNext(bool value) => Value = value;
     }
     private sealed class TrackingCollection<T> : Collection<T>, INotifyCollectionChanged
     {
