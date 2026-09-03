@@ -116,6 +116,11 @@ namespace TreeDataGridCore
             if (position == RowDropPosition.After)
                 ++ti;
 
+            var selection = _selection as ITreeSelectionModel;
+            var selectedItems = selection?.SelectedIndexes
+                .Where(x => x.Count == 1)
+                .Select(x => items[x[0]])
+                .ToArray();
             var sourceItems = new List<TModel>();
 
             foreach (var src in indexes.OrderByDescending(x => x))
@@ -131,6 +136,21 @@ namespace TreeDataGridCore
             for (var si = sourceItems.Count - 1; si >= 0; --si)
             {
                 items.Insert(ti++, sourceItems[si]);
+            }
+
+            if (selection is not null && selectedItems is { Length: > 0 })
+            {
+                foreach (var selectedItem in selectedItems)
+                {
+                    for (var i = 0; i < items.Count; ++i)
+                    {
+                        if (ReferenceEquals(items[i], selectedItem))
+                        {
+                            selection.Select(new IndexPath(i));
+                            break;
+                        }
+                    }
+                }
             }
         }
 

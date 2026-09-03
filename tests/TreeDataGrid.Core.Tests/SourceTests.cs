@@ -45,6 +45,26 @@ namespace TreeDataGridCore.Tests
             source.SortBy(name, ListSortDirection.Ascending);
             Assert.Equal("Z", ((Node)source.Rows[^1].Model!).Name);
         }
+
+        [Fact]
+        public void Flat_move_preserves_selected_rows()
+        {
+            var first = new Node("First");
+            var second = new Node("Second");
+            var third = new Node("Third");
+            var items = new ObservableCollection<Node> { first, second, third };
+            using var source = new FlatTreeDataGridSource<Node>(items);
+            source.RowSelection!.SingleSelect = false;
+            source.RowSelection.Select(new IndexPath(0));
+            source.RowSelection.Select(new IndexPath(1));
+
+            source.MoveRows(source, new[] { new IndexPath(0), new IndexPath(1) },
+                new IndexPath(2), RowDropPosition.After, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { third, first, second }, items);
+            Assert.Equal(new[] { first, second }, source.RowSelection.SelectedItems);
+            Assert.Equal(new[] { new IndexPath(1), new IndexPath(2) }, source.RowSelection.SelectedIndexes);
+        }
         [Fact]
         public void Hierarchy_expansion_sorting_and_incremental_updates_share_model_indexes()
         {
@@ -185,6 +205,64 @@ namespace TreeDataGridCore.Tests
 
             Assert.Same(expander, source.Columns[0]);
             Assert.Same(rows, source.Rows);
+        }
+
+        [Fact]
+        public void Adding_or_removing_an_expander_is_rejected_before_mutation()
+        {
+            using var source = new HierarchicalTreeDataGridSource<Node>(new[] { new Node("Root") });
+            var expander = new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children);
+            source.Columns.Add(expander);
+
+            Assert.Throws<InvalidOperationException>(() => source.Columns.Add(
+                new HierarchicalExpanderColumn<Node>(
+                    new TextColumn<Node, string>("Other", x => x.Name), x => x.Children)));
+            Assert.Single(source.Columns);
+            Assert.Throws<InvalidOperationException>(() => source.Columns.Remove(expander));
+            Assert.Same(expander, Assert.Single(source.Columns));
+        }
+
+        [Fact]
+        public void Column_reset_is_staged_and_retains_the_expander()
+        {
+            using var source = new HierarchicalTreeDataGridSource<Node>(new[] { new Node("Root") });
+            var expander = new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children);
+            var original = new TextColumn<Node, string>("Original", x => x.Name);
+            var replacement = new TextColumn<Node, string>("Replacement", x => x.Name);
+            source.Columns.Add(expander);
+            source.Columns.Add(original);
+
+            source.Columns.Reset(columns =>
+            {
+                columns.Remove(original);
+                columns.Add(replacement);
+            });
+
+            Assert.Equal(new IColumn<Node>[] { expander, replacement }, source.Columns);
+            Assert.Throws<InvalidOperationException>(() =>
+                source.Columns.Reset(columns => columns.Remove(expander)));
+            Assert.Equal(new IColumn<Node>[] { expander, replacement }, source.Columns);
+        }
+
+        [Fact]
+        public void Batch_column_changes_validate_the_expander_before_mutation()
+        {
+            using var source = new HierarchicalTreeDataGridSource<Node>(new[] { new Node("Root") });
+            var expander = new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children);
+            source.Columns.Add(expander);
+
+            Assert.Throws<InvalidOperationException>(() => source.Columns.InsertRange(1, add =>
+            {
+                add(new TextColumn<Node, string>("Ordinary", x => x.Name));
+                add(new HierarchicalExpanderColumn<Node>(
+                    new TextColumn<Node, string>("Other", x => x.Name), x => x.Children));
+            }));
+            Assert.Same(expander, Assert.Single(source.Columns));
+            Assert.Throws<InvalidOperationException>(() => source.Columns.RemoveRange(0, 1));
+            Assert.Same(expander, Assert.Single(source.Columns));
         }
 
         [Fact]

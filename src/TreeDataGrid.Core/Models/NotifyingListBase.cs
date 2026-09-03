@@ -20,7 +20,7 @@ namespace TreeDataGridCore.Models
         public event NotifyCollectionChangedEventHandler? CollectionChanged;
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public void InsertRange(int index, Action<Action<T>> action)
+        public virtual void InsertRange(int index, Action<Action<T>> action)
         {
             CheckReentrancy();
             _batchUpdate = BatchUpdateType.Insert;
@@ -56,7 +56,7 @@ namespace TreeDataGridCore.Models
             }
         }
 
-        public void RemoveRange(int index, int count)
+        public virtual void RemoveRange(int index, int count)
         {
             if (count == 0)
                 return;
@@ -89,7 +89,7 @@ namespace TreeDataGridCore.Models
                     index));
         }
 
-        public void Reset(Action<IList<T>> action)
+        public virtual void Reset(Action<IList<T>> action)
         {
             CheckReentrancy();
             _batchUpdate = BatchUpdateType.Reset;
