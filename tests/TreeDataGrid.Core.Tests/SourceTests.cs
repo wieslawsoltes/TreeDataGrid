@@ -747,6 +747,29 @@ namespace TreeDataGridCore.Tests
         }
 
         [Fact]
+        public void Hierarchical_move_does_not_scan_subtrees_for_a_same_collection_reorder()
+        {
+            var first = new Node("First") { Children = { new("Child") } };
+            var second = new Node("Second");
+            var items = new ObservableCollection<Node> { first, second };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            var childSelectorCalls = 0;
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name),
+                x =>
+                {
+                    ++childSelectorCalls;
+                    return x.Children;
+                }));
+
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(1),
+                RowDropPosition.After, RowMoveEffects.Move);
+
+            Assert.Equal(0, childSelectorCalls);
+            Assert.Equal(new[] { second, first }, items);
+        }
+
+        [Fact]
         public void Hierarchical_move_restores_a_selection_reached_through_an_alias()
         {
             var moved = new SharedNode("Moved");
