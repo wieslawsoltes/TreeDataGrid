@@ -261,6 +261,39 @@ namespace TreeDataGridCore.Tests
 
             Assert.Equal(nameof(source.Items), propertyName);
         }
+        [Theory]
+        [InlineData(1)]
+        [InlineData(3)]
+        public void Unequal_range_replace_resynchronizes_unsorted_row_projection(int replacementCount)
+        {
+            var children = new ResettingCollection<SharedNode>(new[]
+            {
+                new SharedNode("Old 1"),
+                new SharedNode("Old 2"),
+                new SharedNode("Tail"),
+            });
+            using var source = new HierarchicalTreeDataGridSource<SharedNode>(
+                new[] { new SharedNode("Parent", children) });
+            source.Columns.Add(new HierarchicalExpanderColumn<SharedNode>(
+                new TextColumn<SharedNode, string>("Name", x => x.Name),
+                x => x.Children));
+            source.Expand(0);
+            var changes = new List<System.Collections.Specialized.NotifyCollectionChangedAction>();
+            source.Rows.CollectionChanged += (_, e) => changes.Add(e.Action);
+
+            var replacements = Enumerable.Range(1, replacementCount)
+                .Select(x => new SharedNode($"New {x}"))
+                .ToArray();
+            children.ReplaceRange(0, 2, replacements);
+
+            Assert.Equal(new[] { "Parent" }.Concat(replacements.Select(x => x.Name)).Append("Tail"),
+                source.Rows.Select(x => ((SharedNode)x.Model!).Name));
+            Assert.Equal(new[]
+            {
+                System.Collections.Specialized.NotifyCollectionChangedAction.Remove,
+                System.Collections.Specialized.NotifyCollectionChangedAction.Add,
+            }, changes);
+        }
         [Fact]
         public void Bound_expansion_is_initialized_and_changes_without_a_view()
         {
@@ -310,6 +343,28 @@ namespace TreeDataGridCore.Tests
             Assert.Equal(3, source.Rows.Count);
             newChildren.Add(new());
             Assert.Equal(4, source.Rows.Count);
+        }
+        [Fact]
+        public void Fresh_child_enumerable_wrapper_does_not_reset_rows_or_selection()
+        {
+            var child = new BoundNode();
+            var parent = new BoundNode { Children = { child } };
+            using var source = new HierarchicalTreeDataGridSource<BoundNode>(new[] { parent });
+            source.Columns.Add(new HierarchicalExpanderColumn<BoundNode>(
+                new TextColumn<BoundNode, bool>("Expanded", x => x.IsExpanded),
+                x => x.Children.Where(_ => true)));
+            source.Expand(0);
+            source.RowSelection!.SelectedIndex = new IndexPath(0, 0);
+            var childRow = source.Rows[1];
+            var rowChanges = 0;
+            source.Rows.CollectionChanged += (_, _) => ++rowChanges;
+
+            parent.NotifyUnrelatedPropertyChanged();
+
+            Assert.Equal(0, rowChanges);
+            Assert.Same(childRow, source.Rows[1]);
+            Assert.Equal(new IndexPath(0, 0), source.RowSelection.SelectedIndex);
+            Assert.Same(child, source.RowSelection.SelectedItem);
         }
         [Fact]
         public void Empty_rebound_child_collection_restores_expander_visibility_when_populated()
@@ -436,6 +491,8 @@ namespace TreeDataGridCore.Tests
                 }
             }
             public event PropertyChangedEventHandler? PropertyChanged;
+            public void NotifyUnrelatedPropertyChanged() =>
+                PropertyChanged?.Invoke(this, new(nameof(NotifyUnrelatedPropertyChanged)));
         }
 
         [Fact]

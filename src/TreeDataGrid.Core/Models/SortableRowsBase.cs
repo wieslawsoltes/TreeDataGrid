@@ -97,6 +97,27 @@ namespace TreeDataGridCore.Models
 
         protected abstract TRow CreateRow(int modelIndex, TModel model);
 
+        protected bool HasSameItems(IEnumerable<TModel>? items)
+        {
+            if (items is null)
+                return _items.Count == 0;
+
+            using var enumerator = items.GetEnumerator();
+            var index = 0;
+            while (enumerator.MoveNext())
+            {
+                if (index >= _items.Count || !SameModel(_items[index], enumerator.Current))
+                    return false;
+                ++index;
+            }
+
+            return index == _items.Count;
+        }
+
+        private static bool SameModel(TModel x, TModel y) =>
+            typeof(TModel).IsValueType ? EqualityComparer<TModel>.Default.Equals(x, y) :
+            ReferenceEquals(x, y);
+
         protected int ModelIndexToRowIndex(int modelIndex)
         {
             if (_sortedIndexes is null)
@@ -217,6 +238,13 @@ namespace TreeDataGridCore.Models
                     {
                         var index = e.OldStartingIndex;
                         var count = e.OldItems!.Count;
+                        if (count != e.NewItems!.Count)
+                        {
+                            Remove(index, count);
+                            Add(e.NewStartingIndex >= 0 ? e.NewStartingIndex : index, e.NewItems);
+                            CollectionChanged?.Invoke(this, CollectionExtensions.ResetEvent);
+                            break;
+                        }
                         var oldItems = CollectionChanged is not null ? _unsortedRows.Slice(index, count) : null;
 
                         for (var i = 0; i < count; ++i)
