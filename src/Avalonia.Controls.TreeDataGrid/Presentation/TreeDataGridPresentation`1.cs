@@ -27,7 +27,7 @@ namespace Avalonia.Controls.Presentation
         public TreeDataGridPresentation(Core.ITreeDataGridSource<TModel> model, TreeDataGridPresentationOptions<TModel>? options = null)
         {
             Model = model ?? throw new ArgumentNullException(nameof(model));
-            _cells = new(model.Columns.Count);
+            _cells = new(model.Columns.Count, ReferenceEqualityComparer.Instance);
             _columnChanged = OnColumnPropertyChanged;
             _factory = new(options ?? new());
             _columns = new(this);
@@ -200,7 +200,9 @@ namespace Avalonia.Controls.Presentation
             var desired = Model.Columns;
             if (_cells.Count > 0)
             {
-                var desiredSet = new HashSet<Core.Models.IColumn>(desired);
+                var desiredSet = new HashSet<Core.Models.IColumn>(
+                    desired,
+                    ReferenceEqualityComparer.Instance);
                 foreach (var removed in _cells.Keys.Where(x => !desiredSet.Contains(x)).ToArray())
                     RemoveColumn(removed);
                 foreach (var changed in _cells.Keys.Where(x =>

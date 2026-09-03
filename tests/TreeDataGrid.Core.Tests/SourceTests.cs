@@ -335,6 +335,61 @@ namespace TreeDataGridCore.Tests
             Assert.True(row.ShowExpander);
             Assert.Single(source.Rows);
         }
+        [Fact]
+        public void Empty_rebound_child_collection_observes_a_later_collection_replacement()
+        {
+            var parent = new BoundNode
+            {
+                Children = new ObservableCollection<BoundNode> { new() },
+            };
+            using var source = new HierarchicalTreeDataGridSource<BoundNode>(new[] { parent });
+            source.Columns.Add(new HierarchicalExpanderColumn<BoundNode>(
+                new TextColumn<BoundNode, bool>("Expanded", x => x.IsExpanded),
+                x => x.Children));
+            source.Expand(0);
+            var row = Assert.IsType<HierarchicalRow<BoundNode>>(source.Rows[0]);
+
+            parent.Children = new ObservableCollection<BoundNode>();
+            Assert.False(row.ShowExpander);
+
+            parent.Children = new ObservableCollection<BoundNode> { new() };
+
+            Assert.True(row.ShowExpander);
+            Assert.True(row.IsExpanded);
+            Assert.Equal(2, source.Rows.Count);
+        }
+        [Fact]
+        public void Replacing_a_child_collection_resets_its_selection_subtree()
+        {
+            var oldChild = new BoundNode();
+            var newChild = new BoundNode();
+            var oldChildren = new ObservableCollection<BoundNode> { oldChild };
+            var parent = new BoundNode { Children = oldChildren };
+            using var source = new HierarchicalTreeDataGridSource<BoundNode>(new[] { parent });
+            source.Columns.Add(new HierarchicalExpanderColumn<BoundNode>(
+                new TextColumn<BoundNode, bool>("Expanded", x => x.IsExpanded),
+                x => x.Children));
+            source.Expand(0);
+            source.RowSelection!.SelectedIndex = new IndexPath(0, 0);
+            var resets = 0;
+            source.RowSelection.SourceReset += (_, e) =>
+            {
+                Assert.Equal(new IndexPath(0), e.ParentIndex);
+                ++resets;
+            };
+
+            parent.Children = new ObservableCollection<BoundNode> { newChild };
+
+            Assert.Equal(1, resets);
+            Assert.Equal(default, source.RowSelection.SelectedIndex);
+            Assert.Null(source.RowSelection.SelectedItem);
+            Assert.Empty(source.RowSelection.SelectedIndexes);
+            Assert.Same(newChild, source.Rows[1].Model);
+            oldChildren.Add(new BoundNode());
+            Assert.Equal(2, source.Rows.Count);
+            Assert.Equal(1, resets);
+            Assert.Empty(source.RowSelection.SelectedIndexes);
+        }
         private sealed class BoundNode : INotifyPropertyChanged
         {
             private bool _expanded;

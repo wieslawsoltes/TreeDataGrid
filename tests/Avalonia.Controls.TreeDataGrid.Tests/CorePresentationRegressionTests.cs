@@ -107,6 +107,23 @@ public class CorePresentationRegressionTests
     }
 
     [AvaloniaFact]
+    public void Distinct_value_equal_core_columns_have_distinct_presentations()
+    {
+        using var source = new Core.FlatTreeDataGridSource<Node>(new[] { new Node() });
+        var first = new ValueEqualColumn("First");
+        var second = new ValueEqualColumn("Second");
+        source.Columns.Add(first);
+        using var view = new TreeDataGridPresentation<Node>(source);
+
+        source.Columns.Add(second);
+
+        Assert.Equal(2, view.Columns.Count);
+        source.Columns.Remove(first);
+        Assert.Same(second, Assert.Single(source.Columns));
+        Assert.Equal("Second", Assert.Single(view.Columns).Header);
+    }
+
+    [AvaloniaFact]
     public void Show_expander_observable_detaches_from_children_when_unsubscribed()
     {
         var children = new TrackingCollection<Node>();
@@ -168,6 +185,12 @@ public class CorePresentationRegressionTests
         public DisposableColumn() : base("Name", x => x.Name) { }
         public int DisposeCount { get; private set; }
         public void Dispose() => ++DisposeCount;
+    }
+    private sealed class ValueEqualColumn : Core.Models.TextColumn<Node, string>
+    {
+        public ValueEqualColumn(string header) : base(header, x => x.Name) { }
+        public override bool Equals(object? obj) => obj is ValueEqualColumn;
+        public override int GetHashCode() => 0;
     }
     public sealed class Node
     {

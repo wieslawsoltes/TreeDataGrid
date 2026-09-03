@@ -40,6 +40,14 @@ namespace TreeDataGridCore.Selection
             set => base.Source = value;
         }
 
+        public void ResetSource(IEnumerable? source)
+        {
+            if (ReferenceEquals(Source, source))
+                return;
+            Source = source;
+            OnSourceReset();
+        }
+
         public bool HasChildren
         {
             get

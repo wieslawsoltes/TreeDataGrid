@@ -125,6 +125,9 @@ namespace TreeDataGridCore.Selection
 
         internal TreeSelectionNode<T> Root => _root;
 
+        internal void ResetChildrenSource(in IndexPath parentIndex, IEnumerable<T>? source) =>
+            GetNode(parentIndex)?.ResetSource(source);
+
         protected bool IsSourceCollectionChanging => _collectionChanging > 0;
 
         protected IEnumerable? Source

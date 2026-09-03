@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Collections.Specialized;
 
 namespace TreeDataGridCore.Models
@@ -31,5 +32,12 @@ namespace TreeDataGridCore.Models
         /// <param name="row">The row.</param>
         /// <param name="e"></param>
         void OnChildCollectionChanged(IExpanderRow<TModel> row, NotifyCollectionChangedEventArgs e);
+    }
+
+    internal interface IChildCollectionReplacementController<TModel>
+    {
+        void OnChildCollectionReplaced(
+            IExpanderRow<TModel> row,
+            IEnumerable<TModel>? children);
     }
 }
