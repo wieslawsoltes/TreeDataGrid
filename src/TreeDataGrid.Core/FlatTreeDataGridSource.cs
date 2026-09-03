@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using TreeDataGridCore.Models;
@@ -162,6 +163,9 @@ namespace TreeDataGridCore
                 items.Insert(ti, sourceItems[si].Item);
                 indexMap.Insert(ti++, sourceItems[si].OriginalIndex);
             }
+
+            if (_rows is not null && items is not INotifyCollectionChanged)
+                _rows.SetItems(_itemsView);
 
             if (selection is not null && selectedIndexes is { Length: > 0 })
             {
