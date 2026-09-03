@@ -145,6 +145,19 @@ namespace TreeDataGridCore.Tests
 
             Assert.Equal(new[] { first, second }, items);
         }
+
+        [Fact]
+        public void Flat_move_rejects_a_read_only_list_before_mutation()
+        {
+            var items = new[] { new Node("First"), new Node("Second") };
+            using var source = new FlatTreeDataGridSource<Node>(items);
+
+            Assert.Throws<InvalidOperationException>(() => source.MoveRows(
+                source, new[] { new IndexPath(0) }, new IndexPath(1),
+                RowDropPosition.After, RowMoveEffects.Move));
+
+            Assert.Equal(new[] { "First", "Second" }, items.Select(x => x.Name));
+        }
         [Fact]
         public void Hierarchy_expansion_sorting_and_incremental_updates_share_model_indexes()
         {
@@ -639,6 +652,24 @@ namespace TreeDataGridCore.Tests
         }
 
         [Fact]
+        public void Hierarchical_move_rejects_a_read_only_target_before_mutation()
+        {
+            var moved = new SharedNode("Moved");
+            var readOnlyChildren = new System.Collections.ObjectModel.ReadOnlyCollection<SharedNode>(
+                new List<SharedNode>());
+            var target = new SharedNode("Target", readOnlyChildren);
+            var items = new ObservableCollection<SharedNode> { moved, target };
+            using var source = new HierarchicalTreeDataGridSource<SharedNode>(items);
+
+            Assert.Throws<InvalidOperationException>(() => source.MoveRows(
+                source, new[] { new IndexPath(0) }, new IndexPath(1),
+                RowDropPosition.Inside, RowMoveEffects.Move));
+
+            Assert.Equal(new[] { moved, target }, items);
+            Assert.Empty(readOnlyChildren);
+        }
+
+        [Fact]
         public void Moving_an_expanded_root_recomputes_the_flattened_destination()
         {
             var first = new Node("First") { Children = { new("Child") } };
@@ -744,14 +775,14 @@ namespace TreeDataGridCore.Tests
 
         private sealed class SharedNode
         {
-            public SharedNode(string name, ObservableCollection<SharedNode>? children = null)
+            public SharedNode(string name, IList<SharedNode>? children = null)
             {
                 Name = name;
-                Children = children ?? new();
+                Children = children ?? new ObservableCollection<SharedNode>();
             }
 
             public string Name { get; }
-            public ObservableCollection<SharedNode> Children { get; }
+            public IList<SharedNode> Children { get; }
         }
 
         private sealed class NestedBoundNode : INotifyPropertyChanged

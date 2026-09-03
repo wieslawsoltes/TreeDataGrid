@@ -118,6 +118,8 @@ namespace TreeDataGridCore
                 throw new ArgumentException("Invalid target index.", nameof(targetIndex));
             if (_items is not IList<TModel> items)
                 throw new InvalidOperationException("Items does not implement IList<T>.");
+            if (items.IsReadOnly)
+                throw new InvalidOperationException("Items is read-only.");
 
             foreach (var index in orderedIndexes)
             {
