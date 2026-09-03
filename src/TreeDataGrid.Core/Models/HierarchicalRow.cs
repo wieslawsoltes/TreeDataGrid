@@ -20,6 +20,7 @@ namespace TreeDataGridCore.Models
         private Comparison<TModel>? _comparison;
         private IEnumerable<TModel>? _childModels;
         private ChildRows? _childRows;
+        private readonly IDisposable? _isExpandedSubscription;
         private bool _isExpanded;
         private bool? _showExpander;
 
@@ -45,8 +46,14 @@ namespace TreeDataGridCore.Models
                 _childRows = new ChildRows(this, TreeDataGridItemsSourceView<TModel>.GetOrCreate(_childModels), comparison);
                 _isExpanded = _childRows.Count > 0;
             }
-            if (expanded.HasValue && model is INotifyPropertyChanged notify)
-                notify.PropertyChanged += OnModelPropertyChanged;
+            if (expanded.HasValue)
+            {
+                _isExpandedSubscription =
+                    (expanderColumn as HierarchicalExpanderColumn<TModel>)?.SubscribeToIsExpanded(
+                        model, OnModelIsExpandedChanged);
+                if (_isExpandedSubscription is null && model is INotifyPropertyChanged notify)
+                    notify.PropertyChanged += OnModelPropertyChanged;
+            }
         }
 
         /// <summary>
@@ -101,11 +108,17 @@ namespace TreeDataGridCore.Models
 
         public void Dispose()
         {
-            if (Model is INotifyPropertyChanged notify)
+            _isExpandedSubscription?.Dispose();
+            if (_isExpandedSubscription is null && Model is INotifyPropertyChanged notify)
                 notify.PropertyChanged -= OnModelPropertyChanged;
             _childRows?.Dispose();
         }
         private void OnModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            OnModelIsExpandedChanged();
+        }
+
+        private void OnModelIsExpandedChanged()
         {
             if (_expanderColumn.GetModelIsExpanded(Model) is bool expanded)
                 IsExpanded = expanded;

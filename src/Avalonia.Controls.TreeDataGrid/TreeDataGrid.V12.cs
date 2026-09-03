@@ -96,7 +96,8 @@ namespace Avalonia.Controls
         {
             if (Model is not null) return;
             var next = _explicitSource ?? _generatedSource;
-            if (ReferenceEquals(_source, next) && (_presentation is not null || next is null))
+            if (ReferenceEquals(_source, next) &&
+                (next is null ? _presentation is null : _presentation is not null))
             {
                 ApplySelectionMode();
                 SelectionInteraction = _presentation?.SelectionInteraction;

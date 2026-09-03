@@ -139,6 +139,49 @@ namespace TreeDataGridCore.Tests
         }
 
         [Fact]
+        public void Hierarchical_move_with_none_position_is_a_no_op()
+        {
+            var first = new Node("First");
+            var second = new Node("Second");
+            var items = new ObservableCollection<Node> { first, second };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(1),
+                RowDropPosition.None, RowMoveEffects.Move);
+
+            Assert.Same(first, items[0]);
+            Assert.Same(second, items[1]);
+        }
+
+        [Fact]
+        public void Nested_expansion_binding_tracks_leaf_and_intermediate_changes()
+        {
+            var child = new NestedBoundNode { Children = { new() } };
+            var parent = new NestedBoundNode { Children = { child } };
+            using var source = new HierarchicalTreeDataGridSource<NestedBoundNode>(new[] { parent });
+            source.Columns.Add(new HierarchicalExpanderColumn<NestedBoundNode>(
+                new TextColumn<NestedBoundNode, bool>("Expanded", x => x.Expansion.IsExpanded),
+                x => x.Children,
+                isExpandedSelector: x => x.Expansion.IsExpanded));
+
+            Assert.Single(source.Rows);
+            parent.Expansion.IsExpanded = true;
+            Assert.Equal(2, source.Rows.Count);
+            child.Expansion.IsExpanded = true;
+            Assert.Equal(3, source.Rows.Count);
+            child.Expansion = new ExpansionState();
+            Assert.Equal(2, source.Rows.Count);
+            parent.Expansion = new ExpansionState();
+            Assert.Single(source.Rows);
+            parent.Expansion = new ExpansionState { IsExpanded = true };
+            Assert.Equal(2, source.Rows.Count);
+            child.Expansion = new ExpansionState { IsExpanded = true };
+            Assert.Equal(3, source.Rows.Count);
+        }
+
+        [Fact]
         public void Core_has_no_Avalonia_assembly_references()
         {
             Assert.DoesNotContain(typeof(FlatTreeDataGridSource<>).Assembly.GetReferencedAssemblies(), a => a.Name!.Contains("Avalonia", StringComparison.OrdinalIgnoreCase));
@@ -148,6 +191,41 @@ namespace TreeDataGridCore.Tests
             public Node(string name) => Name = name;
             public string Name { get; set; }
             public ObservableCollection<Node> Children { get; } = new();
+        }
+
+        private sealed class NestedBoundNode : INotifyPropertyChanged
+        {
+            private ExpansionState _expansion = new();
+            public ObservableCollection<NestedBoundNode> Children { get; } = new();
+            public ExpansionState Expansion
+            {
+                get => _expansion;
+                set
+                {
+                    if (ReferenceEquals(_expansion, value))
+                        return;
+                    _expansion = value;
+                    PropertyChanged?.Invoke(this, new(nameof(Expansion)));
+                }
+            }
+            public event PropertyChangedEventHandler? PropertyChanged;
+        }
+
+        private sealed class ExpansionState : INotifyPropertyChanged
+        {
+            private bool _isExpanded;
+            public bool IsExpanded
+            {
+                get => _isExpanded;
+                set
+                {
+                    if (_isExpanded == value)
+                        return;
+                    _isExpanded = value;
+                    PropertyChanged?.Invoke(this, new(nameof(IsExpanded)));
+                }
+            }
+            public event PropertyChangedEventHandler? PropertyChanged;
         }
     }
 }

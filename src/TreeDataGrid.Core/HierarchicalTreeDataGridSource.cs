@@ -245,6 +245,8 @@ namespace TreeDataGridCore
                 throw new NotSupportedException("Only move is currently supported for drag/drop.");
             if (IsSorted)
                 throw new NotSupportedException("Drag/drop is not supported on sorted data.");
+            if (position == RowDropPosition.None)
+                return;
 
             IList<TModel> targetItems;
             int ti;

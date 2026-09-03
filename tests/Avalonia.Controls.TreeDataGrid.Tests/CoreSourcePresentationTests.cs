@@ -185,6 +185,20 @@ namespace Avalonia.Controls.TreeDataGridTests
         }
 
         [AvaloniaFact]
+        public void Clearing_model_clears_the_Core_presentation()
+        {
+            using var source = Flat(new() { new("A") });
+            var grid = new TreeDataGrid { Model = source };
+            Assert.NotNull(grid.Presentation);
+
+            grid.Model = null;
+
+            Assert.Null(grid.Presentation);
+            Assert.Null(grid.Columns);
+            Assert.Null(grid.Rows);
+        }
+
+        [AvaloniaFact]
         public void Presentation_key_changed_while_detached_is_applied_on_reattach()
         {
             using var source = Flat(new() { new("A") });
@@ -337,6 +351,23 @@ namespace Avalonia.Controls.TreeDataGridTests
             view.Rows.UnrealizeCell(cell, 0, 0);
         }
 
+        [AvaloniaFact]
+        public void Expander_presentation_disposes_its_custom_inner_column()
+        {
+            using var source = new Core.HierarchicalTreeDataGridSource<Node>(new[] { new Node("A") });
+            source.Columns.Add(new Core.Models.HierarchicalExpanderColumn<Node>(
+                new Core.Models.TemplateColumn<Node>("Card", "disposable"), x => x.Children));
+            var options = new TreeDataGridPresentationOptions<Node>();
+            DisposableTemplateColumn? inner = null;
+            options.Columns.Add("disposable", _ => inner = new DisposableTemplateColumn());
+
+            var view = new TreeDataGridPresentation<Node>(source, options);
+            view.Dispose();
+
+            Assert.NotNull(inner);
+            Assert.True(inner!.IsDisposed);
+        }
+
         private sealed class BoundValue : INotifyPropertyChanged
         {
             private string _value = "";
@@ -344,6 +375,18 @@ namespace Avalonia.Controls.TreeDataGridTests
             public bool Flag { get; set; }
             public bool? OptionalFlag { get; set; } = true;
             public event PropertyChangedEventHandler? PropertyChanged;
+        }
+
+        private sealed class DisposableTemplateColumn : TemplateColumn<Node>, IDisposable
+        {
+            public DisposableTemplateColumn()
+                : base("Card", new Templates.FuncDataTemplate<Node>((model, _) =>
+                    new TextBlock { Text = model?.Name }))
+            {
+            }
+
+            public bool IsDisposed { get; private set; }
+            public void Dispose() => IsDisposed = true;
         }
 
         [AvaloniaFact]

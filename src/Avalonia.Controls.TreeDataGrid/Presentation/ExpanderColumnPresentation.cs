@@ -7,7 +7,8 @@ using Avalonia.Experimental.Data;
 using Core = global::TreeDataGridCore;
 namespace Avalonia.Controls.Presentation
 {
-    internal sealed class ExpanderColumnPresentation<T> : ICellColumn<T>, IUpdateColumnLayout, IColumnMeasurementOptions, ITextSearchableColumn<T> where T : class
+    internal sealed class ExpanderColumnPresentation<T> : ICellColumn<T>, IUpdateColumnLayout,
+        IColumnMeasurementOptions, ITextSearchableColumn<T>, IDisposable where T : class
     {
         private readonly Core.Models.HierarchicalExpanderColumn<T> _model;
         private readonly ICellColumn<T> _inner;
@@ -34,6 +35,7 @@ namespace Avalonia.Controls.Presentation
         public bool CommitActualWidth() => Layout.CommitActualWidth();
         public void CalculateStarWidth(double availableWidth, double totalStars) => Layout.CalculateStarWidth(availableWidth, totalStars);
         public void SetWidth(GridLength width) => Layout.SetWidth(width);
+        public void Dispose() => (_inner as IDisposable)?.Dispose();
         bool ITextSearchableColumn<T>.IsTextSearchEnabled => (_inner as ITextSearchableColumn<T>)?.IsTextSearchEnabled ?? false;
         string? ITextSearchableColumn<T>.SelectValue(T model) => (_inner as ITextSearchableColumn<T>)?.SelectValue(model);
     }
