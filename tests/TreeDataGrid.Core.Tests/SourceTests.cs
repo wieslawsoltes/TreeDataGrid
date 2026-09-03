@@ -187,6 +187,25 @@ namespace TreeDataGridCore.Tests
             Assert.Equal(new[] { second, first }, source.Rows.Select(x => x.Model));
         }
 
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void Flat_move_preserves_selection_anchors(bool notifying)
+        {
+            var first = new Node("First");
+            var second = new Node("Second");
+            IList<Node> items = notifying ?
+                new ObservableCollection<Node> { first, second } : new List<Node> { first, second };
+            using var source = new FlatTreeDataGridSource<Node>(items);
+            source.RowSelection!.SelectedIndex = new IndexPath(0);
+
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(1),
+                RowDropPosition.After, RowMoveEffects.Move);
+
+            Assert.Equal(new IndexPath(1), source.RowSelection.AnchorIndex);
+            Assert.Equal(new IndexPath(1), source.RowSelection.RangeAnchorIndex);
+        }
+
         [Fact]
         public void Hierarchy_expansion_sorting_and_incremental_updates_share_model_indexes()
         {
@@ -842,6 +861,25 @@ namespace TreeDataGridCore.Tests
             Assert.Equal(new[] { sibling, expanded, expanded.Children[0] },
                 source.Rows.Select(x => x.Model));
             Assert.True(((IExpanderRow<Node>)source.Rows[1]).IsExpanded);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void Hierarchical_move_preserves_selection_anchors(bool notifying)
+        {
+            var first = new Node("First");
+            var second = new Node("Second");
+            IList<Node> items = notifying ?
+                new ObservableCollection<Node> { first, second } : new List<Node> { first, second };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.RowSelection!.SelectedIndex = new IndexPath(0);
+
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(1),
+                RowDropPosition.After, RowMoveEffects.Move);
+
+            Assert.Equal(new IndexPath(1), source.RowSelection.AnchorIndex);
+            Assert.Equal(new IndexPath(1), source.RowSelection.RangeAnchorIndex);
         }
 
         [Fact]

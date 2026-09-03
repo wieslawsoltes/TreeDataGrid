@@ -447,6 +447,10 @@ namespace TreeDataGridCore
             var selection = _selection as ITreeSelectionModel;
             var originalPrimarySelection = selection?.SelectedIndex ?? default;
             var originalSelections = selection?.SelectedIndexes.ToArray();
+            var mappedAnchor = selection?.AnchorIndex.Count > 0 ?
+                MapFinalPath(selection.AnchorIndex).Path : default;
+            var mappedRangeAnchor = selection?.RangeAnchorIndex.Count > 0 ?
+                MapFinalPath(selection.RangeAnchorIndex).Path : default;
             var mappedSelections = originalSelections?
                 .Select(original => (Original: original, Mapped: MapFinalPath(original)))
                 .ToArray();
@@ -483,27 +487,33 @@ namespace TreeDataGridCore
                     _rows.Expand(expanded);
             }
 
-            if (selection is not null && originalSelections is { Length: > 0 })
+            if (selection is not null)
             {
-                var restoredSelections = mappedSelections!
-                    .Select(x => (x.Original, Path: x.Mapped.Path))
-                    .ToArray();
-                var primaryMovedIndex = Array.FindIndex(restoredSelections,
-                    x => x.Original == originalPrimarySelection);
-
                 selection.BeginBatchUpdate();
                 try
                 {
-                    selection.Clear();
-
-                    if (primaryMovedIndex >= 0)
-                        selection.Select(restoredSelections[primaryMovedIndex].Path);
-
-                    for (var i = 0; i < restoredSelections.Length; ++i)
+                    if (originalSelections is { Length: > 0 })
                     {
-                        if (i != primaryMovedIndex)
-                            selection.Select(restoredSelections[i].Path);
+                        var restoredSelections = mappedSelections!
+                            .Select(x => (x.Original, Path: x.Mapped.Path))
+                            .ToArray();
+                        var primaryMovedIndex = Array.FindIndex(restoredSelections,
+                            x => x.Original == originalPrimarySelection);
+
+                        selection.Clear();
+
+                        if (primaryMovedIndex >= 0)
+                            selection.Select(restoredSelections[primaryMovedIndex].Path);
+
+                        for (var i = 0; i < restoredSelections.Length; ++i)
+                        {
+                            if (i != primaryMovedIndex)
+                                selection.Select(restoredSelections[i].Path);
+                        }
                     }
+
+                    selection.AnchorIndex = mappedAnchor;
+                    selection.RangeAnchorIndex = mappedRangeAnchor;
                 }
                 finally
                 {

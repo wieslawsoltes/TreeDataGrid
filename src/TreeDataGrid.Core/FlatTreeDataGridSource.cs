@@ -144,6 +144,9 @@ namespace TreeDataGridCore
                 .Select(x => x[0])
                 .ToArray();
             var primaryIndex = selection?.SelectedIndex.Count == 1 ? selection.SelectedIndex[0] : -1;
+            var anchorIndex = selection?.AnchorIndex.Count == 1 ? selection.AnchorIndex[0] : -1;
+            var rangeAnchorIndex = selection?.RangeAnchorIndex.Count == 1 ?
+                selection.RangeAnchorIndex[0] : -1;
             var indexMap = Enumerable.Range(0, items.Count).ToList();
             var sourceItems = new List<(TModel Item, int OriginalIndex)>();
 
@@ -167,21 +170,29 @@ namespace TreeDataGridCore
             if (_rows is not null && items is not INotifyCollectionChanged)
                 _rows.SetItems(_itemsView);
 
-            if (selection is not null && selectedIndexes is { Length: > 0 })
+            if (selection is not null)
             {
                 selection.BeginBatchUpdate();
                 try
                 {
-                    selection.Clear();
-
-                    if (primaryIndex >= 0)
-                        selection.Select(new IndexPath(indexMap.IndexOf(primaryIndex)));
-
-                    foreach (var selectedIndex in selectedIndexes)
+                    if (selectedIndexes is { Length: > 0 })
                     {
-                        if (selectedIndex != primaryIndex)
-                            selection.Select(new IndexPath(indexMap.IndexOf(selectedIndex)));
+                        selection.Clear();
+
+                        if (primaryIndex >= 0)
+                            selection.Select(new IndexPath(indexMap.IndexOf(primaryIndex)));
+
+                        foreach (var selectedIndex in selectedIndexes)
+                        {
+                            if (selectedIndex != primaryIndex)
+                                selection.Select(new IndexPath(indexMap.IndexOf(selectedIndex)));
+                        }
                     }
+
+                    selection.AnchorIndex = anchorIndex >= 0 ?
+                        new IndexPath(indexMap.IndexOf(anchorIndex)) : default;
+                    selection.RangeAnchorIndex = rangeAnchorIndex >= 0 ?
+                        new IndexPath(indexMap.IndexOf(rangeAnchorIndex)) : default;
                 }
                 finally
                 {
