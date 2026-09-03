@@ -97,6 +97,24 @@ namespace TreeDataGridCore.Tests
             Assert.Equal(new[] { shared, other, shared }, items);
             Assert.Equal(new IndexPath(2), source.RowSelection.SelectedIndex);
         }
+
+        [Fact]
+        public void Flat_move_rejects_duplicate_source_indexes_before_mutation()
+        {
+            var first = new Node("First");
+            var second = new Node("Second");
+            var items = new ObservableCollection<Node> { first, second };
+            using var source = new FlatTreeDataGridSource<Node>(items);
+
+            Assert.Throws<ArgumentException>(() => source.MoveRows(
+                source,
+                new[] { new IndexPath(0), new IndexPath(0) },
+                new IndexPath(1),
+                RowDropPosition.After,
+                RowMoveEffects.Move));
+
+            Assert.Equal(new[] { first, second }, items);
+        }
         [Fact]
         public void Hierarchy_expansion_sorting_and_incremental_updates_share_model_indexes()
         {
@@ -327,6 +345,21 @@ namespace TreeDataGridCore.Tests
         }
 
         [Fact]
+        public void Hierarchical_move_uses_the_original_after_target_offset()
+        {
+            var first = new Node("First");
+            var middle = new Node("Middle");
+            var target = new Node("Target");
+            var items = new ObservableCollection<Node> { first, middle, target };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+
+            source.MoveRows(source, new[] { new IndexPath(0), new IndexPath(2) },
+                new IndexPath(2), RowDropPosition.After, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { middle, first, target }, items);
+        }
+
+        [Fact]
         public void Hierarchical_move_resolves_all_source_paths_before_removal()
         {
             var first = new Node("First");
@@ -452,6 +485,32 @@ namespace TreeDataGridCore.Tests
             Assert.Equal(new[] { parent, child }, target.Children);
             Assert.Equal(new[] { new IndexPath(0, 0), new IndexPath(0, 1) },
                 source.RowSelection.SelectedIndexes);
+        }
+
+        [Fact]
+        public void Hierarchical_move_maps_selections_through_the_deepest_moved_ancestor()
+        {
+            var grandchild = new Node("Grandchild");
+            var extracted = new Node("Extracted") { Children = { grandchild } };
+            var retained = new Node("Retained");
+            var parent = new Node("Parent") { Children = { extracted, retained } };
+            var target = new Node("Target");
+            var items = new ObservableCollection<Node> { parent, target };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+            source.RowSelection!.SingleSelect = false;
+            source.RowSelection.Select(new IndexPath(0, 0, 0));
+            source.RowSelection.Select(new IndexPath(0, 1));
+
+            source.MoveRows(source, new[] { new IndexPath(0), new IndexPath(0, 0) },
+                new IndexPath(1), RowDropPosition.Inside, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { parent, extracted }, target.Children);
+            Assert.Same(retained, Assert.Single(parent.Children));
+            Assert.Equal(new[] { new IndexPath(0, 0, 0), new IndexPath(0, 1, 0) },
+                source.RowSelection.SelectedIndexes);
+            Assert.Equal(new[] { retained, grandchild }, source.RowSelection.SelectedItems);
         }
 
         [Theory]

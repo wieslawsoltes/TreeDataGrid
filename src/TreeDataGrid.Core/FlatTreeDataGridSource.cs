@@ -101,8 +101,14 @@ namespace TreeDataGridCore
                 throw new NotSupportedException("Drag/drop is not supported on sorted data.");
             if (position == RowDropPosition.Inside)
                 throw new ArgumentException("Invalid drop position.", nameof(position));
-            if (indexes.Any(x => x.Count != 1))
+            var orderedIndexes = indexes.OrderByDescending(x => x).ToArray();
+            if (orderedIndexes.Any(x => x.Count != 1))
                 throw new ArgumentException("Invalid source index.", nameof(indexes));
+            for (var i = 1; i < orderedIndexes.Length; ++i)
+            {
+                if (orderedIndexes[i] == orderedIndexes[i - 1])
+                    throw new ArgumentException("Duplicate source index.", nameof(indexes));
+            }
             if (targetIndex.Count != 1)
                 throw new ArgumentException("Invalid target index.", nameof(targetIndex));
             if (_items is not IList<TModel> items)
@@ -125,7 +131,7 @@ namespace TreeDataGridCore
             var indexMap = Enumerable.Range(0, items.Count).ToList();
             var sourceItems = new List<(TModel Item, int OriginalIndex)>();
 
-            foreach (var src in indexes.OrderByDescending(x => x))
+            foreach (var src in orderedIndexes)
             {
                 var i = src[0];
                 sourceItems.Add((items[i], indexMap[i]));
