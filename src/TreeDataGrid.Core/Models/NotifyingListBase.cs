@@ -184,7 +184,7 @@ namespace TreeDataGridCore.Models
                 using var monitor = BlockReentrancy();
                 CollectionChanged?.Invoke(
                     this,
-                    new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, originalItem, item, index));
+                    new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, item, originalItem, index));
             }
             else if (_batchUpdate != BatchUpdateType.Reset)
             {
