@@ -172,6 +172,22 @@ namespace TreeDataGridCore.Tests
         }
 
         [Fact]
+        public void Flat_move_refreshes_materialized_rows_for_a_plain_list()
+        {
+            var first = new Node("First");
+            var second = new Node("Second");
+            var items = new List<Node> { first, second };
+            using var source = new FlatTreeDataGridSource<Node>(items);
+            Assert.Equal(new[] { first, second }, source.Rows.Select(x => x.Model));
+
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(1),
+                RowDropPosition.After, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { second, first }, items);
+            Assert.Equal(new[] { second, first }, source.Rows.Select(x => x.Model));
+        }
+
+        [Fact]
         public void Hierarchy_expansion_sorting_and_incremental_updates_share_model_indexes()
         {
             var parent = new Node("Parent") { Children = { new("B"), new("A") } };
