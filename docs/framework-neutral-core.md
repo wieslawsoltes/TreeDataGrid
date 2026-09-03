@@ -28,7 +28,7 @@ Flat and hierarchical sources own items, sorting, row index paths, selection and
 
 `ValueColumn<TModel, TValue>.FromDelegate` accepts an existing accessor without building or compiling an expression. Its default view binding observes `INotifyPropertyChanged` on the row model; expression-based columns also support observation through nested property paths. Generated consumers such as VirtualGrid can retain their compiled delegates.
 
-`HierarchicalExpanderColumn` accepts child, optional has-children and read/write expansion selectors. Bound expansion, `Expand`, `Collapse`, recursive expansion and row selection work without an Avalonia runtime. Core notifications run on the caller's thread. Serialize model updates and marshal changes to the UI thread while a source is displayed.
+`HierarchicalExpanderColumn` accepts child, optional has-children and read/write expansion selectors. Bound expansion observes nested property paths, reconnects when intermediate objects change, and releases those subscriptions when rows are removed or the source is disposed. Bound expansion, `Expand`, `Collapse`, recursive expansion and row selection work without an Avalonia runtime. Core notifications run on the caller's thread. Serialize model updates and marshal changes to the UI thread while a source is displayed.
 
 ## View
 
@@ -79,3 +79,7 @@ python3 build/check-neutral-dependencies.py
 `VirtualizationBenchmarks.NeutralSource` compares legacy and native Core rendering with the same workloads. `NeutralSourceBenchmarks` covers source/presentation creation, sorting and expansion. Historical split measurements remain in `benchmarks/MVVM_SPLIT_RESULTS.md`; the native API correction is measured separately.
 
 Compiled expression delegates are weakly cached in the UI assembly. Mutable binding settings, link arrays, layout, and cell subscriptions remain separate for each view. Detach/reattach preserves view-owned column state while removing Core event subscriptions, so the source does not retain a detached control.
+
+Review fixes also ensure hierarchical presentations dispose their owned custom inner columns, including when replacing a presentation key or disposing a hidden column. Regression coverage is in `ExpansionBindingTests` and `CorePresentationRegressionTests`.
+
+Simple root expansion selectors retain direct model subscriptions; only nested selectors allocate a path subscription. Unbound hierarchy rows do not allocate a callback for expansion observation.
