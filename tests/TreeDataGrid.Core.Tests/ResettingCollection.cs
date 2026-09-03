@@ -31,6 +31,21 @@ namespace TreeDataGridCore.Tests.Collections
                 new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
 
+        public void ReplaceRange(int index, int count, IEnumerable<T> items)
+        {
+            var oldItems = GetRange(index, count);
+            var newItems = new List<T>(items);
+            RemoveRange(index, count);
+            InsertRange(index, newItems);
+            CollectionChanged?.Invoke(
+                this,
+                new NotifyCollectionChangedEventArgs(
+                    NotifyCollectionChangedAction.Replace,
+                    newItems,
+                    oldItems,
+                    index));
+        }
+
         public event NotifyCollectionChangedEventHandler? CollectionChanged;
     }
 }

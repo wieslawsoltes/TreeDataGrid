@@ -233,6 +233,12 @@ namespace TreeDataGridCore.Models
             var childModels = _expanderColumn.GetChildModels(Model);
             if (ReferenceEquals(_childModels, childModels))
                 return;
+            if (_childModels is not INotifyCollectionChanged &&
+                childModels is not INotifyCollectionChanged &&
+                _childRows?.ModelsMatch(childModels) == true)
+            {
+                return;
+            }
 
             var oldExpanded = _isExpanded;
             var replacement = new ChildRows(
@@ -333,6 +339,8 @@ namespace TreeDataGridCore.Models
             {
                 using var enumerator = GetEnumerator();
             }
+
+            public bool ModelsMatch(IEnumerable<TModel>? models) => HasSameItems(models);
 
             private void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
             {
