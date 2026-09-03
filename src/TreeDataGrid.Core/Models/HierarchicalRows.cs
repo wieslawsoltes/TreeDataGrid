@@ -128,6 +128,25 @@ namespace TreeDataGridCore.Models
             }
         }
 
+        internal IReadOnlyList<IndexPath> GetExpandedModelIndexes()
+        {
+            var result = new List<IndexPath>();
+
+            void AddExpanded(IReadOnlyList<HierarchicalRow<TModel>> rows)
+            {
+                foreach (var row in rows)
+                {
+                    if (row.IsExpanded)
+                        result.Add(row.ModelIndexPath);
+                    if (row.MaterializedChildren is { } children)
+                        AddExpanded(children);
+                }
+            }
+
+            AddExpanded(_roots);
+            return result;
+        }
+
 
 
 

@@ -60,6 +60,13 @@ namespace Avalonia.Controls.Presentation
         public bool CanEdit => _inner.CanEdit;
         public BeginEditGestures EditGestures => _inner.EditGestures;
         private void OnRowChanged(object? sender, PropertyChangedEventArgs e) => RaisePropertyChanged(e);
-        public void Dispose() { _row.PropertyChanged -= OnRowChanged; _showExpander.Dispose(); (_inner as IDisposable)?.Dispose(); }
+        public void Dispose()
+        {
+            _row.PropertyChanged -= OnRowChanged;
+            _showExpander.Dispose();
+            if (_row is Core.Models.HierarchicalRow<T> row)
+                row.ClearShowExpander();
+            (_inner as IDisposable)?.Dispose();
+        }
     }
 }

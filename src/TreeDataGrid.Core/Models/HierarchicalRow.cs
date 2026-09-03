@@ -61,6 +61,8 @@ namespace TreeDataGridCore.Models
         /// </summary>
         public IReadOnlyList<HierarchicalRow<TModel>>? Children => _isExpanded ? _childRows : null;
 
+        internal IReadOnlyList<HierarchicalRow<TModel>>? MaterializedChildren => _childRows;
+
         /// <summary>
         /// Gets the index of the model relative to its parent.
         /// </summary>
@@ -153,6 +155,15 @@ namespace TreeDataGridCore.Models
 
 
         public void UpdateShowExpander(bool value) => ShowExpander = value;
+
+        internal void ClearShowExpander()
+        {
+            if (_showExpander.HasValue)
+            {
+                _showExpander = null;
+                RaisePropertyChanged(nameof(ShowExpander));
+            }
+        }
 
         internal void SortChildren(Comparison<TModel>? comparison)
         {
