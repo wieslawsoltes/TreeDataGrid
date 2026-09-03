@@ -47,6 +47,9 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         {
             _subscription?.Dispose();
             _subscription = null;
+            if (_incc is not null)
+                _incc.CollectionChanged -= OnCollectionChanged;
+            _incc = null;
             _model = null;
         }
 
@@ -60,6 +63,7 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         {
             if (_incc is not null)
                 _incc.CollectionChanged -= OnCollectionChanged;
+            _incc = null;
 
             if (value.HasValue && value.Value is not null)
             {

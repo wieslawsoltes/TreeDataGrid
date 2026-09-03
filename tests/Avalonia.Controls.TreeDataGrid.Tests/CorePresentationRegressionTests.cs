@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Presentation;
@@ -66,6 +67,20 @@ public class CorePresentationRegressionTests
         Assert.Equal(1, cellColumn.DisposeCount);
     }
 
+    [AvaloniaFact]
+    public void Show_expander_observable_detaches_from_children_when_unsubscribed()
+    {
+        var children = new TrackingCollection<Node>();
+        var observable = new ShowExpanderObservable<Node>(_ => children, null, new Node());
+        var subscription = observable.Subscribe(new BooleanObserver());
+
+        Assert.Equal(1, children.SubscriberCount);
+
+        subscription.Dispose();
+
+        Assert.Equal(0, children.SubscriberCount);
+    }
+
     public sealed class DisposableColumn : TextColumn<Node, string>, IDisposable
     {
         public DisposableColumn() : base("Name", x => x.Name) { }
@@ -83,5 +98,21 @@ public class CorePresentationRegressionTests
         private bool _expanded;
         public bool IsExpanded { get => _expanded; set { _expanded = value; PropertyChanged?.Invoke(this, new(nameof(IsExpanded))); } }
         public event PropertyChangedEventHandler? PropertyChanged;
+    }
+    private sealed class BooleanObserver : IObserver<bool>
+    {
+        public void OnCompleted() { }
+        public void OnError(Exception error) { }
+        public void OnNext(bool value) { }
+    }
+    private sealed class TrackingCollection<T> : Collection<T>, INotifyCollectionChanged
+    {
+        private NotifyCollectionChangedEventHandler? _collectionChanged;
+        public int SubscriberCount { get; private set; }
+        public event NotifyCollectionChangedEventHandler? CollectionChanged
+        {
+            add { ++SubscriberCount; _collectionChanged += value; }
+            remove { --SubscriberCount; _collectionChanged -= value; }
+        }
     }
 }
