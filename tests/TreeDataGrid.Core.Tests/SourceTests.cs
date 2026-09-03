@@ -109,6 +109,36 @@ namespace TreeDataGridCore.Tests
         }
 
         [Fact]
+        public void Items_source_view_can_be_disposed_without_a_registered_listener()
+        {
+            var items = new ObservableCollection<Node>();
+            var view = new TreeDataGridItemsSourceView(items);
+            System.Collections.Specialized.NotifyCollectionChangedEventHandler handler = (_, _) => { };
+
+            view.CollectionChanged -= handler;
+            view.Dispose();
+            view.Dispose();
+        }
+
+        [Fact]
+        public void Replacing_a_hierarchical_item_disposes_the_replaced_row()
+        {
+            var replaced = new BoundNode { Children = { new() } };
+            var items = new ObservableCollection<BoundNode> { replaced };
+            using var source = new HierarchicalTreeDataGridSource<BoundNode>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<BoundNode>(
+                new TextColumn<BoundNode, bool>("Expanded", x => x.IsExpanded),
+                x => x.Children,
+                isExpandedSelector: x => x.IsExpanded));
+            var replacedRow = Assert.IsType<HierarchicalRow<BoundNode>>(source.Rows[0]);
+
+            items[0] = new BoundNode();
+            replaced.IsExpanded = true;
+
+            Assert.False(replacedRow.IsExpanded);
+        }
+
+        [Fact]
         public void Core_has_no_Avalonia_assembly_references()
         {
             Assert.DoesNotContain(typeof(FlatTreeDataGridSource<>).Assembly.GetReferencedAssemblies(), a => a.Name!.Contains("Avalonia", StringComparison.OrdinalIgnoreCase));

@@ -48,6 +48,8 @@ namespace Avalonia.Controls
             _presentation = presentation;
             Columns = presentation?.Columns;
             Rows = presentation?.Rows;
+            if (!_isAttachedToVisualTree)
+                presentation?.Suspend();
             SelectionInteraction = presentation?.SelectionInteraction;
             SubscribeSourceEvents();
             RaisePropertyChanged(PresentationProperty, old, presentation);

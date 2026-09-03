@@ -6,6 +6,7 @@ on:
       - master
       - main
       - develop
+      - "release/**"
       - "feature/**"
       - "release/**"
   pull_request:

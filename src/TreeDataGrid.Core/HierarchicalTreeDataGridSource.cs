@@ -11,7 +11,7 @@ using TreeDataGridCore.Selection;
 namespace TreeDataGridCore
 {
     /// <summary>
-    /// A data source for a <see cref="TreeDataGrid"/> which displays a hierarchial tree where each
+    /// A data source which displays a hierarchical tree where each
     /// row may have multiple columns.
     /// </summary>
     /// <typeparam name="TModel">The model type.</typeparam>

@@ -159,6 +159,60 @@ namespace Avalonia.Controls.TreeDataGridTests
         }
 
         [AvaloniaFact]
+        public void Model_assigned_while_unattached_is_suspended_until_attached()
+        {
+            var items = new ObservableCollection<Node> { new("A") };
+            using var source = Flat(items);
+            var grid = new TreeDataGrid { Model = source, Template = TestTemplates.TreeDataGridTemplate() };
+            var presentation = grid.Presentation!;
+            var rowChanges = 0;
+            presentation.Rows.CollectionChanged += (_, _) => ++rowChanges;
+
+            Assert.Null(presentation.SelectionInteraction);
+            items.Add(new("B"));
+            Assert.Equal(0, rowChanges);
+
+            var window = new TestWindow(grid) { Styles = { TestTemplates.TreeDataGridRowStyle } };
+            try
+            {
+                window.UpdateLayout();
+                Assert.NotNull(presentation.SelectionInteraction);
+                Assert.Equal(2, presentation.Rows.Count);
+                items.Add(new("C"));
+                Assert.Equal(1, rowChanges);
+            }
+            finally { window.Close(); }
+        }
+
+        [AvaloniaFact]
+        public void Presentation_key_changed_while_detached_is_applied_on_reattach()
+        {
+            using var source = Flat(new() { new("A") });
+            var options = new TreeDataGridPresentationOptions<Node>();
+            options.Columns.Add("card", column => new TemplateColumn<Node>(column.Header,
+                new Templates.FuncDataTemplate<Node>((model, _) => new TextBlock { Text = model?.Name })));
+            var grid = new TreeDataGrid
+            {
+                Model = source,
+                PresentationOptions = options,
+                Template = TestTemplates.TreeDataGridTemplate(),
+            };
+            var window = new TestWindow(grid) { Styles = { TestTemplates.TreeDataGridRowStyle } };
+            try
+            {
+                window.UpdateLayout();
+                Assert.IsType<TextColumn<Node, string>>(grid.Columns![0]);
+                window.Content = null;
+                source.Columns[0].PresentationKey = "card";
+                Assert.IsType<TextColumn<Node, string>>(grid.Columns[0]);
+                window.Content = grid;
+                window.UpdateLayout();
+                Assert.IsType<TemplateColumn<Node>>(grid.Columns[0]);
+            }
+            finally { window.Close(); }
+        }
+
+        [AvaloniaFact]
         public void Views_share_Core_state_but_keep_layout_and_cell_objects_separate()
         {
             using var source = Flat(new() { new("A") });

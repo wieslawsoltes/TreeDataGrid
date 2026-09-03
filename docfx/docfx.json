@@ -4,7 +4,8 @@
       "src": [
         {
           "files": [
-            "src/Avalonia.Controls.TreeDataGrid/Avalonia.Controls.TreeDataGrid.csproj"
+            "src/Avalonia.Controls.TreeDataGrid/Avalonia.Controls.TreeDataGrid.csproj",
+            "src/TreeDataGrid.Core/TreeDataGrid.Core.csproj"
           ],
           "src": ".."
         }

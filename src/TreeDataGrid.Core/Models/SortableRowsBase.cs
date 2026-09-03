@@ -203,6 +203,7 @@ namespace TreeDataGridCore.Models
 
                         for (var i = 0; i < count; ++i)
                         {
+                            _unsortedRows[index + i].Dispose();
                             _unsortedRows[index + i] = CreateRow(index + i, (TModel)e.NewItems![i]!);
                         }
 

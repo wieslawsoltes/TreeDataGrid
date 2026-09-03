@@ -8,7 +8,7 @@ using TreeDataGridCore.Selection;
 namespace TreeDataGridCore
 {
     /// <summary>
-    /// A data source for a <see cref="TreeDataGrid"/> which displays a flat grid.
+    /// A data source which displays a flat grid.
     /// </summary>
     /// <typeparam name="TModel">The model type.</typeparam>
     public class FlatTreeDataGridSource<TModel> : NotifyingBase,
