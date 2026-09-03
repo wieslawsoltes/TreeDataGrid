@@ -115,6 +115,36 @@ namespace TreeDataGridCore.Tests
 
             Assert.Equal(new[] { first, second }, items);
         }
+
+        [Fact]
+        public void Flat_move_rejects_an_invalid_target_before_mutation()
+        {
+            var first = new Node("First");
+            var second = new Node("Second");
+            var items = new ObservableCollection<Node> { first, second };
+            using var source = new FlatTreeDataGridSource<Node>(items);
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => source.MoveRows(
+                source, new[] { new IndexPath(0) }, new IndexPath(5),
+                RowDropPosition.Before, RowMoveEffects.Move));
+
+            Assert.Equal(new[] { first, second }, items);
+        }
+
+        [Fact]
+        public void Flat_move_rejects_an_invalid_source_before_mutation()
+        {
+            var first = new Node("First");
+            var second = new Node("Second");
+            var items = new ObservableCollection<Node> { first, second };
+            using var source = new FlatTreeDataGridSource<Node>(items);
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => source.MoveRows(
+                source, new[] { new IndexPath(5) }, new IndexPath(1),
+                RowDropPosition.Before, RowMoveEffects.Move));
+
+            Assert.Equal(new[] { first, second }, items);
+        }
         [Fact]
         public void Hierarchy_expansion_sorting_and_incremental_updates_share_model_indexes()
         {
@@ -559,6 +589,56 @@ namespace TreeDataGridCore.Tests
         }
 
         [Fact]
+        public void Hierarchical_move_rejects_an_invalid_target_before_mutation()
+        {
+            var first = new Node("First");
+            var second = new Node("Second");
+            var items = new ObservableCollection<Node> { first, second };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => source.MoveRows(
+                source, new[] { new IndexPath(0) }, new IndexPath(5),
+                RowDropPosition.Before, RowMoveEffects.Move));
+
+            Assert.Equal(new[] { first, second }, items);
+        }
+
+        [Fact]
+        public void Hierarchical_move_rejects_an_invalid_source_before_mutation()
+        {
+            var first = new Node("First");
+            var second = new Node("Second");
+            var items = new ObservableCollection<Node> { first, second };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => source.MoveRows(
+                source, new[] { new IndexPath(5) }, new IndexPath(1),
+                RowDropPosition.Before, RowMoveEffects.Move));
+
+            Assert.Equal(new[] { first, second }, items);
+        }
+
+        [Fact]
+        public void Hierarchical_move_uses_the_requested_path_for_a_shared_target_collection()
+        {
+            var sharedChildren = new ObservableCollection<SharedNode>();
+            var moved = new SharedNode("Moved");
+            var firstParent = new SharedNode("First", sharedChildren);
+            var secondParent = new SharedNode("Second", sharedChildren);
+            var items = new ObservableCollection<SharedNode> { moved, firstParent, secondParent };
+            using var source = new HierarchicalTreeDataGridSource<SharedNode>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<SharedNode>(
+                new TextColumn<SharedNode, string>("Name", x => x.Name), x => x.Children));
+            source.RowSelection!.SelectedIndex = new IndexPath(0);
+
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(2),
+                RowDropPosition.Inside, RowMoveEffects.Move);
+
+            Assert.Same(moved, Assert.Single(sharedChildren));
+            Assert.Equal(new IndexPath(1, 0), source.RowSelection.SelectedIndex);
+        }
+
+        [Fact]
         public void Moving_an_expanded_root_recomputes_the_flattened_destination()
         {
             var first = new Node("First") { Children = { new("Child") } };
@@ -660,6 +740,18 @@ namespace TreeDataGridCore.Tests
             public Node(string name) => Name = name;
             public string Name { get; set; }
             public ObservableCollection<Node> Children { get; } = new();
+        }
+
+        private sealed class SharedNode
+        {
+            public SharedNode(string name, ObservableCollection<SharedNode>? children = null)
+            {
+                Name = name;
+                Children = children ?? new();
+            }
+
+            public string Name { get; }
+            public ObservableCollection<SharedNode> Children { get; }
         }
 
         private sealed class NestedBoundNode : INotifyPropertyChanged

@@ -257,6 +257,11 @@ namespace TreeDataGridCore
                 throw new NotSupportedException("Only move is currently supported for drag/drop.");
             if (IsSorted)
                 throw new NotSupportedException("Drag/drop is not supported on sorted data.");
+            if (position is not RowDropPosition.None and not RowDropPosition.Before and
+                not RowDropPosition.After and not RowDropPosition.Inside)
+            {
+                throw new ArgumentOutOfRangeException(nameof(position));
+            }
             if (position == RowDropPosition.None)
                 return;
 
@@ -279,17 +284,24 @@ namespace TreeDataGridCore
             }
 
             IList<TModel> targetItems;
+            IndexPath originalTargetParentPath;
             int ti;
 
             if (position == RowDropPosition.Inside)
             {
                 targetItems = GetItems(targetIndex);
+                originalTargetParentPath = targetIndex;
                 ti = targetItems.Count;
             }
             else
             {
-                targetItems = GetItems(targetIndex[..^1]);
+                if (targetIndex.Count == 0)
+                    throw new ArgumentException("Invalid target index.", nameof(targetIndex));
+                originalTargetParentPath = targetIndex[..^1];
+                targetItems = GetItems(originalTargetParentPath);
                 ti = targetIndex[^1];
+                if ((uint)ti >= (uint)targetItems.Count)
+                    throw new ArgumentOutOfRangeException(nameof(targetIndex));
             }
 
             if (position == RowDropPosition.After)
@@ -298,9 +310,13 @@ namespace TreeDataGridCore
             var sourceItems = orderedIndexes
                 .Select(x =>
                 {
+                    if (x.Count == 0)
+                        throw new ArgumentException("Invalid source index.", nameof(indexes));
                     var parent = x[..^1];
                     var items = GetItems(parent);
                     var index = x[^1];
+                    if ((uint)index >= (uint)items.Count)
+                        throw new ArgumentOutOfRangeException(nameof(indexes));
                     return (Path: x, Parent: parent, Items: items, Index: index, Item: items[index]);
                 })
                 .ToArray();
@@ -381,25 +397,7 @@ namespace TreeDataGridCore
 
             if (selection is not null && originalSelections is { Length: > 0 })
             {
-                IndexPath? FindItemsPath(IEnumerable<TModel> models, IndexPath parentPath)
-                {
-                    if (ReferenceEquals(models, targetItems))
-                        return parentPath;
-
-                    var index = 0;
-                    foreach (var model in models)
-                    {
-                        var children = GetModelChildren(model);
-                        if (children is not null && FindItemsPath(children, parentPath.Append(index)) is { } result)
-                            return result;
-                        ++index;
-                    }
-
-                    return null;
-                }
-
-                var targetParentPath = FindItemsPath(_items, default) ??
-                    throw new InvalidOperationException("Could not resolve the moved rows' destination.");
+                var targetParentPath = MapAfterRemovals(originalTargetParentPath);
 
                 IndexPath MapRetainedSelection(IndexPath original)
                 {
