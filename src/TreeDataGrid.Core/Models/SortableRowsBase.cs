@@ -176,6 +176,8 @@ namespace TreeDataGridCore.Models
 
         private void OnItemsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
+            if (!e.HasKnownIndexes())
+                e = CollectionExtensions.ResetEvent;
             if (_comparison is null)
                 OnItemsCollectionChangedUnsorted(e);
             else

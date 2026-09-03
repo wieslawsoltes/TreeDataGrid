@@ -131,6 +131,12 @@ namespace TreeDataGridCore.Selection
 
         protected override void OnSourceCollectionChanged(NotifyCollectionChangedEventArgs e)
         {
+            if (!e.HasKnownIndexes())
+            {
+                OnSourceReset();
+                return;
+            }
+
             var shiftStartIndex = 0;
             var shiftEndIndex = -1;
             var shiftDelta = 0;

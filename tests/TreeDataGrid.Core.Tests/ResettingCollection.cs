@@ -31,6 +31,39 @@ namespace TreeDataGridCore.Tests.Collections
                 new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
 
+        public void AddWithoutIndex(T item)
+        {
+            Add(item);
+            CollectionChanged?.Invoke(
+                this,
+                new NotifyCollectionChangedEventArgs(
+                    NotifyCollectionChangedAction.Add,
+                    item));
+        }
+
+        public void RemoveAtWithoutIndex(int index)
+        {
+            var item = this[index];
+            base.RemoveAt(index);
+            CollectionChanged?.Invoke(
+                this,
+                new NotifyCollectionChangedEventArgs(
+                    NotifyCollectionChangedAction.Remove,
+                    item));
+        }
+
+        public void ReplaceWithoutIndex(int index, T item)
+        {
+            var oldItem = this[index];
+            this[index] = item;
+            CollectionChanged?.Invoke(
+                this,
+                new NotifyCollectionChangedEventArgs(
+                    NotifyCollectionChangedAction.Replace,
+                    item,
+                    oldItem));
+        }
+
         public void ReplaceRange(int index, int count, IEnumerable<T> items)
         {
             var oldItems = GetRange(index, count);
