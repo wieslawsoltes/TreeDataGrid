@@ -156,6 +156,58 @@ namespace TreeDataGridCore.Tests
         }
 
         [Fact]
+        public void Column_replacement_reports_new_and_old_items_in_the_correct_fields()
+        {
+            var columns = new ColumnList<Node>();
+            var original = new TextColumn<Node, string>("Original", x => x.Name);
+            var replacement = new TextColumn<Node, string>("Replacement", x => x.Name);
+            System.Collections.Specialized.NotifyCollectionChangedEventArgs? change = null;
+            columns.Add(original);
+            columns.CollectionChanged += (_, e) => change = e;
+
+            columns[0] = replacement;
+
+            Assert.Same(replacement, change!.NewItems![0]);
+            Assert.Same(original, change.OldItems![0]);
+        }
+
+        [Fact]
+        public void Hierarchical_move_preserves_order_across_parent_groups()
+        {
+            var first = new Node("First") { Children = { new("A") } };
+            var second = new Node("Second") { Children = { new("B") } };
+            var target = new Node("Target");
+            var items = new ObservableCollection<Node> { first, second, target };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+
+            source.MoveRows(source, new[] { new IndexPath(0, 0), new IndexPath(1, 0) },
+                new IndexPath(2), RowDropPosition.Inside, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { "A", "B" }, target.Children.Select(x => x.Name));
+        }
+
+        [Fact]
+        public void Hierarchical_move_resolves_all_source_paths_before_removal()
+        {
+            var first = new Node("First");
+            var movedChild = new Node("Child");
+            var second = new Node("Second") { Children = { movedChild } };
+            var target = new Node("Target");
+            var items = new ObservableCollection<Node> { first, second, target };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+
+            source.MoveRows(source, new[] { new IndexPath(0), new IndexPath(1, 0) },
+                new IndexPath(2), RowDropPosition.Inside, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { second, target }, items);
+            Assert.Equal(new[] { first, movedChild }, target.Children);
+        }
+
+        [Fact]
         public void Nested_expansion_binding_tracks_leaf_and_intermediate_changes()
         {
             var child = new NestedBoundNode { Children = { new() } };

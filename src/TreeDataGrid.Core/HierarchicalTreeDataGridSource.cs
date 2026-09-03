@@ -265,27 +265,31 @@ namespace TreeDataGridCore
             if (position == RowDropPosition.After)
                 ++ti;
 
-            var sourceItems = new List<TModel>();
-
-            foreach (var g in indexes.GroupBy(x => x[..^1]))
-            {
-                var items = GetItems(g.Key);
-
-                foreach (var i in g.Select(x => x[^1]).OrderByDescending(x => x))
+            var sourceItems = indexes
+                .OrderBy(x => x)
+                .Select(x =>
                 {
-                    sourceItems.Add(items[i]);
+                    var parent = x[..^1];
+                    var items = GetItems(parent);
+                    var index = x[^1];
+                    return (Parent: parent, Items: items, Index: index, Item: items[index]);
+                })
+                .ToArray();
 
-                    if (items == targetItems && i < ti)
-                        --ti;
-
-                    items.RemoveAt(i);
-                }
-            }
-
-            for (var si = sourceItems.Count - 1; si >= 0; --si)
+            foreach (var item in sourceItems)
             {
-                targetItems.Insert(ti++, sourceItems[si]);
+                if (ReferenceEquals(item.Items, targetItems) && item.Index < ti)
+                    --ti;
             }
+
+            foreach (var group in sourceItems.GroupBy(x => x.Parent))
+            {
+                foreach (var item in group.OrderByDescending(x => x.Index))
+                    item.Items.RemoveAt(item.Index);
+            }
+
+            foreach (var item in sourceItems)
+                targetItems.Insert(ti++, item.Item);
         }
 
         void IExpanderRowController<TModel>.OnBeginExpandCollapse(IExpanderRow<TModel> row)
