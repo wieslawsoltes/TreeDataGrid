@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using TreeDataGridCore.Models;
+using TreeDataGridCore.Tests.Collections;
 using Xunit;
 namespace TreeDataGridCore.Tests
 {
@@ -920,6 +921,27 @@ namespace TreeDataGridCore.Tests
 
             Assert.Equal(default, source.RowSelection.AnchorIndex);
             Assert.Equal(default, source.RowSelection.RangeAnchorIndex);
+        }
+
+        [Fact]
+        public void Hierarchical_reset_clears_a_stale_range_anchor_before_a_move()
+        {
+            var survivor = new Node("Survivor");
+            var removed = new Node("Removed") { Children = { new("Child") } };
+            var other = new Node("Other");
+            var items = new ResettingCollection<Node>(new[] { survivor, removed, other });
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+            source.RowSelection!.RangeAnchorIndex = new IndexPath(1, 0);
+            Assert.Equal(new IndexPath(1, 0), source.RowSelection.RangeAnchorIndex);
+
+            items.Reset(new[] { survivor, other });
+
+            Assert.Equal(default, source.RowSelection.RangeAnchorIndex);
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(1),
+                RowDropPosition.After, RowMoveEffects.Move);
+            Assert.Equal(new[] { other, survivor }, items);
         }
 
         [Fact]

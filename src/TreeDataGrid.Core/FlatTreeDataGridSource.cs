@@ -170,6 +170,12 @@ namespace TreeDataGridCore
             if (_rows is not null && items is not INotifyCollectionChanged)
                 _rows.SetItems(_itemsView);
 
+            IndexPath MapAnchor(int originalIndex)
+            {
+                var mappedIndex = originalIndex >= 0 ? indexMap.IndexOf(originalIndex) : -1;
+                return mappedIndex >= 0 ? new IndexPath(mappedIndex) : default;
+            }
+
             if (selection is not null)
             {
                 selection.BeginBatchUpdate();
@@ -189,10 +195,8 @@ namespace TreeDataGridCore
                         }
                     }
 
-                    selection.AnchorIndex = anchorIndex >= 0 ?
-                        new IndexPath(indexMap.IndexOf(anchorIndex)) : default;
-                    selection.RangeAnchorIndex = rangeAnchorIndex >= 0 ?
-                        new IndexPath(indexMap.IndexOf(rangeAnchorIndex)) : default;
+                    selection.AnchorIndex = MapAnchor(anchorIndex);
+                    selection.RangeAnchorIndex = MapAnchor(rangeAnchorIndex);
                 }
                 finally
                 {

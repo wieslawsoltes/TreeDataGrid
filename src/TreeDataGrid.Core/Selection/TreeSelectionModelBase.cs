@@ -404,6 +404,7 @@ namespace TreeDataGridCore.Selection
         {
             var selectedIndexChanged = false;
             var anchorIndexChanged = false;
+            var rangeAnchorIndexChanged = false;
             var selectedItemChanged = false;
 
             // Check that the selected index is still selected in the node. It can get
@@ -421,6 +422,12 @@ namespace TreeDataGridCore.Selection
                 anchorIndexChanged = true;
             }
 
+            if (_rangeAnchorIndex != default && !TryGetItemAt(_rangeAnchorIndex, out _))
+            {
+                _rangeAnchorIndex = default;
+                rangeAnchorIndexChanged = true;
+            }
+
             Count -= removeCount;
             SourceReset?.Invoke(this, new TreeSelectionModelSourceResetEventArgs(parentIndex));
 
@@ -430,6 +437,8 @@ namespace TreeDataGridCore.Selection
                 RaisePropertyChanged(nameof(SelectedItem));
             if (anchorIndexChanged)
                 RaisePropertyChanged(nameof(AnchorIndex));
+            if (rangeAnchorIndexChanged)
+                RaisePropertyChanged(nameof(RangeAnchorIndex));
         }
 
         private IndexPath GetFirstSelectedIndex(TreeSelectionNode<T> node, IndexRanges? except = null)
