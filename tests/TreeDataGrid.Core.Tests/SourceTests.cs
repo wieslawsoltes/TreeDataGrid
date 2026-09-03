@@ -295,15 +295,45 @@ namespace TreeDataGridCore.Tests
             if (!boundExpansion)
                 source.Expand(0);
             Assert.Equal(2, source.Rows.Count);
+            var lifecycleEvents = 0;
+            source.RowExpanding += (_, _) => ++lifecycleEvents;
+            source.RowExpanded += (_, _) => ++lifecycleEvents;
+            source.RowCollapsing += (_, _) => ++lifecycleEvents;
+            source.RowCollapsed += (_, _) => ++lifecycleEvents;
 
             parent.Children = newChildren;
 
             Assert.Equal(3, source.Rows.Count);
+            Assert.Equal(0, lifecycleEvents);
             Assert.Same(newChildren[0], source.Rows[1].Model);
             oldChildren.Add(new());
             Assert.Equal(3, source.Rows.Count);
             newChildren.Add(new());
             Assert.Equal(4, source.Rows.Count);
+        }
+        [Fact]
+        public void Empty_rebound_child_collection_restores_expander_visibility_when_populated()
+        {
+            var parent = new BoundNode
+            {
+                IsExpanded = true,
+                Children = new ObservableCollection<BoundNode> { new() },
+            };
+            using var source = new HierarchicalTreeDataGridSource<BoundNode>(new[] { parent });
+            source.Columns.Add(new HierarchicalExpanderColumn<BoundNode>(
+                new TextColumn<BoundNode, bool>("Expanded", x => x.IsExpanded),
+                x => x.Children,
+                isExpandedSelector: x => x.IsExpanded));
+            var row = Assert.IsType<HierarchicalRow<BoundNode>>(source.Rows[0]);
+            var replacement = new ObservableCollection<BoundNode>();
+
+            parent.Children = replacement;
+
+            Assert.False(row.IsExpanded);
+            Assert.False(row.ShowExpander);
+            replacement.Add(new());
+            Assert.True(row.ShowExpander);
+            Assert.Single(source.Rows);
         }
         private sealed class BoundNode : INotifyPropertyChanged
         {
@@ -403,6 +433,25 @@ namespace TreeDataGridCore.Tests
 
             Assert.Same(replacement, change!.NewItems![0]);
             Assert.Same(original, change.OldItems![0]);
+        }
+
+        [Fact]
+        public void Column_list_rejects_duplicate_instances_before_mutation()
+        {
+            var columns = new ColumnList<Node>();
+            var column = new TextColumn<Node, string>("Name", x => x.Name);
+            columns.Add(column);
+            var changes = 0;
+            columns.CollectionChanged += (_, _) => ++changes;
+
+            Assert.Throws<InvalidOperationException>(() => columns.Add(column));
+            Assert.Throws<InvalidOperationException>(() =>
+                columns.InsertRange(1, add => add(column)));
+            Assert.Throws<InvalidOperationException>(() =>
+                columns.Reset(items => items.Add(column)));
+
+            Assert.Same(column, Assert.Single(columns));
+            Assert.Equal(0, changes);
         }
 
         [Fact]
