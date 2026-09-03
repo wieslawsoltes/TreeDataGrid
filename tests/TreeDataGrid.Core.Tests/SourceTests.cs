@@ -1047,12 +1047,38 @@ namespace TreeDataGridCore.Tests
             source.Columns.Add(new HierarchicalExpanderColumn<Node>(
                 new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
             source.Expand(new IndexPath(0));
+            var expandedRow = source.Rows[0];
 
             items.Move(0, 1);
 
             Assert.Equal(new[] { second, first }, items);
-            Assert.Equal(new[] { "Second", "First" },
+            Assert.Equal(new[] { "Second", "First", "Child" },
                 source.Rows.Select(x => ((Node)x.Model!).Name));
+            Assert.Same(expandedRow, source.Rows[1]);
+            Assert.True(((IExpanderRow<Node>)source.Rows[1]).IsExpanded);
+        }
+
+        [Fact]
+        public void Moving_an_expanded_root_preserves_its_row_while_sorted()
+        {
+            var expanded = new Node("Same") { Children = { new("Child") } };
+            var sibling = new Node("Same");
+            var items = new ObservableCollection<Node> { expanded, sibling };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            var column = new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children);
+            source.Columns.Add(column);
+            source.SortBy(column, ListSortDirection.Ascending);
+            source.Expand(new IndexPath(0));
+            var expandedRow = source.Rows[0];
+
+            items.Move(0, 1);
+
+            Assert.Equal(new[] { sibling, expanded }, items);
+            Assert.Equal(new[] { sibling, expanded, expanded.Children[0] },
+                source.Rows.Select(x => x.Model));
+            Assert.Same(expandedRow, source.Rows[1]);
+            Assert.True(((IExpanderRow<Node>)source.Rows[1]).IsExpanded);
         }
 
         [Fact]
