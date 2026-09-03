@@ -405,8 +405,8 @@ namespace TreeDataGridCore.Models
                     {
                         var fromStart = Advance(parentRowIndex + 1, e.OldStartingIndex);
                         var fromEnd = Advance(fromStart, e.OldItems!.Count);
-                        var to = Advance(parentRowIndex + 1, e.NewStartingIndex);
                         Remove(fromStart, fromEnd - fromStart, true);
+                        var to = Advance(parentRowIndex + 1, e.NewStartingIndex);
                         Add(to, e.NewItems, true);
                     }
                     break;

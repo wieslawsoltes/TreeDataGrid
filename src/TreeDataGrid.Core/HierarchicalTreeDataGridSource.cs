@@ -272,7 +272,7 @@ namespace TreeDataGridCore
                     var parent = x[..^1];
                     var items = GetItems(parent);
                     var index = x[^1];
-                    return (Parent: parent, Items: items, Index: index, Item: items[index]);
+                    return (Path: x, Parent: parent, Items: items, Index: index, Item: items[index]);
                 })
                 .ToArray();
 
@@ -280,6 +280,33 @@ namespace TreeDataGridCore
             {
                 if (ReferenceEquals(item.Items, targetItems) && item.Index < ti)
                     --ti;
+            }
+
+            var insertIndex = ti;
+            var selection = _selection as ITreeSelectionModel;
+            var movedSelections = selection?.SelectedIndexes
+                .Select(selected =>
+                {
+                    for (var i = 0; i < sourceItems.Length; ++i)
+                    {
+                        var sourcePath = sourceItems[i].Path;
+                        if (selected == sourcePath || sourcePath.IsAncestorOf(selected))
+                        {
+                            return (Found: true, SourceOffset: i,
+                                Relative: selected.Slice(sourcePath.Count, selected.Count - sourcePath.Count),
+                                Original: selected);
+                        }
+                    }
+
+                    return (Found: false, SourceOffset: -1, Relative: default(IndexPath), Original: selected);
+                })
+                .Where(x => x.Found)
+                .ToArray();
+
+            if (selection is not null && movedSelections is not null)
+            {
+                foreach (var selected in movedSelections)
+                    selection.Deselect(selected.Original);
             }
 
             foreach (var group in sourceItems.GroupBy(x => x.Parent))
@@ -290,6 +317,37 @@ namespace TreeDataGridCore
 
             foreach (var item in sourceItems)
                 targetItems.Insert(ti++, item.Item);
+
+            if (selection is not null && movedSelections is { Length: > 0 })
+            {
+                IndexPath? FindItemsPath(IEnumerable<TModel> models, IndexPath parentPath)
+                {
+                    if (ReferenceEquals(models, targetItems))
+                        return parentPath;
+
+                    var index = 0;
+                    foreach (var model in models)
+                    {
+                        var children = GetModelChildren(model);
+                        if (children is not null && FindItemsPath(children, parentPath.Append(index)) is { } result)
+                            return result;
+                        ++index;
+                    }
+
+                    return null;
+                }
+
+                var targetParentPath = FindItemsPath(_items, default) ??
+                    throw new InvalidOperationException("Could not resolve the moved rows' destination.");
+
+                foreach (var selected in movedSelections)
+                {
+                    var path = targetParentPath.Append(insertIndex + selected.SourceOffset);
+                    foreach (var relativeIndex in selected.Relative)
+                        path = path.Append(relativeIndex);
+                    selection.Select(path);
+                }
+            }
         }
 
         void IExpanderRowController<TModel>.OnBeginExpandCollapse(IExpanderRow<TModel> row)

@@ -65,6 +65,22 @@ namespace TreeDataGridCore.Tests
             Assert.Equal(new[] { first, second }, source.RowSelection.SelectedItems);
             Assert.Equal(new[] { new IndexPath(1), new IndexPath(2) }, source.RowSelection.SelectedIndexes);
         }
+
+        [Fact]
+        public void Flat_move_tracks_selected_duplicate_occurrences()
+        {
+            var shared = new Node("Shared");
+            var other = new Node("Other");
+            var items = new ObservableCollection<Node> { shared, shared, other };
+            using var source = new FlatTreeDataGridSource<Node>(items);
+            source.RowSelection!.SelectedIndex = new IndexPath(1);
+
+            source.MoveRows(source, new[] { new IndexPath(1) }, new IndexPath(2),
+                RowDropPosition.After, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { shared, other, shared }, items);
+            Assert.Equal(new IndexPath(2), source.RowSelection.SelectedIndex);
+        }
         [Fact]
         public void Hierarchy_expansion_sorting_and_incremental_updates_share_model_indexes()
         {
@@ -299,6 +315,65 @@ namespace TreeDataGridCore.Tests
 
             Assert.Equal(new[] { second, target }, items);
             Assert.Equal(new[] { first, movedChild }, target.Children);
+        }
+
+        [Fact]
+        public void Hierarchical_move_preserves_selected_rows()
+        {
+            var first = new Node("First") { Children = { new("Child") } };
+            var second = new Node("Second");
+            var items = new ObservableCollection<Node> { first, second };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+            source.RowSelection!.SingleSelect = false;
+            source.RowSelection.Select(new IndexPath(0));
+            source.RowSelection.Select(new IndexPath(0, 0));
+
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(1),
+                RowDropPosition.After, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { second, first }, items);
+            Assert.Equal(new[] { new IndexPath(1), new IndexPath(1, 0) },
+                source.RowSelection.SelectedIndexes);
+        }
+
+        [Fact]
+        public void Moving_an_expanded_root_recomputes_the_flattened_destination()
+        {
+            var first = new Node("First") { Children = { new("Child") } };
+            var second = new Node("Second");
+            var items = new ObservableCollection<Node> { first, second };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+            source.Expand(new IndexPath(0));
+
+            items.Move(0, 1);
+
+            Assert.Equal(new[] { second, first }, items);
+            Assert.Equal(new[] { "Second", "First" },
+                source.Rows.Select(x => ((Node)x.Model!).Name));
+        }
+
+        [Fact]
+        public void Sorted_row_removal_reports_the_removed_row_not_its_model()
+        {
+            var first = new Node("B");
+            var second = new Node("A");
+            var items = new ObservableCollection<Node> { first, second };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            var column = new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children);
+            source.Columns.Add(column);
+            source.SortBy(column, ListSortDirection.Ascending);
+            var removedRow = source.Rows.Single(x => ReferenceEquals(x.Model, first));
+            System.Collections.Specialized.NotifyCollectionChangedEventArgs? change = null;
+            source.Rows.CollectionChanged += (_, e) => change = e;
+
+            items.Remove(first);
+
+            Assert.Same(removedRow, change!.OldItems![0]);
         }
 
         [Fact]

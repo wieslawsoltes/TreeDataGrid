@@ -117,17 +117,20 @@ namespace TreeDataGridCore
                 ++ti;
 
             var selection = _selection as ITreeSelectionModel;
-            var selectedItems = selection?.SelectedIndexes
+            var selectedIndexes = selection?.SelectedIndexes
                 .Where(x => x.Count == 1)
-                .Select(x => items[x[0]])
+                .Select(x => x[0])
                 .ToArray();
-            var sourceItems = new List<TModel>();
+            var primaryIndex = selection?.SelectedIndex.Count == 1 ? selection.SelectedIndex[0] : -1;
+            var indexMap = Enumerable.Range(0, items.Count).ToList();
+            var sourceItems = new List<(TModel Item, int OriginalIndex)>();
 
             foreach (var src in indexes.OrderByDescending(x => x))
             {
                 var i = src[0];
-                sourceItems.Add(items[i]);
+                sourceItems.Add((items[i], indexMap[i]));
                 items.RemoveAt(i);
+                indexMap.RemoveAt(i);
 
                 if (i < ti)
                     --ti;
@@ -135,21 +138,29 @@ namespace TreeDataGridCore
 
             for (var si = sourceItems.Count - 1; si >= 0; --si)
             {
-                items.Insert(ti++, sourceItems[si]);
+                items.Insert(ti, sourceItems[si].Item);
+                indexMap.Insert(ti++, sourceItems[si].OriginalIndex);
             }
 
-            if (selection is not null && selectedItems is { Length: > 0 })
+            if (selection is not null && selectedIndexes is { Length: > 0 })
             {
-                foreach (var selectedItem in selectedItems)
+                selection.BeginBatchUpdate();
+                try
                 {
-                    for (var i = 0; i < items.Count; ++i)
+                    selection.Clear();
+
+                    if (primaryIndex >= 0)
+                        selection.Select(new IndexPath(indexMap.IndexOf(primaryIndex)));
+
+                    foreach (var selectedIndex in selectedIndexes)
                     {
-                        if (ReferenceEquals(items[i], selectedItem))
-                        {
-                            selection.Select(new IndexPath(i));
-                            break;
-                        }
+                        if (selectedIndex != primaryIndex)
+                            selection.Select(new IndexPath(indexMap.IndexOf(selectedIndex)));
                     }
+                }
+                finally
+                {
+                    selection.EndBatchUpdate();
                 }
             }
         }
