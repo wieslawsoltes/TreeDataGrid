@@ -363,7 +363,8 @@ namespace TreeDataGridCore
                 return false;
             }
 
-            if (sourceItems.Any(x => ContainsTargetCollection(x.Item)))
+            if (sourceItems.Any(x =>
+                !ReferenceEquals(x.Items, targetItems) && ContainsTargetCollection(x.Item)))
             {
                 throw new InvalidOperationException(
                     "A row cannot be moved into a collection in its own subtree.");
