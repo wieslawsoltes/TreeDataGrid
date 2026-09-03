@@ -139,6 +139,12 @@ namespace Avalonia.Controls.Primitives
             ChildIndexChanged?.Invoke(this, new ChildIndexChangedEventArgs(element, cell.RowIndex));
         }
 
+        protected override void FinalizeRecycledElement(Control element)
+        {
+            if (element is TreeDataGridTemplateCell cell)
+                cell.FinalizeUnrealize();
+        }
+
         protected override void UpdateElementIndex(Control element, int oldIndex, int newIndex)
         {
             ChildIndexChanged?.Invoke(this, new ChildIndexChangedEventArgs(element, newIndex));
