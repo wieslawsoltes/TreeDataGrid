@@ -471,6 +471,31 @@ namespace TreeDataGridCore.Tests
             Assert.Equal(1, resets);
             Assert.Empty(source.RowSelection.SelectedIndexes);
         }
+        [Fact]
+        public void Replacing_a_parent_item_clears_its_descendant_selection_subtree()
+        {
+            var oldChild = new BoundNode();
+            var newChild = new BoundNode();
+            var oldParent = new BoundNode { IsExpanded = true, Children = { oldChild } };
+            var newParent = new BoundNode { IsExpanded = true, Children = { newChild } };
+            var items = new ObservableCollection<BoundNode> { oldParent };
+            using var source = new HierarchicalTreeDataGridSource<BoundNode>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<BoundNode>(
+                new TextColumn<BoundNode, bool>("Expanded", x => x.IsExpanded),
+                x => x.Children,
+                isExpandedSelector: x => x.IsExpanded));
+            source.RowSelection!.SelectedIndex = new IndexPath(0, 0);
+
+            items[0] = newParent;
+
+            Assert.Equal(default, source.RowSelection.SelectedIndex);
+            Assert.Null(source.RowSelection.SelectedItem);
+            Assert.Empty(source.RowSelection.SelectedIndexes);
+            Assert.Same(newParent, source.Rows[0].Model);
+            Assert.Same(newChild, source.Rows[1].Model);
+            oldParent.Children.Add(new BoundNode());
+            Assert.Equal(2, source.Rows.Count);
+        }
         private sealed class BoundNode : INotifyPropertyChanged
         {
             private bool _expanded;

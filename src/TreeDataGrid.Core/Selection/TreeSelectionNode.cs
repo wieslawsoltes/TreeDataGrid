@@ -139,6 +139,10 @@ namespace TreeDataGridCore.Selection
             var moveOldIndex = -1;
             var moveInsertIndex = -1;
             var moveCount = 0;
+            var replaceOldIndex = -1;
+            var replaceNewIndex = -1;
+            var replaceOldCount = 0;
+            var replaceNewCount = 0;
 
             // Adjust the selection in this node according to the collection change.
             switch (e.Action)
@@ -156,6 +160,10 @@ namespace TreeDataGridCore.Selection
                     removed = change.RemovedItems;
                     break;
                 case NotifyCollectionChangedAction.Replace:
+                    replaceOldIndex = e.OldStartingIndex;
+                    replaceNewIndex = e.NewStartingIndex >= 0 ? e.NewStartingIndex : replaceOldIndex;
+                    replaceOldCount = e.OldItems!.Count;
+                    replaceNewCount = e.NewItems!.Count;
                     var removeChange = OnItemsRemoved(e.OldStartingIndex, e.OldItems!);
                     var addChange = OnItemsAdded(e.NewStartingIndex, e.NewItems!);
                     shiftStartIndex = removeChange.ShiftIndex;
@@ -233,7 +241,16 @@ namespace TreeDataGridCore.Selection
             // Adjust the paths of any child nodes.
             if (_children is not null)
             {
-                if (e.Action == NotifyCollectionChangedAction.Move && moveCount > 0 && moveInsertIndex >= 0)
+                if (e.Action == NotifyCollectionChangedAction.Replace)
+                {
+                    AdjustChildrenForReplace(
+                        replaceOldIndex,
+                        replaceOldCount,
+                        replaceNewIndex,
+                        replaceNewCount,
+                        ref removed);
+                }
+                else if (e.Action == NotifyCollectionChangedAction.Move && moveCount > 0 && moveInsertIndex >= 0)
                 {
                     AdjustChildrenForMove(moveOldIndex, moveInsertIndex, moveCount);
                 }
@@ -394,6 +411,27 @@ namespace TreeDataGridCore.Selection
                     child.RebasePath(Path.Append(i));
                 }
             }
+        }
+
+        private void AdjustChildrenForReplace(
+            int oldIndex,
+            int oldCount,
+            int newIndex,
+            int newCount,
+            ref List<T?>? removed)
+        {
+            if (_children is null || oldIndex < 0)
+                return;
+
+            var removeCount = Math.Min(oldCount, Math.Max(0, _children.Count - oldIndex));
+            for (var i = 0; i < removeCount; ++i)
+                _children[oldIndex + i]?.AncestorRemoved(ref removed);
+            _children.RemoveRange(oldIndex, removeCount);
+
+            var insertIndex = Math.Min(Math.Max(newIndex, 0), _children.Count);
+            _children.InsertMany(insertIndex, null, newCount);
+            for (var i = Math.Min(oldIndex, insertIndex); i < _children.Count; ++i)
+                _children[i]?.RebasePath(Path.Append(i));
         }
 
         private void RebasePath(IndexPath path)
