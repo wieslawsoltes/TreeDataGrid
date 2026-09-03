@@ -165,10 +165,11 @@ namespace TreeDataGridCore.Selection
                     replaceOldCount = e.OldItems!.Count;
                     replaceNewCount = e.NewItems!.Count;
                     var removeChange = OnItemsRemoved(e.OldStartingIndex, e.OldItems!);
-                    var addChange = OnItemsAdded(e.NewStartingIndex, e.NewItems!);
-                    shiftStartIndex = removeChange.ShiftIndex;
-                    shiftDelta = removeChange.ShiftDelta + addChange.ShiftDelta;
-                    indexesChanged = shiftDelta != 0;
+                    var addChange = OnItemsAdded(replaceNewIndex, e.NewItems!);
+                    shiftStartIndex = Math.Min(replaceOldIndex, replaceNewIndex);
+                    shiftDelta = replaceNewCount - replaceOldCount;
+                    indexesChanged = shiftDelta != 0 || removeChange.ShiftDelta != 0 ||
+                        addChange.ShiftDelta != 0;
                     removed = removeChange.RemovedItems;
                     break;
                 case NotifyCollectionChangedAction.Move:

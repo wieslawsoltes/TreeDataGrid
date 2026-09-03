@@ -496,6 +496,35 @@ namespace TreeDataGridCore.Tests
             oldParent.Children.Add(new BoundNode());
             Assert.Equal(2, source.Rows.Count);
         }
+        [Fact]
+        public void Unequal_parent_replace_shifts_descendant_selection_and_anchors()
+        {
+            var selectedChild = new BoundNode();
+            var selectedParent = new BoundNode
+            {
+                IsExpanded = true,
+                Children = { selectedChild },
+            };
+            var items = new ResettingCollection<BoundNode>(new[]
+            {
+                new BoundNode(),
+                selectedParent,
+            });
+            using var source = new HierarchicalTreeDataGridSource<BoundNode>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<BoundNode>(
+                new TextColumn<BoundNode, bool>("Expanded", x => x.IsExpanded),
+                x => x.Children,
+                isExpandedSelector: x => x.IsExpanded));
+            source.RowSelection!.SelectedIndex = new IndexPath(1, 0);
+
+            items.ReplaceRange(0, 1, new[] { new BoundNode(), new BoundNode() });
+
+            Assert.Equal(new IndexPath(2, 0), source.RowSelection.SelectedIndex);
+            Assert.Equal(new IndexPath(2, 0), source.RowSelection.AnchorIndex);
+            Assert.Equal(new IndexPath(2, 0), source.RowSelection.RangeAnchorIndex);
+            Assert.Same(selectedChild, source.RowSelection.SelectedItem);
+            Assert.Same(selectedParent, source.Rows.Single(x => ReferenceEquals(x.Model, selectedParent)).Model);
+        }
         private sealed class BoundNode : INotifyPropertyChanged
         {
             private bool _expanded;
