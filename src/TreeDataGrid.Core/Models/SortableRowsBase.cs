@@ -135,6 +135,24 @@ namespace TreeDataGridCore.Models
             _sortedIndexes = null;
         }
 
+        private List<TRow> MoveRows(int oldIndex, int newIndex, int count)
+        {
+            var movedRows = _unsortedRows!.GetRange(oldIndex, count);
+            _unsortedRows.RemoveRange(oldIndex, count);
+            _unsortedRows.InsertRange(newIndex, movedRows);
+
+            var start = Math.Min(oldIndex, newIndex);
+            var end = Math.Max(oldIndex + count, newIndex + count);
+            for (var i = start; i < end; ++i)
+            {
+                var delta = i - _unsortedRows[i].ModelIndex;
+                if (delta != 0)
+                    _unsortedRows[i].UpdateModelIndex(delta);
+            }
+
+            return movedRows;
+        }
+
         private void OnItemsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
             if (_comparison is null)
@@ -217,13 +235,13 @@ namespace TreeDataGridCore.Models
                     }
                     break;
                 case NotifyCollectionChangedAction.Move:
-                    Remove(e.OldStartingIndex, e.OldItems!.Count);
-                    Add(e.NewStartingIndex, e.NewItems!);
+                    var movedRows = MoveRows(
+                        e.OldStartingIndex, e.NewStartingIndex, e.OldItems!.Count);
                     CollectionChanged?.Invoke(
                         this,
                         new NotifyCollectionChangedEventArgs(
                             NotifyCollectionChangedAction.Move,
-                            new ListSpan(_unsortedRows, e.NewStartingIndex, e.NewItems!.Count),
+                            movedRows,
                             e.NewStartingIndex,
                             e.OldStartingIndex));
                     break;
@@ -324,9 +342,13 @@ namespace TreeDataGridCore.Models
                     Remove(e.OldStartingIndex, e.OldItems!);
                     break;
                 case NotifyCollectionChangedAction.Replace:
-                case NotifyCollectionChangedAction.Move:
                     Remove(e.OldStartingIndex, e.OldItems!);
                     Add(e.NewStartingIndex, e.NewItems!.Count);
+                    break;
+                case NotifyCollectionChangedAction.Move:
+                    MoveRows(e.OldStartingIndex, e.NewStartingIndex, e.OldItems!.Count);
+                    _sortedIndexes = StableSort.SortedMap(_items, _compareItemsByIndex);
+                    CollectionChanged?.Invoke(this, CollectionExtensions.ResetEvent);
                     break;
                 case NotifyCollectionChangedAction.Reset:
                     ResetRows();
