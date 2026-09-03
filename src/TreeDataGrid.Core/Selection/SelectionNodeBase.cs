@@ -37,7 +37,7 @@ namespace TreeDataGridCore.Selection
         }
 
         /// <summary>
-        /// Gets an <see cref="ItemsSourceView{T}"/> of the <see cref="Source"/>.
+        /// Gets a <see cref="TreeDataGridItemsSourceView{T}"/> of the <see cref="Source"/>.
         /// </summary>
         protected internal TreeDataGridItemsSourceView<T>? ItemsView { get; set; }
 

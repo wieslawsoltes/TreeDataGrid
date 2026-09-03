@@ -52,6 +52,8 @@ namespace Avalonia.Controls
             if (presentation is not null) presentation.NativeSelectionChanged += OnNativeSelectionChanged;
             Columns = presentation?.Columns;
             Rows = presentation?.Rows;
+            if (!_isAttachedToVisualTree)
+                presentation?.Suspend();
             SelectionInteraction = presentation?.SelectionInteraction;
             SubscribeSourceEvents();
             SubscribeSelectionModel();

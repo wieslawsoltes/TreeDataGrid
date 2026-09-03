@@ -157,7 +157,9 @@ namespace Avalonia.Controls.Presentation
             if (_cells.Count > 0)
             {
                 var desiredSet = new HashSet<Core.Models.IColumn>(desired);
-                foreach (var removed in _cells.Keys.Where(x => !desiredSet.Contains(x)).ToArray()) RemoveColumn(removed);
+                foreach (var removed in _cells.Keys.Where(x =>
+                    !desiredSet.Contains(x) || x.PresentationKey != _cells[x].Key).ToArray())
+                    RemoveColumn(removed);
             }
             foreach (Core.Models.IColumn<TModel> model in desired)
             {

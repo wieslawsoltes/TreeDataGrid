@@ -16,7 +16,7 @@ namespace TreeDataGridCore
 {
     /// <summary>
     /// Represents a standardized view of the supported interactions between a given ItemsSource
-    /// object and a <see cref="TreeDataGrid"/> control.
+    /// object and a tree data grid source.
     /// </summary>
     public class TreeDataGridItemsSourceView : INotifyCollectionChanged, ICollectionChangedListener, IDisposable
     {
@@ -27,6 +27,7 @@ namespace TreeDataGridCore
 
         private IList? _inner;
         private NotifyCollectionChangedEventHandler? _collectionChanged;
+        private bool _isListening;
 
         /// <summary>
         /// Initializes a new instance of the ItemsSourceView class for the specified data source.
@@ -90,11 +91,15 @@ namespace TreeDataGridCore
                 if (_inner is null)
                     ThrowDisposed();
 
-                if (_collectionChanged is null)
+                if (value is null)
+                    return;
+
+                if (!_isListening)
                 {
                     if (_inner is INotifyCollectionChanged incc)
                     {
                         CollectionChangedEventManager.Instance.AddListener(incc, this);
+                        _isListening = true;
                     }
                 }
 
@@ -106,13 +111,17 @@ namespace TreeDataGridCore
                 if (_inner is null)
                     ThrowDisposed();
 
+                if (value is null)
+                    return;
+
                 _collectionChanged -= value;
 
-                if (_collectionChanged is null)
+                if (_collectionChanged is null && _isListening)
                 {
                     if (_inner is INotifyCollectionChanged incc)
                     {
                         CollectionChangedEventManager.Instance.RemoveListener(incc, this);
+                        _isListening = false;
                     }
                 }
             }
@@ -121,9 +130,10 @@ namespace TreeDataGridCore
         /// <inheritdoc/>
         public void Dispose()
         {
-            if (_inner is INotifyCollectionChanged incc)
+            if (_isListening && _inner is INotifyCollectionChanged incc)
             {
                 CollectionChangedEventManager.Instance.RemoveListener(incc, this);
+                _isListening = false;
             }
 
             _inner = null;

@@ -79,6 +79,10 @@ with api.dotnet
         {
             name: "TreeDataGrid",
             path: "../src/Avalonia.Controls.TreeDataGrid/Avalonia.Controls.TreeDataGrid.csproj"
+        },
+        {
+            name: "TreeDataGrid.Core",
+            path: "../src/TreeDataGrid.Core/TreeDataGrid.Core.csproj"
         }
     ]
     external_apis = [
