@@ -171,6 +171,9 @@ namespace TreeDataGridCore.Models
             }
         }
         public bool? GetModelIsExpanded(TModel model) => _getExpanded?.Invoke(model);
+        internal IDisposable? SubscribeToIsExpanded(TModel model, Action changed) =>
+            IsExpandedSelector is { } expression ?
+                PropertyPathSubscription<TModel>.TryCreate(model, expression, changed) : null;
         public IColumn<TModel> Inner { get; }
         public string Id => Inner.Id;
         public object? Header => Inner.Header;

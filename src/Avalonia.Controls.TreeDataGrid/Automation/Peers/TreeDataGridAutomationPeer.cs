@@ -18,6 +18,7 @@ public class TreeDataGridAutomationPeer : ControlAutomationPeer, ISelectionProvi
 {
     private TreeDataGridPresentation? _source;
     private ITreeDataGridSelectionInteraction? _rowSelection;
+    private ITreeSelectionModel? _legacyRowSelection;
 
     public TreeDataGridAutomationPeer(TreeDataGrid owner)
         : base(owner)
@@ -34,7 +35,7 @@ public class TreeDataGridAutomationPeer : ControlAutomationPeer, ISelectionProvi
 
     public IReadOnlyList<AutomationPeer> GetSelection()
     {
-        if (_rowSelection is null || Owner.Rows is not { } rows)
+        if (_source?.SelectedIndexes is null || Owner.Rows is not { } rows)
         {
             return Array.Empty<AutomationPeer>();
         }
@@ -64,7 +65,7 @@ public class TreeDataGridAutomationPeer : ControlAutomationPeer, ISelectionProvi
 
     protected override object? GetProviderCore(Type providerType)
     {
-        if (providerType == typeof(ISelectionProvider) && _rowSelection is null)
+        if (providerType == typeof(ISelectionProvider) && _source?.SelectedIndexes is null)
         {
             return null;
         }
@@ -86,19 +87,30 @@ public class TreeDataGridAutomationPeer : ControlAutomationPeer, ISelectionProvi
             _source.PropertyChanged += OnSourcePropertyChanged;
         }
 
-        AttachRowSelection(Owner.Presentation?.SelectedIndexes is not null ? Owner.Presentation.SelectionInteraction : null);
+        AttachRowSelection();
     }
 
-    private void AttachRowSelection(ITreeDataGridSelectionInteraction? rowSelection)
+    private void AttachRowSelection()
     {
+        if (_legacyRowSelection is not null)
+        {
+            _legacyRowSelection.SelectionChanged -= OnRowSelectionChanged;
+        }
+
         if (_rowSelection is not null)
         {
             _rowSelection.SelectionChanged -= OnRowSelectionChanged;
         }
 
-        _rowSelection = rowSelection;
+        _legacyRowSelection = _source?.SourceIdentity is ITreeDataGridSource legacySource ?
+            legacySource.Selection as ITreeDataGridRowSelectionModel : null;
+        _rowSelection = _source?.SelectionInteraction;
 
-        if (_rowSelection is not null)
+        if (_legacyRowSelection is not null)
+        {
+            _legacyRowSelection.SelectionChanged += OnRowSelectionChanged;
+        }
+        else if (_rowSelection is not null)
         {
             _rowSelection.SelectionChanged += OnRowSelectionChanged;
         }
@@ -122,7 +134,7 @@ public class TreeDataGridAutomationPeer : ControlAutomationPeer, ISelectionProvi
     {
         if (e.PropertyName == nameof(ITreeDataGridSource.Selection) || e.PropertyName == nameof(TreeDataGridPresentation.SelectionInteraction))
         {
-            AttachRowSelection(Owner.Presentation?.SelectedIndexes is not null ? Owner.Presentation.SelectionInteraction : null);
+            AttachRowSelection();
             RaiseSelectionChanged();
         }
     }
