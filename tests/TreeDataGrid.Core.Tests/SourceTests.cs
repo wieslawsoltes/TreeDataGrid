@@ -563,6 +563,30 @@ namespace TreeDataGridCore.Tests
             Assert.Equal(default, source.RowSelection.AnchorIndex);
             Assert.Equal(default, source.RowSelection.RangeAnchorIndex);
         }
+        [Fact]
+        public void Indexless_collection_changes_reset_rows_and_selection()
+        {
+            Verify((items, replacement) => items.AddWithoutIndex(replacement), "A", "B", "C");
+            Verify((items, _) => items.RemoveAtWithoutIndex(0), "B");
+            Verify((items, replacement) => items.ReplaceWithoutIndex(0, replacement), "C", "B");
+
+            static void Verify(
+                Action<ResettingCollection<Node>, Node> change,
+                params string[] expected)
+            {
+                var items = new ResettingCollection<Node>(new[] { new Node("A"), new Node("B") });
+                using var source = new FlatTreeDataGridSource<Node>(items);
+                source.Columns.Add(new TextColumn<Node, string>("Name", x => x.Name));
+                Assert.Equal(new[] { "A", "B" }, source.Rows.Select(x => ((Node)x.Model!).Name));
+                source.RowSelection!.SelectedIndex = new IndexPath(1);
+
+                change(items, new Node("C"));
+
+                Assert.Equal(expected, source.Rows.Select(x => ((Node)x.Model!).Name));
+                Assert.Equal(default, source.RowSelection.SelectedIndex);
+                Assert.Null(source.RowSelection.SelectedItem);
+            }
+        }
         private sealed class BoundNode : INotifyPropertyChanged
         {
             private bool _expanded;

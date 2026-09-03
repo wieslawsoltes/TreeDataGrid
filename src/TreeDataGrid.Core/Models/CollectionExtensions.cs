@@ -11,6 +11,15 @@ namespace TreeDataGridCore.Models
         public static readonly NotifyCollectionChangedEventArgs ResetEvent =
             new(NotifyCollectionChangedAction.Reset);
 
+        public static bool HasKnownIndexes(this NotifyCollectionChangedEventArgs e) => e.Action switch
+        {
+            NotifyCollectionChangedAction.Add => e.NewStartingIndex >= 0,
+            NotifyCollectionChangedAction.Remove => e.OldStartingIndex >= 0,
+            NotifyCollectionChangedAction.Replace => e.OldStartingIndex >= 0 && e.NewStartingIndex >= 0,
+            NotifyCollectionChangedAction.Move => e.OldStartingIndex >= 0 && e.NewStartingIndex >= 0,
+            _ => true,
+        };
+
         public static int BinarySearch<TRow, TModel>(
             this IReadOnlyList<TRow> items,
             TModel model,

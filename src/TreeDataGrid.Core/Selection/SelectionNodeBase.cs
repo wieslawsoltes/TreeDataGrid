@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using TreeDataGridCore.Models;
 using TreeDataGridCore.Utils;
 
 #nullable enable
@@ -115,6 +116,12 @@ namespace TreeDataGridCore.Selection
         /// </remarks>
         protected virtual void OnSourceCollectionChanged(NotifyCollectionChangedEventArgs e)
         {
+            if (!e.HasKnownIndexes())
+            {
+                OnSourceReset();
+                return;
+            }
+
             var shiftDelta = 0;
             var shiftIndex = -1;
             List<T?>? removed = null;
