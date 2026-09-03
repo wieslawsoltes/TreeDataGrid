@@ -307,6 +307,9 @@ namespace TreeDataGridCore
             if (position == RowDropPosition.After)
                 ++ti;
 
+            if (targetItems.IsReadOnly)
+                throw new InvalidOperationException("The requested drop target is read-only.");
+
             var sourceItems = orderedIndexes
                 .Select(x =>
                 {
@@ -320,6 +323,9 @@ namespace TreeDataGridCore
                     return (Path: x, Parent: parent, Items: items, Index: index, Item: items[index]);
                 })
                 .ToArray();
+
+            if (sourceItems.Any(x => x.Items.IsReadOnly))
+                throw new InvalidOperationException("One or more source collections are read-only.");
 
             var originalTargetOffset = ti;
             ti -= sourceItems.Count(item =>
