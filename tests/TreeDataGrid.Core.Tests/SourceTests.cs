@@ -525,6 +525,25 @@ namespace TreeDataGridCore.Tests
             Assert.Same(selectedChild, source.RowSelection.SelectedItem);
             Assert.Same(selectedParent, source.Rows.Single(x => ReferenceEquals(x.Model, selectedParent)).Model);
         }
+        [Fact]
+        public void Unequal_replace_clears_anchors_inside_the_replaced_range()
+        {
+            var items = new ResettingCollection<Node>(new[]
+            {
+                new Node("Old 1"),
+                new Node("Old 2"),
+                new Node("Tail"),
+            });
+            using var source = new FlatTreeDataGridSource<Node>(items);
+            source.Columns.Add(new TextColumn<Node, string>("Name", x => x.Name));
+            source.RowSelection!.AnchorIndex = new IndexPath(1);
+            source.RowSelection.RangeAnchorIndex = new IndexPath(1);
+
+            items.ReplaceRange(0, 2, new[] { new Node("Replacement") });
+
+            Assert.Equal(default, source.RowSelection.AnchorIndex);
+            Assert.Equal(default, source.RowSelection.RangeAnchorIndex);
+        }
         private sealed class BoundNode : INotifyPropertyChanged
         {
             private bool _expanded;

@@ -16,6 +16,7 @@ namespace Avalonia.Controls.Presentation
     {
         private readonly CellColumnFactory<TModel> _factory;
         private readonly Dictionary<Core.Models.IColumn<TModel>, ColumnView> _cells;
+        private readonly HashSet<Core.Models.IColumn<TModel>> _failedColumns;
         private readonly PropertyChangedEventHandler _columnChanged;
         private readonly INotifyCollectionChanged? _columnNotifications;
         private readonly PresentationColumns _columns;
@@ -28,6 +29,7 @@ namespace Avalonia.Controls.Presentation
         {
             Model = model ?? throw new ArgumentNullException(nameof(model));
             _cells = new(model.Columns.Count, ReferenceEqualityComparer.Instance);
+            _failedColumns = new(ReferenceEqualityComparer.Instance);
             _columnChanged = OnColumnPropertyChanged;
             _factory = new(options ?? new());
             _columns = new(this);
@@ -95,6 +97,7 @@ namespace Avalonia.Controls.Presentation
             Model.Sorted -= OnSorted;
             if (_columnNotifications is not null) _columnNotifications.CollectionChanged -= OnColumnsChanged;
             foreach (var column in _cells.Keys) column.PropertyChanged -= _columnChanged;
+            foreach (var column in _failedColumns) column.PropertyChanged -= _columnChanged;
         }
         internal override void Resume()
         {
@@ -124,6 +127,7 @@ namespace Avalonia.Controls.Presentation
             _rows?.Dispose();
             foreach (var pair in _cells) (pair.Value.Cell as IDisposable)?.Dispose();
             _cells.Clear();
+            _failedColumns.Clear();
         }
         private void UpdateSelection()
         {
@@ -149,17 +153,21 @@ namespace Avalonia.Controls.Presentation
         private void OnColumnsChanged(object? sender, NotifyCollectionChangedEventArgs e) => SynchronizeColumns();
         private ICellColumn<TModel> CreateColumn(Core.Models.IColumn<TModel> model)
         {
-            var cell = CreateCell(model);
+            ICellColumn<TModel>? cell = null;
             try
             {
+                cell = CreateCell(model);
                 _cells.Add(model, new(cell, model.PresentationKey));
-                if (!_suspended) model.PropertyChanged += _columnChanged;
+                var wasFailed = _failedColumns.Remove(model);
+                if (!_suspended && !wasFailed) model.PropertyChanged += _columnChanged;
                 return cell;
             }
             catch
             {
                 if (_cells.Remove(model))
                     model.PropertyChanged -= _columnChanged;
+                if (!_suspended && _failedColumns.Add(model))
+                    model.PropertyChanged += _columnChanged;
                 (cell as IDisposable)?.Dispose();
                 throw;
             }
@@ -198,13 +206,18 @@ namespace Avalonia.Controls.Presentation
         private void SynchronizeColumns()
         {
             var desired = Model.Columns;
-            if (_cells.Count > 0)
+            if (_cells.Count > 0 || _failedColumns.Count > 0)
             {
                 var desiredSet = new HashSet<Core.Models.IColumn>(
                     desired,
                     ReferenceEqualityComparer.Instance);
                 foreach (var removed in _cells.Keys.Where(x => !desiredSet.Contains(x)).ToArray())
                     RemoveColumn(removed);
+                foreach (var removed in _failedColumns.Where(x => !desiredSet.Contains(x)).ToArray())
+                {
+                    removed.PropertyChanged -= _columnChanged;
+                    _failedColumns.Remove(removed);
+                }
                 foreach (var changed in _cells.Keys.Where(x =>
                     x.PresentationKey != _cells[x].Key).ToArray())
                     ReplaceColumn(changed);

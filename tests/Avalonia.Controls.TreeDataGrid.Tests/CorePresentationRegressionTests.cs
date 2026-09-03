@@ -92,6 +92,26 @@ public class CorePresentationRegressionTests
     }
 
     [AvaloniaFact]
+    public void Newly_added_failed_column_recovers_when_its_key_is_corrected()
+    {
+        using var source = new Core.FlatTreeDataGridSource<Node>(new[] { new Node() });
+        source.Columns.Add(new Core.Models.TextColumn<Node, string>("Name", x => x.Name));
+        var options = new TreeDataGridPresentationOptions<Node>();
+        options.Columns.Add("recovered", _ => new TextColumn<Node, string>("Recovered", x => x.Name));
+        using var view = new TreeDataGridPresentation<Node>(source, options);
+        var failed = new Core.Models.TemplateColumn<Node>("Failed", "missing");
+
+        Assert.Throws<InvalidOperationException>(() => source.Columns.Add(failed));
+        Assert.Equal(2, source.Columns.Count);
+        Assert.Single(view.Columns);
+
+        failed.PresentationKey = "recovered";
+
+        Assert.Equal(2, view.Columns.Count);
+        Assert.Equal("Recovered", view.Columns[1].Header);
+    }
+
+    [AvaloniaFact]
     public void Duplicate_core_column_is_rejected_before_the_presentation_changes()
     {
         using var source = new Core.FlatTreeDataGridSource<Node>(new[] { new Node() });

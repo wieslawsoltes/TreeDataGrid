@@ -292,7 +292,10 @@ namespace TreeDataGridCore.Selection
                     removed,
                     moveOldIndex,
                     moveInsertIndex,
-                    moveCount);
+                    moveCount,
+                    replaceOldIndex,
+                    replaceOldCount,
+                    replaceNewCount);
             }
         }
 

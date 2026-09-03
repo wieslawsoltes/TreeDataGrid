@@ -297,7 +297,10 @@ namespace TreeDataGridCore.Selection
             IReadOnlyList<T?>? removed,
             int moveOldIndex = -1,
             int moveNewIndex = -1,
-            int moveCount = 0)
+            int moveCount = 0,
+            int replaceOldIndex = -1,
+            int replaceOldCount = 0,
+            int replaceNewCount = 0)
         {
             if (_operation?.UpdateCount > 0)
                 throw new InvalidOperationException("Source collection was modified during selection update.");
@@ -316,26 +319,27 @@ namespace TreeDataGridCore.Selection
             var selectedIndexChanged = false;
             if (!_selectedIndexMovedDuringSourceChange)
             {
-                selectedIndexChanged = moveCount > 0 ?
-                    MoveIndex(parentIndex, moveOldIndex, moveNewIndex, moveCount, ref _selectedIndex) :
-                    ShiftIndex(parentIndex, shiftStartIndex, shiftDelta, ref _selectedIndex);
+                selectedIndexChanged = MapCollectionIndex(ref _selectedIndex);
             }
 
             var anchorIndexChanged = false;
             if (!_anchorIndexMovedDuringSourceChange)
             {
-                anchorIndexChanged = moveCount > 0 ?
-                    MoveIndex(parentIndex, moveOldIndex, moveNewIndex, moveCount, ref _anchorIndex) :
-                    ShiftIndex(parentIndex, shiftStartIndex, shiftDelta, ref _anchorIndex);
+                anchorIndexChanged = MapCollectionIndex(ref _anchorIndex);
             }
 
             var rangeAnchorIndexChanged = false;
             if (!_rangeAnchorIndexMovedDuringSourceChange)
             {
-                rangeAnchorIndexChanged = moveCount > 0 ?
-                    MoveIndex(parentIndex, moveOldIndex, moveNewIndex, moveCount, ref _rangeAnchorIndex) :
-                    ShiftIndex(parentIndex, shiftStartIndex, shiftDelta, ref _rangeAnchorIndex);
+                rangeAnchorIndexChanged = MapCollectionIndex(ref _rangeAnchorIndex);
             }
+
+            bool MapCollectionIndex(ref IndexPath path) =>
+                moveCount > 0 ?
+                    MoveIndex(parentIndex, moveOldIndex, moveNewIndex, moveCount, ref path) :
+                replaceOldIndex >= 0 ?
+                    ReplaceIndex(parentIndex, replaceOldIndex, replaceOldCount, replaceNewCount, ref path) :
+                    ShiftIndex(parentIndex, shiftStartIndex, shiftDelta, ref path);
 
             var selectedItemChanged = false;
 
@@ -713,6 +717,35 @@ namespace TreeDataGridCore.Selection
             }
 
             return false;
+        }
+
+        private static bool ReplaceIndex(
+            IndexPath parentIndex,
+            int oldIndex,
+            int oldCount,
+            int newCount,
+            ref IndexPath path)
+        {
+            if (path == default || !parentIndex.IsAncestorOf(path))
+                return false;
+
+            var depth = parentIndex.Count;
+            var current = path[depth];
+            if (current < oldIndex)
+                return false;
+            if (current < oldIndex + oldCount)
+            {
+                path = default;
+                return true;
+            }
+
+            var delta = newCount - oldCount;
+            if (delta == 0)
+                return false;
+            var indexes = path.ToArray();
+            indexes[depth] += delta;
+            path = new IndexPath(indexes);
+            return true;
         }
 
         private static bool MoveIndex(
