@@ -164,8 +164,12 @@ namespace TreeDataGridCore.Selection
 
                     moveOldIndex = e.OldStartingIndex;
                     moveCount = e.OldItems!.Count;
+                    if (moveOldIndex == e.NewStartingIndex || moveCount == 0)
+                        return;
                     shiftStartIndex = Math.Min(e.OldStartingIndex, e.NewStartingIndex);
-                    shiftEndIndex = Math.Max(e.OldStartingIndex, e.NewStartingIndex);
+                    shiftEndIndex = Math.Max(
+                        e.OldStartingIndex + moveCount - 1,
+                        e.NewStartingIndex + moveCount - 1);
                     shiftDelta = e.OldStartingIndex < e.NewStartingIndex ? -moveCount : moveCount;
                     indexesChanged = true;
 
@@ -253,7 +257,16 @@ namespace TreeDataGridCore.Selection
             {
                 if (shiftEndIndex == -1)
                     shiftEndIndex = ItemsView?.Count ?? 0;
-                _owner.OnNodeCollectionChanged(Path, shiftStartIndex, shiftEndIndex, shiftDelta, indexesChanged, removed);
+                _owner.OnNodeCollectionChanged(
+                    Path,
+                    shiftStartIndex,
+                    shiftEndIndex,
+                    shiftDelta,
+                    indexesChanged,
+                    removed,
+                    moveOldIndex,
+                    moveInsertIndex,
+                    moveCount);
             }
         }
 
@@ -370,9 +383,19 @@ namespace TreeDataGridCore.Selection
             {
                 if (_children[i] is TreeSelectionNode<T> child)
                 {
-                    child.Path = Path.Append(i);
+                    child.RebasePath(Path.Append(i));
                 }
             }
+        }
+
+        private void RebasePath(IndexPath path)
+        {
+            Path = path;
+            if (_children is null)
+                return;
+
+            for (var i = 0; i < _children.Count; ++i)
+                _children[i]?.RebasePath(path.Append(i));
         }
 
         private static void Resize(List<TreeSelectionNode<T>?> list, int count)
