@@ -272,6 +272,30 @@ namespace Avalonia.Controls.TreeDataGridTests
         }
 
         [AvaloniaFact]
+        public void Presentation_retargets_its_row_adapter_when_model_rows_are_replaced()
+        {
+            var oldItems = new ObservableCollection<Node> { new("Old") };
+            var newItems = new ObservableCollection<Node> { new("New") };
+            using var source = new ReplaceableRowsSource(oldItems);
+            using var replacement = Flat(newItems);
+            using var presentation = new TreeDataGridPresentation<Node>(source);
+            var rows = presentation.Rows;
+            var changes = 0;
+            rows.CollectionChanged += (_, _) => ++changes;
+
+            source.ReplaceRows(replacement.Rows);
+
+            Assert.Same(rows, presentation.Rows);
+            Assert.Equal("New", ((Node)rows[0].Model!).Name);
+            Assert.Equal(1, changes);
+            oldItems.Add(new("Ignored"));
+            Assert.Equal(1, changes);
+            newItems.Add(new("Second"));
+            Assert.Equal(2, changes);
+            Assert.Equal(2, rows.Count);
+        }
+
+        [AvaloniaFact]
         public void Delegate_columns_observe_the_model_and_edit_without_expression_compilation()
         {
             var item = new BoundValue { Value = "A" };
@@ -391,6 +415,26 @@ namespace Avalonia.Controls.TreeDataGridTests
             public bool Flag { get; set; }
             public bool? OptionalFlag { get; set; } = true;
             public event PropertyChangedEventHandler? PropertyChanged;
+        }
+
+        private sealed class ReplaceableRowsSource : Core.FlatTreeDataGridSource<Node>, Core.ITreeDataGridSource<Node>
+        {
+            private Core.Models.IRows _currentRows;
+
+            public ReplaceableRowsSource(ObservableCollection<Node> items)
+                : base(items)
+            {
+                _currentRows = base.Rows;
+                Columns.Add(new Core.Models.TextColumn<Node, string>("Name", x => x.Name));
+            }
+
+            Core.Models.IRows Core.ITreeDataGridSource.Rows => _currentRows;
+
+            public void ReplaceRows(Core.Models.IRows rows)
+            {
+                _currentRows = rows;
+                RaisePropertyChanged(nameof(Core.ITreeDataGridSource.Rows));
+            }
         }
 
         private sealed class DisposableTemplateColumn : TemplateColumn<Node>, IDisposable

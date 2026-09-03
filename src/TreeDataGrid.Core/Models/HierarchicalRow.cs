@@ -21,6 +21,8 @@ namespace TreeDataGridCore.Models
         private IEnumerable<TModel>? _childModels;
         private ChildRows? _childRows;
         private readonly IDisposable? _isExpandedSubscription;
+        private readonly bool _observesExpansionViaModel;
+        private INotifyPropertyChanged? _modelNotifications;
         private bool _isExpanded;
         private bool? _showExpander;
 
@@ -51,9 +53,10 @@ namespace TreeDataGridCore.Models
                 _isExpandedSubscription =
                     (expanderColumn as IModelExpansionObserver<TModel>)?.ExpansionObserver?.Subscribe(
                         model, OnModelIsExpandedChanged);
-                if (_isExpandedSubscription is null && model is INotifyPropertyChanged notify)
-                    notify.PropertyChanged += OnModelPropertyChanged;
             }
+            _observesExpansionViaModel = expanded.HasValue && _isExpandedSubscription is null;
+            if (_observesExpansionViaModel || _isExpanded)
+                SubscribeToModelChanges();
         }
 
         /// <summary>
@@ -111,13 +114,15 @@ namespace TreeDataGridCore.Models
         public void Dispose()
         {
             _isExpandedSubscription?.Dispose();
-            if (_isExpandedSubscription is null && Model is INotifyPropertyChanged notify)
-                notify.PropertyChanged -= OnModelPropertyChanged;
+            UnsubscribeFromModelChanges();
             _childRows?.Dispose();
         }
         private void OnModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            OnModelIsExpandedChanged();
+            if (_isExpanded)
+                RefreshChildModels();
+            if (_observesExpansionViaModel)
+                OnModelIsExpandedChanged();
         }
 
         private void OnModelIsExpandedChanged()
@@ -204,7 +209,10 @@ namespace TreeDataGridCore.Models
             }
 
             if (_childRows?.Count > 0)
+            {
                 _isExpanded = true;
+                SubscribeToModelChanges();
+            }
             else
                 ShowExpander = false;
 
@@ -217,6 +225,54 @@ namespace TreeDataGridCore.Models
             _expanderColumn.SetModelIsExpanded(this);
         }
 
+        private void RefreshChildModels()
+        {
+            var childModels = _expanderColumn.GetChildModels(Model);
+            if (ReferenceEquals(_childModels, childModels))
+                return;
+
+            _controller.OnBeginExpandCollapse(this);
+            var oldExpanded = _isExpanded;
+            _childModels = childModels;
+            _childRows?.Dispose();
+            _childRows = new ChildRows(
+                this,
+                TreeDataGridItemsSourceView<TModel>.GetOrCreate(childModels),
+                _comparison);
+            _isExpanded = _childRows.Count > 0;
+            if (_isExpanded)
+                ClearShowExpander();
+            else
+                ShowExpander = false;
+            _controller.OnChildCollectionChanged(this, CollectionExtensions.ResetEvent);
+            if (_isExpanded != oldExpanded)
+                RaisePropertyChanged(nameof(IsExpanded));
+            _controller.OnEndExpandCollapse(this);
+
+            if (_isExpanded != oldExpanded)
+                _expanderColumn.SetModelIsExpanded(this);
+            if (!_isExpanded && !_observesExpansionViaModel)
+                UnsubscribeFromModelChanges();
+        }
+
+        private void SubscribeToModelChanges()
+        {
+            if (_modelNotifications is null && Model is INotifyPropertyChanged notify)
+            {
+                _modelNotifications = notify;
+                notify.PropertyChanged += OnModelPropertyChanged;
+            }
+        }
+
+        private void UnsubscribeFromModelChanges()
+        {
+            if (_modelNotifications is not null)
+            {
+                _modelNotifications.PropertyChanged -= OnModelPropertyChanged;
+                _modelNotifications = null;
+            }
+        }
+
         private void Collapse()
         {
             _controller.OnBeginExpandCollapse(this);
@@ -225,6 +281,8 @@ namespace TreeDataGridCore.Models
             RaisePropertyChanged(nameof(IsExpanded));
             _controller.OnEndExpandCollapse(this);
             _expanderColumn.SetModelIsExpanded(this);
+            if (!_observesExpansionViaModel)
+                UnsubscribeFromModelChanges();
         }
 
         private class ChildRows : SortableRowsBase<TModel, HierarchicalRow<TModel>>,

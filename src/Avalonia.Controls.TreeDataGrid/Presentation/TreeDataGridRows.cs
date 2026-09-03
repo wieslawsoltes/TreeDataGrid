@@ -12,11 +12,19 @@ namespace Avalonia.Controls.Presentation
     // only adds cell realization; it maintains no second row collection or per-row wrappers.
     internal sealed class TreeDataGridRows<TModel> : ReadOnlyListBase<Core.Models.IRow>, ITreeDataGridRows, IReusableCellRows, IDisposable where TModel : class
     {
-        private readonly Core.Models.IRows _rows;
+        private Core.Models.IRows _rows;
         private bool _subscribed;
         public TreeDataGridRows(Core.Models.IRows rows) { _rows = rows; Resume(); }
         internal void Resume() { if (!_subscribed) { _rows.CollectionChanged += OnCollectionChanged; _subscribed = true; } }
         internal void Suspend() { if (_subscribed) { _rows.CollectionChanged -= OnCollectionChanged; _subscribed = false; } }
+        internal void SetRows(Core.Models.IRows rows)
+        {
+            if (ReferenceEquals(_rows, rows)) return;
+            if (_subscribed) _rows.CollectionChanged -= OnCollectionChanged;
+            _rows = rows;
+            if (_subscribed) _rows.CollectionChanged += OnCollectionChanged;
+            CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Reset));
+        }
         public override int Count => _rows.Count;
         public override Core.Models.IRow this[int index] => _rows[index];
         public event NotifyCollectionChangedEventHandler? CollectionChanged;
