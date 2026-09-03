@@ -172,6 +172,22 @@ namespace TreeDataGridCore.Tests
         }
 
         [Fact]
+        public void Replacing_the_expander_column_is_rejected_before_mutation()
+        {
+            using var source = new HierarchicalTreeDataGridSource<Node>(new[] { new Node("Root") });
+            var expander = new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children);
+            source.Columns.Add(expander);
+            var rows = source.Rows;
+
+            Assert.Throws<InvalidOperationException>(() =>
+                source.Columns[0] = new TextColumn<Node, string>("Other", x => x.Name));
+
+            Assert.Same(expander, source.Columns[0]);
+            Assert.Same(rows, source.Rows);
+        }
+
+        [Fact]
         public void Hierarchical_move_preserves_order_across_parent_groups()
         {
             var first = new Node("First") { Children = { new("A") } };
