@@ -110,6 +110,8 @@ namespace TreeDataGridCore
             if (position == RowDropPosition.Inside)
                 throw new ArgumentException("Invalid drop position.", nameof(position));
             var orderedIndexes = indexes.OrderByDescending(x => x).ToArray();
+            if (orderedIndexes.Length == 0)
+                return;
             if (orderedIndexes.Any(x => x.Count != 1))
                 throw new ArgumentException("Invalid source index.", nameof(indexes));
             for (var i = 1; i < orderedIndexes.Length; ++i)
