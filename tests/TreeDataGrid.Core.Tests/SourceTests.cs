@@ -665,6 +665,71 @@ namespace TreeDataGridCore.Tests
         }
 
         [Fact]
+        public void Hierarchical_move_groups_aliased_source_collections_by_identity()
+        {
+            var first = new SharedNode("A");
+            var second = new SharedNode("B");
+            var third = new SharedNode("C");
+            var sharedChildren = new ObservableCollection<SharedNode> { first, second, third };
+            var firstParent = new SharedNode("First", sharedChildren);
+            var secondParent = new SharedNode("Second", sharedChildren);
+            var target = new SharedNode("Target");
+            var items = new ObservableCollection<SharedNode> { firstParent, secondParent, target };
+            using var source = new HierarchicalTreeDataGridSource<SharedNode>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<SharedNode>(
+                new TextColumn<SharedNode, string>("Name", x => x.Name), x => x.Children));
+
+            source.MoveRows(source, new[] { new IndexPath(0, 0), new IndexPath(1, 1) },
+                new IndexPath(2), RowDropPosition.Inside, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { third }, sharedChildren);
+            Assert.Equal(new[] { first, second }, target.Children);
+        }
+
+        [Fact]
+        public void Hierarchical_move_rejects_duplicate_physical_source_offsets()
+        {
+            var shared = new SharedNode("Shared");
+            var sharedChildren = new ObservableCollection<SharedNode> { shared };
+            var firstParent = new SharedNode("First", sharedChildren);
+            var secondParent = new SharedNode("Second", sharedChildren);
+            var target = new SharedNode("Target");
+            var items = new ObservableCollection<SharedNode> { firstParent, secondParent, target };
+            using var source = new HierarchicalTreeDataGridSource<SharedNode>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<SharedNode>(
+                new TextColumn<SharedNode, string>("Name", x => x.Name), x => x.Children));
+
+            Assert.Throws<ArgumentException>(() => source.MoveRows(source,
+                new[] { new IndexPath(0, 0), new IndexPath(1, 0) }, new IndexPath(2),
+                RowDropPosition.Inside, RowMoveEffects.Move));
+
+            Assert.Same(shared, Assert.Single(sharedChildren));
+            Assert.Empty(target.Children);
+        }
+
+        [Fact]
+        public void Hierarchical_move_remaps_retained_selection_through_an_aliased_target()
+        {
+            var moved = new SharedNode("Moved");
+            var first = new SharedNode("A");
+            var selected = new SharedNode("B");
+            var sharedChildren = new ObservableCollection<SharedNode> { first, selected };
+            var firstParent = new SharedNode("First", sharedChildren);
+            var secondParent = new SharedNode("Second", sharedChildren);
+            var items = new ObservableCollection<SharedNode> { moved, firstParent, secondParent };
+            using var source = new HierarchicalTreeDataGridSource<SharedNode>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<SharedNode>(
+                new TextColumn<SharedNode, string>("Name", x => x.Name), x => x.Children));
+            source.RowSelection!.SelectedIndex = new IndexPath(1, 1);
+
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(2, 1),
+                RowDropPosition.Before, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { first, moved, selected }, sharedChildren);
+            Assert.Equal(new IndexPath(0, 2), source.RowSelection.SelectedIndex);
+        }
+
+        [Fact]
         public void Hierarchical_move_rejects_a_read_only_target_before_mutation()
         {
             var moved = new SharedNode("Moved");
