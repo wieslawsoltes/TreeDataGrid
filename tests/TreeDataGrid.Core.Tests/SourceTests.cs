@@ -708,6 +708,49 @@ namespace TreeDataGridCore.Tests
         }
 
         [Fact]
+        public void Hierarchical_move_rejects_an_aliased_self_drop()
+        {
+            var shared = new SharedNode("Shared");
+            var sharedChildren = new ObservableCollection<SharedNode> { shared };
+            var firstParent = new SharedNode("First", sharedChildren);
+            var secondParent = new SharedNode("Second", sharedChildren);
+            var items = new ObservableCollection<SharedNode> { firstParent, secondParent };
+            using var source = new HierarchicalTreeDataGridSource<SharedNode>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<SharedNode>(
+                new TextColumn<SharedNode, string>("Name", x => x.Name), x => x.Children));
+
+            Assert.Throws<InvalidOperationException>(() => source.MoveRows(source,
+                new[] { new IndexPath(0, 0) }, new IndexPath(1, 0),
+                RowDropPosition.Inside, RowMoveEffects.Move));
+
+            Assert.Same(shared, Assert.Single(sharedChildren));
+            Assert.Empty(shared.Children);
+        }
+
+        [Fact]
+        public void Hierarchical_move_restores_a_selection_reached_through_an_alias()
+        {
+            var moved = new SharedNode("Moved");
+            var remaining = new SharedNode("Remaining");
+            var sharedChildren = new ObservableCollection<SharedNode> { moved, remaining };
+            var firstParent = new SharedNode("First", sharedChildren);
+            var secondParent = new SharedNode("Second", sharedChildren);
+            var target = new SharedNode("Target");
+            var items = new ObservableCollection<SharedNode> { firstParent, secondParent, target };
+            using var source = new HierarchicalTreeDataGridSource<SharedNode>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<SharedNode>(
+                new TextColumn<SharedNode, string>("Name", x => x.Name), x => x.Children));
+            source.RowSelection!.SelectedIndex = new IndexPath(1, 0);
+
+            source.MoveRows(source, new[] { new IndexPath(0, 0) }, new IndexPath(2),
+                RowDropPosition.Inside, RowMoveEffects.Move);
+
+            Assert.Same(remaining, Assert.Single(sharedChildren));
+            Assert.Same(moved, Assert.Single(target.Children));
+            Assert.Equal(new IndexPath(2, 0), source.RowSelection.SelectedIndex);
+        }
+
+        [Fact]
         public void Hierarchical_move_remaps_retained_selection_through_an_aliased_target()
         {
             var moved = new SharedNode("Moved");
