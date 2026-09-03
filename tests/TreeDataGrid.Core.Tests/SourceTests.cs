@@ -376,6 +376,33 @@ namespace TreeDataGridCore.Tests
                 source.RowSelection.SelectedIndexes);
         }
 
+        [Theory]
+        [InlineData(RowDropPosition.Inside, 0)]
+        [InlineData(RowDropPosition.Before, 1)]
+        [InlineData(RowDropPosition.After, 1)]
+        public void Hierarchical_move_rejects_targets_in_the_moved_subtree(
+            RowDropPosition position,
+            int targetDepth)
+        {
+            var child = new Node("Child");
+            var parent = new Node("Parent") { Children = { child } };
+            var items = new ObservableCollection<Node> { parent };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+            var target = targetDepth == 0 ? new IndexPath(0) : new IndexPath(0, 0);
+
+            Assert.Throws<InvalidOperationException>(() => source.MoveRows(
+                source,
+                new[] { new IndexPath(0) },
+                target,
+                position,
+                RowMoveEffects.Move));
+
+            Assert.Same(parent, Assert.Single(items));
+            Assert.Same(child, Assert.Single(parent.Children));
+        }
+
         [Fact]
         public void Moving_an_expanded_root_recomputes_the_flattened_destination()
         {

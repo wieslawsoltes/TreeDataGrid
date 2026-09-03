@@ -259,6 +259,18 @@ namespace TreeDataGridCore
             if (position == RowDropPosition.None)
                 return;
 
+            var orderedIndexes = indexes.OrderBy(x => x).ToArray();
+
+            foreach (var sourceIndex in orderedIndexes)
+            {
+                if (sourceIndex.IsAncestorOf(targetIndex) ||
+                    (sourceIndex == targetIndex && position == RowDropPosition.Inside))
+                {
+                    throw new InvalidOperationException(
+                        "A row cannot be moved into itself or one of its descendants.");
+                }
+            }
+
             IList<TModel> targetItems;
             int ti;
 
@@ -276,8 +288,7 @@ namespace TreeDataGridCore
             if (position == RowDropPosition.After)
                 ++ti;
 
-            var sourceItems = indexes
-                .OrderBy(x => x)
+            var sourceItems = orderedIndexes
                 .Select(x =>
                 {
                     var parent = x[..^1];
