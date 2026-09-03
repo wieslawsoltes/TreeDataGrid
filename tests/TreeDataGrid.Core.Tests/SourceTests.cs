@@ -275,15 +275,55 @@ namespace TreeDataGridCore.Tests
             Assert.True(parent.IsExpanded);
             Assert.Equal(2, source.Rows.Count);
         }
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void Expanded_row_rebinds_when_its_child_collection_is_replaced(bool boundExpansion)
+        {
+            var oldChildren = new ObservableCollection<BoundNode> { new() };
+            var newChildren = new ObservableCollection<BoundNode> { new(), new() };
+            var parent = new BoundNode { IsExpanded = true, Children = oldChildren };
+            using var source = new HierarchicalTreeDataGridSource<BoundNode>(new[] { parent });
+            source.Columns.Add(boundExpansion ?
+                new HierarchicalExpanderColumn<BoundNode>(
+                    new TextColumn<BoundNode, bool>("Expanded", x => x.IsExpanded),
+                    x => x.Children,
+                    isExpandedSelector: x => x.IsExpanded) :
+                new HierarchicalExpanderColumn<BoundNode>(
+                    new TextColumn<BoundNode, bool>("Expanded", x => x.IsExpanded),
+                    x => x.Children));
+            if (!boundExpansion)
+                source.Expand(0);
+            Assert.Equal(2, source.Rows.Count);
+
+            parent.Children = newChildren;
+
+            Assert.Equal(3, source.Rows.Count);
+            Assert.Same(newChildren[0], source.Rows[1].Model);
+            oldChildren.Add(new());
+            Assert.Equal(3, source.Rows.Count);
+            newChildren.Add(new());
+            Assert.Equal(4, source.Rows.Count);
+        }
         private sealed class BoundNode : INotifyPropertyChanged
         {
             private bool _expanded;
+            private ObservableCollection<BoundNode> _children = new();
             public bool IsExpanded
             {
                 get => _expanded;
                 set { if (_expanded == value) return; _expanded = value; PropertyChanged?.Invoke(this, new(nameof(IsExpanded))); }
             }
-            public ObservableCollection<BoundNode> Children { get; } = new();
+            public ObservableCollection<BoundNode> Children
+            {
+                get => _children;
+                set
+                {
+                    if (ReferenceEquals(_children, value)) return;
+                    _children = value;
+                    PropertyChanged?.Invoke(this, new(nameof(Children)));
+                }
+            }
             public event PropertyChangedEventHandler? PropertyChanged;
         }
 

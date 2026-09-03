@@ -68,6 +68,30 @@ public class CorePresentationRegressionTests
     }
 
     [AvaloniaFact]
+    public void Failed_presentation_key_change_keeps_the_previous_column_recoverable()
+    {
+        using var source = new Core.FlatTreeDataGridSource<Node>(new[] { new Node() });
+        var model = new Core.Models.TemplateColumn<Node>("Name", "custom");
+        source.Columns.Add(model);
+        var previous = new DisposableColumn();
+        var options = new TreeDataGridPresentationOptions<Node>();
+        options.Columns.Add("custom", _ => previous);
+        options.Columns.Add("replacement", _ => new TextColumn<Node, string>("Name", x => x.Name));
+        using var view = new TreeDataGridPresentation<Node>(source, options);
+        var previousView = view.Columns[0];
+
+        Assert.Throws<InvalidOperationException>(() => model.PresentationKey = "missing");
+        Assert.Same(previousView, view.Columns[0]);
+        Assert.Equal(0, previous.DisposeCount);
+
+        model.PresentationKey = "custom";
+        Assert.Same(previousView, view.Columns[0]);
+        model.PresentationKey = "replacement";
+        Assert.NotSame(previousView, view.Columns[0]);
+        Assert.Equal(1, previous.DisposeCount);
+    }
+
+    [AvaloniaFact]
     public void Show_expander_observable_detaches_from_children_when_unsubscribed()
     {
         var children = new TrackingCollection<Node>();

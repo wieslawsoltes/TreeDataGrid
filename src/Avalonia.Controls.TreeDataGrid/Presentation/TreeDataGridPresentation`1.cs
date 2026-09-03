@@ -58,7 +58,15 @@ namespace Avalonia.Controls.Presentation
         public override bool IsSelected(IndexPath index) => _selection?.IsSelected(index.ToCore()) ?? false;
         public Core.ITreeDataGridSource<TModel> Model { get; }
         public override IColumns Columns => _columns;
-        public override ITreeDataGridRows Rows => _rows ??= new(Model.Rows);
+        public override ITreeDataGridRows Rows
+        {
+            get
+            {
+                _rows ??= new(Model.Rows);
+                _rows.SetRows(Model.Rows);
+                return _rows;
+            }
+        }
         public override bool IsHierarchical => Model.IsHierarchical;
         public override bool IsSorted => Model.IsSorted;
         public override ITreeDataGridSelectionInteraction? SelectionInteraction => _interaction;
@@ -101,6 +109,7 @@ namespace Avalonia.Controls.Presentation
                 pair.Key.PropertyChanged += _columnChanged;
             }
             _suspended = false;
+            SynchronizeRows();
             _rows?.Resume();
             UpdateSelection();
             if (_columnNotifications is not null) _columnNotifications.CollectionChanged += OnColumnsChanged;
@@ -128,16 +137,21 @@ namespace Avalonia.Controls.Presentation
             PropertyChanged?.Invoke(this, new(nameof(SelectionInteraction)));
         }
         private void OnModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
-        { if (e.PropertyName == nameof(Model.Selection)) UpdateSelection(); else PropertyChanged?.Invoke(this, e); }
+        {
+            if (e.PropertyName == nameof(Model.Selection)) UpdateSelection();
+            else
+            {
+                if (e.PropertyName == nameof(Model.Rows)) SynchronizeRows();
+                PropertyChanged?.Invoke(this, e);
+            }
+        }
         private void OnSorted() => Sorted?.Invoke();
         private void OnColumnsChanged(object? sender, NotifyCollectionChangedEventArgs e) => SynchronizeColumns();
         private ICellColumn<TModel> CreateColumn(Core.Models.IColumn<TModel> model)
         {
-            var cell = model.Accept(_factory);
+            var cell = CreateCell(model);
             try
             {
-                if (cell.Width != model.Width.ToAvalonia()) cell.SetWidth(model.Width.ToAvalonia());
-                cell.SortDirection = model.SortDirection;
                 _cells.Add(model, new(cell, model.PresentationKey));
                 if (!_suspended) model.PropertyChanged += _columnChanged;
                 return cell;
@@ -150,6 +164,21 @@ namespace Avalonia.Controls.Presentation
                 throw;
             }
         }
+        private ICellColumn<TModel> CreateCell(Core.Models.IColumn<TModel> model)
+        {
+            var cell = model.Accept(_factory);
+            try
+            {
+                if (cell.Width != model.Width.ToAvalonia()) cell.SetWidth(model.Width.ToAvalonia());
+                cell.SortDirection = model.SortDirection;
+                return cell;
+            }
+            catch
+            {
+                (cell as IDisposable)?.Dispose();
+                throw;
+            }
+        }
         private void RemoveColumn(Core.Models.IColumn<TModel> model)
         {
             model.PropertyChanged -= _columnChanged;
@@ -157,15 +186,26 @@ namespace Avalonia.Controls.Presentation
             _cells.Remove(model);
             (cell as IDisposable)?.Dispose();
         }
+        private void ReplaceColumn(Core.Models.IColumn<TModel> model)
+        {
+            var previous = _cells[model];
+            var replacement = CreateCell(model);
+            _cells[model] = new(replacement, model.PresentationKey);
+            var index = _columns.IndexOf(previous.Cell);
+            if (index >= 0) _columns.RemoveAt(index);
+            (previous.Cell as IDisposable)?.Dispose();
+        }
         private void SynchronizeColumns()
         {
             var desired = Model.Columns;
             if (_cells.Count > 0)
             {
                 var desiredSet = new HashSet<Core.Models.IColumn>(desired);
-                foreach (var removed in _cells.Keys.Where(x =>
-                    !desiredSet.Contains(x) || x.PresentationKey != _cells[x].Key).ToArray())
+                foreach (var removed in _cells.Keys.Where(x => !desiredSet.Contains(x)).ToArray())
                     RemoveColumn(removed);
+                foreach (var changed in _cells.Keys.Where(x =>
+                    x.PresentationKey != _cells[x].Key).ToArray())
+                    ReplaceColumn(changed);
             }
             foreach (Core.Models.IColumn<TModel> model in desired)
             {
@@ -187,13 +227,11 @@ namespace Avalonia.Controls.Presentation
             }
             while (_columns.Count > target) _columns.RemoveAt(_columns.Count - 1);
         }
+        private void SynchronizeRows() => _rows?.SetRows(Model.Rows);
         private void OnColumnPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(Core.Models.IColumn.PresentationKey))
-            {
-                foreach (var model in _cells.Keys.Where(x => x.PresentationKey != _cells[x].Key).ToArray()) RemoveColumn(model);
                 SynchronizeColumns();
-            }
             else if (e.PropertyName == nameof(Core.Models.IColumn.IsVisible)) SynchronizeColumns();
             else if (e.PropertyName == nameof(Core.Models.IColumn.Width) || e.PropertyName == nameof(Core.Models.IColumn.SortDirection))
             {
