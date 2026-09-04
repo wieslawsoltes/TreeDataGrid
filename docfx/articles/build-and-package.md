@@ -1,6 +1,6 @@
 # Build and Package
 
-New applications should use `TreeDataGrid.Avalonia`, which contains
+New applications should use `TreeDataGrid.Controls.Avalonia`, which contains
 `TreeDataGrid.Avalonia.dll` and depends directly on the matching
 `TreeDataGrid.Core` version. The `TreeDataGrid` package continues to contain
 `Avalonia.Controls.TreeDataGrid.dll` for existing applications. The two UI packages
@@ -25,11 +25,11 @@ Output includes:
 
 - `TreeDataGrid.<version>.nupkg`
 - `TreeDataGrid.<version>.snupkg`
-- `TreeDataGrid.Avalonia.<version>.nupkg`
-- `TreeDataGrid.Avalonia.<version>.snupkg`
+- `TreeDataGrid.Controls.Avalonia.<version>.nupkg`
+- `TreeDataGrid.Controls.Avalonia.<version>.snupkg`
 - `TreeDataGrid.Core.<version>.nupkg`
 - `TreeDataGrid.Core.<version>.snupkg`
 
-`TreeDataGrid.Avalonia` uses the
+`TreeDataGrid.Controls.Avalonia` uses the
 `avares://TreeDataGrid.Avalonia/Themes/Fluent.axaml` theme root. The compatibility
 package keeps `avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml`.

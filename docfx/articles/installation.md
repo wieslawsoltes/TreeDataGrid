@@ -1,6 +1,6 @@
-# `TreeDataGrid.Avalonia` Installation
+# `TreeDataGrid.Controls.Avalonia` Installation
 
-- Add the `TreeDataGrid.Avalonia` NuGet package to new projects.
+- Add the `TreeDataGrid.Controls.Avalonia` NuGet package to new projects.
 - Add its theme to `App.xaml` (the `StyleInclude` in the following markup):
 
 ```xml
