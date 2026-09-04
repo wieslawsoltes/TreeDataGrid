@@ -9,22 +9,22 @@ This guide configures TreeDataGrid in an Avalonia project and verifies that it r
 ## 1. Add NuGet Package
 
 ```bash
-dotnet add package TreeDataGrid
+dotnet add package TreeDataGrid.Avalonia
 ```
 
 If you use `PackageReference` directly:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="TreeDataGrid" Version="*" />
+  <PackageReference Include="TreeDataGrid.Avalonia" Version="*" />
 </ItemGroup>
 ```
 
-TreeDataGrid uses different identifiers for package and runtime assets:
+The Avalonia UI package uses these distribution identities:
 
-- NuGet package: `TreeDataGrid`
-- runtime assembly: `Avalonia.Controls.TreeDataGrid.dll`
-- theme URI root: `avares://Avalonia.Controls.TreeDataGrid/`
+- NuGet package: `TreeDataGrid.Avalonia`
+- runtime assembly: `TreeDataGrid.Avalonia.dll`
+- theme URI root: `avares://TreeDataGrid.Avalonia/`
 
 ## 2. Add TreeDataGrid Theme
 
@@ -36,12 +36,14 @@ Add the style include to `App.axaml`:
              x:Class="AvaloniaApplication.App">
   <Application.Styles>
     <FluentTheme/>
-    <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
+    <StyleInclude Source="avares://TreeDataGrid.Avalonia/Themes/Fluent.axaml"/>
   </Application.Styles>
 </Application>
 ```
 
-Note: keep the URI as `avares://Avalonia.Controls.TreeDataGrid/...`.
+Existing applications may keep the compatibility `TreeDataGrid` package and its
+`avares://Avalonia.Controls.TreeDataGrid/...` URI. Do not reference both UI packages
+in one application. See [Package and Assembly](../reference/package-and-assembly/).
 
 ## 3. Verify Rendering
 
@@ -77,7 +79,7 @@ Cause: missing `StyleInclude` in `App.axaml`.
 Fix: ensure this exists:
 
 ```xml
-<StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
+<StyleInclude Source="avares://TreeDataGrid.Avalonia/Themes/Fluent.axaml"/>
 ```
 
 ### Build succeeds but control does not appear

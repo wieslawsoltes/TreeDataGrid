@@ -16,7 +16,7 @@ For Fluent applications, include Fluent theme and TreeDataGrid Fluent styles:
 ```xml
 <Application.Styles>
   <FluentTheme/>
-  <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
+  <StyleInclude Source="avares://TreeDataGrid.Avalonia/Themes/Fluent.axaml"/>
 </Application.Styles>
 ```
 

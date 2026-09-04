@@ -14,7 +14,7 @@ TreeDataGrid can now be configured directly in XAML with `ItemsSource` and decla
              x:Class="MyApp.App">
   <Application.Styles>
     <FluentTheme/>
-    <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
+    <StyleInclude Source="avares://TreeDataGrid.Avalonia/Themes/Fluent.axaml"/>
   </Application.Styles>
 </Application>
 ```

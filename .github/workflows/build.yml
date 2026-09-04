@@ -161,6 +161,16 @@ jobs:
       - name: Pack
         run: dotnet pack -c Release --no-build -p:Version="${{ needs.build.outputs.version }}" -o artifacts/packages
 
+      - name: Verify package layout
+        run: python3 build/verify-package-layout.py artifacts/packages "${{ needs.build.outputs.version }}"
+
+      - name: Smoke-test TreeDataGrid.Avalonia package
+        run: >-
+          dotnet run --project tests/TreeDataGrid.Avalonia.PackageSmoke
+          -c Release
+          -p:PackageSmokeVersion="${{ needs.build.outputs.version }}"
+          -p:PackageSmokeSource="$GITHUB_WORKSPACE/artifacts/packages"
+
       - name: Upload NuGet packages
         uses: actions/upload-artifact@v4
         with:

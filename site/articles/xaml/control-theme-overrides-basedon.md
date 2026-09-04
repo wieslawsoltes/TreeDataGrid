@@ -27,7 +27,7 @@ This pattern derives from built-in themes keyed by control type and applies the 
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Application.Styles>
     <FluentTheme/>
-    <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
+    <StyleInclude Source="avares://TreeDataGrid.Avalonia/Themes/Fluent.axaml"/>
 
     <Style Selector="TreeDataGrid">
       <Setter Property="Theme" Value="{DynamicResource BrandTreeDataGridTheme}" />
