@@ -1,4 +1,5 @@
-[![NuGet](https://img.shields.io/nuget/v/TreeDataGrid.svg)](https://www.nuget.org/packages/TreeDataGrid/)
+[![NuGet Avalonia](https://img.shields.io/nuget/v/TreeDataGrid.Avalonia.svg)](https://www.nuget.org/packages/TreeDataGrid.Avalonia/)
+[![NuGet compatibility](https://img.shields.io/nuget/v/TreeDataGrid.svg)](https://www.nuget.org/packages/TreeDataGrid/)
 
 # `TreeDataGrid` for Avalonia
 
@@ -25,17 +26,17 @@ We accept all issues and pull requests but we answer and review only pull reques
 
 ## Quick Start
 
-Install the package:
+For new Avalonia applications, install the platform-specific package:
 
 ```bash
-dotnet add package TreeDataGrid
+dotnet add package TreeDataGrid.Avalonia
 ```
 
 Or add a package reference:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="TreeDataGrid" Version="x.y.z" />
+  <PackageReference Include="TreeDataGrid.Avalonia" Version="x.y.z" />
 </ItemGroup>
 ```
 
@@ -47,7 +48,7 @@ Add the theme to `App.axaml`:
              x:Class="AvaloniaApplication.App">
   <Application.Styles>
     <FluentTheme/>
-    <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
+    <StyleInclude Source="avares://TreeDataGrid.Avalonia/Themes/Fluent.axaml"/>
   </Application.Styles>
 </Application>
 ```
@@ -137,16 +138,21 @@ Bind in XAML (both modes):
 
 ## Build and Package
 
-Build/test/pack the library project:
+Build, test, and pack the complete solution:
 
 ```bash
-dotnet restore src/Avalonia.Controls.TreeDataGrid/Avalonia.Controls.TreeDataGrid.csproj
-dotnet build src/Avalonia.Controls.TreeDataGrid/Avalonia.Controls.TreeDataGrid.csproj -c Release --no-restore
+dotnet restore Avalonia.Controls.TreeDataGrid.slnx
+dotnet build Avalonia.Controls.TreeDataGrid.slnx -c Release --no-restore
 dotnet test tests/Avalonia.Controls.TreeDataGrid.Tests/Avalonia.Controls.TreeDataGrid.Tests.csproj -c Release
-dotnet pack src/Avalonia.Controls.TreeDataGrid/Avalonia.Controls.TreeDataGrid.csproj -c Release -o artifacts/packages
+dotnet pack Avalonia.Controls.TreeDataGrid.slnx -c Release --no-build -o artifacts/packages
+python3 build/verify-package-layout.py artifacts/packages
 ```
 
-Packages are generated in `artifacts/packages` (`.nupkg` and `.snupkg`).
+Packages are generated in `artifacts/packages` (`.nupkg` and `.snupkg`). The
+solution produces `TreeDataGrid.Core`, `TreeDataGrid.Avalonia`, and the compatibility
+`TreeDataGrid` package. Existing applications may keep `TreeDataGrid` and its
+`avares://Avalonia.Controls.TreeDataGrid/` theme URI. Do not reference both UI
+packages in one application. See [Avalonia package identity](docs/avalonia-package.md).
 
 ## Build Documentation
 
@@ -179,4 +185,4 @@ Generated docs output is written to `_site`.
 
 ## Framework-neutral ViewModels
 
-Use the optional `TreeDataGrid.Core` package for ViewModel-owned sources, columns, sorting, selection and expansion without an Avalonia dependency. Existing APIs remain available. See [migration and ownership](docs/framework-neutral-core.md).
+Use `TreeDataGrid.Core` for ViewModel-owned sources, columns, sorting, selection and expansion without an Avalonia dependency. New views should use `TreeDataGrid.Avalonia`; existing `TreeDataGrid` consumers remain supported. See [migration and ownership](docs/framework-neutral-core.md).

@@ -23,7 +23,7 @@ public sealed class TestApplication : Application
         Styles.Add(new FluentTheme());
         Styles.Add(new StyleInclude(new Uri("avares://TreeDataGridCoreDemo.Tests/"))
         {
-            Source = new Uri("avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml")
+            Source = new Uri("avares://TreeDataGrid.Avalonia/Themes/Fluent.axaml")
         });
     }
 

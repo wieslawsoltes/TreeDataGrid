@@ -14,7 +14,7 @@
     <PackageReference Include="Bogus" Version="34.0.2" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../../src/Avalonia.Controls.TreeDataGrid/Avalonia.Controls.TreeDataGrid.csproj" />
+    <ProjectReference Include="../../src/TreeDataGrid.Avalonia/TreeDataGrid.Avalonia.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="../TreeDataGridDemo/Models/**/*.cs" Link="Shared/Models/%(RecursiveDir)%(Filename)%(Extension)" />
