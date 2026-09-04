@@ -140,7 +140,8 @@ namespace TreeDataGridCore
             if (position == RowDropPosition.After)
                 ++ti;
 
-            var selection = _selection as ITreeSelectionModel;
+            var selection = _selection as ITreeSelectionModel ??
+                (_selection as TreeDataGridCellSelectionModel<TModel>)?.RowSelection;
             var selectedIndexes = selection?.SelectedIndexes
                 .Where(x => x.Count == 1)
                 .Select(x => x[0])

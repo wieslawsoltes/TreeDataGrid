@@ -21,8 +21,11 @@ namespace Avalonia.Controls.Presentation
         private readonly INotifyCollectionChanged? _columnNotifications;
         private readonly PresentationColumns _columns;
         private TreeDataGridRows<TModel>? _rows;
-        private TreeDataGridRowSelectionInteraction<TModel>? _interaction;
+        private ITreeDataGridSelectionInteraction? _interaction;
+        private Core.Selection.ITreeDataGridSelection? _selectionIdentity;
         private Core.Selection.ITreeDataGridRowSelectionModel<TModel>? _selection;
+        private Core.Selection.ITreeDataGridCellSelectionModel<TModel>? _cellSelection;
+        private Core.CellIndex[] _selectedCells = Array.Empty<Core.CellIndex>();
         private bool _disposed;
         private bool _suspended;
         public TreeDataGridPresentation(Core.ITreeDataGridSource<TModel> model, TreeDataGridPresentationOptions<TModel>? options = null)
@@ -88,10 +91,11 @@ namespace Avalonia.Controls.Presentation
         {
             if (_disposed || _suspended) return;
             _suspended = true;
-            if (_selection is not null) _selection.SelectionChanged -= OnNativeSelectionChanged;
-            _interaction?.Dispose();
+            UnsubscribeNativeSelection();
+            (_interaction as IDisposable)?.Dispose();
             _interaction = null;
             _selection = null;
+            _selectionIdentity = null;
             PropertyChanged?.Invoke(this, new(nameof(SelectionInteraction)));
             _rows?.Suspend();
             Model.PropertyChanged -= OnModelPropertyChanged;
@@ -133,25 +137,61 @@ namespace Avalonia.Controls.Presentation
         private void UpdateSelection()
         {
             var selection = Model.Selection;
-            if (ReferenceEquals(selection, _selection)) return;
-            if (selection is not null && selection is not Core.Selection.ITreeDataGridRowSelectionModel<TModel>)
-                throw new NotSupportedException("This presentation requires a Core row selection model.");
-            if (_selection is not null) _selection.SelectionChanged -= OnNativeSelectionChanged;
-            _interaction?.Dispose();
+            if (ReferenceEquals(selection, _selectionIdentity)) return;
+            if (selection is not null && selection is not Core.Selection.ITreeDataGridRowSelectionModel<TModel> &&
+                selection is not Core.Selection.ITreeDataGridCellSelectionModel<TModel>)
+                throw new NotSupportedException("This presentation requires a Core row or cell selection model.");
+            UnsubscribeNativeSelection();
+            (_interaction as IDisposable)?.Dispose();
             _selection = selection as Core.Selection.ITreeDataGridRowSelectionModel<TModel>;
-            _interaction = _selection is null ? null : new(Model, _selection);
+            _selectionIdentity = selection;
+            _interaction = selection switch
+            {
+                Core.Selection.ITreeDataGridRowSelectionModel<TModel> rows => new TreeDataGridRowSelectionInteraction<TModel>(Model, rows),
+                Core.Selection.ITreeDataGridCellSelectionModel<TModel> cells => new TreeDataGridCellSelectionInteraction<TModel>(Model, cells),
+                _ => null
+            };
             if (_selection is not null) _selection.SelectionChanged += OnNativeSelectionChanged;
+            _cellSelection = selection as Core.Selection.ITreeDataGridCellSelectionModel<TModel>;
+            if (_cellSelection is not null)
+            {
+                _selectedCells = _cellSelection.SelectedIndexes.ToArray();
+                _cellSelection.SelectionChanged += OnNativeCellSelectionChanged;
+            }
             PropertyChanged?.Invoke(this, new(nameof(SelectionInteraction)));
+        }
+        private void UnsubscribeNativeSelection()
+        {
+            if (_selection is not null) _selection.SelectionChanged -= OnNativeSelectionChanged;
+            if (_cellSelection is not null) _cellSelection.SelectionChanged -= OnNativeCellSelectionChanged;
+            _cellSelection = null;
+            _selectedCells = Array.Empty<Core.CellIndex>();
         }
         internal override void ApplySelectionMode(TreeDataGridSelectionMode mode)
         {
+            var single = (mode & TreeDataGridSelectionMode.Multiple) == 0;
             if ((mode & TreeDataGridSelectionMode.Cell) != 0)
-                throw new NotSupportedException("Core models support row selection; use the compatibility Source API for cell selection.");
-            if (Model.Selection is null) Model.Selection = new Core.Selection.TreeDataGridRowSelectionModel<TModel>(Model);
-            if (Model.Selection is Core.Selection.ITreeDataGridRowSelectionModel<TModel> selection) selection.SingleSelect = (mode & TreeDataGridSelectionMode.Multiple) == 0;
+            {
+                if (Model.Selection is not Core.Selection.ITreeDataGridCellSelectionModel<TModel>)
+                    Model.Selection = new Core.Selection.TreeDataGridCellSelectionModel<TModel>(Model);
+                ((Core.Selection.ITreeDataGridCellSelectionModel<TModel>)Model.Selection).SingleSelect = single;
+            }
+            else
+            {
+                if (Model.Selection is not Core.Selection.ITreeDataGridRowSelectionModel<TModel>)
+                    Model.Selection = new Core.Selection.TreeDataGridRowSelectionModel<TModel>(Model);
+                ((Core.Selection.ITreeDataGridRowSelectionModel<TModel>)Model.Selection).SingleSelect = single;
+            }
         }
         private void OnNativeSelectionChanged(object? sender, Core.Selection.TreeSelectionModelSelectionChangedEventArgs<TModel> e) =>
             RaiseNativeSelectionChanged(e);
+        private void OnNativeCellSelectionChanged(object? sender, EventArgs e)
+        {
+            var selected = _cellSelection!.SelectedIndexes.ToArray();
+            var previous = _selectedCells;
+            _selectedCells = selected;
+            RaiseNativeCellSelectionChanged(previous.Except(selected), selected.Except(previous));
+        }
         private void OnModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(Model.Selection)) UpdateSelection();

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
 using Avalonia.Controls.Models.TreeDataGrid;
@@ -36,6 +37,10 @@ namespace Avalonia.Controls.Presentation
             NativeSelectionChanged?.Invoke(this, new TreeDataGridSelectionChangedEventArgs(
                 Adapters.CoreConversions.ToAvalonia(e.DeselectedIndexes),
                 Adapters.CoreConversions.ToAvalonia(e.SelectedIndexes), e.DeselectedItems, e.SelectedItems));
+        protected void RaiseNativeCellSelectionChanged(IEnumerable<Core.CellIndex> deselected, IEnumerable<Core.CellIndex> selected) =>
+            NativeSelectionChanged?.Invoke(this, new TreeDataGridSelectionChangedEventArgs(
+                deselectedCellIndexes: deselected.Select(x => new CellIndex(x.ColumnIndex, Adapters.CoreConversions.ToAvalonia(x.RowIndex))).ToArray(),
+                selectedCellIndexes: selected.Select(x => new CellIndex(x.ColumnIndex, Adapters.CoreConversions.ToAvalonia(x.RowIndex))).ToArray()));
         public static TreeDataGridPresentation Create(Core.ITreeDataGridSource model, ITreeDataGridPresentationOptions? options = null) =>
             options?.Create(model) ?? model.Accept(Factory.Instance);
         private sealed class Factory : Core.ITreeDataGridSourceVisitor<TreeDataGridPresentation>

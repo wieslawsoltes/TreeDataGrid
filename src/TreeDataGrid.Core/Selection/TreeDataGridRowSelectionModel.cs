@@ -13,6 +13,7 @@ namespace TreeDataGridCore.Selection
         {
             _source = source;
             SelectionChanged += (_, _) => NotifyStateChanged();
+            IndexesChanged += (_, _) => NotifyStateChanged();
             SourceReset += (_, _) => NotifyStateChanged();
         }
         private void NotifyStateChanged()
