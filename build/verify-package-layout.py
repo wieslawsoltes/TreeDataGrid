@@ -12,7 +12,7 @@ from pathlib import Path
 EXPECTED_ASSEMBLIES = {
     "TreeDataGrid.Core": "TreeDataGrid.Core.dll",
     "TreeDataGrid": "Avalonia.Controls.TreeDataGrid.dll",
-    "TreeDataGrid.Avalonia": "TreeDataGrid.Avalonia.dll",
+    "TreeDataGrid.UI.Avalonia": "TreeDataGrid.Avalonia.dll",
 }
 
 
@@ -87,7 +87,7 @@ def main() -> None:
             fail(f"{path.name} does not contain {assembly}")
         other_ui_assembly = (
             "Avalonia.Controls.TreeDataGrid.dll"
-            if package_id == "TreeDataGrid.Avalonia"
+            if package_id == "TreeDataGrid.UI.Avalonia"
             else "TreeDataGrid.Avalonia.dll"
         )
         if package_id != "TreeDataGrid.Core" and any(
@@ -107,18 +107,18 @@ def main() -> None:
             fail(f"{package_id} does not depend on Avalonia")
 
     legacy_dependencies = packages["TreeDataGrid"][2]
-    avalonia_dependencies = packages["TreeDataGrid.Avalonia"][2]
-    if "TreeDataGrid.Avalonia" in legacy_dependencies:
-        fail("compatibility package depends on TreeDataGrid.Avalonia")
+    avalonia_dependencies = packages["TreeDataGrid.UI.Avalonia"][2]
+    if "TreeDataGrid.UI.Avalonia" in legacy_dependencies:
+        fail("compatibility package depends on TreeDataGrid.UI.Avalonia")
     if "TreeDataGrid" in avalonia_dependencies:
-        fail("TreeDataGrid.Avalonia depends on the compatibility package")
+        fail("TreeDataGrid.UI.Avalonia depends on the compatibility package")
 
-    for package_id in ("TreeDataGrid", "TreeDataGrid.Avalonia"):
+    for package_id in ("TreeDataGrid", "TreeDataGrid.UI.Avalonia"):
         if packages[package_id][2].get("TreeDataGrid.Core") != version:
             fail(f"{package_id} does not require TreeDataGrid.Core {version}")
 
     print(
-        f"Verified TreeDataGrid.Core, TreeDataGrid, and TreeDataGrid.Avalonia {version}: "
+        f"Verified TreeDataGrid.Core, TreeDataGrid, and TreeDataGrid.UI.Avalonia {version}: "
         "independent UI packages with matching Core dependencies and symbol packages."
     )
 

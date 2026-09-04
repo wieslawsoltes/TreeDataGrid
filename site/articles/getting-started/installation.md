@@ -9,20 +9,20 @@ This guide configures TreeDataGrid in an Avalonia project and verifies that it r
 ## 1. Add NuGet Package
 
 ```bash
-dotnet add package TreeDataGrid.Avalonia
+dotnet add package TreeDataGrid.UI.Avalonia
 ```
 
 If you use `PackageReference` directly:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="TreeDataGrid.Avalonia" Version="*" />
+  <PackageReference Include="TreeDataGrid.UI.Avalonia" Version="*" />
 </ItemGroup>
 ```
 
 The Avalonia UI package uses these distribution identities:
 
-- NuGet package: `TreeDataGrid.Avalonia`
+- NuGet package: `TreeDataGrid.UI.Avalonia`
 - runtime assembly: `TreeDataGrid.Avalonia.dll`
 - theme URI root: `avares://TreeDataGrid.Avalonia/`
 
