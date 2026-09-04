@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <IsPackable>true</IsPackable>
-    <PackageId>TreeDataGrid.UI.Avalonia</PackageId>
+    <PackageId>TreeDataGrid.Controls.Avalonia</PackageId>
     <AssemblyName>TreeDataGrid.Avalonia</AssemblyName>
     <RootNamespace>Avalonia.Controls</RootNamespace>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>

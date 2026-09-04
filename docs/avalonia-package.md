@@ -1,11 +1,11 @@
 # Avalonia package identity
 
-New Avalonia applications should reference `TreeDataGrid.UI.Avalonia`. It is the
+New Avalonia applications should reference `TreeDataGrid.Controls.Avalonia`. It is the
 platform-specific UI package paired with the framework-neutral `TreeDataGrid.Core`
 package:
 
 ```xml
-<PackageReference Include="TreeDataGrid.UI.Avalonia" Version="x.y.z" />
+<PackageReference Include="TreeDataGrid.Controls.Avalonia" Version="x.y.z" />
 ```
 
 The UI package brings in the exact matching `TreeDataGrid.Core` version transitively.
@@ -18,10 +18,10 @@ Use its assembly name in theme resource URIs:
 | Package | Assembly | Purpose |
 |---|---|---|
 | `TreeDataGrid.Core` | `TreeDataGrid.Core.dll` | Framework-neutral models, columns, sorting, selection and expansion |
-| `TreeDataGrid.UI.Avalonia` | `TreeDataGrid.Avalonia.dll` | Preferred Avalonia controls, presentation, input and themes |
+| `TreeDataGrid.Controls.Avalonia` | `TreeDataGrid.Avalonia.dll` | Preferred Avalonia controls, presentation, input and themes |
 | `TreeDataGrid` | `Avalonia.Controls.TreeDataGrid.dll` | Existing Avalonia package retained for compatibility |
 
-`TreeDataGrid.UI.Avalonia` source-links the complete UI implementation from
+`TreeDataGrid.Controls.Avalonia` source-links the complete UI implementation from
 `src/Avalonia.Controls.TreeDataGrid`; it is not a dependency-only wrapper around
 `TreeDataGrid`. Both UI packages therefore expose the same Avalonia namespaces and
 types but have different assembly and resource identities. Reference one UI package,

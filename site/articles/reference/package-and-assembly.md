@@ -8,7 +8,7 @@ TreeDataGrid ships framework-neutral Core, preferred Avalonia UI, and compatibil
 
 ## Distribution Identity
 
-- preferred NuGet package: `TreeDataGrid.UI.Avalonia`
+- preferred NuGet package: `TreeDataGrid.Controls.Avalonia`
 - preferred runtime assembly: `TreeDataGrid.Avalonia.dll`
 - preferred theme resource URI root: `avares://TreeDataGrid.Avalonia/`
 - compatibility package: `TreeDataGrid`
@@ -18,7 +18,7 @@ TreeDataGrid ships framework-neutral Core, preferred Avalonia UI, and compatibil
 - generated API route: `/api`
 
 The two UI packages source-link the same implementation and expose the same API.
-Reference only one UI package. New applications should use `TreeDataGrid.UI.Avalonia`;
+Reference only one UI package. New applications should use `TreeDataGrid.Controls.Avalonia`;
 existing applications may retain `TreeDataGrid` unchanged.
 
 ## What the Package Contains
