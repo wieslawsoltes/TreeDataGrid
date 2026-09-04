@@ -4,7 +4,7 @@
 
 The control consumes Core rows directly. Each view owns its column layout, cell bindings and input handling. Core models are not converted into legacy sources, rows, columns or selection models. The earlier unpublished `TreeDataGridSourceAdapter` API has been removed.
 
-New Avalonia views should reference `TreeDataGrid.UI.Avalonia`. The existing `TreeDataGrid` package, assembly, source and column APIs remain available for compatibility. Existing applications can continue to bind `Source`; the compatibility presentation connects those sources to the same renderer. Binary compatibility is broken, so rebuild consumers. Legacy sources retain their model behavior and share keyboard, pointer and search handling with Core. See [Avalonia package identity](avalonia-package.md).
+New Avalonia views should reference `TreeDataGrid.Controls.Avalonia`. The existing `TreeDataGrid` package, assembly, source and column APIs remain available for compatibility. Existing applications can continue to bind `Source`; the compatibility presentation connects those sources to the same renderer. Binary compatibility is broken, so rebuild consumers. Legacy sources retain their model behavior and share keyboard, pointer and search handling with Core. See [Avalonia package identity](avalonia-package.md).
 
 ## ViewModel
 
@@ -32,7 +32,7 @@ Flat and hierarchical sources own items, sorting, row index paths, selection and
 
 ## View
 
-Reference `TreeDataGrid.UI.Avalonia` and bind the Core source directly:
+Reference `TreeDataGrid.Controls.Avalonia` and bind the Core source directly:
 
 ```xml
 <TreeDataGrid Model="{Binding People}" />

@@ -8,7 +8,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia.Headless" Version="$(AvaloniaSamplesVersion)" />
-    <PackageReference Include="TreeDataGrid.UI.Avalonia" Version="$(PackageSmokeVersion)" />
+    <PackageReference Include="TreeDataGrid.Controls.Avalonia" Version="$(PackageSmokeVersion)" />
   </ItemGroup>
   <Target Name="RequirePackageSmokeVersion" BeforeTargets="CollectPackageReferences">
     <Error Condition="'$(PackageSmokeVersion)' == ''" Text="PackageSmokeVersion is required." />
