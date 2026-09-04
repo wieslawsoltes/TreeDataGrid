@@ -1,4 +1,4 @@
-[![NuGet Avalonia](https://img.shields.io/nuget/v/TreeDataGrid.Avalonia.svg)](https://www.nuget.org/packages/TreeDataGrid.Avalonia/)
+[![NuGet Avalonia](https://img.shields.io/nuget/v/TreeDataGrid.UI.Avalonia.svg)](https://www.nuget.org/packages/TreeDataGrid.UI.Avalonia/)
 [![NuGet compatibility](https://img.shields.io/nuget/v/TreeDataGrid.svg)](https://www.nuget.org/packages/TreeDataGrid/)
 
 # `TreeDataGrid` for Avalonia
@@ -29,14 +29,14 @@ We accept all issues and pull requests but we answer and review only pull reques
 For new Avalonia applications, install the platform-specific package:
 
 ```bash
-dotnet add package TreeDataGrid.Avalonia
+dotnet add package TreeDataGrid.UI.Avalonia
 ```
 
 Or add a package reference:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="TreeDataGrid.Avalonia" Version="x.y.z" />
+  <PackageReference Include="TreeDataGrid.UI.Avalonia" Version="x.y.z" />
 </ItemGroup>
 ```
 
@@ -149,7 +149,7 @@ python3 build/verify-package-layout.py artifacts/packages
 ```
 
 Packages are generated in `artifacts/packages` (`.nupkg` and `.snupkg`). The
-solution produces `TreeDataGrid.Core`, `TreeDataGrid.Avalonia`, and the compatibility
+solution produces `TreeDataGrid.Core`, `TreeDataGrid.UI.Avalonia`, and the compatibility
 `TreeDataGrid` package. Existing applications may keep `TreeDataGrid` and its
 `avares://Avalonia.Controls.TreeDataGrid/` theme URI. Do not reference both UI
 packages in one application. See [Avalonia package identity](docs/avalonia-package.md).
@@ -185,4 +185,4 @@ Generated docs output is written to `_site`.
 
 ## Framework-neutral ViewModels
 
-Use `TreeDataGrid.Core` for ViewModel-owned sources, columns, sorting, selection and expansion without an Avalonia dependency. New views should use `TreeDataGrid.Avalonia`; existing `TreeDataGrid` consumers remain supported. See [migration and ownership](docs/framework-neutral-core.md).
+Use `TreeDataGrid.Core` for ViewModel-owned sources, columns, sorting, selection and expansion without an Avalonia dependency. New views should use the `TreeDataGrid.UI.Avalonia` package; existing `TreeDataGrid` consumers remain supported. See [migration and ownership](docs/framework-neutral-core.md).

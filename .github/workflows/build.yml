@@ -136,7 +136,7 @@ jobs:
       - name: Verify package layout
         run: python3 build/verify-package-layout.py artifacts/packages "${{ needs.build.outputs.version }}"
 
-      - name: Smoke-test TreeDataGrid.Avalonia package
+      - name: Smoke-test TreeDataGrid.UI.Avalonia package
         run: >-
           dotnet run --project tests/TreeDataGrid.Avalonia.PackageSmoke
           -c Release

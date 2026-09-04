@@ -10,7 +10,7 @@ AppBuilder.Configure<Application>()
     .UseHeadless(new AvaloniaHeadlessPlatformOptions())
     .SetupWithoutStarting();
 
-var source = new TreeDataGridCore.FlatTreeDataGridSource<Row>(new[] { new Row("TreeDataGrid.Avalonia") })
+var source = new TreeDataGridCore.FlatTreeDataGridSource<Row>(new[] { new Row("TreeDataGrid.UI.Avalonia") })
 {
     Columns =
     {
@@ -31,6 +31,6 @@ var theme = AvaloniaXamlLoader.Load(
 if (theme is not Styles)
     throw new InvalidOperationException("The TreeDataGrid.Avalonia theme did not load as Avalonia styles.");
 
-Console.WriteLine("TreeDataGrid.Avalonia package smoke test passed.");
+Console.WriteLine("TreeDataGrid.UI.Avalonia package smoke test passed.");
 
 internal sealed record Row(string Name);
