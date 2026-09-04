@@ -81,9 +81,10 @@ namespace TreeDataGridCore.Models
 
         public int ModelIndexToRowIndex(IndexPath modelIndex)
         {
-            if (modelIndex.Count != 1)
+            if (modelIndex.Count != 1 || (uint)modelIndex[0] >= (uint)_items.Count)
                 return -1;
 
+            if (_comparer is not null) _sortedIndexes ??= CreateSortedIndexes();
             var i = modelIndex[0];
 
             if (_sortedIndexes is null)
@@ -93,7 +94,12 @@ namespace TreeDataGridCore.Models
 
         }
 
-        public IndexPath RowIndexToModelIndex(int rowIndex) => _sortedIndexes?[rowIndex] ?? rowIndex;
+        public IndexPath RowIndexToModelIndex(int rowIndex)
+        {
+            if ((uint)rowIndex >= (uint)_items.Count) return default;
+            if (_comparer is not null) _sortedIndexes ??= CreateSortedIndexes();
+            return _sortedIndexes?[rowIndex] ?? rowIndex;
+        }
 
         public void Sort(IComparer<TModel>? comparer)
         {

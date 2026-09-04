@@ -21,7 +21,8 @@ namespace Avalonia.Controls.Presentation
         private readonly INotifyCollectionChanged? _columnNotifications;
         private readonly PresentationColumns _columns;
         private TreeDataGridRows<TModel>? _rows;
-        private TreeDataGridRowSelectionInteraction<TModel>? _interaction;
+        private ITreeDataGridSelectionInteraction? _interaction;
+        private Core.Selection.ITreeDataGridSelection? _selectionIdentity;
         private Core.Selection.ITreeDataGridRowSelectionModel<TModel>? _selection;
         private bool _disposed;
         private bool _suspended;
@@ -88,9 +89,10 @@ namespace Avalonia.Controls.Presentation
         {
             if (_disposed || _suspended) return;
             _suspended = true;
-            _interaction?.Dispose();
+            (_interaction as IDisposable)?.Dispose();
             _interaction = null;
             _selection = null;
+            _selectionIdentity = null;
             PropertyChanged?.Invoke(this, new(nameof(SelectionInteraction)));
             _rows?.Suspend();
             Model.PropertyChanged -= OnModelPropertyChanged;
@@ -132,12 +134,19 @@ namespace Avalonia.Controls.Presentation
         private void UpdateSelection()
         {
             var selection = Model.Selection;
-            if (ReferenceEquals(selection, _selection)) return;
-            if (selection is not null && selection is not Core.Selection.ITreeDataGridRowSelectionModel<TModel>)
-                throw new NotSupportedException("This presentation requires a Core row selection model.");
-            _interaction?.Dispose();
+            if (ReferenceEquals(selection, _selectionIdentity)) return;
+            if (selection is not null && selection is not Core.Selection.ITreeDataGridRowSelectionModel<TModel> &&
+                selection is not Core.Selection.ITreeDataGridCellSelectionModel<TModel>)
+                throw new NotSupportedException("This presentation requires a Core row or cell selection model.");
+            (_interaction as IDisposable)?.Dispose();
             _selection = selection as Core.Selection.ITreeDataGridRowSelectionModel<TModel>;
-            _interaction = _selection is null ? null : new(Model, _selection);
+            _selectionIdentity = selection;
+            _interaction = selection switch
+            {
+                Core.Selection.ITreeDataGridRowSelectionModel<TModel> rows => new TreeDataGridRowSelectionInteraction<TModel>(Model, rows),
+                Core.Selection.ITreeDataGridCellSelectionModel<TModel> cells => new TreeDataGridCellSelectionInteraction<TModel>(Model, cells),
+                _ => null
+            };
             PropertyChanged?.Invoke(this, new(nameof(SelectionInteraction)));
         }
         private void OnModelPropertyChanged(object? sender, PropertyChangedEventArgs e)

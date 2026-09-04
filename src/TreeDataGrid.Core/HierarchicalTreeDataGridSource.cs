@@ -467,7 +467,8 @@ namespace TreeDataGridCore
                 return (new IndexPath(indexes), false);
             }
 
-            var selection = _selection as ITreeSelectionModel;
+            var selection = _selection as ITreeSelectionModel ??
+                (_selection as TreeDataGridCellSelectionModel<TModel>)?.RowSelection;
             var originalPrimarySelection = selection?.SelectedIndex ?? default;
             var originalSelections = selection?.SelectedIndexes.ToArray();
             var mappedAnchor = selection?.AnchorIndex.Count > 0 &&

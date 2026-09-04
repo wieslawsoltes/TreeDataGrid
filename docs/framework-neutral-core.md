@@ -64,7 +64,31 @@ Normal legacy source construction and `Source` binding continue to work. Existin
 
 Low-level renderer customizations should use `ITreeDataGridRows` and `TreeDataGridCore.Models.IRow`: the control and row presenters now render this common row contract. `IExpanderCellPresentation` is the corresponding native expander-cell contract. Legacy interfaces remain available. For drag data, old sources continue to use `DragInfo.Source`; Core sources use `DragInfo.Model`.
 
-Core currently provides row selection. Existing cell/column selection remains available through the legacy API.
+Core also provides `TreeDataGridCellSelectionModel<TModel>`. Assign it to `source.Selection`
+and set `SingleSelect = false` for rectangular cell or whole-column ranges:
+
+```csharp
+using TreeDataGridCore;
+using TreeDataGridCore.Selection;
+
+var selection = new TreeDataGridCellSelectionModel<Person>(people) { SingleSelect = false };
+people.Selection = selection;
+selection.SetSelectedRange(new CellIndex(1, people.Rows.RowIndexToModelIndex(0)), 1, people.Rows.Count);
+```
+
+`CellIndex.ColumnIndex` refers to source columns, including hidden columns. `RowIndex` is
+a model index path; range lengths follow displayed row order, including sorting and expanded
+children. The native presentation maps visible columns for mouse and keyboard input and
+suspends its selection subscription on detach. Cell selection does not enable row dragging.
+Dispose an explicitly owned cell selection model when it is no longer needed.
+
+Custom presentations can derive from `Avalonia.Controls.Presentation.CellColumnBase<TModel>`
+and override only `CreateCell(TreeDataGridCore.Models.IRow<TModel>)`. Its `CellColumnOptions`
+contain view sizing, with no legacy row or sorting contract. The base preserves pixel, auto
+and star layout and implements the public `IColumnMeasurementOptions` hint. Independent
+`ICellColumn<TModel>` implementations can also implement that hint; return `false` only
+when the known actual width is sufficient for initial measurement. Auto-sized content or
+auto min/max constraints require natural-width measurement.
 
 ## Complete Core sample
 
