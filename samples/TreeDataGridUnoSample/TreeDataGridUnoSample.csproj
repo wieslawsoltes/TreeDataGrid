@@ -12,7 +12,11 @@
   <ItemGroup>
     <ProjectReference Include="../../src/TreeDataGrid.Uno/TreeDataGrid.Uno.csproj" />
     <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />
+    <PackageReference Include="ReactiveUI" Version="19.4.1" />
     <Compile Include="../TreeDataGridDemo/Models/Country.cs" Link="Models/Country.cs" />
     <Compile Include="../TreeDataGridDemo/Models/Countries.cs" Link="Models/Countries.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/Person.cs" Link="Models/Person.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/TemplateColumnItem.cs" Link="Models/TemplateColumnItem.cs" />
+    <Compile Include="../TreeDataGridDemo/ViewModels/PeopleXamlPageViewModel.cs" Link="Models/PeopleXamlPageViewModel.cs" />
   </ItemGroup>
 </Project>

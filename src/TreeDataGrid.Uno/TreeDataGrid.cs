@@ -66,6 +66,7 @@ public partial class TreeDataGrid : Control
     public TreeDataGridSelectionMode SelectionMode { get => (TreeDataGridSelectionMode)GetValue(SelectionModeProperty); set => SetValue(SelectionModeProperty, value); }
     public TreeDataGridPresentationOptions PresentationOptions { get; } = new();
     public Dictionary<string, DataTemplate> CellTemplates { get; } = new();
+    public Dictionary<string, DataTemplate> CellEditingTemplates { get; } = new();
     public Func<CellColumn, TreeDataGridCell> CellFactory { get; set; } = static _ => new();
     public TreeDataGridPresentation? Presentation => _presentation;
     public TreeDataGridRowsPresenter RowsPresenter => _presenter ?? throw new InvalidOperationException("The rows template part has not been applied.");
@@ -95,6 +96,7 @@ public partial class TreeDataGrid : Control
             if (!_loaded) next?.Suspend();
         }
         catch { next?.Dispose(); throw; }
+        CancelEdit();
         _presenter?.Reset();
         if (_presentation is not null)
         {
@@ -123,6 +125,7 @@ public partial class TreeDataGrid : Control
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
         _pressedPoint = null;
+        CancelEdit();
         _loaded = false;
         _presenter?.Reset();
         _headers?.Update(null, _geometry, 0, 0);

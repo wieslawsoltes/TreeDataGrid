@@ -31,8 +31,10 @@ public partial class App : Application
             page.Grid.Scroll.ChangeView(300, 500, null, true);
             await Task.Delay(500);
             page.VerifyScrolledRender();
+            await ShowcaseRuntimeChecks.RunAsync(page, CaptureAsync);
             await RuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"]);
             await SelectionRuntimeChecks.RunAsync(page.Grid, (Microsoft.UI.Xaml.Controls.ControlTemplate)page.Resources["AlternateGridTemplate"]);
+            await EditingRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"], (DataTemplate)page.Resources["RuntimeEditingTemplate"]);
             Console.WriteLine("UNO_CORE_SAMPLE_SMOKE_PASSED");
             Exit();
         }
@@ -49,6 +51,8 @@ public partial class App : Application
         if (index < 0 || index + 1 >= args.Length) return;
         var directory = Path.GetFullPath(args[index + 1]);
         Directory.CreateDirectory(directory);
+        if (element is FrameworkElement frameworkElement) frameworkElement.UpdateLayout();
+        await Task.Delay(75);
         var bitmap = new RenderTargetBitmap();
         await bitmap.RenderAsync(element);
         using var image = SKImage.FromPixelCopy(new SKImageInfo(bitmap.PixelWidth, bitmap.PixelHeight,

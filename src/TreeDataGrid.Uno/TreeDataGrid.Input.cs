@@ -23,6 +23,7 @@ public partial class TreeDataGrid
     public bool SelectCell(int row, int column, bool extend = false, bool toggle = false, bool preserve = false)
     {
         if (_presentation is null) return false;
+        if (EditingCell is { } editing && (editing.RowIndex != row || editing.ColumnIndex != column) && !CommitEdit()) return false;
         _currentColumn = column;
         if (!_presentation.Selection.Select(row, column, extend, toggle, preserve)) return false;
         _presenter?.RefreshSelection();
@@ -105,7 +106,12 @@ public partial class TreeDataGrid
     protected override void OnKeyDown(KeyRoutedEventArgs e)
     {
         base.OnKeyDown(e);
+        if (!e.Handled && e.Key == VirtualKey.Escape && EditingCell is not null)
+        { CancelEdit(); Focus(FocusState.Keyboard); e.Handled = true; return; }
+        if (!e.Handled && e.Key == VirtualKey.Enter && EditingCell is not null)
+        { if (CommitEdit()) Focus(FocusState.Keyboard); e.Handled = true; return; }
         if (e.Handled || IsEditor(e.OriginalSource as DependencyObject)) return;
+        if (e.Key is VirtualKey.F2 or VirtualKey.Enter) { e.Handled = BeginEdit(); return; }
         var shift = IsKeyDown(VirtualKey.Shift);
         var control = IsKeyDown(VirtualKey.Control) || IsKeyDown(VirtualKey.LeftWindows) || IsKeyDown(VirtualKey.RightWindows);
         if (control && e.Key == VirtualKey.A) { _presentation?.Selection.SelectAll(); e.Handled = true; return; }

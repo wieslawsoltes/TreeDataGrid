@@ -5,8 +5,17 @@
       xmlns:primitives="using:Uno.Controls.Primitives"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
   <Page.Resources>
+    <DataTemplate x:Key="FlagTemplate">
+      <CheckBox IsChecked="{Binding IsFlagged}" IsEnabled="False" HorizontalAlignment="Center" MinWidth="0" MinHeight="0" />
+    </DataTemplate>
+    <DataTemplate x:Key="DetailsTemplate">
+      <TextBlock Text="{Binding Details}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="8,0" />
+    </DataTemplate>
     <DataTemplate x:Key="RuntimeCellTemplate">
       <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Margin="8,0" />
+    </DataTemplate>
+    <DataTemplate x:Key="RuntimeEditingTemplate">
+      <TextBox Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" MinHeight="0" Padding="6,2" />
     </DataTemplate>
     <ControlTemplate x:Key="AlternateGridTemplate" TargetType="tdg:TreeDataGrid">
       <Grid>
@@ -30,15 +39,25 @@
     </Grid.RowDefinitions>
     <StackPanel Spacing="8">
       <TextBlock Text="TreeDataGrid / Uno" FontSize="24" FontWeight="SemiBold" />
-      <TextBlock Text="Countries · shared Core source · click column headers to sort" />
+      <TextBlock x:Name="ScenarioDescription" Text="Countries · shared Core source · click column headers to sort" />
       <StackPanel Orientation="Horizontal" Spacing="12">
+        <ComboBox x:Name="Scenarios" SelectedIndex="0" SelectionChanged="OnScenarioChanged" MinWidth="180" AutomationProperties.Name="Sample scenario">
+          <ComboBoxItem Content="Countries" />
+          <ComboBoxItem Content="People" />
+          <ComboBoxItem Content="Templates" />
+        </ComboBox>
         <ComboBox x:Name="SelectionModes" SelectedIndex="0" SelectionChanged="OnSelectionModeChanged" MinWidth="180">
           <ComboBoxItem Content="Source selection" />
           <ComboBoxItem Content="Multiple rows" />
           <ComboBoxItem Content="Multiple cells" />
           <ComboBoxItem Content="No selection" />
         </ComboBox>
-        <TextBlock Text="Click to select · Shift for ranges · arrows to navigate" VerticalAlignment="Center" />
+      </StackPanel>
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <Button x:Name="MutateButton" Content="Add child" Click="OnMutate" Visibility="Collapsed" />
+        <Button x:Name="RemoveButton" Content="Remove selected" Click="OnRemove" Visibility="Collapsed" />
+        <Button x:Name="EditButton" Content="Edit cell (F2)" Click="OnEdit" Visibility="Collapsed" />
+        <TextBlock Text="Click to select · Shift for ranges · arrows to navigate · double-click or F2 to edit" VerticalAlignment="Center" TextWrapping="Wrap" />
       </StackPanel>
     </StackPanel>
     <tdg:TreeDataGrid x:Name="CountriesGrid" Grid.Row="1" />

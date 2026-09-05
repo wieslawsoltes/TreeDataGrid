@@ -59,6 +59,14 @@
                   </VisualState.Setters>
                 </VisualState>
               </VisualStateGroup>
+              <VisualStateGroup x:Name="ValidationStates">
+                <VisualState x:Name="Valid" />
+                <VisualState x:Name="Invalid">
+                  <VisualState.Setters>
+                    <Setter Target="ValidationBorder.Opacity" Value="1" />
+                  </VisualState.Setters>
+                </VisualState>
+              </VisualStateGroup>
             </VisualStateManager.VisualStateGroups>
             <Border x:Name="SelectionBackground" Background="{ThemeResource SubtleFillColorSecondaryBrush}" Opacity="0" />
             <Grid>
@@ -73,9 +81,13 @@
                            Foreground="{TemplateBinding Foreground}" />
                 <CheckBox x:Name="PART_CheckBox" Margin="8,0" MinWidth="0" IsTabStop="False" VerticalAlignment="Center" />
                 <ContentPresenter x:Name="PART_Content" />
+                <Grid x:Name="PART_EditorHost" Visibility="Collapsed" />
+                <ContentPresenter x:Name="PART_EditingContent" Visibility="Collapsed" />
               </Grid>
             </Grid>
             <Border x:Name="CurrentBorder" BorderBrush="{ThemeResource SystemControlHighlightAccentBrush}"
+                    BorderThickness="1" Opacity="0" IsHitTestVisible="False" />
+            <Border x:Name="ValidationBorder" BorderBrush="{ThemeResource SystemFillColorCriticalBrush}"
                     BorderThickness="1" Opacity="0" IsHitTestVisible="False" />
           </Grid>
         </ControlTemplate>

@@ -136,7 +136,8 @@ public partial class TreeDataGridRowsPresenter : Panel
             previous = null!;
             next = _presentation.RealizeCell(key.Column, key.Row);
             Owner!.CellTemplates.TryGetValue(column.Model.PresentationKey ?? "", out var template);
-            control.Realize(column, next, _presentation.Rows[key.Row], key.Column, key.Row, template);
+            Owner.CellEditingTemplates.TryGetValue(column.Model.PresentationKey ?? "", out var editingTemplate);
+            control.Realize(column, next, _presentation.Rows[key.Row], key.Column, key.Row, template, editingTemplate);
             UpdateSelection(control);
             success = true;
         }
@@ -190,7 +191,8 @@ public partial class TreeDataGridRowsPresenter : Panel
                     {
                         value = _presentation.RealizeCell(column, row);
                         Owner.CellTemplates.TryGetValue(view.Model.PresentationKey ?? "", out var template);
-                        control.Realize(view, value, rows[row], column, row, template);
+                        Owner.CellEditingTemplates.TryGetValue(view.Model.PresentationKey ?? "", out var editingTemplate);
+                        control.Realize(view, value, rows[row], column, row, template, editingTemplate);
                         UpdateSelection(control);
                         _realized.Add((row, column), control);
                         success = true;

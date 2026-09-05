@@ -57,8 +57,9 @@ Avalonia compatibility shims are not the model architecture for this port.
 ## Progress
 
 Implementation and validation are in progress. This file is a completion checklist,
-not a claim of completed parity. The initial Countries desktop sample runs; the
-complete showcase, Activity Monitor, and the new PR are still pending.
+not a claim of completed parity. Countries, People, and Templates run in the desktop
+sample. New draft [PR #26](https://github.com/wieslawsoltes/TreeDataGrid/pull/26) is
+open; the complete showcase and Activity Monitor are still pending.
 
 ### Verified foundation (2026-09-05)
 
@@ -141,6 +142,45 @@ complete showcase, Activity Monitor, and the new PR are still pending.
   runs native X11 regression checks with renders. Remote results are pending;
   these Skia desktop jobs do not establish Windows App SDK or browser coverage.
 
+### Editing and shared showcase checkpoint (2026-09-05)
+
+- Added text/numeric editing, template editors registered by presentation key,
+  F2/double-tap/Enter entry, Enter commit and Escape cancel. TextBox creation is
+  lazy (only on first edit); its host stays parented after editing and recycling.
+  The display template stays attached while the editing template is shown.
+- Each edit captures its realized model, including optional `IEditableObject`
+  transactions. Recycling/source removal cancels the old edit. Failed conversions
+  and setters leave the editor open with a validation border and error tooltip;
+  selection cannot leave an invalid edit through the selection API.
+- Six new unit tests cover buffered cancellation, exact-once commit, retry after
+  write failure, template transaction ownership, synchronous cancellation during
+  writeback, and failed BeginEdit cleanup. Total: 53 Uno tests; all 202 Core tests
+  also passed again with the local .NET 10 roll-forward setting.
+- Native checks exercise real TextBoxes (including two-way template binding),
+  focus entry, focus-loss commit, numeric validation/correction, row replacement,
+  source removal, and reentrant model replacement during BeginEdit. Uno dispatches
+  LostFocus asynchronously; its regression waits for that event rather than
+  assuming a synchronous focus callback. No grid-owned deferred recycle closure
+  was introduced.
+- The showcase now switches between Countries, People, and Templates using the
+  same Uno control. `Person`, the People initial data, and `TemplateColumnItem`
+  are source-linked from the original demo. Only neutral `ReactiveUI` is added;
+  the Uno app does not reference `ReactiveUI.Avalonia` or Avalonia UI.
+- People supports nested expansion, editable expander/name/title/age cells,
+  native checkbox writeback, add-child and removal. Templates has 200 rows,
+  sortable display templates, replacement and removal. Runtime checks assert
+  model identity, initial nested expansion, live child changes, retained template
+  content on replacement, correct details after scrolling, and source switching.
+- Inspected settled native 2048×1280 renders in `artifacts/uno`: `countries.png`,
+  `people.png`, `people-validation.png`, and `templates.png`. Capture now flushes
+  layout and waits for rendering after mutations; immediate captures had shown
+  stale row positions and an unarranged editor. The invalid editor has an explicit
+  positive-size/input assertion in the runtime check.
+- The earlier PR head `af9ea133` passed the existing Build/Test/Docs/Pack workflow,
+  Uno Linux/Windows build/tests, and native Linux X11 regression run. Its hosted
+  macOS job remained queued at the last check. These results do not validate this
+  new checkpoint until its CI runs finish.
+
 ### Remaining implementation and verification
 
 - Complete control theme styling and automation, and test actual OS input/focus
@@ -159,9 +199,9 @@ complete showcase, Activity Monitor, and the new PR are still pending.
   measure recycling allocations/timing against the current Avalonia benchmarks.
   The current binding/geometry unit tests alone do not prove these requirements.
 - Port all showcase scenarios and Activity Monitor with shared model source where
-  practical. Countries alone is not the requested full sample suite.
+  practical. Countries, People, and Templates are not the requested full suite.
 - Restore browser and Windows App SDK heads, finish solution/package/CI lanes, verify real
-  heads, update public README, review the full diff, push, and open the new PR.
+  heads, update public README, review the full diff, and finish draft PR #26.
 
 ### Reproduction
 
@@ -174,7 +214,8 @@ dotnet run --project samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj 
 ```
 
 The runtime command must exit zero and print
-`UNO_RUNTIME_RECYCLING_PASSED`, `UNO_RUNTIME_SELECTION_PASSED`, and
+`UNO_RUNTIME_RECYCLING_PASSED`, `UNO_RUNTIME_SELECTION_PASSED`,
+`UNO_RUNTIME_EDITING_PASSED`, `UNO_RUNTIME_SHOWCASE_PASSED`, and
 `UNO_CORE_SAMPLE_SMOKE_PASSED`. Omit `--smoke`
-to leave the Countries window open for interaction. The optional screenshot
+to leave the showcase window open for interaction. The optional screenshot
 switch writes a generated artifact, not a checked-in source file.

@@ -30,8 +30,9 @@ We accept all issues and pull requests but we answer and review only pull reques
 
 The clean Uno port uses the same `TreeDataGrid.Core` assembly as Avalonia, without
 copying the model layer. The control is `Uno.Controls.TreeDataGrid`; assign a Core
-source to its `Model` property. The desktop sample shares the Avalonia Countries
-data and can be run from this branch with:
+source to its `Model` property. The desktop sample offers Countries, editable
+People, and template-recycling scenarios, source-linking their existing Avalonia
+sample models without referencing Avalonia UI. Run it from this branch with:
 
 ```sh
 dotnet run --project samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj -c Release -f net10.0-desktop
