@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Controls;
 using TreeDataGridCore;
 using TreeDataGridCore.Models;
 using TreeDataGridDemo.Models;
+using Uno.Controls.Presentation;
 
 namespace TreeDataGridUnoSample;
 
@@ -23,6 +24,17 @@ public sealed partial class MainPage : Page
         CountriesGrid.Model = _source;
     }
     public Uno.Controls.TreeDataGrid Grid => CountriesGrid;
+    private void OnSelectionModeChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (CountriesGrid is null) return;
+        CountriesGrid.SelectionMode = SelectionModes.SelectedIndex switch
+        {
+            1 => TreeDataGridSelectionMode.MultipleRows,
+            2 => TreeDataGridSelectionMode.MultipleCells,
+            3 => TreeDataGridSelectionMode.None,
+            _ => TreeDataGridSelectionMode.Source,
+        };
+    }
     public void VerifyInitialRender()
     {
         if (!ReferenceEquals(CountriesGrid.Presentation?.Rows, _source.Rows))

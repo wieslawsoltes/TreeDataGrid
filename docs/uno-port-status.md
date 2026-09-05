@@ -109,17 +109,50 @@ complete showcase, Activity Monitor, and the new PR are still pending.
    setting `Environment.ExitCode` followed by Uno `Application.Exit()` did not
    preserve the nonzero result. The failure path now explicitly exits with 1.
 
+### Templating and selection checkpoint (2026-09-05)
+
+- The grid and cells now derive from `Control` and use `Themes/Generic.xaml`,
+  template parts, theme resources, and selected/current visual states. The default
+  themes are discovered without an explicit sample-only merge on macOS/Skia.
+- A view-owned selection controller maps visible columns and displayed rows to
+  the exact Core row/cell selection model. Its subscriptions suspend on unload;
+  existing source selection is not cleared or disposed by unloading a view.
+  Source/default, none, single/multiple-row, and single/multiple-cell modes exist.
+- Nine additional unit tests cover row ranges after sorting, toggle/right-click
+  preservation semantics, hidden-column mapping, column moves, rectangular
+  ranges, external selection replacement, suspension, and select-all. Total: 47
+  passing Uno tests.
+- Native checks verify selected/current cell state, row and rectangular cell
+  navigation, scrolling an offscreen selected row into view, hierarchical
+  expansion/collapse and parent/child navigation, and retemplating while retaining
+  shared selection and releasing the previous presenter.
+- Grid source replacement is staged before the working presentation is removed.
+  If creation fails, the `Model` dependency property is restored to the previous
+  source. A native regression verifies that the old Model/presentation pair remains
+  usable. This extends the earlier column-factory failure recovery to the grid.
+- The Countries render now includes its selection-mode selector, a highlighted
+  Albania row, and the current-cell border; it was visually inspected. The added
+  toolbar reduces the initial/scrolled realized cell counts to 108/120.
+- `TreeDataGrid.Input.cs` wires pointer press/release/cancel and keyboard events
+  to the tested selection/navigation operations. The runtime checks invoke those
+  operations programmatically; actual OS pointer/keyboard dispatch is still a
+  separate unverified gate, not implied by those passing checks.
+- A dedicated Uno CI workflow now builds/tests on Linux, Windows, and macOS and
+  runs native X11 regression checks with renders. Remote results are pending;
+  these Skia desktop jobs do not establish Windows App SDK or browser coverage.
+
 ### Remaining implementation and verification
 
-- Replace the early code-composed `UserControl` shell with the production
-  templated-control/theme contract; add styling/automation and visual states.
+- Complete control theme styling and automation, and test actual OS input/focus
+  routing (including editing and drag/drop interactions with selection).
 - Implement actual auto measurement and constrained-star redistribution. Current
   auto widths use an initial fixed estimate; fixed-width geometry checks do not
   establish auto/star parity. Nonuniform row height, anchoring, resizing and
-  bring-into-view are also unfinished (current rows are fixed at 28 logical px).
-- Complete shared Core row/cell selection projection, pointer/keyboard routing,
-  focus, editing, drag/drop, and column-resize/reorder gestures. Header-click sort
-  and checkbox writeback are present but do not cover that full interaction API.
+  variable-height bring-into-view are also unfinished (current rows are fixed at
+  28 logical px; fixed-height navigation/bring-into-view now runs).
+- Complete editing, drag/drop, text search, selection cancellation, and
+  column-resize/reorder gestures. Header-click sorting and checkbox writeback are
+  present, but do not cover the full editing/interaction API.
 - Complete XAML/declarative columns, source extensions, public lifecycle events,
   template-editing contracts, and dependency-property model binding as required.
 - Add runtime failure-path, unload/GC, nested expansion, and lifecycle tests;
@@ -127,7 +160,7 @@ complete showcase, Activity Monitor, and the new PR are still pending.
   The current binding/geometry unit tests alone do not prove these requirements.
 - Port all showcase scenarios and Activity Monitor with shared model source where
   practical. Countries alone is not the requested full sample suite.
-- Restore browser and Windows heads, wire solution/package/CI lanes, verify real
+- Restore browser and Windows App SDK heads, finish solution/package/CI lanes, verify real
   heads, update public README, review the full diff, push, and open the new PR.
 
 ### Reproduction
@@ -140,7 +173,8 @@ DOTNET_ROLL_FORWARD=Major dotnet test tests/TreeDataGrid.Core.Tests/TreeDataGrid
 dotnet run --project samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj -c Release -f net10.0-desktop -p:DisableSourceLink=true -- --smoke --screenshot-dir "$PWD/artifacts/uno"
 ```
 
-The runtime command must exit zero and print both
-`UNO_RUNTIME_RECYCLING_PASSED` and `UNO_CORE_SAMPLE_SMOKE_PASSED`. Omit `--smoke`
+The runtime command must exit zero and print
+`UNO_RUNTIME_RECYCLING_PASSED`, `UNO_RUNTIME_SELECTION_PASSED`, and
+`UNO_CORE_SAMPLE_SMOKE_PASSED`. Omit `--smoke`
 to leave the Countries window open for interaction. The optional screenshot
 switch writes a generated artifact, not a checked-in source file.

@@ -19,6 +19,7 @@ public abstract class TreeDataGridPresentation : IDisposable
     public abstract ITreeDataGridSource Model { get; }
     public IRows Rows => Model.Rows;
     public abstract IReadOnlyList<CellColumn> Columns { get; }
+    public abstract TreeDataGridSelection Selection { get; }
     public abstract CellValue RealizeCell(int columnIndex, int rowIndex);
     public abstract void RecycleCell(CellColumn column, CellValue cell);
     public abstract void Suspend();
@@ -50,6 +51,7 @@ internal sealed class TreeDataGridPresentation<TModel> : TreeDataGridPresentatio
     private readonly HashSet<IColumn> _observed = new(ReferenceEqualityComparer.Instance);
     private readonly List<CellColumn> _visible = new();
     private readonly Dictionary<CellColumn, Stack<CellValue>> _pool = new(ReferenceEqualityComparer.Instance);
+    private readonly TreeDataGridSelection<TModel> _selection;
     private IRows? _rows;
     private bool _active;
     private bool _disposed;
@@ -59,11 +61,13 @@ internal sealed class TreeDataGridPresentation<TModel> : TreeDataGridPresentatio
     {
         _model = model;
         _options = options;
+        _selection = new(model, _visible);
         try { Resume(); }
         catch { Dispose(); throw; }
     }
     public override ITreeDataGridSource Model => _model;
     public override IReadOnlyList<CellColumn> Columns => _visible;
+    public override TreeDataGridSelection Selection => _selection;
     public override event EventHandler? ColumnsChanged;
     public override event NotifyCollectionChangedEventHandler? RowsChanged;
 
@@ -102,6 +106,7 @@ internal sealed class TreeDataGridPresentation<TModel> : TreeDataGridPresentatio
     {
         if (!_active) return;
         _active = false;
+        _selection.Suspend();
         _model.PropertyChanged -= OnModelChanged;
         _model.Sorted -= OnSorted;
         if (_model.Columns is INotifyCollectionChanged columns) columns.CollectionChanged -= OnColumnsChanged;
@@ -122,6 +127,7 @@ internal sealed class TreeDataGridPresentation<TModel> : TreeDataGridPresentatio
         _model.Sorted += OnSorted;
         if (_model.Columns is INotifyCollectionChanged columns) columns.CollectionChanged += OnColumnsChanged;
         SetRows();
+        _selection.Resume();
     }
 
     public override void Dispose()
@@ -196,6 +202,7 @@ internal sealed class TreeDataGridPresentation<TModel> : TreeDataGridPresentatio
         _visible.Clear();
         foreach (var column in _model.Columns)
             if (column.IsVisible) _visible.Add(_views[column].View);
+        _selection.ColumnsChanged();
         try { ColumnsChanged?.Invoke(this, EventArgs.Empty); }
         finally { foreach (var column in retired) column.Dispose(); }
     }
@@ -223,5 +230,6 @@ internal sealed class TreeDataGridPresentation<TModel> : TreeDataGridPresentatio
     private void OnModelChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (string.IsNullOrEmpty(e.PropertyName) || e.PropertyName == nameof(Model.Rows)) SetRows();
+        if (string.IsNullOrEmpty(e.PropertyName) || e.PropertyName == nameof(Model.Selection)) _selection.Refresh();
     }
 }

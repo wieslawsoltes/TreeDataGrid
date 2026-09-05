@@ -26,11 +26,13 @@ public partial class App : Application
         {
             await Task.Delay(1500);
             page.VerifyInitialRender();
+            page.Grid.SelectCell(1, 0);
             await CaptureAsync(page, "countries");
             page.Grid.Scroll.ChangeView(300, 500, null, true);
             await Task.Delay(500);
             page.VerifyScrolledRender();
             await RuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"]);
+            await SelectionRuntimeChecks.RunAsync(page.Grid, (Microsoft.UI.Xaml.Controls.ControlTemplate)page.Resources["AlternateGridTemplate"]);
             Console.WriteLine("UNO_CORE_SAMPLE_SMOKE_PASSED");
             Exit();
         }

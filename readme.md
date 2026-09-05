@@ -26,6 +26,23 @@ We accept all issues and pull requests but we answer and review only pull reques
 
 ## Quick Start
 
+### Uno port (in development)
+
+The clean Uno port uses the same `TreeDataGrid.Core` assembly as Avalonia, without
+copying the model layer. The control is `Uno.Controls.TreeDataGrid`; assign a Core
+source to its `Model` property. The desktop sample shares the Avalonia Countries
+data and can be run from this branch with:
+
+```sh
+dotnet run --project samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj -c Release -f net10.0-desktop
+```
+
+The port is not yet feature-complete or released as a supported NuGet package.
+See the [Uno implementation and validation checklist](docs/uno-port-status.md) for
+verified behavior, remaining parity work, and native regression commands.
+
+### Avalonia
+
 For new Avalonia applications, install the platform-specific package:
 
 ```bash

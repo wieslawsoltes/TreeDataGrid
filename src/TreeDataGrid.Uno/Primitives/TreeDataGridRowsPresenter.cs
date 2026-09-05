@@ -24,6 +24,15 @@ public partial class TreeDataGridRowsPresenter : Panel
     internal TreeDataGrid? Owner { get; set; }
     public IReadOnlyCollection<TreeDataGridCell> RealizedCells => _realized.Values;
     public double RowHeight { get; set; } = 28;
+    internal void RefreshSelection()
+    {
+        foreach (var cell in _realized.Values) UpdateSelection(cell);
+    }
+    private void UpdateSelection(TreeDataGridCell cell)
+    {
+        cell.IsSelected = _presentation?.Selection.IsSelected(cell.RowIndex, cell.ColumnIndex) == true;
+        cell.IsCurrent = Owner?.IsCurrentCell(cell.RowIndex, cell.ColumnIndex) == true;
+    }
 
     internal void SetPresentation(TreeDataGridPresentation? presentation, ColumnGeometry geometry)
     {
@@ -56,6 +65,7 @@ public partial class TreeDataGridRowsPresenter : Panel
             var columnIndex = indexes[cell.Column!];
             cell.UpdateIndexes(cell.RowIndex, columnIndex);
             _realized.Add((cell.RowIndex, columnIndex), cell);
+            UpdateSelection(cell);
         }
         foreach (var column in _pool.Keys.ToArray())
         {
@@ -96,6 +106,7 @@ public partial class TreeDataGridRowsPresenter : Panel
                     Rebind(key);
             }
         }
+        RefreshSelection();
         InvalidateMeasure();
     }
     private void ShiftRows(int from, int delta)
@@ -126,6 +137,7 @@ public partial class TreeDataGridRowsPresenter : Panel
             next = _presentation.RealizeCell(key.Column, key.Row);
             Owner!.CellTemplates.TryGetValue(column.Model.PresentationKey ?? "", out var template);
             control.Realize(column, next, _presentation.Rows[key.Row], key.Column, key.Row, template);
+            UpdateSelection(control);
             success = true;
         }
         finally
@@ -179,6 +191,7 @@ public partial class TreeDataGridRowsPresenter : Panel
                         value = _presentation.RealizeCell(column, row);
                         Owner.CellTemplates.TryGetValue(view.Model.PresentationKey ?? "", out var template);
                         control.Realize(view, value, rows[row], column, row, template);
+                        UpdateSelection(control);
                         _realized.Add((row, column), control);
                         success = true;
                     }

@@ -19,6 +19,7 @@ public abstract class CellColumn : IDisposable
     public virtual double MaximumWidth => double.PositiveInfinity;
     public virtual CellKind Kind => CellKind.Text;
     public virtual CellKind ContentKind => Kind;
+    public virtual bool IsThreeState => false;
     public abstract CellValue CreateCell(IRow row);
     public virtual void Dispose() { }
 }
@@ -42,6 +43,7 @@ internal sealed class ValueCellColumn<TModel, TValue> : CellColumn where TModel 
     public ValueCellColumn(ValueColumn<TModel, TValue> column, CellKind kind) : base(column)
     { _column = column; _kind = kind; }
     public override CellKind Kind => _kind;
+    public override bool IsThreeState => _column is CheckBoxColumn<TModel> check && check.IsThreeState;
     public override double MinimumWidth => _column.Options.MinWidth.IsAuto ? 0 : _column.Options.MinWidth.Value;
     public override double MaximumWidth => _column.Options.MaxWidth is { IsAuto: false } maximum ? maximum.Value : double.PositiveInfinity;
     public override CellValue CreateCell(IRow row) => new BoundCell<TModel, TValue>(_column, row, canPool: true);
@@ -97,6 +99,7 @@ internal sealed class ExpanderCellColumn<TModel> : CellColumn where TModel : cla
     { _model = model; _inner = inner; }
     public override CellKind Kind => CellKind.Expander;
     public override CellKind ContentKind => _inner.ContentKind;
+    public override bool IsThreeState => _inner.IsThreeState;
     public CellColumn Inner => _inner;
     public override double MinimumWidth => _inner.MinimumWidth;
     public override double MaximumWidth => _inner.MaximumWidth;

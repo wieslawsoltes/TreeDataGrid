@@ -9,13 +9,19 @@ using Uno.Controls.Presentation;
 namespace Uno.Controls.Primitives;
 
 /// <summary>A parented, reusable Uno cell control over a Core row.</summary>
-public partial class TreeDataGridCell : Grid
+public partial class TreeDataGridCell : Control
 {
-    private readonly TextBlock _text = new() { VerticalAlignment = VerticalAlignment.Center, Margin = new(8, 0, 8, 0) };
-    private readonly CheckBox _check = new() { VerticalAlignment = VerticalAlignment.Center, MinWidth = 0, Margin = new(8, 0, 8, 0) };
-    private readonly ContentPresenter _content = new() { VerticalAlignment = VerticalAlignment.Stretch };
-    private readonly Button _expander = new() { MinWidth = 0, MinHeight = 0, Padding = new(0), Width = 20, Height = 24 };
-    private readonly Grid _valueHost = new();
+    public static readonly DependencyProperty IsSelectedProperty = DependencyProperty.Register(
+        nameof(IsSelected), typeof(bool), typeof(TreeDataGridCell), new PropertyMetadata(false, OnStateChanged));
+    public static readonly DependencyProperty IsCurrentProperty = DependencyProperty.Register(
+        nameof(IsCurrent), typeof(bool), typeof(TreeDataGridCell), new PropertyMetadata(false, OnStateChanged));
+    private TextBlock? _text;
+    private CheckBox? _check;
+    private ContentPresenter? _content;
+    private Button? _expander;
+    private CellKind _kind;
+    private DataTemplate? _template;
+    private int _indent;
     private ExpanderCellValue? _expanderValue;
     private CellValue? _value;
     private bool _updating;
@@ -23,19 +29,43 @@ public partial class TreeDataGridCell : Grid
 
     public TreeDataGridCell()
     {
-        ColumnDefinitions.Add(new() { Width = Microsoft.UI.Xaml.GridLength.Auto });
-        ColumnDefinitions.Add(new() { Width = new(1, GridUnitType.Star) });
-        Children.Add(_expander);
-        SetColumn(_valueHost, 1);
-        Children.Add(_valueHost);
-        _valueHost.Children.Add(_text);
-        _valueHost.Children.Add(_check);
-        _valueHost.Children.Add(_content);
-        _expander.Click += (_, _) => { if (_expanderValue is { } value) value.IsExpanded = !value.IsExpanded; };
-        _check.Checked += OnCheckChanged;
-        _check.Unchecked += OnCheckChanged;
-        _check.Indeterminate += OnCheckChanged;
+        DefaultStyleKey = typeof(TreeDataGridCell);
     }
+    public bool IsSelected { get => (bool)GetValue(IsSelectedProperty); set => SetValue(IsSelectedProperty, value); }
+    public bool IsCurrent { get => (bool)GetValue(IsCurrentProperty); set => SetValue(IsCurrentProperty, value); }
+    private static void OnStateChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e) => ((TreeDataGridCell)sender).UpdateState();
+    private void UpdateState()
+    {
+        VisualStateManager.GoToState(this, IsSelected ? "Selected" : "Unselected", false);
+        VisualStateManager.GoToState(this, IsCurrent ? "Current" : "NotCurrent", false);
+    }
+    protected override void OnApplyTemplate()
+    {
+        if (_check is not null)
+        {
+            _check.Checked -= OnCheckChanged;
+            _check.Unchecked -= OnCheckChanged;
+            _check.Indeterminate -= OnCheckChanged;
+        }
+        if (_expander is not null) _expander.Click -= OnExpand;
+        if (_content is not null) _content.Content = null;
+        base.OnApplyTemplate();
+        _text = GetTemplateChild("PART_Text") as TextBlock;
+        _check = GetTemplateChild("PART_CheckBox") as CheckBox;
+        _content = GetTemplateChild("PART_Content") as ContentPresenter;
+        _expander = GetTemplateChild("PART_Expander") as Button;
+        if (_check is not null)
+        {
+            _check.Checked += OnCheckChanged;
+            _check.Unchecked += OnCheckChanged;
+            _check.Indeterminate += OnCheckChanged;
+        }
+        if (_expander is not null) _expander.Click += OnExpand;
+        UpdateContentKind();
+        UpdateValue();
+        UpdateState();
+    }
+    private void OnExpand(object sender, RoutedEventArgs e) { if (_expanderValue is { } value) value.IsExpanded = !value.IsExpanded; }
 
     public CellValue? Value => _value;
     public IRow? Row { get; private set; }
@@ -63,17 +93,14 @@ public partial class TreeDataGridCell : Grid
         RowModel = row.Model;
         ColumnIndex = columnIndex;
         RowIndex = rowIndex;
-        var kind = column.ContentKind;
+        _kind = column.ContentKind;
         // An expander wraps the inner content contract; the value remains the same
         // Core row and the native children stay attached while it is recycled.
-        if (kind == CellKind.Template && template is null)
+        if (_kind == CellKind.Template && template is null)
             throw new InvalidOperationException($"No Uno cell template is registered for '{column.Model.PresentationKey}'.");
-        _expander.Visibility = _expanderValue is null ? Visibility.Collapsed : Visibility.Visible;
-        _expander.Margin = new((row as IIndentedRow)?.Indent * 20 ?? 0, 0, 0, 0);
-        _text.Visibility = kind == CellKind.Text ? Visibility.Visible : Visibility.Collapsed;
-        _check.Visibility = kind == CellKind.CheckBox ? Visibility.Visible : Visibility.Collapsed;
-        _content.Visibility = kind == CellKind.Template ? Visibility.Visible : Visibility.Collapsed;
-        if (!ReferenceEquals(_content.ContentTemplate, template)) _content.ContentTemplate = template;
+        _indent = (row as IIndentedRow)?.Indent ?? 0;
+        _template = template;
+        UpdateContentKind();
         value.PropertyChanged += OnValueChanged;
         Visibility = Visibility.Visible;
         if (!_rebinding) UpdateValue();
@@ -88,13 +115,33 @@ public partial class TreeDataGridCell : Grid
         RowModel = null;
         RowIndex = ColumnIndex = -1;
         Column = null;
+        IsSelected = IsCurrent = false;
         if (!_rebinding) ClearContent();
     }
     private void ClearContent()
     {
-        _content.Content = null;
-        _text.Text = string.Empty;
+        if (_content is not null) _content.Content = null;
+        if (_text is not null) _text.Text = string.Empty;
         Visibility = Visibility.Collapsed;
+    }
+    private void UpdateContentKind()
+    {
+        if (_expander is not null)
+        {
+            _expander.Visibility = _expanderValue is null ? Visibility.Collapsed : Visibility.Visible;
+            _expander.Margin = new(_indent * 20, 0, 0, 0);
+        }
+        if (_text is not null) _text.Visibility = _kind == CellKind.Text ? Visibility.Visible : Visibility.Collapsed;
+        if (_check is not null)
+        {
+            _check.Visibility = _kind == CellKind.CheckBox ? Visibility.Visible : Visibility.Collapsed;
+            _check.IsThreeState = Column?.IsThreeState == true;
+        }
+        if (_content is not null)
+        {
+            _content.Visibility = _kind == CellKind.Template ? Visibility.Visible : Visibility.Collapsed;
+            if (!ReferenceEquals(_content.ContentTemplate, _template)) _content.ContentTemplate = _template;
+        }
     }
     private void OnValueChanged(object? sender, PropertyChangedEventArgs e) { if (!_rebinding) UpdateValue(); }
     private void UpdateValue()
@@ -102,11 +149,14 @@ public partial class TreeDataGridCell : Grid
         _updating = true;
         try
         {
-            _text.Text = _value?.Value?.ToString() ?? string.Empty;
-            _check.IsChecked = _value?.Value as bool?;
-            _check.IsEnabled = _value?.CanEdit == true;
-            _content.Content = _value?.Value;
-            if (_expanderValue is { } expanded)
+            if (_text is not null && _kind == CellKind.Text) _text.Text = _value?.Value?.ToString() ?? string.Empty;
+            if (_check is not null && _kind == CellKind.CheckBox)
+            {
+                _check.IsChecked = _value?.Value as bool?;
+                _check.IsEnabled = _value?.CanEdit == true;
+            }
+            if (_content is not null && _kind == CellKind.Template) _content.Content = _value?.Value;
+            if (_expander is not null && _expanderValue is { } expanded)
             {
                 _expander.Content = expanded.IsExpanded ? "−" : "+";
                 _expander.Opacity = expanded.ShowExpander ? 1 : 0;
@@ -117,6 +167,6 @@ public partial class TreeDataGridCell : Grid
     }
     private void OnCheckChanged(object sender, RoutedEventArgs e)
     {
-        if (!_updating && _value?.CanEdit == true) _value.Write(_check.IsChecked);
+        if (!_updating && _value?.CanEdit == true && _check is not null) _value.Write(_check.IsChecked);
     }
 }
