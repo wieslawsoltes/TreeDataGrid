@@ -1,0 +1,1082 @@
+[
+  {
+    "Workload": "VerticalRowScrolls",
+    "Round": 0,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 35.10395,
+    "CpuMicroseconds": 36.568329999999996,
+    "AllocatedBytes": 7368.3904,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "VerticalRowScrolls",
+    "Round": 0,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 34.26437,
+    "CpuMicroseconds": 35.18333,
+    "AllocatedBytes": 7288.5584,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "VerticalRowScrolls",
+    "Round": 0,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 35.23423,
+    "CpuMicroseconds": 35.73542,
+    "AllocatedBytes": 7288.5584,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "VerticalRowScrolls",
+    "Round": 1,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 34.87676,
+    "CpuMicroseconds": 36.80917,
+    "AllocatedBytes": 7288.5584,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "VerticalRowScrolls",
+    "Round": 1,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 35.59895,
+    "CpuMicroseconds": 38.02042,
+    "AllocatedBytes": 7288.5584,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "VerticalRowScrolls",
+    "Round": 1,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 34.982820000000004,
+    "CpuMicroseconds": 37.554590000000005,
+    "AllocatedBytes": 7368.3904,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "VerticalRowScrolls",
+    "Round": 2,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 35.21022,
+    "CpuMicroseconds": 36.20292,
+    "AllocatedBytes": 7288.5584,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "VerticalRowScrolls",
+    "Round": 2,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 34.88769,
+    "CpuMicroseconds": 34.89583,
+    "AllocatedBytes": 7368.3904,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "VerticalRowScrolls",
+    "Round": 2,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 35.1211,
+    "CpuMicroseconds": 35.11875,
+    "AllocatedBytes": 7288.5584,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "VerticalRowScrolls",
+    "Round": 3,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 34.60038,
+    "CpuMicroseconds": 35.53,
+    "AllocatedBytes": 7368.3904,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "VerticalRowScrolls",
+    "Round": 3,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 35.293209999999995,
+    "CpuMicroseconds": 36.46667,
+    "AllocatedBytes": 7288.5584,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "VerticalRowScrolls",
+    "Round": 3,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 36.006820000000005,
+    "CpuMicroseconds": 36.95666,
+    "AllocatedBytes": 7288.5584,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "VerticalRowScrolls",
+    "Round": 4,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 35.45425,
+    "CpuMicroseconds": 35.43417,
+    "AllocatedBytes": 7288.5584,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "VerticalRowScrolls",
+    "Round": 4,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 35.39147,
+    "CpuMicroseconds": 35.29583,
+    "AllocatedBytes": 7288.5584,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "VerticalRowScrolls",
+    "Round": 4,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 35.1418,
+    "CpuMicroseconds": 35.03333,
+    "AllocatedBytes": 7368.3904,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "VerticalRowScrolls",
+    "Round": 5,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 35.23252,
+    "CpuMicroseconds": 35.37875,
+    "AllocatedBytes": 7288.5584,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "VerticalRowScrolls",
+    "Round": 5,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 34.95712,
+    "CpuMicroseconds": 35.07458,
+    "AllocatedBytes": 7368.3904,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "VerticalRowScrolls",
+    "Round": 5,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 34.988170000000004,
+    "CpuMicroseconds": 35.18,
+    "AllocatedBytes": 7288.5584,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "VerticalRowScrolls",
+    "Round": 6,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 34.84094,
+    "CpuMicroseconds": 34.7625,
+    "AllocatedBytes": 7368.3904,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "VerticalRowScrolls",
+    "Round": 6,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 34.56163,
+    "CpuMicroseconds": 34.51834,
+    "AllocatedBytes": 7288.5584,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "VerticalRowScrolls",
+    "Round": 6,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 34.82513,
+    "CpuMicroseconds": 34.75291,
+    "AllocatedBytes": 7288.5584,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "VerticalRowScrolls",
+    "Round": 7,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 34.38118,
+    "CpuMicroseconds": 35.88084,
+    "AllocatedBytes": 7288.5584,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "VerticalRowScrolls",
+    "Round": 7,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 34.39647,
+    "CpuMicroseconds": 35.14625,
+    "AllocatedBytes": 7288.5584,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "VerticalRowScrolls",
+    "Round": 7,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 34.5186,
+    "CpuMicroseconds": 35.27875,
+    "AllocatedBytes": 7368.3904,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "VerticalRowScrolls",
+    "Round": 8,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 34.45617,
+    "CpuMicroseconds": 34.40208,
+    "AllocatedBytes": 7288.5584,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "VerticalRowScrolls",
+    "Round": 8,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 34.69804,
+    "CpuMicroseconds": 34.641659999999995,
+    "AllocatedBytes": 7368.3904,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "VerticalRowScrolls",
+    "Round": 8,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 34.59417,
+    "CpuMicroseconds": 34.5275,
+    "AllocatedBytes": 7288.5584,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalSmallScrolls",
+    "Round": 0,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 18.87315,
+    "CpuMicroseconds": 20.097916666666666,
+    "AllocatedBytes": 1963.096,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalSmallScrolls",
+    "Round": 0,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 20.095783333333333,
+    "CpuMicroseconds": 21.257649999999998,
+    "AllocatedBytes": 1954.696,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalSmallScrolls",
+    "Round": 0,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 18.692333333333334,
+    "CpuMicroseconds": 19.81805,
+    "AllocatedBytes": 1933.1946666666668,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalSmallScrolls",
+    "Round": 1,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 21.52245,
+    "CpuMicroseconds": 21.71945,
+    "AllocatedBytes": 1954.696,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalSmallScrolls",
+    "Round": 1,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 18.884166666666665,
+    "CpuMicroseconds": 19.1118,
+    "AllocatedBytes": 1933.2413333333334,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalSmallScrolls",
+    "Round": 1,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 18.72498333333333,
+    "CpuMicroseconds": 18.99515,
+    "AllocatedBytes": 1963.096,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalSmallScrolls",
+    "Round": 2,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 19.8247,
+    "CpuMicroseconds": 20.14235,
+    "AllocatedBytes": 1933.1946666666668,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalSmallScrolls",
+    "Round": 2,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 18.845716666666668,
+    "CpuMicroseconds": 18.82153333333333,
+    "AllocatedBytes": 1963.096,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalSmallScrolls",
+    "Round": 2,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 18.55225,
+    "CpuMicroseconds": 18.534033333333333,
+    "AllocatedBytes": 1954.696,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalSmallScrolls",
+    "Round": 3,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 20.489416666666667,
+    "CpuMicroseconds": 20.479866666666666,
+    "AllocatedBytes": 1963.096,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalSmallScrolls",
+    "Round": 3,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 42.49975,
+    "CpuMicroseconds": 30.009733333333333,
+    "AllocatedBytes": 1954.696,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalSmallScrolls",
+    "Round": 3,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 21.919700000000002,
+    "CpuMicroseconds": 21.525,
+    "AllocatedBytes": 1933.1946666666668,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalSmallScrolls",
+    "Round": 4,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 20.81095,
+    "CpuMicroseconds": 20.577083333333334,
+    "AllocatedBytes": 1954.696,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalSmallScrolls",
+    "Round": 4,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 20.27805,
+    "CpuMicroseconds": 20.05346666666667,
+    "AllocatedBytes": 1933.1946666666668,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalSmallScrolls",
+    "Round": 4,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 21.18775,
+    "CpuMicroseconds": 20.883333333333333,
+    "AllocatedBytes": 1963.096,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalSmallScrolls",
+    "Round": 5,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 20.096016666666667,
+    "CpuMicroseconds": 23.804166666666667,
+    "AllocatedBytes": 1933.1946666666668,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalSmallScrolls",
+    "Round": 5,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 19.59845,
+    "CpuMicroseconds": 22.1618,
+    "AllocatedBytes": 1963.096,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalSmallScrolls",
+    "Round": 5,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 20.259683333333335,
+    "CpuMicroseconds": 22.857633333333332,
+    "AllocatedBytes": 1954.696,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalSmallScrolls",
+    "Round": 6,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 19.307183333333334,
+    "CpuMicroseconds": 19.254866666666665,
+    "AllocatedBytes": 1963.096,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalSmallScrolls",
+    "Round": 6,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 19.032899999999998,
+    "CpuMicroseconds": 18.957649999999997,
+    "AllocatedBytes": 1954.696,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalSmallScrolls",
+    "Round": 6,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 19.22498333333333,
+    "CpuMicroseconds": 19.170833333333334,
+    "AllocatedBytes": 1933.1946666666668,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalSmallScrolls",
+    "Round": 7,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 19.395,
+    "CpuMicroseconds": 19.277083333333334,
+    "AllocatedBytes": 1954.696,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalSmallScrolls",
+    "Round": 7,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 19.7589,
+    "CpuMicroseconds": 19.615283333333334,
+    "AllocatedBytes": 1933.1946666666668,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalSmallScrolls",
+    "Round": 7,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 19.390416666666667,
+    "CpuMicroseconds": 19.3118,
+    "AllocatedBytes": 1963.096,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalSmallScrolls",
+    "Round": 8,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 19.220566666666667,
+    "CpuMicroseconds": 19.16805,
+    "AllocatedBytes": 1933.1946666666668,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalSmallScrolls",
+    "Round": 8,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 19.247016666666667,
+    "CpuMicroseconds": 19.184033333333332,
+    "AllocatedBytes": 1963.096,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalSmallScrolls",
+    "Round": 8,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 19.057850000000002,
+    "CpuMicroseconds": 18.998616666666667,
+    "AllocatedBytes": 1954.696,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalColumnScrolls",
+    "Round": 0,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 230.602,
+    "CpuMicroseconds": 229.68329999999997,
+    "AllocatedBytes": 172228.232,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalColumnScrolls",
+    "Round": 0,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 211.8089,
+    "CpuMicroseconds": 210.6958,
+    "AllocatedBytes": 171388.232,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalColumnScrolls",
+    "Round": 0,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 187.347,
+    "CpuMicroseconds": 186.19170000000003,
+    "AllocatedBytes": 105157.48,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalColumnScrolls",
+    "Round": 1,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 215.5445,
+    "CpuMicroseconds": 214.4084,
+    "AllocatedBytes": 171388.232,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalColumnScrolls",
+    "Round": 1,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 182.90439999999998,
+    "CpuMicroseconds": 182.1166,
+    "AllocatedBytes": 105157.48,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalColumnScrolls",
+    "Round": 1,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 226.9255,
+    "CpuMicroseconds": 226.4042,
+    "AllocatedBytes": 172228.232,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalColumnScrolls",
+    "Round": 2,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 181.6164,
+    "CpuMicroseconds": 181.08329999999998,
+    "AllocatedBytes": 105157.48,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalColumnScrolls",
+    "Round": 2,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 229.8497,
+    "CpuMicroseconds": 229.4042,
+    "AllocatedBytes": 172228.232,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalColumnScrolls",
+    "Round": 2,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 210.7476,
+    "CpuMicroseconds": 210.1166,
+    "AllocatedBytes": 171388.232,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalColumnScrolls",
+    "Round": 3,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 239.7985,
+    "CpuMicroseconds": 299.34590000000003,
+    "AllocatedBytes": 172228.232,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalColumnScrolls",
+    "Round": 3,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 219.3774,
+    "CpuMicroseconds": 280.77090000000004,
+    "AllocatedBytes": 171388.232,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalColumnScrolls",
+    "Round": 3,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 187.36,
+    "CpuMicroseconds": 250.15,
+    "AllocatedBytes": 105157.48,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalColumnScrolls",
+    "Round": 4,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 244.91660000000002,
+    "CpuMicroseconds": 241.9959,
+    "AllocatedBytes": 171388.232,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalColumnScrolls",
+    "Round": 4,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 188.0948,
+    "CpuMicroseconds": 187.1583,
+    "AllocatedBytes": 105157.48,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalColumnScrolls",
+    "Round": 4,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 230.1422,
+    "CpuMicroseconds": 229.60420000000002,
+    "AllocatedBytes": 172228.232,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalColumnScrolls",
+    "Round": 5,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 180.8515,
+    "CpuMicroseconds": 180.2875,
+    "AllocatedBytes": 105157.48,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalColumnScrolls",
+    "Round": 5,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 237.9049,
+    "CpuMicroseconds": 236.50420000000003,
+    "AllocatedBytes": 172228.232,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalColumnScrolls",
+    "Round": 5,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 211.2227,
+    "CpuMicroseconds": 210.45839999999998,
+    "AllocatedBytes": 171388.232,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalColumnScrolls",
+    "Round": 6,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 234.10229999999999,
+    "CpuMicroseconds": 233.275,
+    "AllocatedBytes": 172228.232,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalColumnScrolls",
+    "Round": 6,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 211.4859,
+    "CpuMicroseconds": 210.72920000000002,
+    "AllocatedBytes": 171388.232,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalColumnScrolls",
+    "Round": 6,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 184.1207,
+    "CpuMicroseconds": 183.575,
+    "AllocatedBytes": 105157.48,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalColumnScrolls",
+    "Round": 7,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 215.6157,
+    "CpuMicroseconds": 214.8667,
+    "AllocatedBytes": 171388.232,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalColumnScrolls",
+    "Round": 7,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 179.5609,
+    "CpuMicroseconds": 179.1958,
+    "AllocatedBytes": 105157.48,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalColumnScrolls",
+    "Round": 7,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 227.48170000000002,
+    "CpuMicroseconds": 226.825,
+    "AllocatedBytes": 172228.232,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalColumnScrolls",
+    "Round": 8,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 181.1444,
+    "CpuMicroseconds": 180.60420000000002,
+    "AllocatedBytes": 105157.48,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalColumnScrolls",
+    "Round": 8,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 227.0814,
+    "CpuMicroseconds": 226.51670000000001,
+    "AllocatedBytes": 172228.232,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalColumnScrolls",
+    "Round": 8,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 207.7139,
+    "CpuMicroseconds": 207.14579999999998,
+    "AllocatedBytes": 171388.232,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalFarColumnScrolls",
+    "Round": 0,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 447.6412,
+    "CpuMicroseconds": 442.8875,
+    "AllocatedBytes": 163742.016,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalFarColumnScrolls",
+    "Round": 0,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 190.63639999999998,
+    "CpuMicroseconds": 190.14170000000001,
+    "AllocatedBytes": 162902.296,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalFarColumnScrolls",
+    "Round": 0,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 161.79870000000003,
+    "CpuMicroseconds": 161.35410000000002,
+    "AllocatedBytes": 96554.28,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalFarColumnScrolls",
+    "Round": 1,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 183.079,
+    "CpuMicroseconds": 182.8667,
+    "AllocatedBytes": 162902.296,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalFarColumnScrolls",
+    "Round": 1,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 159.9638,
+    "CpuMicroseconds": 159.77079999999998,
+    "AllocatedBytes": 96554.28,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalFarColumnScrolls",
+    "Round": 1,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 421.0007,
+    "CpuMicroseconds": 420.29159999999996,
+    "AllocatedBytes": 163742.296,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalFarColumnScrolls",
+    "Round": 2,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 159.3827,
+    "CpuMicroseconds": 159.1625,
+    "AllocatedBytes": 96554.28,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalFarColumnScrolls",
+    "Round": 2,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 421.2557,
+    "CpuMicroseconds": 420.6709,
+    "AllocatedBytes": 163742.296,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalFarColumnScrolls",
+    "Round": 2,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 183.849,
+    "CpuMicroseconds": 183.69170000000003,
+    "AllocatedBytes": 162902.296,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalFarColumnScrolls",
+    "Round": 3,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 421.43309999999997,
+    "CpuMicroseconds": 420.7833,
+    "AllocatedBytes": 163742.296,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalFarColumnScrolls",
+    "Round": 3,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 185.6111,
+    "CpuMicroseconds": 185.2166,
+    "AllocatedBytes": 162902.296,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalFarColumnScrolls",
+    "Round": 3,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 159.4948,
+    "CpuMicroseconds": 159.225,
+    "AllocatedBytes": 96554.28,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalFarColumnScrolls",
+    "Round": 4,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 185.5969,
+    "CpuMicroseconds": 185.20829999999998,
+    "AllocatedBytes": 162902.296,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalFarColumnScrolls",
+    "Round": 4,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 160.3347,
+    "CpuMicroseconds": 160.04170000000002,
+    "AllocatedBytes": 96554.28,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalFarColumnScrolls",
+    "Round": 4,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 423.928,
+    "CpuMicroseconds": 423.0833,
+    "AllocatedBytes": 163742.296,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalFarColumnScrolls",
+    "Round": 5,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 159.53310000000002,
+    "CpuMicroseconds": 159.3667,
+    "AllocatedBytes": 96554.28,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalFarColumnScrolls",
+    "Round": 5,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 420.6218,
+    "CpuMicroseconds": 420.1042,
+    "AllocatedBytes": 163742.296,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalFarColumnScrolls",
+    "Round": 5,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 182.3076,
+    "CpuMicroseconds": 182.1584,
+    "AllocatedBytes": 162902.296,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalFarColumnScrolls",
+    "Round": 6,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 424.0746,
+    "CpuMicroseconds": 423.2667,
+    "AllocatedBytes": 163742.296,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalFarColumnScrolls",
+    "Round": 6,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 185.3891,
+    "CpuMicroseconds": 185.14579999999998,
+    "AllocatedBytes": 162902.296,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalFarColumnScrolls",
+    "Round": 6,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 160.0453,
+    "CpuMicroseconds": 159.81670000000003,
+    "AllocatedBytes": 96554.28,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalFarColumnScrolls",
+    "Round": 7,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 184.7777,
+    "CpuMicroseconds": 184.4708,
+    "AllocatedBytes": 162902.296,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalFarColumnScrolls",
+    "Round": 7,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 158.1545,
+    "CpuMicroseconds": 158.0625,
+    "AllocatedBytes": 96554.28,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalFarColumnScrolls",
+    "Round": 7,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 420.7207,
+    "CpuMicroseconds": 420.0833,
+    "AllocatedBytes": 163742.296,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalFarColumnScrolls",
+    "Round": 8,
+    "Revision": 2,
+    "Path": "/tmp/tdg-perf-final-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 156.6151,
+    "CpuMicroseconds": 156.47910000000002,
+    "AllocatedBytes": 96554.28,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalFarColumnScrolls",
+    "Round": 8,
+    "Revision": 0,
+    "Path": "/tmp/tdg-perf-before-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 424.4925,
+    "CpuMicroseconds": 423.8083,
+    "AllocatedBytes": 163742.296,
+    "RealizedRows": 21
+  },
+  {
+    "Workload": "HorizontalFarColumnScrolls",
+    "Round": 8,
+    "Revision": 1,
+    "Path": "/tmp/tdg-perf-geometry-b7868ee5/benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/bin/Release/net8.0/Avalonia.Controls.TreeDataGrid.Benchmarks.dll",
+    "Microseconds": 183.787,
+    "CpuMicroseconds": 183.5,
+    "AllocatedBytes": 162902.296,
+    "RealizedRows": 21
+  }
+]

@@ -36,6 +36,7 @@ namespace Avalonia.Controls.Primitives
         public int RowIndex { get; private set; } = -1;
         public bool IsEditing { get; private set; }
         public ICell? Model { get; private set; }
+        internal IColumn? RecyclingColumn { get; set; }
         Size? INaturalWidthMeasureCache.NaturalDesiredSize { get; set; }
 
         public bool IsSelected
@@ -77,6 +78,7 @@ namespace Avalonia.Controls.Primitives
             _treeDataGrid?.RaiseCellClearing(this, ColumnIndex, RowIndex);
             ColumnIndex = RowIndex = -1;
             Model = null;
+            RecyclingColumn = null;
             ((INaturalWidthMeasureCache)this).NaturalDesiredSize = null;
         }
 
