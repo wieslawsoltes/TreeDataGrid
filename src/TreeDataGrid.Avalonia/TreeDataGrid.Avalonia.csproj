@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <PackageId>TreeDataGrid.Controls.Avalonia</PackageId>
+    <AssemblyName>TreeDataGrid.Avalonia</AssemblyName>
+    <RootNamespace>Avalonia.Controls</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <Description>Avalonia UI controls and presentation layer for TreeDataGrid.Core.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
+    <PackageReference Include="System.Reactive" Version="5.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../TreeDataGrid.Core/TreeDataGrid.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../Avalonia.Controls.TreeDataGrid/**/*.cs"
+             Exclude="../Avalonia.Controls.TreeDataGrid/bin/**;../Avalonia.Controls.TreeDataGrid/obj/**"
+             Link="%(RecursiveDir)%(Filename)%(Extension)" />
+    <AvaloniaResource Include="../Avalonia.Controls.TreeDataGrid/**/*.axaml"
+                      Exclude="../Avalonia.Controls.TreeDataGrid/bin/**;../Avalonia.Controls.TreeDataGrid/obj/**"
+                      Link="%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,1560 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using TreeDataGridCore.Models;
+using TreeDataGridCore.Tests.Collections;
+using Xunit;
+namespace TreeDataGridCore.Tests
+{
+    public class SourceTests
+    {
+        [Fact]
+        public void Existing_delegate_is_used_directly_for_values_sorting_and_edits()
+        {
+            Func<Node, string> getter = x => x.Name;
+            var column = ValueColumn<Node, string>.FromDelegate("Name", getter, nameof(Node.Name), (x, value) => x.Name = value);
+            using var source = new FlatTreeDataGridSource<Node>(new[] { new Node("B"), new Node("A") });
+            source.Columns.Add(column);
+            Assert.Same(getter, column.Getter);
+            Assert.Null(column.GetterExpression);
+            source.SortBy(column, ListSortDirection.Ascending);
+            var first = (Node)source.Rows[0].Model!;
+            Assert.Equal("A", first.Name);
+            column.SetValue(first, "Changed");
+            Assert.Equal("Changed", column.GetValue(first));
+        }
+
+        [Fact]
+        public void Flat_sort_edits_and_selection_work_without_a_UI_runtime()
+        {
+            var items = new ObservableCollection<Node> { new("B"), new("A"), new("C") };
+            using var source = new FlatTreeDataGridSource<Node>(items);
+            var name = new TextColumn<Node, string>("Name", x => x.Name, (x, value) => x.Name = value);
+            source.Columns.Add(name);
+            source.RowSelection!.SelectedIndex = 0;
+            Assert.True(source.SortBy(name, ListSortDirection.Ascending));
+            Assert.Equal(new[] { "A", "B", "C" }, source.Rows.Select(x => ((Node)x.Model!).Name));
+            Assert.Same(items[0], source.RowSelection.SelectedItem);
+            var changes = 0;
+            source.Rows.CollectionChanged += (_, _) => ++changes;
+            items.Insert(0, new("D"));
+            Assert.Equal(new IndexPath(1), source.RowSelection.SelectedIndex);
+            Assert.Equal(1, changes);
+            name.SetValue(items[1], "Z");
+            source.SortBy(name, ListSortDirection.Ascending);
+            Assert.Equal("Z", ((Node)source.Rows[^1].Model!).Name);
+        }
+
+        [Fact]
+        public void Flat_clear_sort_restores_source_order_and_column_state()
+        {
+            var items = new ObservableCollection<Node> { new("B"), new("A"), new("C") };
+            using var source = new FlatTreeDataGridSource<Node>(items);
+            var column = new TextColumn<Node, string>("Name", x => x.Name);
+            source.Columns.Add(column);
+            source.SortBy(column, ListSortDirection.Ascending);
+
+            ((ITreeDataGridSource)source).ClearSort();
+
+            Assert.False(source.IsSorted);
+            Assert.Null(column.SortDirection);
+            Assert.Equal(new[] { "B", "A", "C" }, source.Rows.Select(x => ((Node)x.Model!).Name));
+        }
+
+        [Fact]
+        public void Flat_move_preserves_selected_rows()
+        {
+            var first = new Node("First");
+            var second = new Node("Second");
+            var third = new Node("Third");
+            var items = new ObservableCollection<Node> { first, second, third };
+            using var source = new FlatTreeDataGridSource<Node>(items);
+            source.RowSelection!.SingleSelect = false;
+            source.RowSelection.Select(new IndexPath(0));
+            source.RowSelection.Select(new IndexPath(1));
+
+            source.MoveRows(source, new[] { new IndexPath(0), new IndexPath(1) },
+                new IndexPath(2), RowDropPosition.After, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { third, first, second }, items);
+            Assert.Equal(new[] { first, second }, source.RowSelection.SelectedItems);
+            Assert.Equal(new[] { new IndexPath(1), new IndexPath(2) }, source.RowSelection.SelectedIndexes);
+        }
+
+        [Fact]
+        public void Flat_move_tracks_selected_duplicate_occurrences()
+        {
+            var shared = new Node("Shared");
+            var other = new Node("Other");
+            var items = new ObservableCollection<Node> { shared, shared, other };
+            using var source = new FlatTreeDataGridSource<Node>(items);
+            source.RowSelection!.SelectedIndex = new IndexPath(1);
+
+            source.MoveRows(source, new[] { new IndexPath(1) }, new IndexPath(2),
+                RowDropPosition.After, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { shared, other, shared }, items);
+            Assert.Equal(new IndexPath(2), source.RowSelection.SelectedIndex);
+        }
+
+        [Fact]
+        public void Flat_move_rejects_duplicate_source_indexes_before_mutation()
+        {
+            var first = new Node("First");
+            var second = new Node("Second");
+            var items = new ObservableCollection<Node> { first, second };
+            using var source = new FlatTreeDataGridSource<Node>(items);
+
+            Assert.Throws<ArgumentException>(() => source.MoveRows(
+                source,
+                new[] { new IndexPath(0), new IndexPath(0) },
+                new IndexPath(1),
+                RowDropPosition.After,
+                RowMoveEffects.Move));
+
+            Assert.Equal(new[] { first, second }, items);
+        }
+
+        [Fact]
+        public void Flat_move_rejects_an_invalid_target_before_mutation()
+        {
+            var first = new Node("First");
+            var second = new Node("Second");
+            var items = new ObservableCollection<Node> { first, second };
+            using var source = new FlatTreeDataGridSource<Node>(items);
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => source.MoveRows(
+                source, new[] { new IndexPath(0) }, new IndexPath(5),
+                RowDropPosition.Before, RowMoveEffects.Move));
+
+            Assert.Equal(new[] { first, second }, items);
+        }
+
+        [Fact]
+        public void Flat_move_rejects_an_invalid_source_before_mutation()
+        {
+            var first = new Node("First");
+            var second = new Node("Second");
+            var items = new ObservableCollection<Node> { first, second };
+            using var source = new FlatTreeDataGridSource<Node>(items);
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => source.MoveRows(
+                source, new[] { new IndexPath(5) }, new IndexPath(1),
+                RowDropPosition.Before, RowMoveEffects.Move));
+
+            Assert.Equal(new[] { first, second }, items);
+        }
+
+        [Fact]
+        public void Flat_move_rejects_a_read_only_list_before_mutation()
+        {
+            var items = new[] { new Node("First"), new Node("Second") };
+            using var source = new FlatTreeDataGridSource<Node>(items);
+
+            Assert.Throws<InvalidOperationException>(() => source.MoveRows(
+                source, new[] { new IndexPath(0) }, new IndexPath(1),
+                RowDropPosition.After, RowMoveEffects.Move));
+
+            Assert.Equal(new[] { "First", "Second" }, items.Select(x => x.Name));
+        }
+
+        [Fact]
+        public void Flat_move_none_is_a_no_op_for_a_read_only_list()
+        {
+            var items = new[] { new Node("First"), new Node("Second") };
+            using var source = new FlatTreeDataGridSource<Node>(items);
+
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(1),
+                RowDropPosition.None, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { "First", "Second" }, items.Select(x => x.Name));
+        }
+
+        [Fact]
+        public void Flat_move_refreshes_materialized_rows_for_a_plain_list()
+        {
+            var first = new Node("First");
+            var second = new Node("Second");
+            var items = new List<Node> { first, second };
+            using var source = new FlatTreeDataGridSource<Node>(items);
+            Assert.Equal(new[] { first, second }, source.Rows.Select(x => x.Model));
+
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(1),
+                RowDropPosition.After, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { second, first }, items);
+            Assert.Equal(new[] { second, first }, source.Rows.Select(x => x.Model));
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void Flat_move_preserves_selection_anchors(bool notifying)
+        {
+            var first = new Node("First");
+            var second = new Node("Second");
+            IList<Node> items = notifying ?
+                new ObservableCollection<Node> { first, second } : new List<Node> { first, second };
+            using var source = new FlatTreeDataGridSource<Node>(items);
+            source.RowSelection!.SelectedIndex = new IndexPath(0);
+
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(1),
+                RowDropPosition.After, RowMoveEffects.Move);
+
+            Assert.Equal(new IndexPath(1), source.RowSelection.AnchorIndex);
+            Assert.Equal(new IndexPath(1), source.RowSelection.RangeAnchorIndex);
+        }
+
+        [Fact]
+        public void Flat_move_preserves_empty_selection_anchors()
+        {
+            var items = new ObservableCollection<Node> { new("First"), new("Second") };
+            using var source = new FlatTreeDataGridSource<Node>(items);
+            source.RowSelection!.SingleSelect = false;
+            source.RowSelection.SelectedIndex = new IndexPath(0);
+            source.RowSelection.Select(new IndexPath(1));
+            source.RowSelection.AnchorIndex = default;
+            source.RowSelection.RangeAnchorIndex = default;
+            Assert.Equal(default, source.RowSelection.AnchorIndex);
+            Assert.Equal(default, source.RowSelection.RangeAnchorIndex);
+
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(1),
+                RowDropPosition.After, RowMoveEffects.Move);
+
+            Assert.Equal(default, source.RowSelection.AnchorIndex);
+            Assert.Equal(default, source.RowSelection.RangeAnchorIndex);
+        }
+
+        [Fact]
+        public void Hierarchy_expansion_sorting_and_incremental_updates_share_model_indexes()
+        {
+            var parent = new Node("Parent") { Children = { new("B"), new("A") } };
+            using var source = new HierarchicalTreeDataGridSource<Node>(new[] { parent });
+            var column = new HierarchicalExpanderColumn<Node>(new TextColumn<Node, string>("Name", x => x.Name), x => x.Children);
+            source.Columns.Add(column);
+            Assert.Single(source.Rows);
+            source.Expand(0);
+            Assert.Equal(3, source.Rows.Count);
+            source.RowSelection!.SelectedIndex = new(0, 0);
+            source.SortBy(column, ListSortDirection.Ascending);
+            Assert.Equal(new IndexPath(0, 1), source.Rows.RowIndexToModelIndex(1));
+            parent.Children.Insert(0, new("C"));
+            Assert.Equal(new IndexPath(0, 1), source.RowSelection.SelectedIndex);
+            Assert.Equal(4, source.Rows.Count);
+            source.Collapse(0);
+            Assert.Single(source.Rows);
+            Assert.Equal("B", source.RowSelection.SelectedItem!.Name);
+            source.Expand(0);
+            Assert.Equal(4, source.Rows.Count);
+        }
+
+        [Fact]
+        public void Hierarchical_items_replacement_raises_property_changed()
+        {
+            using var source = new HierarchicalTreeDataGridSource<Node>(new[] { new Node("Old") });
+            string? propertyName = null;
+            source.PropertyChanged += (_, e) => propertyName = e.PropertyName;
+
+            source.Items = new[] { new Node("New") };
+
+            Assert.Equal(nameof(source.Items), propertyName);
+        }
+        [Theory]
+        [InlineData(1)]
+        [InlineData(3)]
+        public void Unequal_range_replace_resynchronizes_unsorted_row_projection(int replacementCount)
+        {
+            var children = new ResettingCollection<SharedNode>(new[]
+            {
+                new SharedNode("Old 1"),
+                new SharedNode("Old 2"),
+                new SharedNode("Tail"),
+            });
+            using var source = new HierarchicalTreeDataGridSource<SharedNode>(
+                new[] { new SharedNode("Parent", children) });
+            source.Columns.Add(new HierarchicalExpanderColumn<SharedNode>(
+                new TextColumn<SharedNode, string>("Name", x => x.Name),
+                x => x.Children));
+            source.Expand(0);
+            var changes = new List<System.Collections.Specialized.NotifyCollectionChangedAction>();
+            source.Rows.CollectionChanged += (_, e) => changes.Add(e.Action);
+
+            var replacements = Enumerable.Range(1, replacementCount)
+                .Select(x => new SharedNode($"New {x}"))
+                .ToArray();
+            children.ReplaceRange(0, 2, replacements);
+
+            Assert.Equal(new[] { "Parent" }.Concat(replacements.Select(x => x.Name)).Append("Tail"),
+                source.Rows.Select(x => ((SharedNode)x.Model!).Name));
+            Assert.Equal(new[]
+            {
+                System.Collections.Specialized.NotifyCollectionChangedAction.Remove,
+                System.Collections.Specialized.NotifyCollectionChangedAction.Add,
+            }, changes);
+        }
+        [Fact]
+        public void Bound_expansion_is_initialized_and_changes_without_a_view()
+        {
+            var parent = new BoundNode { IsExpanded = true, Children = { new() } };
+            using var source = new HierarchicalTreeDataGridSource<BoundNode>(new[] { parent });
+            source.Columns.Add(new HierarchicalExpanderColumn<BoundNode>(new TextColumn<BoundNode, bool>("Expanded", x => x.IsExpanded),
+                x => x.Children, isExpandedSelector: x => x.IsExpanded));
+            Assert.Equal(2, source.Rows.Count);
+            parent.IsExpanded = false;
+            Assert.Single(source.Rows);
+            source.Expand(0);
+            Assert.True(parent.IsExpanded);
+            Assert.Equal(2, source.Rows.Count);
+        }
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void Expanded_row_rebinds_when_its_child_collection_is_replaced(bool boundExpansion)
+        {
+            var oldChildren = new ObservableCollection<BoundNode> { new() };
+            var newChildren = new ObservableCollection<BoundNode> { new(), new() };
+            var parent = new BoundNode { IsExpanded = true, Children = oldChildren };
+            using var source = new HierarchicalTreeDataGridSource<BoundNode>(new[] { parent });
+            source.Columns.Add(boundExpansion ?
+                new HierarchicalExpanderColumn<BoundNode>(
+                    new TextColumn<BoundNode, bool>("Expanded", x => x.IsExpanded),
+                    x => x.Children,
+                    isExpandedSelector: x => x.IsExpanded) :
+                new HierarchicalExpanderColumn<BoundNode>(
+                    new TextColumn<BoundNode, bool>("Expanded", x => x.IsExpanded),
+                    x => x.Children));
+            if (!boundExpansion)
+                source.Expand(0);
+            Assert.Equal(2, source.Rows.Count);
+            var lifecycleEvents = 0;
+            source.RowExpanding += (_, _) => ++lifecycleEvents;
+            source.RowExpanded += (_, _) => ++lifecycleEvents;
+            source.RowCollapsing += (_, _) => ++lifecycleEvents;
+            source.RowCollapsed += (_, _) => ++lifecycleEvents;
+
+            parent.Children = newChildren;
+
+            Assert.Equal(3, source.Rows.Count);
+            Assert.Equal(0, lifecycleEvents);
+            Assert.Same(newChildren[0], source.Rows[1].Model);
+            oldChildren.Add(new());
+            Assert.Equal(3, source.Rows.Count);
+            newChildren.Add(new());
+            Assert.Equal(4, source.Rows.Count);
+        }
+        [Fact]
+        public void Fresh_child_enumerable_wrapper_does_not_reset_rows_or_selection()
+        {
+            var child = new BoundNode();
+            var parent = new BoundNode { Children = { child } };
+            using var source = new HierarchicalTreeDataGridSource<BoundNode>(new[] { parent });
+            source.Columns.Add(new HierarchicalExpanderColumn<BoundNode>(
+                new TextColumn<BoundNode, bool>("Expanded", x => x.IsExpanded),
+                x => x.Children.Where(_ => true)));
+            source.Expand(0);
+            source.RowSelection!.SelectedIndex = new IndexPath(0, 0);
+            var childRow = source.Rows[1];
+            var rowChanges = 0;
+            source.Rows.CollectionChanged += (_, _) => ++rowChanges;
+
+            parent.NotifyUnrelatedPropertyChanged();
+
+            Assert.Equal(0, rowChanges);
+            Assert.Same(childRow, source.Rows[1]);
+            Assert.Equal(new IndexPath(0, 0), source.RowSelection.SelectedIndex);
+            Assert.Same(child, source.RowSelection.SelectedItem);
+        }
+        [Fact]
+        public void Empty_rebound_child_collection_restores_expander_visibility_when_populated()
+        {
+            var parent = new BoundNode
+            {
+                IsExpanded = true,
+                Children = new ObservableCollection<BoundNode> { new() },
+            };
+            using var source = new HierarchicalTreeDataGridSource<BoundNode>(new[] { parent });
+            source.Columns.Add(new HierarchicalExpanderColumn<BoundNode>(
+                new TextColumn<BoundNode, bool>("Expanded", x => x.IsExpanded),
+                x => x.Children,
+                isExpandedSelector: x => x.IsExpanded));
+            var row = Assert.IsType<HierarchicalRow<BoundNode>>(source.Rows[0]);
+            var replacement = new ObservableCollection<BoundNode>();
+
+            parent.Children = replacement;
+
+            Assert.False(row.IsExpanded);
+            Assert.False(row.ShowExpander);
+            replacement.Add(new());
+            Assert.True(row.ShowExpander);
+            Assert.Single(source.Rows);
+        }
+        [Fact]
+        public void Empty_rebound_child_collection_observes_a_later_collection_replacement()
+        {
+            var parent = new BoundNode
+            {
+                Children = new ObservableCollection<BoundNode> { new() },
+            };
+            using var source = new HierarchicalTreeDataGridSource<BoundNode>(new[] { parent });
+            source.Columns.Add(new HierarchicalExpanderColumn<BoundNode>(
+                new TextColumn<BoundNode, bool>("Expanded", x => x.IsExpanded),
+                x => x.Children));
+            source.Expand(0);
+            var row = Assert.IsType<HierarchicalRow<BoundNode>>(source.Rows[0]);
+
+            parent.Children = new ObservableCollection<BoundNode>();
+            Assert.False(row.ShowExpander);
+
+            parent.Children = new ObservableCollection<BoundNode> { new() };
+
+            Assert.True(row.ShowExpander);
+            Assert.True(row.IsExpanded);
+            Assert.Equal(2, source.Rows.Count);
+        }
+        [Fact]
+        public void Failed_expansion_observes_empty_children_without_lifecycle_events()
+        {
+            var parent = new BoundNode();
+            using var source = new HierarchicalTreeDataGridSource<BoundNode>(new[] { parent });
+            source.Columns.Add(new HierarchicalExpanderColumn<BoundNode>(
+                new TextColumn<BoundNode, bool>("Expanded", x => x.IsExpanded),
+                x => x.Children,
+                hasChildrenSelector: x => true));
+            var row = Assert.IsType<HierarchicalRow<BoundNode>>(source.Rows[0]);
+            var lifecycleEvents = 0;
+            source.RowExpanding += (_, _) => ++lifecycleEvents;
+            source.RowExpanded += (_, _) => ++lifecycleEvents;
+            source.RowCollapsing += (_, _) => ++lifecycleEvents;
+            source.RowCollapsed += (_, _) => ++lifecycleEvents;
+
+            source.Expand(0);
+
+            Assert.False(row.IsExpanded);
+            Assert.False(row.ShowExpander);
+            Assert.Equal(0, lifecycleEvents);
+            parent.Children.Add(new BoundNode());
+            Assert.True(row.ShowExpander);
+            Assert.False(row.IsExpanded);
+            Assert.Single(source.Rows);
+        }
+        [Fact]
+        public void Replacing_a_child_collection_resets_its_selection_subtree()
+        {
+            var oldChild = new BoundNode();
+            var newChild = new BoundNode();
+            var oldChildren = new ObservableCollection<BoundNode> { oldChild };
+            var parent = new BoundNode { Children = oldChildren };
+            using var source = new HierarchicalTreeDataGridSource<BoundNode>(new[] { parent });
+            source.Columns.Add(new HierarchicalExpanderColumn<BoundNode>(
+                new TextColumn<BoundNode, bool>("Expanded", x => x.IsExpanded),
+                x => x.Children));
+            source.Expand(0);
+            source.RowSelection!.SelectedIndex = new IndexPath(0, 0);
+            var resets = 0;
+            source.RowSelection.SourceReset += (_, e) =>
+            {
+                Assert.Equal(new IndexPath(0), e.ParentIndex);
+                ++resets;
+            };
+
+            parent.Children = new ObservableCollection<BoundNode> { newChild };
+
+            Assert.Equal(1, resets);
+            Assert.Equal(default, source.RowSelection.SelectedIndex);
+            Assert.Null(source.RowSelection.SelectedItem);
+            Assert.Empty(source.RowSelection.SelectedIndexes);
+            Assert.Same(newChild, source.Rows[1].Model);
+            oldChildren.Add(new BoundNode());
+            Assert.Equal(2, source.Rows.Count);
+            Assert.Equal(1, resets);
+            Assert.Empty(source.RowSelection.SelectedIndexes);
+        }
+        [Fact]
+        public void Replacing_a_parent_item_clears_its_descendant_selection_subtree()
+        {
+            var oldChild = new BoundNode();
+            var newChild = new BoundNode();
+            var oldParent = new BoundNode { IsExpanded = true, Children = { oldChild } };
+            var newParent = new BoundNode { IsExpanded = true, Children = { newChild } };
+            var items = new ObservableCollection<BoundNode> { oldParent };
+            using var source = new HierarchicalTreeDataGridSource<BoundNode>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<BoundNode>(
+                new TextColumn<BoundNode, bool>("Expanded", x => x.IsExpanded),
+                x => x.Children,
+                isExpandedSelector: x => x.IsExpanded));
+            source.RowSelection!.SelectedIndex = new IndexPath(0, 0);
+
+            items[0] = newParent;
+
+            Assert.Equal(default, source.RowSelection.SelectedIndex);
+            Assert.Null(source.RowSelection.SelectedItem);
+            Assert.Empty(source.RowSelection.SelectedIndexes);
+            Assert.Same(newParent, source.Rows[0].Model);
+            Assert.Same(newChild, source.Rows[1].Model);
+            oldParent.Children.Add(new BoundNode());
+            Assert.Equal(2, source.Rows.Count);
+        }
+        [Fact]
+        public void Unequal_parent_replace_shifts_descendant_selection_and_anchors()
+        {
+            var selectedChild = new BoundNode();
+            var selectedParent = new BoundNode
+            {
+                IsExpanded = true,
+                Children = { selectedChild },
+            };
+            var items = new ResettingCollection<BoundNode>(new[]
+            {
+                new BoundNode(),
+                selectedParent,
+            });
+            using var source = new HierarchicalTreeDataGridSource<BoundNode>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<BoundNode>(
+                new TextColumn<BoundNode, bool>("Expanded", x => x.IsExpanded),
+                x => x.Children,
+                isExpandedSelector: x => x.IsExpanded));
+            source.RowSelection!.SelectedIndex = new IndexPath(1, 0);
+
+            items.ReplaceRange(0, 1, new[] { new BoundNode(), new BoundNode() });
+
+            Assert.Equal(new IndexPath(2, 0), source.RowSelection.SelectedIndex);
+            Assert.Equal(new IndexPath(2, 0), source.RowSelection.AnchorIndex);
+            Assert.Equal(new IndexPath(2, 0), source.RowSelection.RangeAnchorIndex);
+            Assert.Same(selectedChild, source.RowSelection.SelectedItem);
+            Assert.Same(selectedParent, source.Rows.Single(x => ReferenceEquals(x.Model, selectedParent)).Model);
+        }
+        [Fact]
+        public void Unequal_replace_clears_anchors_inside_the_replaced_range()
+        {
+            var items = new ResettingCollection<Node>(new[]
+            {
+                new Node("Old 1"),
+                new Node("Old 2"),
+                new Node("Tail"),
+            });
+            using var source = new FlatTreeDataGridSource<Node>(items);
+            source.Columns.Add(new TextColumn<Node, string>("Name", x => x.Name));
+            source.RowSelection!.AnchorIndex = new IndexPath(1);
+            source.RowSelection.RangeAnchorIndex = new IndexPath(1);
+
+            items.ReplaceRange(0, 2, new[] { new Node("Replacement") });
+
+            Assert.Equal(default, source.RowSelection.AnchorIndex);
+            Assert.Equal(default, source.RowSelection.RangeAnchorIndex);
+        }
+        [Fact]
+        public void Equal_size_replace_clears_anchors_inside_the_replaced_range()
+        {
+            var items = new ResettingCollection<Node>(new[]
+            {
+                new Node("Old 1"),
+                new Node("Old 2"),
+                new Node("Tail"),
+            });
+            using var source = new FlatTreeDataGridSource<Node>(items);
+            source.Columns.Add(new TextColumn<Node, string>("Name", x => x.Name));
+            source.RowSelection!.AnchorIndex = new IndexPath(1);
+            source.RowSelection.RangeAnchorIndex = new IndexPath(1);
+
+            items.ReplaceRange(0, 2, new[] { new Node("Replacement 1"), new Node("Replacement 2") });
+
+            Assert.Equal(default, source.RowSelection.AnchorIndex);
+            Assert.Equal(default, source.RowSelection.RangeAnchorIndex);
+        }
+        [Fact]
+        public void Indexless_collection_changes_reset_rows_and_selection()
+        {
+            Verify((items, replacement) => items.AddWithoutIndex(replacement), "A", "B", "C");
+            Verify((items, _) => items.RemoveAtWithoutIndex(0), "B");
+            Verify((items, replacement) => items.ReplaceWithoutIndex(0, replacement), "C", "B");
+
+            static void Verify(
+                Action<ResettingCollection<Node>, Node> change,
+                params string[] expected)
+            {
+                var items = new ResettingCollection<Node>(new[] { new Node("A"), new Node("B") });
+                using var source = new FlatTreeDataGridSource<Node>(items);
+                source.Columns.Add(new TextColumn<Node, string>("Name", x => x.Name));
+                Assert.Equal(new[] { "A", "B" }, source.Rows.Select(x => ((Node)x.Model!).Name));
+                source.RowSelection!.SelectedIndex = new IndexPath(1);
+
+                change(items, new Node("C"));
+
+                Assert.Equal(expected, source.Rows.Select(x => ((Node)x.Model!).Name));
+                Assert.Equal(default, source.RowSelection.SelectedIndex);
+                Assert.Null(source.RowSelection.SelectedItem);
+            }
+        }
+        private sealed class BoundNode : INotifyPropertyChanged
+        {
+            private bool _expanded;
+            private ObservableCollection<BoundNode> _children = new();
+            public bool IsExpanded
+            {
+                get => _expanded;
+                set { if (_expanded == value) return; _expanded = value; PropertyChanged?.Invoke(this, new(nameof(IsExpanded))); }
+            }
+            public ObservableCollection<BoundNode> Children
+            {
+                get => _children;
+                set
+                {
+                    if (ReferenceEquals(_children, value)) return;
+                    _children = value;
+                    PropertyChanged?.Invoke(this, new(nameof(Children)));
+                }
+            }
+            public event PropertyChangedEventHandler? PropertyChanged;
+            public void NotifyUnrelatedPropertyChanged() =>
+                PropertyChanged?.Invoke(this, new(nameof(NotifyUnrelatedPropertyChanged)));
+        }
+
+        [Fact]
+        public void Moving_the_expander_column_preserves_rows_and_expansion()
+        {
+            using var source = new HierarchicalTreeDataGridSource<Node>(new[] { new Node("Root") { Children = { new("Child") } } });
+            var expander = new HierarchicalExpanderColumn<Node>(new TextColumn<Node, string>("Name", x => x.Name), x => x.Children);
+            source.Columns.Add(expander);
+            source.Columns.Add(new TextColumn<Node, string>("Other", x => x.Name));
+            source.Expand(0);
+            var rows = source.Rows;
+            source.Columns.Move(0, 1);
+            Assert.Same(expander, source.Columns[1]);
+            Assert.Same(rows, source.Rows);
+            Assert.Equal(2, rows.Count);
+        }
+
+        [Fact]
+        public void Items_source_view_can_be_disposed_without_a_registered_listener()
+        {
+            var items = new ObservableCollection<Node>();
+            var view = new TreeDataGridItemsSourceView(items);
+            System.Collections.Specialized.NotifyCollectionChangedEventHandler handler = (_, _) => { };
+
+            view.CollectionChanged -= handler;
+            view.Dispose();
+            view.Dispose();
+        }
+
+        [Fact]
+        public void Replacing_a_hierarchical_item_disposes_the_replaced_row()
+        {
+            var replaced = new BoundNode { Children = { new() } };
+            var items = new ObservableCollection<BoundNode> { replaced };
+            using var source = new HierarchicalTreeDataGridSource<BoundNode>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<BoundNode>(
+                new TextColumn<BoundNode, bool>("Expanded", x => x.IsExpanded),
+                x => x.Children,
+                isExpandedSelector: x => x.IsExpanded));
+            var replacedRow = Assert.IsType<HierarchicalRow<BoundNode>>(source.Rows[0]);
+
+            items[0] = new BoundNode();
+            replaced.IsExpanded = true;
+
+            Assert.False(replacedRow.IsExpanded);
+        }
+
+        [Fact]
+        public void Hierarchical_move_with_none_position_is_a_no_op()
+        {
+            var first = new Node("First");
+            var second = new Node("Second");
+            var items = new ObservableCollection<Node> { first, second };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(1),
+                RowDropPosition.None, RowMoveEffects.Move);
+
+            Assert.Same(first, items[0]);
+            Assert.Same(second, items[1]);
+        }
+
+        [Fact]
+        public void Column_replacement_reports_new_and_old_items_in_the_correct_fields()
+        {
+            var columns = new ColumnList<Node>();
+            var original = new TextColumn<Node, string>("Original", x => x.Name);
+            var replacement = new TextColumn<Node, string>("Replacement", x => x.Name);
+            System.Collections.Specialized.NotifyCollectionChangedEventArgs? change = null;
+            columns.Add(original);
+            columns.CollectionChanged += (_, e) => change = e;
+
+            columns[0] = replacement;
+
+            Assert.Same(replacement, change!.NewItems![0]);
+            Assert.Same(original, change.OldItems![0]);
+        }
+
+        [Fact]
+        public void Column_list_rejects_duplicate_instances_before_mutation()
+        {
+            var columns = new ColumnList<Node>();
+            var column = new TextColumn<Node, string>("Name", x => x.Name);
+            columns.Add(column);
+            var changes = 0;
+            columns.CollectionChanged += (_, _) => ++changes;
+
+            Assert.Throws<InvalidOperationException>(() => columns.Add(column));
+            Assert.Throws<InvalidOperationException>(() =>
+                columns.InsertRange(1, add => add(column)));
+            Assert.Throws<InvalidOperationException>(() =>
+                columns.Reset(items => items.Add(column)));
+
+            Assert.Same(column, Assert.Single(columns));
+            Assert.Equal(0, changes);
+        }
+
+        [Fact]
+        public void Replacing_the_expander_column_is_rejected_before_mutation()
+        {
+            using var source = new HierarchicalTreeDataGridSource<Node>(new[] { new Node("Root") });
+            var expander = new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children);
+            source.Columns.Add(expander);
+            var rows = source.Rows;
+
+            Assert.Throws<InvalidOperationException>(() =>
+                source.Columns[0] = new TextColumn<Node, string>("Other", x => x.Name));
+
+            Assert.Same(expander, source.Columns[0]);
+            Assert.Same(rows, source.Rows);
+        }
+
+        [Fact]
+        public void Adding_or_removing_an_expander_is_rejected_before_mutation()
+        {
+            using var source = new HierarchicalTreeDataGridSource<Node>(new[] { new Node("Root") });
+            var expander = new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children);
+            source.Columns.Add(expander);
+
+            Assert.Throws<InvalidOperationException>(() => source.Columns.Add(
+                new HierarchicalExpanderColumn<Node>(
+                    new TextColumn<Node, string>("Other", x => x.Name), x => x.Children)));
+            Assert.Single(source.Columns);
+            Assert.Throws<InvalidOperationException>(() => source.Columns.Remove(expander));
+            Assert.Same(expander, Assert.Single(source.Columns));
+        }
+
+        [Fact]
+        public void Column_reset_is_staged_and_retains_the_expander()
+        {
+            using var source = new HierarchicalTreeDataGridSource<Node>(new[] { new Node("Root") });
+            var expander = new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children);
+            var original = new TextColumn<Node, string>("Original", x => x.Name);
+            var replacement = new TextColumn<Node, string>("Replacement", x => x.Name);
+            source.Columns.Add(expander);
+            source.Columns.Add(original);
+
+            source.Columns.Reset(columns =>
+            {
+                columns.Remove(original);
+                columns.Add(replacement);
+            });
+
+            Assert.Equal(new IColumn<Node>[] { expander, replacement }, source.Columns);
+            Assert.Throws<InvalidOperationException>(() =>
+                source.Columns.Reset(columns => columns.Remove(expander)));
+            Assert.Equal(new IColumn<Node>[] { expander, replacement }, source.Columns);
+        }
+
+        [Fact]
+        public void Batch_column_changes_validate_the_expander_before_mutation()
+        {
+            using var source = new HierarchicalTreeDataGridSource<Node>(new[] { new Node("Root") });
+            var expander = new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children);
+            source.Columns.Add(expander);
+
+            Assert.Throws<InvalidOperationException>(() => source.Columns.InsertRange(1, add =>
+            {
+                add(new TextColumn<Node, string>("Ordinary", x => x.Name));
+                add(new HierarchicalExpanderColumn<Node>(
+                    new TextColumn<Node, string>("Other", x => x.Name), x => x.Children));
+            }));
+            Assert.Same(expander, Assert.Single(source.Columns));
+            Assert.Throws<InvalidOperationException>(() => source.Columns.RemoveRange(0, 1));
+            Assert.Same(expander, Assert.Single(source.Columns));
+        }
+
+        [Fact]
+        public void Hierarchical_move_preserves_order_across_parent_groups()
+        {
+            var first = new Node("First") { Children = { new("A") } };
+            var second = new Node("Second") { Children = { new("B") } };
+            var target = new Node("Target");
+            var items = new ObservableCollection<Node> { first, second, target };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+
+            source.MoveRows(source, new[] { new IndexPath(0, 0), new IndexPath(1, 0) },
+                new IndexPath(2), RowDropPosition.Inside, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { "A", "B" }, target.Children.Select(x => x.Name));
+        }
+
+        [Fact]
+        public void Hierarchical_move_uses_the_original_after_target_offset()
+        {
+            var first = new Node("First");
+            var middle = new Node("Middle");
+            var target = new Node("Target");
+            var items = new ObservableCollection<Node> { first, middle, target };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+
+            source.MoveRows(source, new[] { new IndexPath(0), new IndexPath(2) },
+                new IndexPath(2), RowDropPosition.After, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { middle, first, target }, items);
+        }
+
+        [Fact]
+        public void Hierarchical_move_resolves_all_source_paths_before_removal()
+        {
+            var first = new Node("First");
+            var movedChild = new Node("Child");
+            var second = new Node("Second") { Children = { movedChild } };
+            var target = new Node("Target");
+            var items = new ObservableCollection<Node> { first, second, target };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+
+            source.MoveRows(source, new[] { new IndexPath(0), new IndexPath(1, 0) },
+                new IndexPath(2), RowDropPosition.Inside, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { second, target }, items);
+            Assert.Equal(new[] { first, movedChild }, target.Children);
+        }
+
+        [Fact]
+        public void Hierarchical_move_preserves_selected_rows()
+        {
+            var first = new Node("First") { Children = { new("Child") } };
+            var second = new Node("Second");
+            var items = new ObservableCollection<Node> { first, second };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+            source.RowSelection!.SingleSelect = false;
+            source.RowSelection.Select(new IndexPath(0));
+            source.RowSelection.Select(new IndexPath(0, 0));
+
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(1),
+                RowDropPosition.After, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { second, first }, items);
+            Assert.Equal(new[] { new IndexPath(1), new IndexPath(1, 0) },
+                source.RowSelection.SelectedIndexes);
+        }
+
+        [Fact]
+        public void Hierarchical_move_preserves_the_primary_selection()
+        {
+            var first = new Node("First");
+            var primary = new Node("Primary");
+            var target = new Node("Target");
+            var items = new ObservableCollection<Node> { first, primary, target };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+            source.RowSelection!.SingleSelect = false;
+            source.RowSelection.Select(new IndexPath(1));
+            source.RowSelection.Select(new IndexPath(0));
+
+            source.MoveRows(source, new[] { new IndexPath(0), new IndexPath(1) },
+                new IndexPath(2), RowDropPosition.After, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { target, first, primary }, items);
+            Assert.Equal(new IndexPath(2), source.RowSelection.SelectedIndex);
+            Assert.Same(primary, source.RowSelection.SelectedItem);
+            Assert.Equal(new[] { new IndexPath(1), new IndexPath(2) },
+                source.RowSelection.SelectedIndexes);
+        }
+
+        [Fact]
+        public void Hierarchical_move_on_plain_list_preserves_moved_primary_and_retained_selection()
+        {
+            var primary = new Node("Primary");
+            var retained = new Node("Retained");
+            var target = new Node("Target");
+            var items = new List<Node> { primary, retained, target };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+            source.RowSelection!.SingleSelect = false;
+            source.RowSelection.Select(new IndexPath(0));
+            source.RowSelection.Select(new IndexPath(1));
+
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(2),
+                RowDropPosition.After, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { retained, target, primary }, items);
+            Assert.Equal(new IndexPath(2), source.RowSelection.SelectedIndex);
+            Assert.Same(primary, source.RowSelection.SelectedItem);
+            Assert.Equal(new[] { new IndexPath(0), new IndexPath(2) },
+                source.RowSelection.SelectedIndexes);
+        }
+
+        [Fact]
+        public void Hierarchical_move_on_plain_list_remaps_an_unmoved_selection()
+        {
+            var moved = new Node("Moved");
+            var selected = new Node("Selected");
+            var target = new Node("Target");
+            var items = new List<Node> { moved, selected, target };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.RowSelection!.SelectedIndex = new IndexPath(1);
+
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(2),
+                RowDropPosition.After, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { selected, target, moved }, items);
+            Assert.Equal(new IndexPath(0), source.RowSelection.SelectedIndex);
+            Assert.Same(selected, source.RowSelection.SelectedItem);
+        }
+
+        [Fact]
+        public void Hierarchical_move_prefers_exact_selected_source_paths()
+        {
+            var child = new Node("Child");
+            var parent = new Node("Parent") { Children = { child } };
+            var target = new Node("Target");
+            var items = new ObservableCollection<Node> { parent, target };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+            source.RowSelection!.SingleSelect = false;
+            source.RowSelection.Select(new IndexPath(0));
+            source.RowSelection.Select(new IndexPath(0, 0));
+
+            source.MoveRows(source, new[] { new IndexPath(0), new IndexPath(0, 0) },
+                new IndexPath(1), RowDropPosition.Inside, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { parent, child }, target.Children);
+            Assert.Equal(new[] { new IndexPath(0, 0), new IndexPath(0, 1) },
+                source.RowSelection.SelectedIndexes);
+        }
+
+        [Fact]
+        public void Hierarchical_move_maps_selections_through_the_deepest_moved_ancestor()
+        {
+            var grandchild = new Node("Grandchild");
+            var extracted = new Node("Extracted") { Children = { grandchild } };
+            var retained = new Node("Retained");
+            var parent = new Node("Parent") { Children = { extracted, retained } };
+            var target = new Node("Target");
+            var items = new ObservableCollection<Node> { parent, target };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+            source.RowSelection!.SingleSelect = false;
+            source.RowSelection.Select(new IndexPath(0, 0, 0));
+            source.RowSelection.Select(new IndexPath(0, 1));
+
+            source.MoveRows(source, new[] { new IndexPath(0), new IndexPath(0, 0) },
+                new IndexPath(1), RowDropPosition.Inside, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { parent, extracted }, target.Children);
+            Assert.Same(retained, Assert.Single(parent.Children));
+            Assert.Equal(new[] { new IndexPath(0, 0, 0), new IndexPath(0, 1, 0) },
+                source.RowSelection.SelectedIndexes);
+            Assert.Equal(new[] { retained, grandchild }, source.RowSelection.SelectedItems);
+        }
+
+        [Theory]
+        [InlineData(RowDropPosition.Inside, 0)]
+        [InlineData(RowDropPosition.Before, 1)]
+        [InlineData(RowDropPosition.After, 1)]
+        public void Hierarchical_move_rejects_targets_in_the_moved_subtree(
+            RowDropPosition position,
+            int targetDepth)
+        {
+            var child = new Node("Child");
+            var parent = new Node("Parent") { Children = { child } };
+            var items = new ObservableCollection<Node> { parent };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+            var target = targetDepth == 0 ? new IndexPath(0) : new IndexPath(0, 0);
+
+            Assert.Throws<InvalidOperationException>(() => source.MoveRows(
+                source,
+                new[] { new IndexPath(0) },
+                target,
+                position,
+                RowMoveEffects.Move));
+
+            Assert.Same(parent, Assert.Single(items));
+            Assert.Same(child, Assert.Single(parent.Children));
+        }
+
+        [Fact]
+        public void Hierarchical_move_rejects_duplicate_source_paths_before_mutation()
+        {
+            var first = new Node("First");
+            var second = new Node("Second");
+            var items = new ObservableCollection<Node> { first, second };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+
+            Assert.Throws<ArgumentException>(() => source.MoveRows(
+                source,
+                new[] { new IndexPath(0), new IndexPath(0) },
+                new IndexPath(1),
+                RowDropPosition.After,
+                RowMoveEffects.Move));
+
+            Assert.Equal(new[] { first, second }, items);
+        }
+
+        [Fact]
+        public void Empty_moves_do_not_rebuild_materialized_plain_list_rows()
+        {
+            var flatItems = new List<Node> { new("Flat") };
+            using var flat = new FlatTreeDataGridSource<Node>(flatItems);
+            var flatRow = flat.Rows[0];
+            var flatChanges = 0;
+            flat.Rows.CollectionChanged += (_, _) => ++flatChanges;
+
+            flat.MoveRows(flat, Array.Empty<IndexPath>(), new IndexPath(0),
+                RowDropPosition.Before, RowMoveEffects.Move);
+
+            Assert.Same(flatRow, flat.Rows[0]);
+            Assert.Equal(0, flatChanges);
+
+            var hierarchicalItems = new List<Node> { new("Hierarchical") };
+            using var hierarchical = new HierarchicalTreeDataGridSource<Node>(hierarchicalItems);
+            hierarchical.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+            var hierarchicalRow = hierarchical.Rows[0];
+            var hierarchicalChanges = 0;
+            hierarchical.Rows.CollectionChanged += (_, _) => ++hierarchicalChanges;
+
+            hierarchical.MoveRows(hierarchical, Array.Empty<IndexPath>(), new IndexPath(0),
+                RowDropPosition.Before, RowMoveEffects.Move);
+
+            Assert.Same(hierarchicalRow, hierarchical.Rows[0]);
+            Assert.Equal(0, hierarchicalChanges);
+        }
+
+        [Fact]
+        public void Hierarchical_move_rejects_an_invalid_target_before_mutation()
+        {
+            var first = new Node("First");
+            var second = new Node("Second");
+            var items = new ObservableCollection<Node> { first, second };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => source.MoveRows(
+                source, new[] { new IndexPath(0) }, new IndexPath(5),
+                RowDropPosition.Before, RowMoveEffects.Move));
+
+            Assert.Equal(new[] { first, second }, items);
+        }
+
+        [Fact]
+        public void Hierarchical_move_rejects_an_invalid_source_before_mutation()
+        {
+            var first = new Node("First");
+            var second = new Node("Second");
+            var items = new ObservableCollection<Node> { first, second };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => source.MoveRows(
+                source, new[] { new IndexPath(5) }, new IndexPath(1),
+                RowDropPosition.Before, RowMoveEffects.Move));
+
+            Assert.Equal(new[] { first, second }, items);
+        }
+
+        [Fact]
+        public void Hierarchical_move_uses_the_requested_path_for_a_shared_target_collection()
+        {
+            var sharedChildren = new ObservableCollection<SharedNode>();
+            var moved = new SharedNode("Moved");
+            var firstParent = new SharedNode("First", sharedChildren);
+            var secondParent = new SharedNode("Second", sharedChildren);
+            var items = new ObservableCollection<SharedNode> { moved, firstParent, secondParent };
+            using var source = new HierarchicalTreeDataGridSource<SharedNode>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<SharedNode>(
+                new TextColumn<SharedNode, string>("Name", x => x.Name), x => x.Children));
+            source.RowSelection!.SelectedIndex = new IndexPath(0);
+
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(2),
+                RowDropPosition.Inside, RowMoveEffects.Move);
+
+            Assert.Same(moved, Assert.Single(sharedChildren));
+            Assert.Equal(new IndexPath(1, 0), source.RowSelection.SelectedIndex);
+        }
+
+        [Fact]
+        public void Hierarchical_move_groups_aliased_source_collections_by_identity()
+        {
+            var first = new SharedNode("A");
+            var second = new SharedNode("B");
+            var third = new SharedNode("C");
+            var sharedChildren = new ObservableCollection<SharedNode> { first, second, third };
+            var firstParent = new SharedNode("First", sharedChildren);
+            var secondParent = new SharedNode("Second", sharedChildren);
+            var target = new SharedNode("Target");
+            var items = new ObservableCollection<SharedNode> { firstParent, secondParent, target };
+            using var source = new HierarchicalTreeDataGridSource<SharedNode>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<SharedNode>(
+                new TextColumn<SharedNode, string>("Name", x => x.Name), x => x.Children));
+
+            source.MoveRows(source, new[] { new IndexPath(0, 0), new IndexPath(1, 1) },
+                new IndexPath(2), RowDropPosition.Inside, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { third }, sharedChildren);
+            Assert.Equal(new[] { first, second }, target.Children);
+        }
+
+        [Fact]
+        public void Hierarchical_move_rejects_duplicate_physical_source_offsets()
+        {
+            var shared = new SharedNode("Shared");
+            var sharedChildren = new ObservableCollection<SharedNode> { shared };
+            var firstParent = new SharedNode("First", sharedChildren);
+            var secondParent = new SharedNode("Second", sharedChildren);
+            var target = new SharedNode("Target");
+            var items = new ObservableCollection<SharedNode> { firstParent, secondParent, target };
+            using var source = new HierarchicalTreeDataGridSource<SharedNode>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<SharedNode>(
+                new TextColumn<SharedNode, string>("Name", x => x.Name), x => x.Children));
+
+            Assert.Throws<ArgumentException>(() => source.MoveRows(source,
+                new[] { new IndexPath(0, 0), new IndexPath(1, 0) }, new IndexPath(2),
+                RowDropPosition.Inside, RowMoveEffects.Move));
+
+            Assert.Same(shared, Assert.Single(sharedChildren));
+            Assert.Empty(target.Children);
+        }
+
+        [Fact]
+        public void Hierarchical_move_rejects_an_aliased_self_drop()
+        {
+            var shared = new SharedNode("Shared");
+            var sharedChildren = new ObservableCollection<SharedNode> { shared };
+            var firstParent = new SharedNode("First", sharedChildren);
+            var secondParent = new SharedNode("Second", sharedChildren);
+            var items = new ObservableCollection<SharedNode> { firstParent, secondParent };
+            using var source = new HierarchicalTreeDataGridSource<SharedNode>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<SharedNode>(
+                new TextColumn<SharedNode, string>("Name", x => x.Name), x => x.Children));
+
+            Assert.Throws<InvalidOperationException>(() => source.MoveRows(source,
+                new[] { new IndexPath(0, 0) }, new IndexPath(1, 0),
+                RowDropPosition.Inside, RowMoveEffects.Move));
+
+            Assert.Same(shared, Assert.Single(sharedChildren));
+            Assert.Empty(shared.Children);
+        }
+
+        [Fact]
+        public void Hierarchical_move_rejects_a_target_collection_aliased_into_the_moved_subtree()
+        {
+            var sharedChildren = new ObservableCollection<SharedNode>();
+            var first = new SharedNode("First", sharedChildren);
+            var second = new SharedNode("Second", sharedChildren);
+            var items = new ObservableCollection<SharedNode> { first, second };
+            using var source = new HierarchicalTreeDataGridSource<SharedNode>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<SharedNode>(
+                new TextColumn<SharedNode, string>("Name", x => x.Name), x => x.Children));
+
+            Assert.Throws<InvalidOperationException>(() => source.MoveRows(source,
+                new[] { new IndexPath(0) }, new IndexPath(1),
+                RowDropPosition.Inside, RowMoveEffects.Move));
+
+            Assert.Equal(new[] { first, second }, items);
+            Assert.Empty(sharedChildren);
+        }
+
+        [Fact]
+        public void Hierarchical_move_does_not_scan_subtrees_for_a_same_collection_reorder()
+        {
+            var first = new Node("First") { Children = { new("Child") } };
+            var second = new Node("Second");
+            var items = new ObservableCollection<Node> { first, second };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            var childSelectorCalls = 0;
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name),
+                x =>
+                {
+                    ++childSelectorCalls;
+                    return x.Children;
+                }));
+
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(1),
+                RowDropPosition.After, RowMoveEffects.Move);
+
+            Assert.Equal(0, childSelectorCalls);
+            Assert.Equal(new[] { second, first }, items);
+        }
+
+        [Fact]
+        public void Hierarchical_move_refreshes_materialized_rows_for_a_plain_list()
+        {
+            var first = new Node("First");
+            var second = new Node("Second");
+            var items = new List<Node> { first, second };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+            Assert.Equal(new[] { first, second }, source.Rows.Select(x => x.Model));
+
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(1),
+                RowDropPosition.After, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { second, first }, items);
+            Assert.Equal(new[] { second, first }, source.Rows.Select(x => x.Model));
+        }
+
+        [Fact]
+        public void Hierarchical_move_refreshes_an_expanded_plain_child_list()
+        {
+            var moved = new SharedNode("Moved");
+            var existing = new SharedNode("Existing");
+            var children = new List<SharedNode> { existing };
+            var target = new SharedNode("Target", children);
+            var items = new ObservableCollection<SharedNode> { moved, target };
+            using var source = new HierarchicalTreeDataGridSource<SharedNode>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<SharedNode>(
+                new TextColumn<SharedNode, string>("Name", x => x.Name), x => x.Children));
+            source.Expand(new IndexPath(1));
+            Assert.Equal(new[] { moved, target, existing }, source.Rows.Select(x => x.Model));
+
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(1),
+                RowDropPosition.Inside, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { existing, moved }, children);
+            Assert.Equal(new[] { target, existing, moved }, source.Rows.Select(x => x.Model));
+        }
+
+        [Fact]
+        public void Hierarchical_move_preserves_source_owned_expansion()
+        {
+            var expanded = new Node("Expanded") { Children = { new("Child") } };
+            var sibling = new Node("Sibling");
+            var items = new ObservableCollection<Node> { expanded, sibling };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+            source.Expand(new IndexPath(0));
+            Assert.Equal(3, source.Rows.Count);
+
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(1),
+                RowDropPosition.After, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { sibling, expanded, expanded.Children[0] },
+                source.Rows.Select(x => x.Model));
+            Assert.True(((IExpanderRow<Node>)source.Rows[1]).IsExpanded);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void Hierarchical_move_preserves_selection_anchors(bool notifying)
+        {
+            var first = new Node("First");
+            var second = new Node("Second");
+            IList<Node> items = notifying ?
+                new ObservableCollection<Node> { first, second } : new List<Node> { first, second };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.RowSelection!.SelectedIndex = new IndexPath(0);
+
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(1),
+                RowDropPosition.After, RowMoveEffects.Move);
+
+            Assert.Equal(new IndexPath(1), source.RowSelection.AnchorIndex);
+            Assert.Equal(new IndexPath(1), source.RowSelection.RangeAnchorIndex);
+        }
+
+        [Fact]
+        public void Hierarchical_move_preserves_empty_selection_anchors()
+        {
+            var items = new ObservableCollection<Node> { new("First"), new("Second") };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.RowSelection!.SingleSelect = false;
+            source.RowSelection.SelectedIndex = new IndexPath(0);
+            source.RowSelection.Select(new IndexPath(1));
+            source.RowSelection.AnchorIndex = default;
+            source.RowSelection.RangeAnchorIndex = default;
+            Assert.Equal(default, source.RowSelection.AnchorIndex);
+            Assert.Equal(default, source.RowSelection.RangeAnchorIndex);
+
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(1),
+                RowDropPosition.After, RowMoveEffects.Move);
+
+            Assert.Equal(default, source.RowSelection.AnchorIndex);
+            Assert.Equal(default, source.RowSelection.RangeAnchorIndex);
+        }
+
+        [Fact]
+        public void Hierarchical_reset_clears_a_stale_range_anchor_before_a_move()
+        {
+            var survivor = new Node("Survivor");
+            var removed = new Node("Removed") { Children = { new("Child") } };
+            var other = new Node("Other");
+            var items = new ResettingCollection<Node>(new[] { survivor, removed, other });
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+            source.RowSelection!.RangeAnchorIndex = new IndexPath(1, 0);
+            Assert.Equal(new IndexPath(1, 0), source.RowSelection.RangeAnchorIndex);
+
+            items.Reset(new[] { survivor, other });
+
+            Assert.Equal(default, source.RowSelection.RangeAnchorIndex);
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(1),
+                RowDropPosition.After, RowMoveEffects.Move);
+            Assert.Equal(new[] { other, survivor }, items);
+        }
+
+        [Fact]
+        public void Hierarchical_move_restores_a_selection_reached_through_an_alias()
+        {
+            var moved = new SharedNode("Moved");
+            var remaining = new SharedNode("Remaining");
+            var sharedChildren = new ObservableCollection<SharedNode> { moved, remaining };
+            var firstParent = new SharedNode("First", sharedChildren);
+            var secondParent = new SharedNode("Second", sharedChildren);
+            var target = new SharedNode("Target");
+            var items = new ObservableCollection<SharedNode> { firstParent, secondParent, target };
+            using var source = new HierarchicalTreeDataGridSource<SharedNode>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<SharedNode>(
+                new TextColumn<SharedNode, string>("Name", x => x.Name), x => x.Children));
+            source.RowSelection!.SelectedIndex = new IndexPath(1, 0);
+
+            source.MoveRows(source, new[] { new IndexPath(0, 0) }, new IndexPath(2),
+                RowDropPosition.Inside, RowMoveEffects.Move);
+
+            Assert.Same(remaining, Assert.Single(sharedChildren));
+            Assert.Same(moved, Assert.Single(target.Children));
+            Assert.Equal(new IndexPath(2, 0), source.RowSelection.SelectedIndex);
+        }
+
+        [Fact]
+        public void Hierarchical_move_remaps_retained_selection_through_an_aliased_target()
+        {
+            var moved = new SharedNode("Moved");
+            var first = new SharedNode("A");
+            var selected = new SharedNode("B");
+            var sharedChildren = new ObservableCollection<SharedNode> { first, selected };
+            var firstParent = new SharedNode("First", sharedChildren);
+            var secondParent = new SharedNode("Second", sharedChildren);
+            var items = new ObservableCollection<SharedNode> { moved, firstParent, secondParent };
+            using var source = new HierarchicalTreeDataGridSource<SharedNode>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<SharedNode>(
+                new TextColumn<SharedNode, string>("Name", x => x.Name), x => x.Children));
+            source.RowSelection!.SelectedIndex = new IndexPath(1, 1);
+
+            source.MoveRows(source, new[] { new IndexPath(0) }, new IndexPath(2, 1),
+                RowDropPosition.Before, RowMoveEffects.Move);
+
+            Assert.Equal(new[] { first, moved, selected }, sharedChildren);
+            Assert.Equal(new IndexPath(0, 2), source.RowSelection.SelectedIndex);
+        }
+
+        [Fact]
+        public void Hierarchical_move_rejects_a_read_only_target_before_mutation()
+        {
+            var moved = new SharedNode("Moved");
+            var readOnlyChildren = new System.Collections.ObjectModel.ReadOnlyCollection<SharedNode>(
+                new List<SharedNode>());
+            var target = new SharedNode("Target", readOnlyChildren);
+            var items = new ObservableCollection<SharedNode> { moved, target };
+            using var source = new HierarchicalTreeDataGridSource<SharedNode>(items);
+
+            Assert.Throws<InvalidOperationException>(() => source.MoveRows(
+                source, new[] { new IndexPath(0) }, new IndexPath(1),
+                RowDropPosition.Inside, RowMoveEffects.Move));
+
+            Assert.Equal(new[] { moved, target }, items);
+            Assert.Empty(readOnlyChildren);
+        }
+
+        [Fact]
+        public void Moving_an_expanded_root_recomputes_the_flattened_destination()
+        {
+            var first = new Node("First") { Children = { new("Child") } };
+            var second = new Node("Second");
+            var items = new ObservableCollection<Node> { first, second };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+            source.Expand(new IndexPath(0));
+            var expandedRow = source.Rows[0];
+
+            items.Move(0, 1);
+
+            Assert.Equal(new[] { second, first }, items);
+            Assert.Equal(new[] { "Second", "First", "Child" },
+                source.Rows.Select(x => ((Node)x.Model!).Name));
+            Assert.Same(expandedRow, source.Rows[1]);
+            Assert.True(((IExpanderRow<Node>)source.Rows[1]).IsExpanded);
+        }
+
+        [Fact]
+        public void Moving_an_expanded_root_preserves_its_row_while_sorted()
+        {
+            var expanded = new Node("Same") { Children = { new("Child") } };
+            var sibling = new Node("Same");
+            var items = new ObservableCollection<Node> { expanded, sibling };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            var column = new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children);
+            source.Columns.Add(column);
+            source.SortBy(column, ListSortDirection.Ascending);
+            source.Expand(new IndexPath(0));
+            var expandedRow = source.Rows[0];
+
+            items.Move(0, 1);
+
+            Assert.Equal(new[] { sibling, expanded }, items);
+            Assert.Equal(new[] { sibling, expanded, expanded.Children[0] },
+                source.Rows.Select(x => x.Model));
+            Assert.Same(expandedRow, source.Rows[1]);
+            Assert.True(((IExpanderRow<Node>)source.Rows[1]).IsExpanded);
+        }
+
+        [Fact]
+        public void Sorted_row_removal_reports_the_removed_row_not_its_model()
+        {
+            var first = new Node("B");
+            var second = new Node("A");
+            var items = new ObservableCollection<Node> { first, second };
+            using var source = new HierarchicalTreeDataGridSource<Node>(items);
+            var column = new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children);
+            source.Columns.Add(column);
+            source.SortBy(column, ListSortDirection.Ascending);
+            var removedRow = source.Rows.Single(x => ReferenceEquals(x.Model, first));
+            System.Collections.Specialized.NotifyCollectionChangedEventArgs? change = null;
+            source.Rows.CollectionChanged += (_, e) => change = e;
+
+            items.Remove(first);
+
+            Assert.Same(removedRow, change!.OldItems![0]);
+        }
+
+        [Fact]
+        public void Nested_expansion_binding_tracks_leaf_and_intermediate_changes()
+        {
+            var child = new NestedBoundNode { Children = { new() } };
+            var parent = new NestedBoundNode { Children = { child } };
+            using var source = new HierarchicalTreeDataGridSource<NestedBoundNode>(new[] { parent });
+            source.Columns.Add(new HierarchicalExpanderColumn<NestedBoundNode>(
+                new TextColumn<NestedBoundNode, bool>("Expanded", x => x.Expansion.IsExpanded),
+                x => x.Children,
+                isExpandedSelector: x => x.Expansion.IsExpanded));
+
+            Assert.Single(source.Rows);
+            parent.Expansion.IsExpanded = true;
+            Assert.Equal(2, source.Rows.Count);
+            child.Expansion.IsExpanded = true;
+            Assert.Equal(3, source.Rows.Count);
+            child.Expansion = new ExpansionState();
+            Assert.Equal(2, source.Rows.Count);
+            parent.Expansion = new ExpansionState();
+            Assert.Single(source.Rows);
+            parent.Expansion = new ExpansionState { IsExpanded = true };
+            Assert.Equal(2, source.Rows.Count);
+            child.Expansion = new ExpansionState { IsExpanded = true };
+            Assert.Equal(3, source.Rows.Count);
+        }
+
+        [Fact]
+        public void ShowExpander_reflects_child_collection_changes_without_a_presentation()
+        {
+            var parent = new Node("Parent");
+            using var source = new HierarchicalTreeDataGridSource<Node>(new[] { parent });
+            source.Columns.Add(new HierarchicalExpanderColumn<Node>(
+                new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
+            var row = Assert.IsType<HierarchicalRow<Node>>(source.Rows[0]);
+
+            Assert.False(row.ShowExpander);
+            parent.Children.Add(new Node("Child"));
+            Assert.True(row.ShowExpander);
+            parent.Children.Clear();
+            Assert.False(row.ShowExpander);
+        }
+
+        [Fact]
+        public void Core_has_no_Avalonia_assembly_references()
+        {
+            Assert.DoesNotContain(typeof(FlatTreeDataGridSource<>).Assembly.GetReferencedAssemblies(), a => a.Name!.Contains("Avalonia", StringComparison.OrdinalIgnoreCase));
+        }
+
+        [Fact]
+        public void Equal_single_index_paths_have_equal_hash_codes()
+        {
+            var encoded = new IndexPath(0);
+            var array = new IndexPath(new[] { 0 });
+            var paths = new HashSet<IndexPath> { encoded };
+
+            Assert.Equal(encoded, array);
+            Assert.Equal(encoded.GetHashCode(), array.GetHashCode());
+            Assert.Contains(array, paths);
+        }
+        public sealed class Node
+        {
+            public Node(string name) => Name = name;
+            public string Name { get; set; }
+            public ObservableCollection<Node> Children { get; } = new();
+        }
+
+        private sealed class SharedNode
+        {
+            public SharedNode(string name, IList<SharedNode>? children = null)
+            {
+                Name = name;
+                Children = children ?? new ObservableCollection<SharedNode>();
+            }
+
+            public string Name { get; }
+            public IList<SharedNode> Children { get; }
+        }
+
+        private sealed class NestedBoundNode : INotifyPropertyChanged
+        {
+            private ExpansionState _expansion = new();
+            public ObservableCollection<NestedBoundNode> Children { get; } = new();
+            public ExpansionState Expansion
+            {
+                get => _expansion;
+                set
+                {
+                    if (ReferenceEquals(_expansion, value))
+                        return;
+                    _expansion = value;
+                    PropertyChanged?.Invoke(this, new(nameof(Expansion)));
+                }
+            }
+            public event PropertyChangedEventHandler? PropertyChanged;
+        }
+
+        private sealed class ExpansionState : INotifyPropertyChanged
+        {
+            private bool _isExpanded;
+            public bool IsExpanded
+            {
+                get => _isExpanded;
+                set
+                {
+                    if (_isExpanded == value)
+                        return;
+                    _isExpanded = value;
+                    PropertyChanged?.Invoke(this, new(nameof(IsExpanded)));
+                }
+            }
+            public event PropertyChangedEventHandler? PropertyChanged;
+        }
+    }
+}

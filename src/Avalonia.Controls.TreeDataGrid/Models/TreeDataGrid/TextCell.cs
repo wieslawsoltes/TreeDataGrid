@@ -8,7 +8,7 @@ using Avalonia.Media;
 
 namespace Avalonia.Controls.Models.TreeDataGrid
 {
-    public class TextCell<T> : NotifyingBase, ITextCell, IDisposable, IEditableObject
+    public class TextCell<T> : NotifyingBase, ITextCell, IDisposable, IEditableObject, IRecyclableCell
     {
         private readonly ISubject<BindingValue<T>>? _binding;
         private readonly ITextCellOptions? _options;
@@ -122,6 +122,18 @@ namespace Avalonia.Controls.Models.TreeDataGrid
                 _editText = null;
                 Text = text;
             }
+        }
+
+        bool IRecyclableCell.TrySuspend()
+        {
+            if (GetType() != typeof(TextCell<T>) ||
+                _binding is not IRetargetableTypedBindingExpression binding || !binding.TrySuspendRoot())
+                return false;
+
+            _value = default;
+            _editText = null;
+            _isEditing = false;
+            return true;
         }
 
         public void Dispose()

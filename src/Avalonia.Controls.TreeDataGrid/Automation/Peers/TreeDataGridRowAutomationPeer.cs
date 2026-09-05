@@ -1,3 +1,5 @@
+using Avalonia.Controls.Presentation;
+using CoreExpander = global::TreeDataGridCore.Models.IExpander;
 // Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
@@ -127,7 +129,7 @@ public class TreeDataGridRowAutomationPeer : ControlAutomationPeer, IToggleProvi
         if (TryGetModelIndex(out var modelIndex) &&
             GetRowSelectionModelOrNull() is { } selection)
         {
-            selection.Select(modelIndex);
+            selection.Select(modelIndex, false);
         }
     }
 
@@ -149,7 +151,7 @@ public class TreeDataGridRowAutomationPeer : ControlAutomationPeer, IToggleProvi
         if (TryGetModelIndex(out var modelIndex) &&
             GetRowSelectionModelOrNull() is { } selection)
         {
-            selection.SelectedIndex = modelIndex;
+            selection.Select(modelIndex, true);
         }
     }
 
@@ -185,9 +187,10 @@ public class TreeDataGridRowAutomationPeer : ControlAutomationPeer, IToggleProvi
         return Owner.FindAncestorOfType<TreeDataGrid>();
     }
 
-    private ITreeSelectionModel? GetRowSelectionModelOrNull()
+    private TreeDataGridPresentation? GetRowSelectionModelOrNull()
     {
-        return GetOwningGridOrNull()?.RowSelection as ITreeSelectionModel;
+        var presentation = GetOwningGridOrNull()?.Presentation;
+        return presentation?.SelectedIndexes is not null ? presentation : null;
     }
 
     private bool TryGetModelIndex(out IndexPath modelIndex)
@@ -202,16 +205,11 @@ public class TreeDataGridRowAutomationPeer : ControlAutomationPeer, IToggleProvi
             return false;
         }
 
-        if (rows[rowIndex] is IModelIndexableRow indexable)
-        {
-            modelIndex = indexable.ModelIndexPath;
-            return true;
-        }
-
-        return false;
+        modelIndex = rows.RowIndexToModelIndex(rowIndex);
+        return modelIndex.Count > 0;
     }
 
-    private IExpander? GetToggleExpanderOrNull()
+    private CoreExpander? GetToggleExpanderOrNull()
     {
         var rows = Owner.Rows;
         var rowIndex = Owner.RowIndex;
@@ -221,7 +219,7 @@ public class TreeDataGridRowAutomationPeer : ControlAutomationPeer, IToggleProvi
             return null;
         }
 
-        if (rows[rowIndex] is IExpander { ShowExpander: true } expander)
+        if (rows[rowIndex] is CoreExpander { ShowExpander: true } expander)
         {
             return expander;
         }

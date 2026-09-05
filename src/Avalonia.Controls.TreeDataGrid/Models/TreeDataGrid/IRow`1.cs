@@ -1,10 +1,10 @@
-﻿namespace Avalonia.Controls.Models.TreeDataGrid
+namespace Avalonia.Controls.Models.TreeDataGrid
 {
     /// <summary>
     /// Represents a row in an <see cref="ITreeDataGridSource"/>.
     /// </summary>
     /// <typeparam name="TModel">The model type.</typeparam>
-    public interface IRow<TModel> : IRow
+    public interface IRow<TModel> : IRow, global::TreeDataGridCore.Models.IRow<TModel>
     {
         /// <summary>
         /// Gets the row model.
@@ -15,11 +15,13 @@
         /// Gets the untyped row model.
         /// </summary>
         object? IRow.Model => Model;
+        object? global::TreeDataGridCore.Models.IRow.Model => Model;
+        TModel global::TreeDataGridCore.Models.IRow<TModel>.Model => Model;
 
         /// <summary>
         /// Updates the model index due to a change in the data source.
         /// </summary>
         /// <param name="delta">The index delta.</param>
-        void UpdateModelIndex(int delta);
+        new void UpdateModelIndex(int delta);
     }
 }

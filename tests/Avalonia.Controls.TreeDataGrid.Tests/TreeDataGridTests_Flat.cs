@@ -1272,10 +1272,14 @@ namespace Avalonia.Controls.TreeDataGridTests
 
         private static int EventSubscriberCount(object target, Type declaringType, string eventName)
         {
-            var field = declaringType.GetField(
-                eventName,
-                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-            return (field?.GetValue(target) as Delegate)?.GetInvocationList().Length ?? 0;
+            while (declaringType is not null)
+            {
+                var field = declaringType.GetField(eventName,
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.DeclaredOnly);
+                if (field is not null) return (field.GetValue(target) as Delegate)?.GetInvocationList().Length ?? 0;
+                declaringType = declaringType.BaseType!;
+            }
+            return 0;
         }
 
         private static void Layout(TreeDataGrid target)

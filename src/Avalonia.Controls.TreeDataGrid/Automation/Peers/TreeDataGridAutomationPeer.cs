@@ -1,3 +1,4 @@
+using Avalonia.Controls.Presentation;
 // Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
@@ -15,32 +16,33 @@ namespace Avalonia.Controls.Automation.Peers;
 
 public class TreeDataGridAutomationPeer : ControlAutomationPeer, ISelectionProvider
 {
-    private ITreeDataGridSource? _source;
-    private ITreeSelectionModel? _rowSelection;
+    private TreeDataGridPresentation? _source;
+    private ITreeDataGridSelectionInteraction? _rowSelection;
+    private ITreeSelectionModel? _legacyRowSelection;
 
     public TreeDataGridAutomationPeer(TreeDataGrid owner)
         : base(owner)
     {
         owner.PropertyChanged += OnOwnerPropertyChanged;
-        AttachSource(owner.Source);
+        AttachSource(owner.Presentation);
     }
 
     public new TreeDataGrid Owner => (TreeDataGrid)base.Owner;
 
-    public bool CanSelectMultiple => _rowSelection?.SingleSelect == false;
+    public bool CanSelectMultiple => _source?.CanSelectMultiple == true;
 
     public bool IsSelectionRequired => false;
 
     public IReadOnlyList<AutomationPeer> GetSelection()
     {
-        if (_rowSelection is null || Owner.Rows is not { } rows)
+        if (_source?.SelectedIndexes is null || Owner.Rows is not { } rows)
         {
             return Array.Empty<AutomationPeer>();
         }
 
         List<AutomationPeer>? result = null;
 
-        foreach (var modelIndex in _rowSelection.SelectedIndexes)
+        foreach (var modelIndex in _source!.SelectedIndexes!)
         {
             var rowIndex = rows.ModelIndexToRowIndex(modelIndex);
 
@@ -63,7 +65,7 @@ public class TreeDataGridAutomationPeer : ControlAutomationPeer, ISelectionProvi
 
     protected override object? GetProviderCore(Type providerType)
     {
-        if (providerType == typeof(ISelectionProvider) && _rowSelection is null)
+        if (providerType == typeof(ISelectionProvider) && _source?.SelectedIndexes is null)
         {
             return null;
         }
@@ -71,7 +73,7 @@ public class TreeDataGridAutomationPeer : ControlAutomationPeer, ISelectionProvi
         return base.GetProviderCore(providerType);
     }
 
-    private void AttachSource(ITreeDataGridSource? source)
+    private void AttachSource(TreeDataGridPresentation? source)
     {
         if (_source is not null)
         {
@@ -85,19 +87,30 @@ public class TreeDataGridAutomationPeer : ControlAutomationPeer, ISelectionProvi
             _source.PropertyChanged += OnSourcePropertyChanged;
         }
 
-        AttachRowSelection(Owner.RowSelection as ITreeSelectionModel);
+        AttachRowSelection();
     }
 
-    private void AttachRowSelection(ITreeSelectionModel? rowSelection)
+    private void AttachRowSelection()
     {
+        if (_legacyRowSelection is not null)
+        {
+            _legacyRowSelection.SelectionChanged -= OnRowSelectionChanged;
+        }
+
         if (_rowSelection is not null)
         {
             _rowSelection.SelectionChanged -= OnRowSelectionChanged;
         }
 
-        _rowSelection = rowSelection;
+        _legacyRowSelection = _source?.SourceIdentity is ITreeDataGridSource legacySource ?
+            legacySource.Selection as ITreeDataGridRowSelectionModel : null;
+        _rowSelection = _source?.SelectionInteraction;
 
-        if (_rowSelection is not null)
+        if (_legacyRowSelection is not null)
+        {
+            _legacyRowSelection.SelectionChanged += OnRowSelectionChanged;
+        }
+        else if (_rowSelection is not null)
         {
             _rowSelection.SelectionChanged += OnRowSelectionChanged;
         }
@@ -110,23 +123,23 @@ public class TreeDataGridAutomationPeer : ControlAutomationPeer, ISelectionProvi
 
     private void OnOwnerPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
-        if (e.Property == TreeDataGrid.SourceProperty)
+        if (e.Property == TreeDataGrid.PresentationProperty)
         {
-            AttachSource(Owner.Source);
+            AttachSource(Owner.Presentation);
             RaiseSelectionChanged();
         }
     }
 
     private void OnSourcePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(ITreeDataGridSource.Selection))
+        if (e.PropertyName == nameof(ITreeDataGridSource.Selection) || e.PropertyName == nameof(TreeDataGridPresentation.SelectionInteraction))
         {
-            AttachRowSelection(Owner.RowSelection as ITreeSelectionModel);
+            AttachRowSelection();
             RaiseSelectionChanged();
         }
     }
 
-    private void OnRowSelectionChanged(object? sender, TreeSelectionModelSelectionChangedEventArgs e)
+    private void OnRowSelectionChanged(object? sender, EventArgs e)
     {
         RaiseSelectionChanged();
     }

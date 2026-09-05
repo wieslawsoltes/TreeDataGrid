@@ -1,7 +1,7 @@
-# `TreeDataGrid` Installation
+# `TreeDataGrid.Controls.Avalonia` Installation
 
-- Add the `TreeDataGrid` NuGet package to your project
-- Add the `TreeDataGrid` theme to your `App.xaml` file (the `StyleInclude` in the following markup):
+- Add the `TreeDataGrid.Controls.Avalonia` NuGet package to new projects.
+- Add its theme to `App.xaml` (the `StyleInclude` in the following markup):
 
 ```xml
 <Application xmlns="https://github.com/avaloniaui"
@@ -9,9 +9,12 @@
              x:Class="AvaloniaApplication.App">
   <Application.Styles>
     <FluentTheme/>
-    <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
+    <StyleInclude Source="avares://TreeDataGrid.Avalonia/Themes/Fluent.axaml"/>
   </Application.Styles>
 </Application>
 ```
 
-Note: the `StyleInclude` URI remains `avares://Avalonia.Controls.TreeDataGrid/...` for compatibility.
+Existing applications may keep the `TreeDataGrid` package and
+`avares://Avalonia.Controls.TreeDataGrid/...` theme URI. Both packages expose the
+same Avalonia API; reference only one of them. See
+[Build and Package](build-and-package.md) for the package identity table.

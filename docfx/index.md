@@ -7,11 +7,11 @@
 ### Install
 
 ```bash
-dotnet add package TreeDataGrid
+dotnet add package TreeDataGrid.Controls.Avalonia
 ```
 
 ```xml
-<PackageReference Include="TreeDataGrid" Version="..." />
+<PackageReference Include="TreeDataGrid.Controls.Avalonia" Version="..." />
 ```
 
 ### Add Theme
@@ -22,7 +22,7 @@ dotnet add package TreeDataGrid
              x:Class="AvaloniaApplication.App">
   <Application.Styles>
     <FluentTheme/>
-    <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
+    <StyleInclude Source="avares://TreeDataGrid.Avalonia/Themes/Fluent.axaml"/>
   </Application.Styles>
 </Application>
 ```

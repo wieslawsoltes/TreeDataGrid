@@ -1,0 +1,8 @@
+<Project>
+  <Target Name="RejectAvaloniaReferences" AfterTargets="ResolveReferences">
+    <ItemGroup>
+      <_UiReference Include="@(ReferencePath)" Condition="$([System.String]::Copy('%(ReferencePath.Filename)').StartsWith('Avalonia'))" />
+    </ItemGroup>
+    <Error Condition="'@(_UiReference)' != ''" Text="TreeDataGrid.Core must not reference Avalonia: @(_UiReference)" />
+  </Target>
+</Project>

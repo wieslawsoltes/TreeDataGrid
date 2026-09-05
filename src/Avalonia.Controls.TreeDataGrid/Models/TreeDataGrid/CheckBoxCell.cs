@@ -6,7 +6,7 @@ using Avalonia.Experimental.Data.Core;
 
 namespace Avalonia.Controls.Models.TreeDataGrid
 {
-    public class CheckBoxCell : NotifyingBase, ICell, IDisposable
+    public class CheckBoxCell : NotifyingBase, ICell, IDisposable, IRecyclableCell
     {
         private readonly ISubject<BindingValue<bool?>>? _binding;
         private readonly IDisposable? _subscription;
@@ -56,6 +56,16 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         {
             return _binding is IRetargetableTypedBindingExpression retargetable &&
                 retargetable.TrySetRoot(source);
+        }
+
+        bool IRecyclableCell.TrySuspend()
+        {
+            if (GetType() != typeof(CheckBoxCell) ||
+                _binding is not IRetargetableTypedBindingExpression binding || !binding.TrySuspendRoot())
+                return false;
+
+            _value = null;
+            return true;
         }
 
         public void Dispose()

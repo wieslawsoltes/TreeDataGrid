@@ -73,6 +73,12 @@ namespace Avalonia.Controls.Primitives
             base.Unrealize();
         }
 
+        internal void FinalizeUnrealize()
+        {
+            if (DataContext is null)
+                Content = null;
+        }
+
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
         {
             base.OnApplyTemplate(e);
@@ -127,8 +133,18 @@ namespace Avalonia.Controls.Primitives
             }
             else
             {
-                Content = null;
+                ClearContentIfDetached();
             }
+        }
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnDetachedFromVisualTree(e);
+
+            // Recycled cells are normally hidden and kept parented so their control subtree and
+            // applied styles can be reused. Clear the content only when the cell itself has been
+            // removed from both trees; ancestor detachment doesn't change either parent.
+            ClearContentIfDetached();
         }
 
         protected override void OnLostFocus(RoutedEventArgs e)
@@ -165,6 +181,12 @@ namespace Avalonia.Controls.Primitives
                 return this.IsVisualAncestorOf(host);
 
             return false;
+        }
+
+        private void ClearContentIfDetached()
+        {
+            if (DataContext is null && Parent is null && this.GetVisualParent() is null)
+                FinalizeUnrealize();
         }
 
         private void SetCellTemplate(IDataTemplate? template)

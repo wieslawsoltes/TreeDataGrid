@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 using Avalonia.Controls.Experimental.Data.Core;
 using Avalonia.Data;
@@ -19,6 +20,7 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         private TModel? _model;
         private IDisposable? _subscription;
         private INotifyCollectionChanged? _incc;
+        private INotifyPropertyChanged? _inpc;
 
         public ShowExpanderObservable(
             Func<TModel, IEnumerable<TModel>?> childSelector,
@@ -38,15 +40,27 @@ namespace Avalonia.Controls.Models.TreeDataGrid
             if (_hasChildrenSelector is not null)
                 _subscription = _hasChildrenSelector?.Instance(_model).Subscribe(this);
             else
-                // TODO: _childSelector needs to be made into a binding; leaving the observable
-                // machinery in place for this to be turned into a subscription later.
-                ((IObserver<BindingValue<IEnumerable<TModel>?>>)this).OnNext(new(_childSelector(_model)));
+            {
+                if (_model is INotifyPropertyChanged inpc)
+                {
+                    _inpc = inpc;
+                    _inpc.PropertyChanged += OnModelPropertyChanged;
+                }
+
+                PublishChildren();
+            }
         }
 
         protected override void Unsubscribed()
         {
             _subscription?.Dispose();
             _subscription = null;
+            if (_incc is not null)
+                _incc.CollectionChanged -= OnCollectionChanged;
+            _incc = null;
+            if (_inpc is not null)
+                _inpc.PropertyChanged -= OnModelPropertyChanged;
+            _inpc = null;
             _model = null;
         }
 
@@ -60,6 +74,7 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         {
             if (_incc is not null)
                 _incc.CollectionChanged -= OnCollectionChanged;
+            _incc = null;
 
             if (value.HasValue && value.Value is not null)
             {
@@ -85,6 +100,18 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         private void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
             PublishNext((sender as IEnumerable<TModel>)?.Any() ?? false);
+        }
+
+        private void OnModelPropertyChanged(object? sender, PropertyChangedEventArgs e) =>
+            PublishChildren();
+
+        private void PublishChildren()
+        {
+            if (_model is not null)
+            {
+                ((IObserver<BindingValue<IEnumerable<TModel>?>>)this).OnNext(
+                    new(_childSelector(_model)));
+            }
         }
     }
 }

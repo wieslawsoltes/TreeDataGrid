@@ -1,0 +1,111 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="TreeDataGridCoreDemo.MainWindow"
+        x:CompileBindings="False"
+        Width="1180" Height="760"
+        Title="TreeDataGrid Core API Demo">
+  <DockPanel Margin="12">
+    <Border DockPanel.Dock="Top" Background="#182D89EF" CornerRadius="8" Padding="12" Margin="0 0 0 10">
+      <StackPanel>
+        <TextBlock FontSize="20" FontWeight="SemiBold" Text="TreeDataGrid — framework-neutral Core API"/>
+        <TextBlock Text="Every grid below binds Model, never the legacy Source API. Models and datasets are source-linked from TreeDataGridDemo."/>
+      </StackPanel>
+    </Border>
+    <TabControl Name="Tabs">
+      <TabItem Header="Countries" IsSelected="True">
+        <DockPanel>
+          <StackPanel DockPanel.Dock="Right" Width="230" Margin="10 0 0 0" Spacing="6">
+            <TextBlock FontWeight="SemiBold" Text="Core flat source"/>
+            <TextBox Name="CountryFilter" Watermark="Country or region"/>
+            <Button Click="ApplyCountryFilter">Apply filter</Button>
+            <Button Click="ClearCountrySort">Clear sort</Button>
+            <Button Click="AddCountry">Add Sealand</Button>
+            <Button Click="RemoveCountry">Remove selected</Button>
+            <TextBlock Text="{Binding CountryStatus}" TextWrapping="Wrap"/>
+          </StackPanel>
+          <TreeDataGrid Name="CountriesGrid"
+                        Model="{Binding CountriesSource}"
+                        AutoDragDropRows="True"/>
+        </DockPanel>
+      </TabItem>
+
+      <TabItem Header="Find Displayed Row">
+        <Grid ColumnDefinitions="260,*">
+          <DockPanel Margin="0 0 10 0">
+            <TextBlock DockPanel.Dock="Top" Margin="0 0 0 6" Text="Select a country to locate its displayed Core row:" TextWrapping="Wrap"/>
+            <TextBlock DockPanel.Dock="Bottom" Margin="0 6 0 0" Text="{Binding FindStatus}" TextWrapping="Wrap"/>
+            <ListBox ItemsSource="{Binding CountryItems}" SelectionChanged="FindCountry">
+              <ListBox.ItemTemplate>
+                <DataTemplate><TextBlock Text="{Binding Name}"/></DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </DockPanel>
+          <TreeDataGrid Grid.Column="1" Name="FindGrid" Model="{Binding FindSource}"/>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="BringIntoView (Non-uniform rows)">
+        <Grid RowDefinitions="180,*">
+          <ListBox ItemsSource="{Binding VariableCountryItems}" SelectionChanged="BringCountryIntoView">
+            <ListBox.ItemTemplate>
+              <DataTemplate><TextBlock Text="{Binding Region}"/></DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+          <TreeDataGrid Grid.Row="1" Name="VariableGrid" Model="{Binding VariableCountriesSource}"/>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="Files">
+        <DockPanel>
+          <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0 0 0 8">
+            <TextBlock VerticalAlignment="Center" Text="Core hierarchical source"/>
+            <CheckBox Content="Flat list" IsChecked="{Binding FilesFlat}"/>
+            <TextBlock VerticalAlignment="Center" Text="{Binding FilesStatus}"/>
+          </StackPanel>
+          <TreeDataGrid Name="FilesGrid"
+                        PresentationOptions="{Binding FilesOptions}"
+                        Model="{Binding FilesSource}"/>
+        </DockPanel>
+      </TabItem>
+
+      <TabItem Header="Wikipedia">
+        <DockPanel>
+          <TextBlock DockPanel.Dock="Top" Margin="0 0 0 8" Text="{Binding WikipediaStatus}" TextWrapping="Wrap"/>
+          <TreeDataGrid Name="WikipediaGrid"
+                        PresentationOptions="{Binding WikipediaOptions}"
+                        Model="{Binding WikipediaSource}"/>
+        </DockPanel>
+      </TabItem>
+
+      <TabItem Header="Drag/Drop">
+        <DockPanel>
+          <TextBlock DockPanel.Dock="Top" Margin="0 0 0 8"
+                     Text="Move rows with AutoDragDropRows. Core owns the hierarchy, selection, expansion, and mutation."/>
+          <TreeDataGrid Name="DragDropGrid"
+                        Model="{Binding DragDropSource}"
+                        AutoDragDropRows="True"
+                        RowDragStarted="DragStarted"
+                        RowDragOver="DragOver"/>
+        </DockPanel>
+      </TabItem>
+
+      <TabItem Header="People">
+        <DockPanel>
+          <TextBlock DockPanel.Dock="Top" Margin="0 0 0 8"
+                     Text="Nested expansion state is observed by the Core property-path tracker."/>
+          <TreeDataGrid Name="PeopleGrid" Model="{Binding PeopleSource}"/>
+        </DockPanel>
+      </TabItem>
+
+      <TabItem Header="Template Column Reuse">
+        <DockPanel>
+          <TextBlock DockPanel.Dock="Top" Margin="0 0 0 8"
+                     Text="Core columns carry presentation keys; Avalonia templates remain in the view."/>
+          <TreeDataGrid Name="TemplateGrid"
+                        PresentationOptions="{Binding TemplateOptions}"
+                        Model="{Binding TemplateSource}"/>
+        </DockPanel>
+      </TabItem>
+    </TabControl>
+  </DockPanel>
+</Window>
