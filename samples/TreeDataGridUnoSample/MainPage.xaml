@@ -5,6 +5,9 @@
       xmlns:primitives="using:Uno.Controls.Primitives"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
   <Page.Resources>
+    <DataTemplate x:Key="WrappingTemplate">
+      <TextBlock Text="{Binding Text}" TextWrapping="Wrap" Margin="8,4" />
+    </DataTemplate>
     <DataTemplate x:Key="FlagTemplate">
       <CheckBox IsChecked="{Binding IsFlagged}" IsEnabled="False" HorizontalAlignment="Center" MinWidth="0" MinHeight="0" />
     </DataTemplate>
@@ -45,6 +48,7 @@
           <ComboBoxItem Content="Countries" />
           <ComboBoxItem Content="People" />
           <ComboBoxItem Content="Templates" />
+          <ComboBoxItem Content="Variable row countries" />
         </ComboBox>
         <ComboBox x:Name="SizingModes" SelectedIndex="0" SelectionChanged="OnSizingModeChanged" MinWidth="180" AutomationProperties.Name="Column sizing">
           <ComboBoxItem Content="Original widths" />
@@ -56,6 +60,11 @@
           <ComboBoxItem Content="Multiple rows" />
           <ComboBoxItem Content="Multiple cells" />
           <ComboBoxItem Content="No selection" />
+        </ComboBox>
+        <ComboBox x:Name="RowHeightModes" SelectedIndex="0" SelectionChanged="OnRowHeightModeChanged" MinWidth="170" AutomationProperties.Name="Row height">
+          <ComboBoxItem Content="Auto row height" />
+          <ComboBoxItem Content="Fixed 28 px" />
+          <ComboBoxItem Content="Fixed 48 px" />
         </ComboBox>
       </StackPanel>
       <StackPanel Orientation="Horizontal" Spacing="8">

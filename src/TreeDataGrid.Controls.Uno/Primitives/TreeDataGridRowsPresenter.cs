@@ -23,7 +23,6 @@ public partial class TreeDataGridRowsPresenter : Panel
     private int _pooled;
     internal TreeDataGrid? Owner { get; set; }
     public IReadOnlyCollection<TreeDataGridCell> RealizedCells => _realized.Values;
-    public double RowHeight { get; set; } = 28;
     internal void RefreshSelection()
     {
         foreach (var cell in _realized.Values) UpdateSelection(cell);
@@ -45,6 +44,7 @@ public partial class TreeDataGridRowsPresenter : Panel
         }
         Reset();
         _presentation = presentation;
+        _rows.Reset(presentation?.Rows.Count ?? 0, RowEstimate);
         _geometry = geometry;
         InvalidateMeasure();
     }
@@ -70,9 +70,10 @@ public partial class TreeDataGridRowsPresenter : Panel
         foreach (var column in _pool.Keys.ToArray())
         {
             if (indexes.ContainsKey(column)) continue;
-            foreach (var cell in _pool[column]) { Children.Remove(cell); --_pooled; }
+            foreach (var cell in _pool[column]) { cell.Presenter = null; Children.Remove(cell); --_pooled; }
             _pool.Remove(column);
         }
+        InvalidateRowMeasurements();
     }
     internal void UpdateViewport(double horizontal, double vertical, double width, double height)
     {
@@ -85,6 +86,7 @@ public partial class TreeDataGridRowsPresenter : Panel
     internal void RowsChanged(NotifyCollectionChangedEventArgs e)
     {
         if (_presentation is null) return;
+        UpdateRowGeometry(e);
         if (e.Action == NotifyCollectionChangedAction.Add && e.NewStartingIndex >= 0)
         {
             ShiftRows(e.NewStartingIndex, e.NewItems!.Count);
@@ -159,14 +161,26 @@ public partial class TreeDataGridRowsPresenter : Panel
         foreach (var key in _realized.Keys.ToArray()) Recycle(key);
         _pool.Clear();
         _pooled = 0;
+        foreach (var cell in Children.OfType<TreeDataGridCell>()) cell.Presenter = null;
         Children.Clear();
         _presentation = null;
+        _rows.Reset(0, RowEstimate);
+        _anchor = null;
+        _verticalOffset = 0;
     }
     protected override Size MeasureOverride(Size availableSize)
     {
         Size result;
         bool repeat;
         do { result = MeasureViewport(out repeat); } while (repeat);
+        if (_anchor is { } anchor && (uint)anchor.Row < (uint)_rows.Count)
+        {
+            // Clamp only after measuring the anchor. Clamping against an unknown
+            // estimated height would lose offsets inside a tall row on resize.
+            _verticalOffset = _rows.Start(anchor.Row) + Math.Min(anchor.Offset, Math.Max(0, _rows.Height(anchor.Row) - 0.001));
+            Owner?.QueueVerticalAnchor(_verticalOffset);
+        }
+        _anchor = null;
         return result;
     }
     private Size MeasureViewport(out bool repeat)
@@ -175,14 +189,17 @@ public partial class TreeDataGridRowsPresenter : Panel
         if (_presentation is null || _geometry is null || Owner is null) return default;
         var rows = _presentation.Rows;
         var widthsChanged = false;
+        var heightsChanged = false;
+        var anchor = CaptureAnchor();
         var (firstColumn, endColumn) = _geometry.VisibleRange(_horizontalOffset, _viewportWidth);
-        var firstRow = Math.Clamp((int)(_verticalOffset / RowHeight) - 1, 0, rows.Count);
-        var endRow = Math.Clamp((int)Math.Ceiling((_verticalOffset + _viewportHeight) / RowHeight) + 1, 0, rows.Count);
+        var firstRow = Math.Clamp((_anchor?.Row ?? _rows.RowAt(_verticalOffset)) - 1, 0, rows.Count);
+        var endRow = Math.Clamp(_rows.RowAt(_verticalOffset + _viewportHeight) + 2, firstRow, rows.Count);
         foreach (var key in _realized.Keys.ToArray())
             if (key.Row < firstRow || key.Row >= endRow || key.Column < firstColumn || key.Column >= endColumn)
                 Recycle(key);
         for (var row = firstRow; row < endRow; ++row)
         {
+            var measuredHeight = RowEstimate;
             for (var column = firstColumn; column < endColumn; ++column)
             {
                 if (!_realized.TryGetValue((row, column), out var control))
@@ -192,6 +209,7 @@ public partial class TreeDataGridRowsPresenter : Panel
                     else
                     {
                         control = Owner.CellFactory(view);
+                        control.Presenter = this;
                         Children.Add(control);
                     }
                     var success = false;
@@ -218,21 +236,35 @@ public partial class TreeDataGridRowsPresenter : Panel
                 }
                 if (control.Column!.RequiresUnconstrainedWidthMeasurement)
                 {
-                    control.Measure(new(double.PositiveInfinity, RowHeight));
+                    control.Measure(new(double.PositiveInfinity, AutoRowHeight ? double.PositiveInfinity : RowHeight));
                     widthsChanged |= control.Column.RecordWidth(control.DesiredSize.Width);
                 }
-                control.Measure(new(_geometry.Width(column), RowHeight));
+                control.Measure(new(_geometry.Width(column), AutoRowHeight ? double.PositiveInfinity : RowHeight));
+                measuredHeight = Math.Max(measuredHeight, control.DesiredSize.Height);
+            }
+            if (AutoRowHeight)
+            {
+                // With all columns present, a template's native layout can shrink
+                // even when its bound row object has not changed identity. With
+                // horizontal virtualization retain the known offscreen maximum.
+                var complete = firstColumn == 0 && endColumn == _geometry.Count;
+                heightsChanged |= _rows.SetHeight(row, complete ? measuredHeight : Math.Max(_rows.Height(row), measuredHeight));
             }
         }
         // Invalidating a panel during its own MeasureOverride does not guarantee
         // another measure before arrange on Uno. Settle the changed geometry now.
         if (widthsChanged) repeat = Owner.CommitColumnMeasurements();
-        return new(_geometry.TotalWidth, rows.Count * RowHeight);
+        if (heightsChanged)
+        {
+            RestoreAnchor(anchor);
+            repeat = true;
+        }
+        return new(_geometry.TotalWidth, _rows.TotalHeight);
     }
     protected override Size ArrangeOverride(Size finalSize)
     {
         foreach (var (key, control) in _realized)
-            control.Arrange(new(_geometry!.Start(key.Column), key.Row * RowHeight, _geometry.Width(key.Column), RowHeight));
+            control.Arrange(new(_geometry!.Start(key.Column), _rows.Start(key.Row), _geometry.Width(key.Column), _rows.Height(key.Row)));
         return finalSize;
     }
     private void Recycle((int Row, int Column) key)
@@ -253,6 +285,6 @@ public partial class TreeDataGridRowsPresenter : Panel
             pool.Push(cell);
             ++_pooled;
         }
-        else Children.Remove(cell);
+        else { cell.Presenter = null; Children.Remove(cell); }
     }
 }

@@ -57,7 +57,7 @@ Avalonia compatibility shims are not the model architecture for this port.
 ## Progress
 
 Implementation and validation are in progress. This file is a completion checklist,
-not a claim of completed parity. Countries, People, and Templates run in the desktop
+not a claim of completed parity. Countries, People, Templates, and variable-height Countries run in the desktop
 sample. New draft [PR #26](https://github.com/wieslawsoltes/TreeDataGrid/pull/26) is
 open; the complete showcase and Activity Monitor are still pending.
 
@@ -214,20 +214,50 @@ open; the complete showcase and Activity Monitor are still pending.
   the same native sample using PackageReferences instead of ProjectReferences.
   The complete native smoke suite passed from those packages; the assets graph
   confirms both controls and Core were packages. This was local validation only,
-  not a public release. A symbol-enabled validation pack was also produced;
-  worktree SourceLink metadata warnings remain to recheck after commit.
+  not a public release. Post-commit validation.3 also packed matching symbols
+  without warnings; package repository metadata and PDB SourceLink both point to
+  exact commit `6231391836a4b75a22009078729ddf3b47c7d951`. Its package-consumer
+  native smoke suite passed.
 - CI now includes a local package-consumer smoke run on Linux X11. The prior
   `44118261` head passed Build/Test/Docs/Pack plus Linux/Windows Uno build/tests and
   native X11 checks; its hosted macOS job remained queued. New-head results remain
   separate evidence.
 
+### Variable-height layout checkpoint (2026-09-05)
+
+- `RowHeight` defaults to Auto (`NaN`); `MinRowHeight` defaults to 28 logical px.
+  Positive fixed heights remain available. Invalid dependency-property values
+  restore the previous value before throwing, even without an attached source.
+- Sparse measured row deviations support logarithmic prefix/offset queries
+  without allocating an entry for every unknown row. Five tests cover ten million
+  estimated rows, exact boundaries, growth/shrink, mutations, reset validation,
+  and 2,000 deterministic updates against an independent dense reference.
+- Rows measure native content and share their resulting height across cells.
+  Width changes invalidate heights. Fully represented rows can shrink with live
+  template content; horizontally virtualized rows conservatively retain the
+  maximum known height so offscreen columns are not clipped. This is not complete
+  layout/performance parity evidence.
+- Insert/remove above the viewport preserve the displayed anchor and intra-row
+  offset. Width changes retain offsets inside tall rows until measurement settles.
+  Sort/reset preserves display position rather than following the old model.
+  Explicit scrolling cancels pending anchors; corrections use one layout-event
+  subscription, not a per-recycle dispatcher closure.
+- Native macOS/Skia checks pass for wrapping growth/shrink, live template shrink,
+  insertion/removal anchors, a 70 px tall-row resize anchor, variable-height and
+  last-row bring-into-view, bounded realization, fixed-height mode, invalid values,
+  and source removal. All preceding native smoke checks still pass.
+- Variable-height Countries shares the existing Country data and uses multiline
+  names, with Auto/28/48 row-height choices. Its 2048×1280 native render was
+  inspected: multiline names and neighboring values align without row overlap.
+- Local validation: 71 Uno tests and 202 unchanged Core tests pass, plus the full
+  native smoke suite. This checkpoint has not yet completed remote CI.
+
 ### Remaining implementation and verification
 
 - Complete control theme styling and automation, and test actual OS input/focus
   routing (including editing and drag/drop interactions with selection).
-- Complete nonuniform row height, anchoring, resizing and
-  variable-height bring-into-view (current rows are fixed at
-  28 logical px; fixed-height navigation/bring-into-view now runs).
+- Extend variable-height layout stress and performance coverage, including
+  horizontal virtualization and collection mutation combinations.
 - Complete editing, drag/drop, text search, selection cancellation, and
   column-resize/reorder gestures. Header-click sorting and checkbox writeback are
   present, but do not cover the full editing/interaction API.
@@ -237,7 +267,8 @@ open; the complete showcase and Activity Monitor are still pending.
   measure recycling allocations/timing against the current Avalonia benchmarks.
   The current binding/geometry unit tests alone do not prove these requirements.
 - Port all showcase scenarios and Activity Monitor with shared model source where
-  practical. Countries, People, and Templates are not the requested full suite.
+  practical. Countries, People, Templates, and variable-height Countries are not
+  the requested full suite.
 - Restore browser and Windows App SDK heads, finish solution/package/CI lanes, verify real
   heads, update public README, review the full diff, and finish draft PR #26.
 
@@ -254,6 +285,6 @@ dotnet run --project samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj 
 The runtime command must exit zero and print
 `UNO_RUNTIME_RECYCLING_PASSED`, `UNO_RUNTIME_SELECTION_PASSED`,
 `UNO_RUNTIME_EDITING_PASSED`, `UNO_RUNTIME_SHOWCASE_PASSED`, and
-`UNO_RUNTIME_COLUMN_SIZING_PASSED`, followed by `UNO_CORE_SAMPLE_SMOKE_PASSED`. Omit `--smoke`
+`UNO_RUNTIME_COLUMN_SIZING_PASSED`, and `UNO_RUNTIME_ROW_SIZING_PASSED`, followed by `UNO_CORE_SAMPLE_SMOKE_PASSED`. Omit `--smoke`
 to leave the showcase window open for interaction. The optional screenshot
 switch writes a generated artifact, not a checked-in source file.

@@ -69,6 +69,14 @@ internal static class ShowcaseRuntimeChecks
             Check(Descendants(visible).OfType<TextBlock>().Any(t => t.Text == model.Details), "Scrolling retained another template row's details.");
         }
         page.TemplateItems[0] = previous;
+        page.ShowScenario(3);
+        await Task.Delay(200);
+        Check(grid.RowsPresenter.RealizedCells.Select(c => grid.RowsPresenter.GetRowHeight(c.RowIndex)).Distinct().Count() > 1,
+            "Variable-country sample did not measure multi-line row heights.");
+        await capture(page, "variable-countries");
+        Check(grid.BringCellIntoView(100, 0), "Variable-country bring-into-view failed.");
+        await Task.Delay(150);
+        Check(grid.RowsPresenter.RealizedCells.Any(c => c.RowIndex == 100), "Variable-country target was not realized.");
         page.ShowScenario(0);
         await Task.Delay(150);
         Console.WriteLine("UNO_RUNTIME_SHOWCASE_PASSED: shared People hierarchy, expander editing, validation, checkbox writeback, child mutation, template replacement/scroll, scenario switching");

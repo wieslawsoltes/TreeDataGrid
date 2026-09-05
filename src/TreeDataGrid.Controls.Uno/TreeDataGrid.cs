@@ -36,6 +36,7 @@ public partial class TreeDataGrid : Control
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
         SizeChanged += (_, _) => UpdateColumns();
+        LayoutUpdated += OnLayoutUpdated;
     }
     protected override void OnApplyTemplate()
     {
@@ -56,7 +57,7 @@ public partial class TreeDataGrid : Control
             _scroll.ViewChanged += OnViewChanged;
             _scroll.SizeChanged += OnScrollSizeChanged;
         }
-        if (_presenter is not null) _presenter.Owner = this;
+        if (_presenter is not null) { _presenter.Owner = this; _presenter.ConfigureRows(RowHeight, MinRowHeight); }
         if (_headers is not null) _headers.Owner = this;
         _presenter?.SetPresentation(_loaded ? _presentation : null, _geometry);
         UpdateColumns();
@@ -89,6 +90,7 @@ public partial class TreeDataGrid : Control
         ((TreeDataGrid)sender)._presentation?.Selection.Configure((TreeDataGridSelectionMode)e.NewValue);
     private void ReplacePresentation()
     {
+        _pendingVerticalAnchor = null;
         var next = Model is { } model ? TreeDataGridPresentation.Create(model, PresentationOptions) : null;
         try
         {
@@ -124,6 +126,7 @@ public partial class TreeDataGrid : Control
     }
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
+        _pendingVerticalAnchor = null;
         _pressedPoint = null;
         CancelEdit();
         _loaded = false;
@@ -143,6 +146,7 @@ public partial class TreeDataGrid : Control
         var available = _scroll?.ViewportWidth > 0 ? _scroll.ViewportWidth : Math.Max(0, ActualWidth - BorderThickness.Left - BorderThickness.Right);
         var widths = ColumnWidths.Calculate(_presentation.Columns, available);
         var changed = _geometry.Commit(widths);
+        if (changed) _presenter?.InvalidateRowMeasurements();
         if (measurementsOnly && !changed) return false;
         UpdateViewport();
         return changed;
@@ -150,6 +154,8 @@ public partial class TreeDataGrid : Control
     internal bool CommitColumnMeasurements() => UpdateColumns(measurementsOnly: true);
     private void OnViewChanged(object? sender, ScrollViewerViewChangedEventArgs e)
     {
+        _pendingVerticalAnchor = null;
+        _presenter?.CancelPendingAnchor();
         if (_scroll is not null) _headerScroll?.ChangeView(_scroll.HorizontalOffset, null, null, true);
         UpdateViewport();
     }
@@ -158,7 +164,7 @@ public partial class TreeDataGrid : Control
         if (_scroll is null) return;
         var width = _scroll.ViewportWidth > 0 ? _scroll.ViewportWidth : Math.Max(0, ActualWidth);
         var height = _scroll.ViewportHeight > 0 ? _scroll.ViewportHeight : Math.Max(0, ActualHeight - 32);
-        _presenter?.UpdateViewport(_scroll.HorizontalOffset, _scroll.VerticalOffset, width, height);
+        _presenter?.UpdateViewport(_scroll.HorizontalOffset, _pendingVerticalAnchor ?? _scroll.VerticalOffset, width, height);
         _headers?.Update(_loaded ? _presentation : null, _geometry, _scroll.HorizontalOffset, width);
     }
 }

@@ -36,6 +36,7 @@ public partial class App : Application
             await SelectionRuntimeChecks.RunAsync(page.Grid, (Microsoft.UI.Xaml.Controls.ControlTemplate)page.Resources["AlternateGridTemplate"]);
             await EditingRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"], (DataTemplate)page.Resources["RuntimeEditingTemplate"]);
             await ColumnSizingRuntimeChecks.RunAsync(page.Grid);
+            await RowSizingRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["WrappingTemplate"]);
             Console.WriteLine("UNO_CORE_SAMPLE_SMOKE_PASSED");
             Exit();
         }

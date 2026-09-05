@@ -16,6 +16,7 @@ namespace TreeDataGridUnoSample;
 public sealed partial class MainPage : Page
 {
     private readonly FlatTreeDataGridSource<Country> _source;
+    private readonly FlatTreeDataGridSource<Country> _variableSource;
     private readonly PeopleXamlPageViewModel _people = new();
     private readonly HierarchicalTreeDataGridSource<Person> _peopleSource;
     private readonly ObservableCollection<TemplateColumnItem> _templateItems = new();
@@ -26,13 +27,8 @@ public sealed partial class MainPage : Page
     public MainPage()
     {
         InitializeComponent();
-        _source = new(Countries.All);
-        _source.Columns.Add(new TextColumn<Country, string?>("Country", x => x.Name, width: new(210)));
-        _source.Columns.Add(new TextColumn<Country, string>("Region", x => x.Region, width: new(190)));
-        _source.Columns.Add(new TextColumn<Country, int>("Population", x => x.Population, width: new(150)));
-        _source.Columns.Add(new TextColumn<Country, int>("Area", x => x.Area, width: new(150)));
-        _source.Columns.Add(new TextColumn<Country, double>("Density", x => x.PopulationDensity, width: new(150)));
-        _source.Columns.Add(new TextColumn<Country, int>("GDP", x => x.GDP, width: new(150)));
+        _source = CreateCountrySource(Countries.All);
+        _variableSource = CreateCountrySource(CreateVariableCountries());
         _peopleSource = new(_people.People);
         _peopleSource.Columns.Add(new HierarchicalExpanderColumn<Person>(
             new TextColumn<Person, string?>("Name", x => x.Name, (x, value) => x.Name = value, width: new(250)),
@@ -60,7 +56,7 @@ public sealed partial class MainPage : Page
         }));
         CountriesGrid.CellTemplates["Flag"] = (DataTemplate)Resources["FlagTemplate"];
         CountriesGrid.CellTemplates["Details"] = (DataTemplate)Resources["DetailsTemplate"];
-        foreach (var source in new ITreeDataGridSource[] { _source, _peopleSource, _templateSource })
+        foreach (var source in new ITreeDataGridSource[] { _source, _peopleSource, _templateSource, _variableSource })
             foreach (var column in source.Columns) _originalWidths.Add(column, column.Width);
         _ready = true;
         ShowScenario(0);
@@ -74,15 +70,16 @@ public sealed partial class MainPage : Page
         if (!_ready) return;
         if (Scenarios.SelectedIndex != index) { Scenarios.SelectedIndex = index; return; }
         CountriesGrid.CancelEdit();
-        CountriesGrid.Model = index switch { 1 => _peopleSource, 2 => _templateSource, _ => _source };
+        CountriesGrid.Model = index switch { 1 => _peopleSource, 2 => _templateSource, 3 => _variableSource, _ => _source };
         ApplySizingMode();
         ScenarioDescription.Text = index switch
         {
             1 => "People · shared Avalonia sample models · expand, edit and mutate the hierarchy",
             2 => "Templates · 200 shared-model rows · sort, scroll and replace selected rows",
+            3 => "Variable row countries · shared Country data · multi-line names and measured row heights",
             _ => "Countries · shared Core source · click column headers to sort",
         };
-        MutateButton.Visibility = RemoveButton.Visibility = index == 0 ? Visibility.Collapsed : Visibility.Visible;
+        MutateButton.Visibility = RemoveButton.Visibility = index is 1 or 2 ? Visibility.Visible : Visibility.Collapsed;
         EditButton.Visibility = index == 1 ? Visibility.Visible : Visibility.Collapsed;
         MutateButton.Content = index == 1 ? "Add child" : "Replace selected";
         if (CountriesGrid.IsLoaded) CountriesGrid.Scroll.ChangeView(0, 0, null, true);
@@ -92,8 +89,32 @@ public sealed partial class MainPage : Page
         Name = $"Item {index:000}", Type = $"Type {(char)('A' + index % 4)}",
         Details = $"Details for item {index:000}", IsFlagged = index % 3 == 0,
     };
+    private static FlatTreeDataGridSource<Country> CreateCountrySource(IEnumerable<Country> countries)
+    {
+        var source = new FlatTreeDataGridSource<Country>(countries);
+        source.Columns.Add(new TextColumn<Country, string?>("Country", x => x.Name, width: new(210)));
+        source.Columns.Add(new TextColumn<Country, string>("Region", x => x.Region, width: new(190)));
+        source.Columns.Add(new TextColumn<Country, int>("Population", x => x.Population, width: new(150)));
+        source.Columns.Add(new TextColumn<Country, int>("Area", x => x.Area, width: new(150)));
+        source.Columns.Add(new TextColumn<Country, double>("Density", x => x.PopulationDensity, width: new(150)));
+        source.Columns.Add(new TextColumn<Country, int>("GDP", x => x.GDP, width: new(150)));
+        return source;
+    }
+    private static Country[] CreateVariableCountries()
+    {
+        var random = new Random(42);
+        return Countries.All.Select(country => new Country(
+            string.Join(Environment.NewLine, Enumerable.Repeat(country.Name, random.Next(1, 5))),
+            country.Region, country.Population, country.Area, country.PopulationDensity,
+            country.CoastLine, country.NetMigration, country.InfantMortality, country.GDP,
+            country.LiteracyPercent, country.Phones, country.BirthRate, country.DeathRate)).ToArray();
+    }
     private void OnScenarioChanged(object sender, SelectionChangedEventArgs e) => ShowScenario(Scenarios.SelectedIndex);
     private void OnSizingModeChanged(object sender, SelectionChangedEventArgs e) => ApplySizingMode();
+    private void OnRowHeightModeChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (CountriesGrid is not null) CountriesGrid.RowHeight = RowHeightModes.SelectedIndex switch { 1 => 28, 2 => 48, _ => double.NaN };
+    }
     private void ApplySizingMode()
     {
         if (!_ready || CountriesGrid.Model is not { } source) return;

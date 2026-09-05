@@ -46,12 +46,26 @@ public partial class TreeDataGrid
             (uint)column >= (uint)_geometry.Count || _presenter is null) return false;
         var x = _geometry.Start(column);
         var right = x + _geometry.Width(column);
-        var y = row * _presenter.RowHeight;
-        var bottom = y + _presenter.RowHeight;
+        var y = _presenter.GetRowStart(row);
+        var bottom = y + _presenter.GetRowHeight(row);
         var horizontal = x < _scroll.HorizontalOffset ? x : right > _scroll.HorizontalOffset + _scroll.ViewportWidth
             ? Math.Max(x, right - _scroll.ViewportWidth) : _scroll.HorizontalOffset;
         var vertical = y < _scroll.VerticalOffset ? y : bottom > _scroll.VerticalOffset + _scroll.ViewportHeight
             ? Math.Max(y, bottom - _scroll.ViewportHeight) : _scroll.VerticalOffset;
+        _pendingVerticalAnchor = null;
+        _presenter.CancelPendingAnchor();
+        _scroll.ChangeView(horizontal, vertical, null, true);
+        UpdateViewport();
+        UpdateLayout();
+        // Realizing an estimated row can change its height and every later offset.
+        // Correct the requested target against the newly measured geometry.
+        y = _presenter.GetRowStart(row);
+        bottom = y + _presenter.GetRowHeight(row);
+        var current = _pendingVerticalAnchor ?? _scroll.VerticalOffset;
+        vertical = y < current ? y : bottom > current + _scroll.ViewportHeight
+            ? Math.Max(y, bottom - _scroll.ViewportHeight) : current;
+        _pendingVerticalAnchor = null;
+        _presenter.CancelPendingAnchor();
         _scroll.ChangeView(horizontal, vertical, null, true);
         UpdateViewport();
         return true;
@@ -80,7 +94,6 @@ public partial class TreeDataGrid
                 if (parent >= 0) { SelectCell(parent, column); BringCellIntoView(parent, column); return true; }
             }
         }
-        var page = Math.Max(1, (int)((_scroll?.ViewportHeight ?? 0) / (_presenter?.RowHeight ?? 28)) - 1);
         var nextRow = row < 0 ? 0 : row;
         var nextColumn = column < 0 ? 0 : column;
         if (row >= 0)
@@ -93,8 +106,12 @@ public partial class TreeDataGrid
                 case TreeDataGridNavigation.Right: ++nextColumn; break;
                 case TreeDataGridNavigation.Home: nextRow = 0; break;
                 case TreeDataGridNavigation.End: nextRow = _presentation.Rows.Count - 1; break;
-                case TreeDataGridNavigation.PageUp: nextRow -= page; break;
-                case TreeDataGridNavigation.PageDown: nextRow += page; break;
+                case TreeDataGridNavigation.PageUp:
+                    nextRow = Math.Min(row - 1, (_presenter?.GetRowAt(Math.Max(0, _presenter.GetRowStart(row) - (_scroll?.ViewportHeight ?? 0))) ?? row) + 1);
+                    break;
+                case TreeDataGridNavigation.PageDown:
+                    nextRow = Math.Max(row + 1, (_presenter?.GetRowAt(_presenter.GetRowStart(row) + (_scroll?.ViewportHeight ?? 0)) ?? row) - 1);
+                    break;
             }
         }
         nextRow = Math.Clamp(nextRow, 0, _presentation.Rows.Count - 1);

@@ -26,6 +26,7 @@ public partial class TreeDataGridCell : Control
     private CellValue? _value;
     private bool _updating;
     private bool _rebinding;
+    internal TreeDataGridRowsPresenter? Presenter { get; set; }
 
     public TreeDataGridCell()
     {
@@ -156,7 +157,12 @@ public partial class TreeDataGridCell : Control
         if (_editorHost is not null) _editorHost.Visibility = IsEditing && _editingTemplate is null ? Visibility.Visible : Visibility.Collapsed;
         if (_editContent is not null) _editContent.Visibility = IsEditing && _editingTemplate is not null ? Visibility.Visible : Visibility.Collapsed;
     }
-    private void OnValueChanged(object? sender, PropertyChangedEventArgs e) { if (!_rebinding) UpdateValue(); }
+    private void OnValueChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (_rebinding) return;
+        Presenter?.InvalidateRowHeight(RowIndex);
+        UpdateValue();
+    }
     private void UpdateValue()
     {
         _updating = true;
