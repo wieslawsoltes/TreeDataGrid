@@ -211,7 +211,10 @@ internal sealed class ExpanderCellValue<TModel> : ExpanderCellValue where TModel
     private void Changed() => RaisePropertyChanged(nameof(ShowExpander));
     private void SubscribeChildren()
     {
-        var next = _column.GetChildModels(_row.Model) as INotifyCollectionChanged;
+        // An explicit HasChildren binding is the model's lazy-expansion contract.
+        // Do not invoke a potentially expensive/unsupported child getter merely
+        // to render an expander; its binding already tracks its dependencies.
+        var next = _hasChildren is null ? _column.GetChildModels(_row.Model) as INotifyCollectionChanged : null;
         if (ReferenceEquals(next, _children)) return;
         if (_children is not null) _children.CollectionChanged -= OnChildrenChanged;
         _children = next;

@@ -262,6 +262,25 @@ public class PresentationTests
         Assert.True(((IExpander)source.Rows[0]).IsExpanded);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Explicit_has_children_binding_does_not_force_lazy_children(bool hasChildren)
+    {
+        var model = new Item(hasChildren ? "parent" : "");
+        using var source = new HierarchicalTreeDataGridSource<Item>([model]);
+        source.Columns.Add(new HierarchicalExpanderColumn<Item>(
+            new TextColumn<Item, string?>("Name", x => x.Name),
+            _ => throw new InvalidOperationException("Children should only load on expansion."),
+            x => !string.IsNullOrEmpty(x.Name)));
+        using var view = TreeDataGridPresentation.Create(source);
+        using var cell = view.RealizeCell(0, 0);
+        var expander = Assert.IsAssignableFrom<ExpanderCellValue>(cell);
+        Assert.Equal(hasChildren, expander.ShowExpander);
+        model.Name = hasChildren ? "" : "parent";
+        Assert.Equal(!hasChildren, expander.ShowExpander);
+    }
+
     private static FlatTreeDataGridSource<Item> Source()
     {
         var result = new FlatTreeDataGridSource<Item>([new Item("b"), new Item("a")]);

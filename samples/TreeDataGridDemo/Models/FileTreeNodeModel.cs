@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
-using Avalonia.Threading;
+using System.Linq;
 using ReactiveUI;
 
 namespace TreeDataGridDemo.Models
 {
-    public class FileTreeNodeModel : ReactiveObject, IEditableObject
+    public partial class FileTreeNodeModel : ReactiveObject, IEditableObject, IDisposable
     {
         private string _path;
         private string _name;
@@ -19,12 +19,17 @@ namespace TreeDataGridDemo.Models
         private ObservableCollection<FileTreeNodeModel>? _children;
         private bool _hasChildren = true;
         private bool _isExpanded;
+        private bool _isChecked;
+        private bool _disposed;
+        private readonly Action<Action> _dispatch;
 
         public FileTreeNodeModel(
             string path,
             bool isDirectory,
-            bool isRoot = false)
+            bool isRoot = false,
+            Action<Action>? dispatch = null)
         {
+            _dispatch = dispatch ?? CreateDispatcher();
             _path = path;
             _name = isRoot ? path : System.IO.Path.GetFileName(Path);
             _isExpanded = isRoot;
@@ -75,9 +80,12 @@ namespace TreeDataGridDemo.Models
             set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
         }
 
-        public bool IsChecked { get; set; }
+        public bool IsChecked { get => _isChecked; set => this.RaiseAndSetIfChanged(ref _isChecked, value); }
         public bool IsDirectory { get; }
-        public IReadOnlyList<FileTreeNodeModel> Children => _children ??= LoadChildren();
+        internal bool HasLoadedChildren => _children is not null;
+        internal bool IsWatching => _watcher is not null;
+        public IReadOnlyList<FileTreeNodeModel> Children => _disposed ? Array.Empty<FileTreeNodeModel>() : _children ??= LoadChildren();
+        private static partial Action<Action> CreateDispatcher();
 
         private ObservableCollection<FileTreeNodeModel> LoadChildren()
         {
@@ -91,24 +99,27 @@ namespace TreeDataGridDemo.Models
 
             foreach (var d in Directory.EnumerateDirectories(Path, "*", options))
             {
-                result.Add(new FileTreeNodeModel(d, true));
+                result.Add(new FileTreeNodeModel(d, true, dispatch: _dispatch));
             }
 
             foreach (var f in Directory.EnumerateFiles(Path, "*", options))
             {
-                result.Add(new FileTreeNodeModel(f, false));
+                try { result.Add(new FileTreeNodeModel(f, false, dispatch: _dispatch)); }
+                catch (IOException) { } // A directory entry may disappear during enumeration.
+                catch (UnauthorizedAccessException) { }
             }
 
             _watcher = new FileSystemWatcher
             {
                 Path = Path,
-                NotifyFilter = NotifyFilters.FileName | NotifyFilters.Size | NotifyFilters.LastWrite,
+                NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName | NotifyFilters.Size | NotifyFilters.LastWrite,
             };
 
             _watcher.Changed += OnChanged;
             _watcher.Created += OnCreated;
             _watcher.Deleted += OnDeleted;
             _watcher.Renamed += OnRenamed;
+            _children = result;
             _watcher.EnableRaisingEvents = true;
 
             if (result.Count == 0)
@@ -163,7 +174,7 @@ namespace TreeDataGridDemo.Models
         {
             if (e.ChangeType == WatcherChangeTypes.Changed && File.Exists(e.FullPath))
             {
-                Dispatcher.UIThread.Post(() =>
+                PostChange(() =>
                 {
                     foreach (var child in _children!)
                     {
@@ -184,25 +195,29 @@ namespace TreeDataGridDemo.Models
 
         private void OnCreated(object sender, FileSystemEventArgs e)
         {
-            Dispatcher.UIThread.Post(() =>
+            PostChange(() =>
             {
+                if (_children!.Any(x => x.Path == e.FullPath)) return;
                 var node = new FileTreeNodeModel(
                     e.FullPath,
-                    File.GetAttributes(e.FullPath).HasFlag(FileAttributes.Directory));
+                    File.GetAttributes(e.FullPath).HasFlag(FileAttributes.Directory),
+                    dispatch: _dispatch);
                 _children!.Add(node);
+                HasChildren = true;
             });
         }
 
         private void OnDeleted(object sender, FileSystemEventArgs e)
         {
-            Dispatcher.UIThread.Post(() =>
+            PostChange(() =>
             {
                 for (var i = 0; i < _children!.Count; ++i)
                 {
                     if (_children[i].Path == e.FullPath)
                     {
+                        _children[i].Dispose();
                         _children.RemoveAt(i);
-                        System.Diagnostics.Debug.WriteLine($"Removed {e.FullPath}");
+                        HasChildren = _children.Count > 0;
                         break;
                     }
                 }
@@ -211,18 +226,53 @@ namespace TreeDataGridDemo.Models
 
         private void OnRenamed(object sender, RenamedEventArgs e)
         {
-            Dispatcher.UIThread.Post(() =>
+            PostChange(() =>
             {
                 foreach (var child in _children!)
                 {
                     if (child.Path == e.OldFullPath)
                     {
-                        child.Path = e.FullPath;
-                        child.Name = e.Name ?? string.Empty;
+                        child.Relocate(e.FullPath);
                         break;
                     }
                 }
             });
+        }
+
+        private void Relocate(string path)
+        {
+            Path = path;
+            Name = System.IO.Path.GetFileName(path);
+            if (_watcher is not null) _watcher.Path = path;
+            if (_children is not null)
+                foreach (var child in _children) child.Relocate(System.IO.Path.Combine(path, child.Name));
+        }
+
+        private void PostChange(Action change) => _dispatch(() =>
+        {
+            if (_disposed || _children is null) return;
+            try { change(); }
+            catch (IOException) { } // Coalesced watcher notifications can outlive a file.
+            catch (UnauthorizedAccessException) { }
+        });
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+            if (_watcher is not null)
+            {
+                _watcher.EnableRaisingEvents = false;
+                _watcher.Changed -= OnChanged;
+                _watcher.Created -= OnCreated;
+                _watcher.Deleted -= OnDeleted;
+                _watcher.Renamed -= OnRenamed;
+                _watcher.Dispose();
+                _watcher = null;
+            }
+            if (_children is not null)
+                foreach (var child in _children) child.Dispose();
+            _children = null;
         }
     }
 }

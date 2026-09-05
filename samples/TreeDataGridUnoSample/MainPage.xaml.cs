@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
+using System.IO;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using TreeDataGridCore;
@@ -22,12 +23,34 @@ public sealed partial class MainPage : Page
     private readonly ObservableCollection<TemplateColumnItem> _templateItems = new();
     private readonly FlatTreeDataGridSource<TemplateColumnItem> _templateSource;
     private readonly WikipediaViewModel _wikipedia = new();
+    private readonly FilesViewModel _files;
+    private readonly FindCountryViewModel _find = new();
     private bool _ready;
     private int _newPerson;
     private readonly Dictionary<IColumn, GridLength> _originalWidths = new();
+    private readonly HashSet<IColumn> _fileColumns = new();
     public MainPage()
     {
         InitializeComponent();
+        var queue = DispatcherQueue;
+        _files = new(action => queue.TryEnqueue(() => action()));
+        _files.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName != nameof(FilesViewModel.Source)) return;
+            if (_files.Source is null)
+            {
+                foreach (var column in _fileColumns) _originalWidths.Remove(column);
+                _fileColumns.Clear();
+            }
+            if (Scenarios.SelectedIndex is 5 or 6)
+            {
+                CountriesGrid.Model = _files.Source;
+                if (_files.Source is { } source)
+                    foreach (var column in source.Columns) { _originalWidths.TryAdd(column, column.Width); _fileColumns.Add(column); }
+                ApplySizingMode();
+            }
+        };
+        FolderPath.Text = Directory.GetCurrentDirectory();
         _source = CreateCountrySource(Countries.All);
         _variableSource = CreateCountrySource(CreateVariableCountries());
         _peopleSource = new(_people.People);
@@ -60,9 +83,14 @@ public sealed partial class MainPage : Page
         CountriesGrid.CellTemplates["WikipediaImage"] = (DataTemplate)Resources["WikipediaImageTemplate"];
         CountriesGrid.CellTemplates["WikipediaTitle"] = (DataTemplate)Resources["WikipediaTitleTemplate"];
         CountriesGrid.CellTemplates["WikipediaExtract"] = (DataTemplate)Resources["WikipediaExtractTemplate"];
+        CountriesGrid.CellTemplates["FileName"] = (DataTemplate)Resources["FileNameTemplate"];
         WikipediaStatus.SetBinding(TextBlock.TextProperty, new Microsoft.UI.Xaml.Data.Binding { Source = _wikipedia, Path = new PropertyPath(nameof(WikipediaViewModel.Status)) });
-        Unloaded += (_, _) => _wikipedia.CancelLoad();
-        foreach (var source in new ITreeDataGridSource[] { _source, _peopleSource, _templateSource, _variableSource, _wikipedia.Source })
+        FileStatus.SetBinding(TextBlock.TextProperty, new Microsoft.UI.Xaml.Data.Binding { Source = _files, Path = new PropertyPath(nameof(FilesViewModel.Status)) });
+        FindCountryList.ItemsSource = _find.AllCountries;
+        FindStatus.SetBinding(TextBlock.TextProperty, new Microsoft.UI.Xaml.Data.Binding { Source = _find, Path = new PropertyPath(nameof(FindCountryViewModel.Status)) });
+        _find.LocationChanged += BringFoundCountryIntoView;
+        Unloaded += (_, _) => { _wikipedia.CancelLoad(); _files.Close(); };
+        foreach (var source in new ITreeDataGridSource[] { _source, _peopleSource, _templateSource, _variableSource, _wikipedia.Source, _find.Source })
             foreach (var column in source.Columns) _originalWidths.Add(column, column.Width);
         _ready = true;
         ShowScenario(0);
@@ -72,13 +100,17 @@ public sealed partial class MainPage : Page
     internal FlatTreeDataGridSource<TemplateColumnItem> TemplateSource => _templateSource;
     internal ObservableCollection<TemplateColumnItem> TemplateItems => _templateItems;
     internal WikipediaViewModel Wikipedia => _wikipedia;
+    internal FilesViewModel Files => _files;
+    internal FindCountryViewModel FindCountry => _find;
     internal void ShowScenario(int index)
     {
         if (!_ready) return;
         if (Scenarios.SelectedIndex != index) { Scenarios.SelectedIndex = index; return; }
         CountriesGrid.CancelEdit();
         if (index != 4) _wikipedia.CancelLoad();
-        CountriesGrid.Model = index switch { 1 => _peopleSource, 2 => _templateSource, 3 => _variableSource, 4 => _wikipedia.Source, _ => _source };
+        if (index is not (5 or 6)) _files.Close();
+        else _files.FlatMode = index == 6;
+        CountriesGrid.Model = index switch { 1 => _peopleSource, 2 => _templateSource, 3 => _variableSource, 4 => _wikipedia.Source, 5 or 6 => _files.Source, 7 => _find.Source, _ => _source };
         ApplySizingMode();
         ScenarioDescription.Text = index switch
         {
@@ -86,11 +118,16 @@ public sealed partial class MainPage : Page
             2 => "Templates · 200 shared-model rows · sort, scroll and replace selected rows",
             3 => "Variable row countries · shared Country data · multi-line names and measured row heights",
             4 => "Wikipedia · shared feed models · async data, images and virtualized wrapping rows",
+            5 => "Files · shared file-system model · lazy hierarchy and live directory notifications",
+            6 => "Files · flat view of the same shared directory entries · folders sort first",
+            7 => "Find country · complete model list · map the selected model to its filtered/sorted displayed row",
             _ => "Countries · shared Core source · click column headers to sort",
         };
         MutateButton.Visibility = RemoveButton.Visibility = index is 1 or 2 ? Visibility.Visible : Visibility.Collapsed;
         EditButton.Visibility = index == 1 ? Visibility.Visible : Visibility.Collapsed;
         WikipediaActions.Visibility = index == 4 ? Visibility.Visible : Visibility.Collapsed;
+        FileActions.Visibility = index is 5 or 6 ? Visibility.Visible : Visibility.Collapsed;
+        FindActions.Visibility = FindCatalog.Visibility = index == 7 ? Visibility.Visible : Visibility.Collapsed;
         MutateButton.Content = index == 1 ? "Add child" : "Replace selected";
         if (CountriesGrid.IsLoaded) CountriesGrid.Scroll.ChangeView(0, 0, null, true);
         if (index == 4 && !_wikipedia.Source.Items.Any() && !_wikipedia.IsLoading)
@@ -98,7 +135,19 @@ public sealed partial class MainPage : Page
             if (Environment.GetCommandLineArgs().Any(x => x is "--smoke" or "--offline")) _wikipedia.ShowOffline();
             else _ = _wikipedia.ReloadAsync();
         }
+        if (index is 5 or 6 && _files.Root is null) _ = _files.OpenAsync(FolderPath.Text);
+        if (index == 7) BringFoundCountryIntoView();
     }
+    private void OnFindCountryChanged(object sender, SelectionChangedEventArgs e) => _find.SelectedCountry = FindCountryList.SelectedItem as Country;
+    private void OnFindFilterChanged(object sender, TextChangedEventArgs e) { if (_ready) _find.FilterText = FindFilter.Text; }
+    private void OnClearFindSort(object sender, RoutedEventArgs e) => _find.Source.ClearSort();
+    private void BringFoundCountryIntoView()
+    {
+        if (!_ready || Scenarios.SelectedIndex != 7 || _find.DisplayedRow < 0) return;
+        CountriesGrid.SelectCell(_find.DisplayedRow, 0);
+        CountriesGrid.BringCellIntoView(_find.DisplayedRow, 0);
+    }
+    private async void OnOpenFolder(object sender, RoutedEventArgs e) => await _files.OpenAsync(FolderPath.Text);
     private async void OnReloadWikipedia(object sender, RoutedEventArgs e) => await _wikipedia.ReloadAsync();
     private void OnOfflineWikipedia(object sender, RoutedEventArgs e) => _wikipedia.ShowOffline();
     private void OnCancelWikipedia(object sender, RoutedEventArgs e) => _wikipedia.CancelLoad();

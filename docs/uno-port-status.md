@@ -57,7 +57,8 @@ Avalonia compatibility shims are not the model architecture for this port.
 ## Progress
 
 Implementation and validation are in progress. This file is a completion checklist,
-not a claim of completed parity. Countries, People, Templates, variable-height Countries, and Wikipedia run in the desktop
+not a claim of completed parity. Countries, People, Templates, variable-height Countries,
+Wikipedia, Files (tree/flat), and Find Country run in the desktop
 sample. New draft [PR #26](https://github.com/wieslawsoltes/TreeDataGrid/pull/26) is
 open; the complete showcase and Activity Monitor are still pending.
 
@@ -287,6 +288,41 @@ open; the complete showcase and Activity Monitor are still pending.
   the existing build/release workflows use implicit root solution discovery.
   A second root solution would make those commands ambiguous.
 
+### Files and Find Country checkpoint (2026-09-05)
+
+- Source-linked the existing `FileTreeNodeModel`; only UI dispatch is implemented
+  in platform partials. The shared model now owns recursive watcher disposal,
+  ignores queued notifications after disposal, tracks directory names as well as
+  files, updates HasChildren after create/delete, and relocates loaded descendants
+  and watcher paths after directory rename. Checkbox state now notifies bindings.
+- The Uno file view loads its initial directory off-thread and commits only the
+  current request. Tree/flat sources share node objects and folder-first sorting.
+  Missing folders retain the working source and show an error. Source replacement,
+  navigation away, and unload close owned watchers. The UI never modifies files;
+  mutation tests use newly created temporary fixture directories with cleanup.
+  Nested expansion still uses the shared model's synchronous lazy enumeration;
+  broader filesystem latency/performance work is not claimed complete.
+- File rendering exposed an eager child-enumeration bug in the Uno expander:
+  `SubscribeChildren` invoked the child getter even with an explicit HasChildren
+  expression. It now trusts that binding's tracked dependencies and does not open
+  children until expansion. Two regressions verify both true/false indicators and
+  live binding changes with a child getter that must not be called.
+- Find Country uses the complete shared country catalog, a separate filtered Core
+  source, and model-to-display index mapping after sort/filter/clear-sort. The
+  selected catalog model stays selected when excluded; the status explains that
+  it is not displayed. Native ListView/TextBox events and Core selection/scroll
+  results are asserted, not merely the helper's return value.
+- Validation: 73 Uno tests, 16 sample-state tests, 202 unchanged Core tests, both
+  Avalonia sample suites (5 legacy, 1 Core native), and the complete native smoke
+  suite pass. File tests cover real create/change/rename/delete events, loaded
+  directory renames, queued-event disposal, failed opens, and close during load.
+  Native checks verify lazy nested expansion, watcher-driven row changes, shared
+  checkbox state, flat/tree identity, bounded realization, watcher cleanup, and
+  sorted/filtered Find Country visibility. Three 2048×1280 renders were inspected.
+- Prior `f8a624fd` CI passed Build/Test/Docs/Pack, Linux/Windows Uno builds/tests,
+  and native X11/package-consumer checks. Hosted macOS remained queued. Master
+  was rechecked at `3ca47316`; no rebase is necessary. New-head CI remains separate.
+
 ### Remaining implementation and verification
 
 - Complete control theme styling and automation, and test actual OS input/focus
@@ -302,8 +338,8 @@ open; the complete showcase and Activity Monitor are still pending.
   measure recycling allocations/timing against the current Avalonia benchmarks.
   The current binding/geometry unit tests alone do not prove these requirements.
 - Port all showcase scenarios and Activity Monitor with shared model source where
-  practical. Countries, People, Templates, variable-height Countries, and Wikipedia are not
-  the requested full suite.
+  practical. Drag/drop and declarative XAML showcases and Activity Monitor are
+  still missing; existing scenarios also need their full interaction controls.
 - Restore browser and Windows App SDK heads, finish solution/package/CI lanes, verify real
   heads, update public README, review the full diff, and finish draft PR #26.
 
@@ -322,6 +358,7 @@ The runtime command must exit zero and print
 `UNO_RUNTIME_RECYCLING_PASSED`, `UNO_RUNTIME_SELECTION_PASSED`,
 `UNO_RUNTIME_EDITING_PASSED`, `UNO_RUNTIME_SHOWCASE_PASSED`, and
 `UNO_RUNTIME_COLUMN_SIZING_PASSED`, `UNO_RUNTIME_ROW_SIZING_PASSED`, and
-`UNO_RUNTIME_WIKIPEDIA_PASSED`, followed by `UNO_CORE_SAMPLE_SMOKE_PASSED`. Omit `--smoke`
+`UNO_RUNTIME_WIKIPEDIA_PASSED` and `UNO_RUNTIME_FILES_FIND_PASSED`, followed by
+`UNO_CORE_SAMPLE_SMOKE_PASSED`. Omit `--smoke`
 to leave the showcase window open for interaction. The optional screenshot
 switch writes a generated artifact, not a checked-in source file.

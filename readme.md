@@ -33,7 +33,8 @@ pattern of `TreeDataGrid.Controls.Avalonia`. It uses the same `TreeDataGrid.Core
 assembly without copying the model layer. The control namespace remains
 `Uno.Controls` (parallel to `Avalonia.Controls`); assign a Core
 source to its `Model` property. The desktop sample offers Countries, editable
-People, template recycling, variable-height Countries, and async Wikipedia,
+People, template recycling, variable-height Countries, async Wikipedia, file-system
+tree/flat views, and Find Country,
 source-linking shared sample data without referencing Avalonia UI. Wikipedia
 supports live loading and a deterministic offline fixture. Run it from this branch with:
 

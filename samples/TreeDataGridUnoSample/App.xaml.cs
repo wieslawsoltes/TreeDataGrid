@@ -33,6 +33,7 @@ public partial class App : Application
             page.VerifyScrolledRender();
             await ShowcaseRuntimeChecks.RunAsync(page, CaptureAsync);
             await WikipediaRuntimeChecks.RunAsync(page, CaptureAsync);
+            await FilesAndFindRuntimeChecks.RunAsync(page, CaptureAsync);
             await RuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"]);
             await SelectionRuntimeChecks.RunAsync(page.Grid, (Microsoft.UI.Xaml.Controls.ControlTemplate)page.Resources["AlternateGridTemplate"]);
             await EditingRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"], (DataTemplate)page.Resources["RuntimeEditingTemplate"]);
