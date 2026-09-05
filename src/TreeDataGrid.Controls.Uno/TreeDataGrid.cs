@@ -61,7 +61,7 @@ public partial class TreeDataGrid : Control
         _presenter?.SetPresentation(_loaded ? _presentation : null, _geometry);
         UpdateColumns();
     }
-    private void OnScrollSizeChanged(object sender, SizeChangedEventArgs e) => UpdateViewport();
+    private void OnScrollSizeChanged(object sender, SizeChangedEventArgs e) => UpdateColumns();
     public ITreeDataGridSource? Model { get => (ITreeDataGridSource?)GetValue(ModelProperty); set => SetValue(ModelProperty, value); }
     public TreeDataGridSelectionMode SelectionMode { get => (TreeDataGridSelectionMode)GetValue(SelectionModeProperty); set => SetValue(SelectionModeProperty, value); }
     public TreeDataGridPresentationOptions PresentationOptions { get; } = new();
@@ -137,32 +137,17 @@ public partial class TreeDataGrid : Control
         UpdateColumns();
     }
     private void OnRowsChanged(object? sender, NotifyCollectionChangedEventArgs e) => _presenter?.RowsChanged(e);
-    private void UpdateColumns()
+    private bool UpdateColumns(bool measurementsOnly = false)
     {
-        if (_presentation is null) { _geometry.Commit([]); UpdateViewport(); return; }
-        var widths = new double[_presentation.Columns.Count];
-        var available = Math.Max(0, ActualWidth);
-        var stars = 0d;
-        for (var i = 0; i < widths.Length; ++i)
-        {
-            var column = _presentation.Columns[i];
-            var width = column.Model.Width;
-            if (width.IsStar) stars += width.Value;
-            else
-            {
-                widths[i] = Math.Clamp(width.IsAuto ? 150 : width.Value, column.MinimumWidth, column.MaximumWidth);
-                available -= widths[i];
-            }
-        }
-        for (var i = 0; i < widths.Length; ++i)
-        {
-            var column = _presentation.Columns[i];
-            if (column.Model.Width.IsStar)
-                widths[i] = Math.Clamp(Math.Max(0, available) * column.Model.Width.Value / Math.Max(1, stars), column.MinimumWidth, column.MaximumWidth);
-        }
-        _geometry.Commit(widths);
+        if (_presentation is null) { var cleared = _geometry.Commit([]); UpdateViewport(); return cleared; }
+        var available = _scroll?.ViewportWidth > 0 ? _scroll.ViewportWidth : Math.Max(0, ActualWidth - BorderThickness.Left - BorderThickness.Right);
+        var widths = ColumnWidths.Calculate(_presentation.Columns, available);
+        var changed = _geometry.Commit(widths);
+        if (measurementsOnly && !changed) return false;
         UpdateViewport();
+        return changed;
     }
+    internal bool CommitColumnMeasurements() => UpdateColumns(measurementsOnly: true);
     private void OnViewChanged(object? sender, ScrollViewerViewChangedEventArgs e)
     {
         if (_scroll is not null) _headerScroll?.ChangeView(_scroll.HorizontalOffset, null, null, true);

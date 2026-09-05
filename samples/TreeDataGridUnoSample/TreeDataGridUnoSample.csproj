@@ -10,7 +10,8 @@
     <ApplicationVersion>1</ApplicationVersion>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../../src/TreeDataGrid.Uno/TreeDataGrid.Uno.csproj" />
+    <ProjectReference Include="../../src/TreeDataGrid.Controls.Uno/TreeDataGrid.Controls.Uno.csproj" Condition="'$(TreeDataGridUnoPackageVersion)' == ''" />
+    <PackageReference Include="TreeDataGrid.Controls.Uno" Version="$(TreeDataGridUnoPackageVersion)" Condition="'$(TreeDataGridUnoPackageVersion)' != ''" />
     <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />
     <PackageReference Include="ReactiveUI" Version="19.4.1" />
     <Compile Include="../TreeDataGridDemo/Models/Country.cs" Link="Models/Country.cs" />

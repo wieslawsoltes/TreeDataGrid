@@ -46,6 +46,11 @@
           <ComboBoxItem Content="People" />
           <ComboBoxItem Content="Templates" />
         </ComboBox>
+        <ComboBox x:Name="SizingModes" SelectedIndex="0" SelectionChanged="OnSizingModeChanged" MinWidth="180" AutomationProperties.Name="Column sizing">
+          <ComboBoxItem Content="Original widths" />
+          <ComboBoxItem Content="Auto widths" />
+          <ComboBoxItem Content="Auto + star widths" />
+        </ComboBox>
         <ComboBox x:Name="SelectionModes" SelectedIndex="0" SelectionChanged="OnSelectionModeChanged" MinWidth="180">
           <ComboBoxItem Content="Source selection" />
           <ComboBoxItem Content="Multiple rows" />

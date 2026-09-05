@@ -28,8 +28,10 @@ We accept all issues and pull requests but we answer and review only pull reques
 
 ### Uno port (in development)
 
-The clean Uno port uses the same `TreeDataGrid.Core` assembly as Avalonia, without
-copying the model layer. The control is `Uno.Controls.TreeDataGrid`; assign a Core
+The clean Uno port is `TreeDataGrid.Controls.Uno`, matching the platform package
+pattern of `TreeDataGrid.Controls.Avalonia`. It uses the same `TreeDataGrid.Core`
+assembly without copying the model layer. The control namespace remains
+`Uno.Controls` (parallel to `Avalonia.Controls`); assign a Core
 source to its `Model` property. The desktop sample offers Countries, editable
 People, and template-recycling scenarios, source-linking their existing Avalonia
 sample models without referencing Avalonia UI. Run it from this branch with:

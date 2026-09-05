@@ -3,7 +3,9 @@
     <TreeDataGridUnoTargetFrameworks Condition="'$(TreeDataGridUnoTargetFrameworks)' == ''">net10.0;net10.0-desktop</TreeDataGridUnoTargetFrameworks>
     <TargetFrameworks>$(TreeDataGridUnoTargetFrameworks)</TargetFrameworks>
     <RootNamespace>Uno.Controls</RootNamespace>
-    <PackageId>TreeDataGrid.Uno</PackageId>
+    <PackageId>TreeDataGrid.Controls.Uno</PackageId>
+    <AssemblyName>TreeDataGrid.Controls.Uno</AssemblyName>
+    <IsPackable>true</IsPackable>
     <GenerateLibraryLayout>true</GenerateLibraryLayout>
     <Description>Uno Platform presentation of framework-neutral TreeDataGrid Core sources.</Description>
   </PropertyGroup>

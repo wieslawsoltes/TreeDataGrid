@@ -66,6 +66,18 @@ jobs:
           dotnet run --project samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj
           -c Release -f net10.0-desktop -- --smoke
           --screenshot-dir "$GITHUB_WORKSPACE/artifacts/uno"
+      - name: Pack shared Core and Uno controls
+        run: |
+          dotnet pack src/TreeDataGrid.Core/TreeDataGrid.Core.csproj -c Release -p:PackageVersion=12.0.0.7-ci.${{ github.run_id }} -o artifacts/uno-pack
+          dotnet pack src/TreeDataGrid.Controls.Uno/TreeDataGrid.Controls.Uno.csproj -c Release -p:PackageVersion=12.0.0.7-ci.${{ github.run_id }} -o artifacts/uno-pack
+      - name: Validate native package consumer
+        run: >-
+          xvfb-run -a -s "-screen 0 1280x800x24"
+          dotnet run --project samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj
+          -c Release -f net10.0-desktop
+          -p:TreeDataGridUnoPackageVersion=12.0.0.7-ci.${{ github.run_id }}
+          -p:RestoreAdditionalProjectSources="$GITHUB_WORKSPACE/artifacts/uno-pack"
+          -- --smoke
       - uses: actions/upload-artifact@v4
         if: always()
         with:

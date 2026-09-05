@@ -13,10 +13,23 @@ public enum CellKind { Text, CheckBox, Template, Expander }
 /// <summary>A view-owned column over a shared Core definition.</summary>
 public abstract class CellColumn : IDisposable
 {
+    private double _measuredWidth;
+    internal bool HasWidthMeasurement { get; private set; }
+    protected double MeasuredWidth => _measuredWidth;
     protected CellColumn(IColumn model) => Model = model;
     public IColumn Model { get; }
     public virtual double MinimumWidth => 30;
     public virtual double MaximumWidth => double.PositiveInfinity;
+    public virtual bool RequiresUnconstrainedWidthMeasurement => Model.Width.IsAuto;
+    internal double AutoWidth => _measuredWidth;
+    internal virtual bool RecordWidth(double width)
+    {
+        if (!double.IsFinite(width) || width < 0) return false;
+        var changed = !HasWidthMeasurement || width > _measuredWidth;
+        HasWidthMeasurement = true;
+        _measuredWidth = Math.Max(_measuredWidth, width);
+        return changed;
+    }
     public virtual CellKind Kind => CellKind.Text;
     public virtual CellKind ContentKind => Kind;
     public virtual bool IsThreeState => false;
@@ -41,11 +54,25 @@ internal sealed class ValueCellColumn<TModel, TValue> : CellColumn where TModel 
     private readonly ValueColumn<TModel, TValue> _column;
     private readonly CellKind _kind;
     public ValueCellColumn(ValueColumn<TModel, TValue> column, CellKind kind) : base(column)
-    { _column = column; _kind = kind; }
+    {
+        if (column.Options.MinWidth.IsStar || column.Options.MaxWidth?.IsStar == true)
+            throw new ArgumentException("Column minimum and maximum widths must use pixels or Auto.", nameof(column));
+        _column = column;
+        _kind = kind;
+    }
     public override CellKind Kind => _kind;
     public override bool IsThreeState => _column is CheckBoxColumn<TModel> check && check.IsThreeState;
-    public override double MinimumWidth => _column.Options.MinWidth.IsAuto ? 0 : _column.Options.MinWidth.Value;
-    public override double MaximumWidth => _column.Options.MaxWidth is { IsAuto: false } maximum ? maximum.Value : double.PositiveInfinity;
+    public override double MinimumWidth => _column.Options.MinWidth.IsAuto ? MeasuredWidth : _column.Options.MinWidth.Value;
+    public override double MaximumWidth => _column.Options.MaxWidth is { } maximum ? maximum.IsAuto ? MeasuredWidth : maximum.Value : double.PositiveInfinity;
+    public override bool RequiresUnconstrainedWidthMeasurement => base.RequiresUnconstrainedWidthMeasurement ||
+        _column.Options.MinWidth.IsAuto || _column.Options.MaxWidth?.IsAuto == true;
+    internal override bool RecordWidth(double width)
+    {
+        if (!double.IsFinite(width) || width < 0) return false;
+        if (!_column.Options.MinWidth.IsAuto) width = Math.Max(width, _column.Options.MinWidth.Value);
+        if (_column.Options.MaxWidth is { IsAuto: false } maximum) width = Math.Min(width, maximum.Value);
+        return base.RecordWidth(width);
+    }
     public override CellValue CreateCell(IRow row) => new BoundCell<TModel, TValue>(_column, row, canPool: true);
 }
 
@@ -103,6 +130,8 @@ internal sealed class ExpanderCellColumn<TModel> : CellColumn where TModel : cla
     public CellColumn Inner => _inner;
     public override double MinimumWidth => _inner.MinimumWidth;
     public override double MaximumWidth => _inner.MaximumWidth;
+    public override bool RequiresUnconstrainedWidthMeasurement => _inner.RequiresUnconstrainedWidthMeasurement;
+    internal override bool RecordWidth(double width) => _inner.RecordWidth(width) | base.RecordWidth(width);
     public override CellValue CreateCell(IRow row)
     {
         var expanderRow = (IExpanderRow<TModel>)row;

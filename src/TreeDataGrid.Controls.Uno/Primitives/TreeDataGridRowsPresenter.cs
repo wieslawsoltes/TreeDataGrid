@@ -164,8 +164,17 @@ public partial class TreeDataGridRowsPresenter : Panel
     }
     protected override Size MeasureOverride(Size availableSize)
     {
+        Size result;
+        bool repeat;
+        do { result = MeasureViewport(out repeat); } while (repeat);
+        return result;
+    }
+    private Size MeasureViewport(out bool repeat)
+    {
+        repeat = false;
         if (_presentation is null || _geometry is null || Owner is null) return default;
         var rows = _presentation.Rows;
+        var widthsChanged = false;
         var (firstColumn, endColumn) = _geometry.VisibleRange(_horizontalOffset, _viewportWidth);
         var firstRow = Math.Clamp((int)(_verticalOffset / RowHeight) - 1, 0, rows.Count);
         var endRow = Math.Clamp((int)Math.Ceiling((_verticalOffset + _viewportHeight) / RowHeight) + 1, 0, rows.Count);
@@ -207,9 +216,17 @@ public partial class TreeDataGridRowsPresenter : Panel
                         }
                     }
                 }
+                if (control.Column!.RequiresUnconstrainedWidthMeasurement)
+                {
+                    control.Measure(new(double.PositiveInfinity, RowHeight));
+                    widthsChanged |= control.Column.RecordWidth(control.DesiredSize.Width);
+                }
                 control.Measure(new(_geometry.Width(column), RowHeight));
             }
         }
+        // Invalidating a panel during its own MeasureOverride does not guarantee
+        // another measure before arrange on Uno. Settle the changed geometry now.
+        if (widthsChanged) repeat = Owner.CommitColumnMeasurements();
         return new(_geometry.TotalWidth, rows.Count * RowHeight);
     }
     protected override Size ArrangeOverride(Size finalSize)

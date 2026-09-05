@@ -14,7 +14,7 @@ internal sealed class ColumnGeometry
     public int Count => _ends.Length;
     public double TotalWidth => _ends.Length == 0 ? 0 : _ends[^1];
 
-    public void Commit(IReadOnlyList<double> widths)
+    public bool Commit(IReadOnlyList<double> widths)
     {
         var total = 0d;
         // Validate before mutating the committed geometry.
@@ -26,10 +26,16 @@ internal sealed class ColumnGeometry
             if (!double.IsFinite(total))
                 throw new ArgumentOutOfRangeException(nameof(widths));
         }
-        if (_ends.Length != widths.Count) _ends = new double[widths.Count];
+        var changed = _ends.Length != widths.Count;
+        if (changed) _ends = new double[widths.Count];
         total = 0;
         for (var i = 0; i < widths.Count; ++i)
-            _ends[i] = total += widths[i];
+        {
+            total += widths[i];
+            changed |= _ends[i] != total;
+            _ends[i] = total;
+        }
+        return changed;
     }
 
     public double Start(int index) => index == 0 ? 0 : _ends[index - 1];

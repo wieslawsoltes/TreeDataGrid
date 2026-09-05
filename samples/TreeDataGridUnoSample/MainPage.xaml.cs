@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using TreeDataGridCore;
@@ -8,6 +9,7 @@ using TreeDataGridCore.Models;
 using TreeDataGridDemo.Models;
 using TreeDataGridDemo.ViewModels;
 using Uno.Controls.Presentation;
+using GridLength = TreeDataGridCore.GridLength;
 
 namespace TreeDataGridUnoSample;
 
@@ -20,6 +22,7 @@ public sealed partial class MainPage : Page
     private readonly FlatTreeDataGridSource<TemplateColumnItem> _templateSource;
     private bool _ready;
     private int _newPerson;
+    private readonly Dictionary<IColumn, GridLength> _originalWidths = new();
     public MainPage()
     {
         InitializeComponent();
@@ -57,6 +60,8 @@ public sealed partial class MainPage : Page
         }));
         CountriesGrid.CellTemplates["Flag"] = (DataTemplate)Resources["FlagTemplate"];
         CountriesGrid.CellTemplates["Details"] = (DataTemplate)Resources["DetailsTemplate"];
+        foreach (var source in new ITreeDataGridSource[] { _source, _peopleSource, _templateSource })
+            foreach (var column in source.Columns) _originalWidths.Add(column, column.Width);
         _ready = true;
         ShowScenario(0);
     }
@@ -70,6 +75,7 @@ public sealed partial class MainPage : Page
         if (Scenarios.SelectedIndex != index) { Scenarios.SelectedIndex = index; return; }
         CountriesGrid.CancelEdit();
         CountriesGrid.Model = index switch { 1 => _peopleSource, 2 => _templateSource, _ => _source };
+        ApplySizingMode();
         ScenarioDescription.Text = index switch
         {
             1 => "People · shared Avalonia sample models · expand, edit and mutate the hierarchy",
@@ -87,6 +93,21 @@ public sealed partial class MainPage : Page
         Details = $"Details for item {index:000}", IsFlagged = index % 3 == 0,
     };
     private void OnScenarioChanged(object sender, SelectionChangedEventArgs e) => ShowScenario(Scenarios.SelectedIndex);
+    private void OnSizingModeChanged(object sender, SelectionChangedEventArgs e) => ApplySizingMode();
+    private void ApplySizingMode()
+    {
+        if (!_ready || CountriesGrid.Model is not { } source) return;
+        for (var i = 0; i < source.Columns.Count; ++i)
+        {
+            var column = source.Columns[i];
+            column.Width = SizingModes.SelectedIndex switch
+            {
+                1 => GridLength.Auto,
+                2 => i == 0 ? GridLength.Auto : GridLength.Star,
+                _ => _originalWidths[column],
+            };
+        }
+    }
     private void OnEdit(object sender, RoutedEventArgs e) => CountriesGrid.BeginEdit();
     private void OnMutate(object sender, RoutedEventArgs e)
     {

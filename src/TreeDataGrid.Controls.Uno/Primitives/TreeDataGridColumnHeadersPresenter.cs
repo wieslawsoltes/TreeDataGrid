@@ -38,6 +38,14 @@ public partial class TreeDataGridColumnHeadersPresenter : Panel
     }
     protected override Size MeasureOverride(Size availableSize)
     {
+        Size result;
+        bool repeat;
+        do { result = MeasureViewport(out repeat); } while (repeat);
+        return result;
+    }
+    private Size MeasureViewport(out bool repeat)
+    {
+        repeat = false;
         if (_presentation is null || _geometry is null) return default;
         var (start, end) = _geometry.VisibleRange(_offset, _viewport);
         var desired = new HashSet<CellColumn>(ReferenceEqualityComparer.Instance);
@@ -53,6 +61,7 @@ public partial class TreeDataGridColumnHeadersPresenter : Panel
             else Children.Remove(pair.Value);
         }
         var height = 32d;
+        var widthsChanged = false;
         for (var i = start; i < end; ++i)
         {
             var column = _presentation.Columns[i];
@@ -75,9 +84,15 @@ public partial class TreeDataGridColumnHeadersPresenter : Panel
                 _ => "",
             };
             header.Content = suffix.Length == 0 ? column.Model.Header : $"{column.Model.Header}{suffix}";
+            if (column.RequiresUnconstrainedWidthMeasurement)
+            {
+                header.Measure(new(double.PositiveInfinity, double.PositiveInfinity));
+                widthsChanged |= column.RecordWidth(header.DesiredSize.Width);
+            }
             header.Measure(new(_geometry.Width(i), double.PositiveInfinity));
             height = Math.Max(height, header.DesiredSize.Height);
         }
+        if (widthsChanged) repeat = Owner?.CommitColumnMeasurements() == true;
         return new(_geometry.TotalWidth, height);
     }
     protected override Size ArrangeOverride(Size finalSize)

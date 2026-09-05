@@ -18,7 +18,7 @@ Avalonia compatibility shims are not the model architecture for this port.
 
 - `TreeDataGrid.Core` owns source objects, rows, sorting, filtering, expansion, and
   row/cell selection. Uno refers to those objects directly.
-- `TreeDataGrid.Uno` owns cell binding subscriptions, presentation configuration,
+- `TreeDataGrid.Controls.Uno` owns cell binding subscriptions, presentation configuration,
   layout, template selection, recycling, input, and accessibility.
 - The Uno grid accepts a Core `ITreeDataGridSource` through `Model`. View options
   register templates/custom presentation columns by the Core presentation key.
@@ -181,14 +181,52 @@ open; the complete showcase and Activity Monitor are still pending.
   macOS job remained queued at the last check. These results do not validate this
   new checkpoint until its CI runs finish.
 
+### Column sizing and package identity checkpoint (2026-09-05)
+
+- The controls project, assembly and package are now `TreeDataGrid.Controls.Uno`,
+  following the `TreeDataGrid.Controls.Avalonia` package naming pattern. The CLR
+  namespace remains `Uno.Controls`, parallel to `Avalonia.Controls`. Sample/test
+  project references and documentation use the new path; the existing Uno test
+  assembly name is unchanged.
+- Auto widths now come from realized native headers/cells, not a 150 px estimate.
+  Width measurement is retained per view column and grows monotonically during
+  scrolling/mutation. Pixel constraints do not require an unconstrained pass;
+  Auto widths or Auto min/max do. Unmeasured zero Auto constraints get a temporary
+  discovery slot so native content can initialize them.
+- Star widths redistribute around minima/maxima instead of independently clamping
+  one proportional pass. Maximum wins conflicting constraints, matching Avalonia.
+  The solver recomputes normalized weights after freezing constraints, including
+  extreme star-weight ratios. Thirteen sizing tests bring the Uno total to 66,
+  including 500 deterministic randomized comparisons with an independent solver.
+- A native regression exposed geometry commits during measurement being arranged
+  with an earlier unclipped desired size. Presenters now settle changed geometry
+  in their measurement pass before arranging. Unchanged geometry does not schedule
+  additional viewport invalidations. Expander measurements are also forwarded to
+  their inner presentation, including Auto min/max constraints.
+- macOS/Skia checks pass for native auto/header width, live text growth, retained
+  widths after shorter text, constrained-star redistribution, viewport resizing,
+  Auto constraints, and expander inner sizing. The existing recycling, selection,
+  editing, showcase, and 1,000-column virtualization checks still pass.
+- A showcase selector exposes original, auto, and auto-plus-star widths. The
+  updated Countries toolbar/render was inspected.
+- Explicit packability was needed: the Uno SDK library otherwise skipped pack.
+  A local `12.0.0.7-uno.validation.1` package was packed, inspected, and consumed by
+  the same native sample using PackageReferences instead of ProjectReferences.
+  The complete native smoke suite passed from those packages; the assets graph
+  confirms both controls and Core were packages. This was local validation only,
+  not a public release. A symbol-enabled validation pack was also produced;
+  worktree SourceLink metadata warnings remain to recheck after commit.
+- CI now includes a local package-consumer smoke run on Linux X11. The prior
+  `44118261` head passed Build/Test/Docs/Pack plus Linux/Windows Uno build/tests and
+  native X11 checks; its hosted macOS job remained queued. New-head results remain
+  separate evidence.
+
 ### Remaining implementation and verification
 
 - Complete control theme styling and automation, and test actual OS input/focus
   routing (including editing and drag/drop interactions with selection).
-- Implement actual auto measurement and constrained-star redistribution. Current
-  auto widths use an initial fixed estimate; fixed-width geometry checks do not
-  establish auto/star parity. Nonuniform row height, anchoring, resizing and
-  variable-height bring-into-view are also unfinished (current rows are fixed at
+- Complete nonuniform row height, anchoring, resizing and
+  variable-height bring-into-view (current rows are fixed at
   28 logical px; fixed-height navigation/bring-into-view now runs).
 - Complete editing, drag/drop, text search, selection cancellation, and
   column-resize/reorder gestures. Header-click sorting and checkbox writeback are
@@ -216,6 +254,6 @@ dotnet run --project samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj 
 The runtime command must exit zero and print
 `UNO_RUNTIME_RECYCLING_PASSED`, `UNO_RUNTIME_SELECTION_PASSED`,
 `UNO_RUNTIME_EDITING_PASSED`, `UNO_RUNTIME_SHOWCASE_PASSED`, and
-`UNO_CORE_SAMPLE_SMOKE_PASSED`. Omit `--smoke`
+`UNO_RUNTIME_COLUMN_SIZING_PASSED`, followed by `UNO_CORE_SAMPLE_SMOKE_PASSED`. Omit `--smoke`
 to leave the showcase window open for interaction. The optional screenshot
 switch writes a generated artifact, not a checked-in source file.
