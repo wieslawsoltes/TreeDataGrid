@@ -182,7 +182,8 @@ dotnet test tests/Avalonia.Controls.TreeDataGrid.Tests/Avalonia.Controls.TreeDat
 ./check-docs.sh
 </code></pre>
 <h2 id="package-validation">Package Validation</h2>
-<pre><code class="language-bash">dotnet pack src/Avalonia.Controls.TreeDataGrid/Avalonia.Controls.TreeDataGrid.csproj -c Release -o artifacts/packages
+<pre><code class="language-bash">dotnet pack Avalonia.Controls.TreeDataGrid.slnx -c Release -o artifacts/packages
+python3 build/verify-package-layout.py artifacts/packages
 </code></pre>
 <p>Before publishing, verify:</p>
 <ul>

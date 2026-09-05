@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Installation | TreeDataGrid for Avalonia">
-<meta name="twitter:description" content="Installation This guide configures TreeDataGrid in an Avalonia project and verifies that it renders correctly. 1. Add NuGet Package dotnet add package TreeDataGrid If you use PackageReference directly: &lt;ItemGroup> &lt;PackageReference Include=&quot;TreeDataGrid&quot; Version=&quot;*&quot; /> &lt;/ItemGroup> TreeDataGrid uses different identifiers for package and runtime assets: NuGet package: TreeDataGrid runtime assembly: Avalonia.Controls.TreeDataGrid.dll theme URI root: avares://Avalonia.Controls.TreeDataGrid/ 2. Add TreeDataGrid Theme Add the style include to...">
+<meta name="twitter:description" content="Installation This guide configures TreeDataGrid in an Avalonia project and verifies that it renders correctly. 1. Add NuGet Package dotnet add package TreeDataGrid.Controls.Avalonia If you use PackageReference directly: &lt;ItemGroup> &lt;PackageReference Include=&quot;TreeDataGrid.Controls.Avalonia&quot; Version=&quot;*&quot; /> &lt;/ItemGroup> The Avalonia UI package uses these distribution identities: NuGet package: TreeDataGrid.Controls.Avalonia runtime assembly: TreeDataGrid.Avalonia.dll theme URI root: avares://TreeDataGrid.Avalonia/ 2. Add TreeDataGrid Theme Add the style include to...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
 <meta name="twitter:image:alt" content="Installation | TreeDataGrid for Avalonia">
 <meta property="og:title" content="Installation | TreeDataGrid for Avalonia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/TreeDataGrid">
-<meta property="og:description" content="Installation This guide configures TreeDataGrid in an Avalonia project and verifies that it renders correctly. 1. Add NuGet Package dotnet add package TreeDataGrid If you use PackageReference directly: &lt;ItemGroup> &lt;PackageReference Include=&quot;TreeDataGrid&quot; Version=&quot;*&quot; /> &lt;/ItemGroup> TreeDataGrid uses different identifiers for package and runtime assets: NuGet package: TreeDataGrid runtime assembly: Avalonia.Controls.TreeDataGrid.dll theme URI root: avares://Avalonia.Controls.TreeDataGrid/ 2. Add TreeDataGrid Theme Add the style include to...">
+<meta property="og:description" content="Installation This guide configures TreeDataGrid in an Avalonia project and verifies that it renders correctly. 1. Add NuGet Package dotnet add package TreeDataGrid.Controls.Avalonia If you use PackageReference directly: &lt;ItemGroup> &lt;PackageReference Include=&quot;TreeDataGrid.Controls.Avalonia&quot; Version=&quot;*&quot; /> &lt;/ItemGroup> The Avalonia UI package uses these distribution identities: NuGet package: TreeDataGrid.Controls.Avalonia runtime assembly: TreeDataGrid.Avalonia.dll theme URI root: avares://TreeDataGrid.Avalonia/ 2. Add TreeDataGrid Theme Add the style include to...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
 <meta property="og:image:alt" content="Installation | TreeDataGrid for Avalonia">
   </head>
@@ -158,18 +158,18 @@
 <h1 id="installation">Installation</h1>
 <p>This guide configures TreeDataGrid in an Avalonia project and verifies that it renders correctly.</p>
 <h2 id="1-add-nuget-package">1. Add NuGet Package</h2>
-<pre><code class="language-bash">dotnet add package TreeDataGrid
+<pre><code class="language-bash">dotnet add package TreeDataGrid.Controls.Avalonia
 </code></pre>
 <p>If you use <code>PackageReference</code> directly:</p>
 <pre><code class="language-xml">&lt;ItemGroup&gt;
-  &lt;PackageReference Include=&quot;TreeDataGrid&quot; Version=&quot;*&quot; /&gt;
+  &lt;PackageReference Include=&quot;TreeDataGrid.Controls.Avalonia&quot; Version=&quot;*&quot; /&gt;
 &lt;/ItemGroup&gt;
 </code></pre>
-<p>TreeDataGrid uses different identifiers for package and runtime assets:</p>
+<p>The Avalonia UI package uses these distribution identities:</p>
 <ul>
-<li>NuGet package: <code>TreeDataGrid</code></li>
-<li>runtime assembly: <code>Avalonia.Controls.TreeDataGrid.dll</code></li>
-<li>theme URI root: <code>avares://Avalonia.Controls.TreeDataGrid/</code></li>
+<li>NuGet package: <code>TreeDataGrid.Controls.Avalonia</code></li>
+<li>runtime assembly: <code>TreeDataGrid.Avalonia.dll</code></li>
+<li>theme URI root: <code>avares://TreeDataGrid.Avalonia/</code></li>
 </ul>
 <h2 id="2-add-treedatagrid-theme">2. Add TreeDataGrid Theme</h2>
 <p>Add the style include to <code>App.axaml</code>:</p>
@@ -178,11 +178,13 @@
              x:Class=&quot;AvaloniaApplication.App&quot;&gt;
   &lt;Application.Styles&gt;
     &lt;FluentTheme/&gt;
-    &lt;StyleInclude Source=&quot;avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml&quot;/&gt;
+    &lt;StyleInclude Source=&quot;avares://TreeDataGrid.Avalonia/Themes/Fluent.axaml&quot;/&gt;
   &lt;/Application.Styles&gt;
 &lt;/Application&gt;
 </code></pre>
-<p>Note: keep the URI as <code>avares://Avalonia.Controls.TreeDataGrid/...</code>.</p>
+<p>Existing applications may keep the compatibility <code>TreeDataGrid</code> package and its
+<code>avares://Avalonia.Controls.TreeDataGrid/...</code> URI. Do not reference both UI packages
+in one application. See <a href="/TreeDataGrid/articles/reference/package-and-assembly">Package and Assembly</a>.</p>
 <h2 id="3-verify-rendering">3. Verify Rendering</h2>
 <p>Add a minimal control instance to any window:</p>
 <pre><code class="language-xml">&lt;TreeDataGrid /&gt;
@@ -202,7 +204,7 @@
 <h3 id="control-appears-unstyled">Control appears unstyled</h3>
 <p>Cause: missing <code>StyleInclude</code> in <code>App.axaml</code>.</p>
 <p>Fix: ensure this exists:</p>
-<pre><code class="language-xml">&lt;StyleInclude Source=&quot;avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml&quot;/&gt;
+<pre><code class="language-xml">&lt;StyleInclude Source=&quot;avares://TreeDataGrid.Avalonia/Themes/Fluent.axaml&quot;/&gt;
 </code></pre>
 <h3 id="build-succeeds-but-control-does-not-appear">Build succeeds but control does not appear</h3>
 <p>Cause: <code>DataContext</code> or <code>Source</code> binding is null.</p>

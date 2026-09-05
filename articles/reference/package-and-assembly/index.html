@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Package and Assembly | TreeDataGrid for Avalonia">
-<meta name="twitter:description" content="Package and Assembly TreeDataGrid ships as a single NuGet package and a single runtime assembly. This page maps the install identity, assembly name, theme/resource URI root, and generated API route so package setup, XAML theme wiring, and API navigation all point to the same source of truth. Distribution Identity NuGet package: TreeDataGrid runtime assembly: Avalonia.Controls.TreeDataGrid.dll theme resource URI root: avares://Avalonia.Controls.TreeDataGrid/ generated API route:...">
+<meta name="twitter:description" content="Package and Assembly TreeDataGrid ships framework-neutral Core, preferred Avalonia UI, and compatibility UI packages. This page maps the install identities, assembly names, theme/resource URI roots, and generated API route. Distribution Identity preferred NuGet package: TreeDataGrid.Controls.Avalonia preferred runtime assembly: TreeDataGrid.Avalonia.dll preferred theme resource URI root: avares://TreeDataGrid.Avalonia/ compatibility package: TreeDataGrid compatibility assembly: Avalonia.Controls.TreeDataGrid.dll compatibility theme root: avares://Avalonia.Controls.TreeDataGrid/ framework-neutral package/assembly:...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
 <meta name="twitter:image:alt" content="Package and Assembly | TreeDataGrid for Avalonia">
 <meta property="og:title" content="Package and Assembly | TreeDataGrid for Avalonia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/TreeDataGrid">
-<meta property="og:description" content="Package and Assembly TreeDataGrid ships as a single NuGet package and a single runtime assembly. This page maps the install identity, assembly name, theme/resource URI root, and generated API route so package setup, XAML theme wiring, and API navigation all point to the same source of truth. Distribution Identity NuGet package: TreeDataGrid runtime assembly: Avalonia.Controls.TreeDataGrid.dll theme resource URI root: avares://Avalonia.Controls.TreeDataGrid/ generated API route:...">
+<meta property="og:description" content="Package and Assembly TreeDataGrid ships framework-neutral Core, preferred Avalonia UI, and compatibility UI packages. This page maps the install identities, assembly names, theme/resource URI roots, and generated API route. Distribution Identity preferred NuGet package: TreeDataGrid.Controls.Avalonia preferred runtime assembly: TreeDataGrid.Avalonia.dll preferred theme resource URI root: avares://TreeDataGrid.Avalonia/ compatibility package: TreeDataGrid compatibility assembly: Avalonia.Controls.TreeDataGrid.dll compatibility theme root: avares://Avalonia.Controls.TreeDataGrid/ framework-neutral package/assembly:...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/TreeDataGrid/images/logo.svg">
 <meta property="og:image:alt" content="Package and Assembly | TreeDataGrid for Avalonia">
   </head>
@@ -144,15 +144,21 @@
         </div>
 <!-- lunet:summarize -->
 <h1 id="package-and-assembly">Package and Assembly</h1>
-<p>TreeDataGrid ships as a single NuGet package and a single runtime assembly. This page maps the install identity, assembly name, theme/resource URI root, and generated API route so package setup, XAML theme wiring, and API navigation all point to the same source of truth.</p>
+<p>TreeDataGrid ships framework-neutral Core, preferred Avalonia UI, and compatibility UI packages. This page maps the install identities, assembly names, theme/resource URI roots, and generated API route.</p>
 <h2 id="distribution-identity">Distribution Identity</h2>
 <ul>
-<li>NuGet package: <code>TreeDataGrid</code></li>
-<li>runtime assembly: <code>Avalonia.Controls.TreeDataGrid.dll</code></li>
-<li>theme resource URI root: <code>avares://Avalonia.Controls.TreeDataGrid/</code></li>
+<li>preferred NuGet package: <code>TreeDataGrid.Controls.Avalonia</code></li>
+<li>preferred runtime assembly: <code>TreeDataGrid.Avalonia.dll</code></li>
+<li>preferred theme resource URI root: <code>avares://TreeDataGrid.Avalonia/</code></li>
+<li>compatibility package: <code>TreeDataGrid</code></li>
+<li>compatibility assembly: <code>Avalonia.Controls.TreeDataGrid.dll</code></li>
+<li>compatibility theme root: <code>avares://Avalonia.Controls.TreeDataGrid/</code></li>
+<li>framework-neutral package/assembly: <code>TreeDataGrid.Core</code></li>
 <li>generated API route: <code>/api</code></li>
 </ul>
-<p>Use the package name for installation and the assembly name for theme/resource URIs.</p>
+<p>The two UI packages source-link the same implementation and expose the same API.
+Reference only one UI package. New applications should use <code>TreeDataGrid.Controls.Avalonia</code>;
+existing applications may retain <code>TreeDataGrid</code> unchanged.</p>
 <h2 id="what-the-package-contains">What the Package Contains</h2>
 <p>The current generated API exposes <code>10</code> public namespaces and <code>105</code> public types.</p>
 <table class="table">
@@ -218,7 +224,8 @@
 </table>
 <h2 id="source-and-docs-layout">Source and Docs Layout</h2>
 <ul>
-<li>package source project: <code>src/Avalonia.Controls.TreeDataGrid/Avalonia.Controls.TreeDataGrid.csproj</code></li>
+<li>compatibility package source project: <code>src/Avalonia.Controls.TreeDataGrid/Avalonia.Controls.TreeDataGrid.csproj</code></li>
+<li>preferred package source project: <code>src/TreeDataGrid.Avalonia/TreeDataGrid.Avalonia.csproj</code></li>
 <li>authored guides and concepts: <code>site/articles/**</code></li>
 <li>merged API namespace/type docs: <code>src/Avalonia.Controls.TreeDataGrid/apidocs/**</code></li>
 <li>generated API reference: <code>site/.lunet/build/www/api/**</code></li>

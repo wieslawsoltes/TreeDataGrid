@@ -167,13 +167,17 @@
 <p>The API reference is generated from:</p>
 <ul>
 <li><code>../src/Avalonia.Controls.TreeDataGrid/Avalonia.Controls.TreeDataGrid.csproj</code></li>
+<li><code>../src/TreeDataGrid.Core/TreeDataGrid.Core.csproj</code></li>
 </ul>
+<p><code>TreeDataGrid.Controls.Avalonia</code> source-links the first project's public API, so it is not
+added as a duplicate API input.</p>
 <p>via <code>with api.dotnet</code> in <code>config.scriban</code>.</p>
 <p>Current API settings:</p>
 <ul>
 <li><code>TargetFramework: net8.0</code></li>
 <li>local API pages generated under <code>/api</code></li>
-<li>package id advertised by the docs site: <code>TreeDataGrid</code></li>
+<li>preferred package id advertised by the docs site: <code>TreeDataGrid.Controls.Avalonia</code></li>
+<li>compatibility package id: <code>TreeDataGrid</code></li>
 <li><code>external_apis</code> mappings for Avalonia assemblies to <code>https://api-docs.avaloniaui.net/docs</code></li>
 </ul>
 <p>This keeps TreeDataGrid APIs local while external Avalonia xrefs resolve to the official Avalonia API site.</p>
