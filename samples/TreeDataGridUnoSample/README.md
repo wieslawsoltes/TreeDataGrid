@@ -11,7 +11,7 @@ variable-height Countries, and Wikipedia. This is not the complete showcase or
 Activity Monitor yet; see [remaining parity work](../../docs/uno-port-status.md).
 
 ```sh
-dotnet build TreeDataGrid.Uno.slnx -c Release
+dotnet build solutions/TreeDataGrid.Uno.slnx -c Release
 dotnet run --project samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj -c Release -f net10.0-desktop
 ```
 

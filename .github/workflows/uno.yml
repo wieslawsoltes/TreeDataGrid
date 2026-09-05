@@ -37,7 +37,7 @@ jobs:
       - name: Uno presentation tests
         run: dotnet test tests/TreeDataGrid.Uno.Tests/TreeDataGrid.Uno.Tests.csproj -c Release -p:TreeDataGridUnoTargetFrameworks=net10.0 --logger trx --results-directory artifacts/uno-tests
       - name: Uno solution build
-        run: dotnet build TreeDataGrid.Uno.slnx -c Release
+        run: dotnet build solutions/TreeDataGrid.Uno.slnx -c Release
       - name: Uno sample state tests
         run: dotnet test samples/TreeDataGridUnoSample.Tests/TreeDataGridUnoSample.Tests.csproj -c Release --logger trx --results-directory artifacts/uno-sample-tests
       - uses: actions/upload-artifact@v4

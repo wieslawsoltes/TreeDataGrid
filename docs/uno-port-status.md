@@ -278,11 +278,14 @@ open; the complete showcase and Activity Monitor are still pending.
   decoding. All four realized live thumbnails then decoded. Both offline and live
   2048×1280 renders were inspected; the full existing native smoke suite passes.
   Live network checks are optional (`--wikipedia-live`), not deterministic CI.
-- Added `TreeDataGrid.Uno.slnx` for Core/Uno/sample/test development; CI builds that
+- Added `solutions/TreeDataGrid.Uno.slnx` for Core/Uno/sample/test development; CI builds that
   solution and runs the new sample-state tests. Browser and Windows App SDK heads
   remain unfinished. The prior `1b5634ac` head passed Build/Test/Docs/Pack, Uno
   Linux/Windows tests, and native Linux X11/package-consumer checks; hosted macOS
   was still queued. Those remote results do not validate this new checkpoint.
+- The Uno solution lives below `solutions/`, not beside the root Avalonia solution:
+  the existing build/release workflows use implicit root solution discovery.
+  A second root solution would make those commands ambiguous.
 
 ### Remaining implementation and verification
 

@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/Samples/">
+    <Project Path="../samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="../tests/TreeDataGrid.Core.Tests/TreeDataGrid.Core.Tests.csproj" />
+    <Project Path="../tests/TreeDataGrid.Uno.Tests/TreeDataGrid.Uno.Tests.csproj" />
+    <Project Path="../samples/TreeDataGridUnoSample.Tests/TreeDataGridUnoSample.Tests.csproj" />
+  </Folder>
+  <Project Path="../src/TreeDataGrid.Core/TreeDataGrid.Core.csproj" />
+  <Project Path="../src/TreeDataGrid.Controls.Uno/TreeDataGrid.Controls.Uno.csproj" />
+</Solution>

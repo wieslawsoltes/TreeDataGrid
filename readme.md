@@ -42,7 +42,7 @@ dotnet run --project samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj 
 ```
 
 The port is not yet feature-complete or released as a supported NuGet package.
-`TreeDataGrid.Uno.slnx` groups its Core, controls, sample, and tests separately from
+`solutions/TreeDataGrid.Uno.slnx` groups its Core, controls, sample, and tests separately from
 the Avalonia solution. See the [Uno sample README](samples/TreeDataGridUnoSample/README.md)
 for offline and validation commands.
 See the [Uno implementation and validation checklist](docs/uno-port-status.md) for
