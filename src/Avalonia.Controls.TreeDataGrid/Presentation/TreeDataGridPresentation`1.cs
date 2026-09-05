@@ -257,6 +257,7 @@ namespace Avalonia.Controls.Presentation
         }
         private void SynchronizeColumns()
         {
+            _rows?.ClearCellPool();
             var desired = Model.Columns;
             if (_cells.Count > 0 || _failedColumns.Count > 0)
             {

@@ -12,6 +12,7 @@ namespace Avalonia.Experimental.Data.Core
     internal interface IRetargetableTypedBindingExpression
     {
         bool TrySetRoot(object? value);
+        bool TrySuspendRoot();
     }
 
     /// <summary>
@@ -29,7 +30,7 @@ namespace Avalonia.Experimental.Data.Core
         IRetargetableTypedBindingExpression
             where TIn : class
     {
-        private readonly IObservable<TIn?> _rootSource;
+        private readonly IObservable<TIn?>? _rootSource;
         private readonly Func<TIn, TOut> _read;
         private readonly Action<TIn, TOut>? _write;
         private readonly Link[]? _chain;
@@ -45,8 +46,17 @@ namespace Avalonia.Experimental.Data.Core
             Action<TIn, TOut>? write,
             Func<TIn, object>[] links,
             Optional<TOut> fallbackValue)
+            : this(read, write, links, fallbackValue)
         {
             _rootSource = root ?? throw new ArgumentNullException(nameof(root));
+        }
+
+        private TypedBindingExpression(
+            Func<TIn, TOut> read,
+            Action<TIn, TOut>? write,
+            Func<TIn, object>[] links,
+            Optional<TOut> fallbackValue)
+        {
             _read = read;
             _write = write;
             _fallbackValue = fallbackValue;
@@ -60,6 +70,18 @@ namespace Avalonia.Experimental.Data.Core
                     _chain[i] = new Link(links[i]);
                 }
             }
+        }
+
+        internal static TypedBindingExpression<TIn, TOut> CreateForCell(
+            TIn? root,
+            Func<TIn, TOut> read,
+            Action<TIn, TOut>? write,
+            Func<TIn, object>[] links,
+            Optional<TOut> fallbackValue)
+        {
+            // Unlike a SingleValue observable, this does not permanently retain the first row
+            // after retargeting. Only cell-owned expressions support suspension for pooling.
+            return new(read, write, links, fallbackValue) { _root = new(root!) };
         }
 
         public string Description => "TODO";
@@ -103,10 +125,33 @@ namespace Avalonia.Experimental.Data.Core
             return true;
         }
 
+        bool IRetargetableTypedBindingExpression.TrySuspendRoot()
+        {
+            if (_rootSource is not null)
+                return false;
+
+            StopListeningToChain(0);
+            _root?.SetTarget(null!);
+            if (_chain is not null)
+            {
+                for (var i = 0; i < _chain.Length; ++i)
+                    _chain[i].Value?.SetTarget(null!);
+            }
+            _flags &= ~Flags.RootHasFired;
+            return true;
+        }
+
         protected override void Initialize()
         {
             _flags &= ~Flags.RootHasFired;
-            _rootSourceSubsciption = _rootSource.Subscribe(RootChanged);
+            if (_rootSource is not null)
+                _rootSourceSubsciption = _rootSource.Subscribe(RootChanged);
+            else
+            {
+                TIn? root = null;
+                _root?.TryGetTarget(out root);
+                RootChanged(root);
+            }
             _flags |= Flags.Initialized;
         }
 

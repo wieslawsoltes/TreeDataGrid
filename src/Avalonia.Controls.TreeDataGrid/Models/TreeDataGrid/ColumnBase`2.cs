@@ -113,7 +113,7 @@ namespace Avalonia.Controls.Models.TreeDataGrid
 
         protected TypedBindingExpression<TModel, TValue?> CreateBindingExpression(TModel model)
         {
-            return Binding.Instance(model);
+            return Binding.InstanceForCell(model);
         }
 
         private int DefaultSortAscending(TModel? x, TModel? y)
