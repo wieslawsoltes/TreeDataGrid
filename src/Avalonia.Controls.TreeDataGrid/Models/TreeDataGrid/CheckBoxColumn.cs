@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 using Avalonia.Experimental.Data;
 
@@ -8,7 +8,7 @@ namespace Avalonia.Controls.Models.TreeDataGrid
     /// A column in an <see cref="ITreeDataGridSource"/> which displays a check box.
     /// </summary>
     /// <typeparam name="TModel">The model type.</typeparam>
-    public class CheckBoxColumn<TModel> : ColumnBase<TModel, bool?>, IReusableCellColumn<TModel>
+    public class CheckBoxColumn<TModel> : ColumnBase<TModel, bool?>, IReusableCellColumn<TModel>, global::Avalonia.Controls.Presentation.ICellColumn<TModel>
         where TModel : class
     {
         /// <summary>
@@ -64,12 +64,23 @@ namespace Avalonia.Controls.Models.TreeDataGrid
             IsThreeState = true;
         }
 
+        internal CheckBoxColumn(global::TreeDataGridCore.Models.CheckBoxColumn<TModel> column, CheckBoxColumnOptions<TModel> options)
+            : base(column.Header, column.GetValue, global::Avalonia.Controls.Presentation.CellBinding.Create(column),
+                new GridLength(column.Width.Value, (GridUnitType)column.Width.GridUnitType), options)
+        { IsThreeState = column.IsThreeState; }
+
         public bool IsThreeState { get; }
 
         public override ICell CreateCell(IRow<TModel> row)
         {
             return new CheckBoxCell(CreateBindingExpression(row.Model), Binding.Write is null, IsThreeState);
         }
+        public ICell CreateCell(global::TreeDataGridCore.Models.IRow<TModel> row)
+        {
+            return new CheckBoxCell(CreateBindingExpression(row.Model), Binding.Write is null, IsThreeState);
+        }
+        public bool TryReuseCell(ICell cell, global::TreeDataGridCore.Models.IRow<TModel> row) => cell is CheckBoxCell typed && typed.TrySetSource(row.Model);
+
 
         bool IReusableCellColumn<TModel>.TryReuseCell(ICell cell, IRow<TModel> row)
         {

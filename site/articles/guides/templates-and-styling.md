@@ -62,7 +62,7 @@ Pattern used in sample:
 TreeDataGrid style include must be present in `App.axaml`:
 
 ```xml
-<StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
+<StyleInclude Source="avares://TreeDataGrid.Avalonia/Themes/Fluent.axaml"/>
 ```
 
 ## Performance Tips

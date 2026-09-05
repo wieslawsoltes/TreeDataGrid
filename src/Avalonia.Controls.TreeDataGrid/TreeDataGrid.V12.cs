@@ -94,37 +94,20 @@ namespace Avalonia.Controls
 
         private void UpdateActiveSource()
         {
+            if (Model is not null) return;
             var next = _explicitSource ?? _generatedSource;
-
-            if (ReferenceEquals(_source, next))
+            if (ReferenceEquals(_source, next) &&
+                (next is null ? _presentation is null : _presentation is not null))
             {
                 ApplySelectionMode();
-                SelectionInteraction = _source?.Selection as ITreeDataGridSelectionInteraction;
+                SelectionInteraction = _presentation?.SelectionInteraction;
                 SubscribeSelectionModel();
                 return;
             }
-
-            UnsubscribeSourceEvents();
-
             var oldSource = _source;
             _source = next;
-
-            if (_source != null)
-            {
-                ApplySelectionMode(_source);
-                Columns = _source.Columns;
-                Rows = _source.Rows;
-                SelectionInteraction = _source.Selection as ITreeDataGridSelectionInteraction;
-            }
-            else
-            {
-                Columns = null;
-                Rows = null;
-                SelectionInteraction = null;
-            }
-
-            SubscribeSourceEvents();
-            SubscribeSelectionModel();
+            ApplySelectionMode(_source);
+            SetPresentation(next is null ? null : new Adapters.LegacySourcePresentation(next));
             RaisePropertyChanged(SourceProperty, oldSource, _source);
             RowsPresenter?.RecycleAllElements();
             RowsPresenter?.InvalidateMeasure();
@@ -132,7 +115,18 @@ namespace Avalonia.Controls
 
         private void ApplySelectionMode()
         {
-            ApplySelectionMode(_source);
+            if (Model is null) ApplySelectionMode(_source);
+            else if (!_updatingSelectionMode && IsSet(SelectionModeProperty))
+            {
+                _updatingSelectionMode = true;
+                try { _presentation?.ApplySelectionMode(SelectionMode); }
+                finally { _updatingSelectionMode = false; }
+            }
+        }
+
+        private void OnNativeSelectionChanged(object? sender, TreeDataGridSelectionChangedEventArgs e)
+        {
+            if (_isAttachedToVisualTree) SelectionChanged?.Invoke(this, e);
         }
 
         private void ApplySelectionMode(ITreeDataGridSource? source)

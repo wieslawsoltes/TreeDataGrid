@@ -90,7 +90,7 @@ This example replaces the entire `TreeDataGridColumnHeader` theme and keeps sort
 
   <Application.Styles>
     <FluentTheme/>
-    <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
+    <StyleInclude Source="avares://TreeDataGrid.Avalonia/Themes/Fluent.axaml"/>
 
     <Style Selector="TreeDataGridColumnHeader">
       <Setter Property="Theme" Value="{DynamicResource NeoTreeDataGridColumnHeaderTheme}" />
@@ -143,7 +143,7 @@ When replacing `TreeDataGridTextCell`, keep a dedicated editing template with `P
 
   <Application.Styles>
     <FluentTheme/>
-    <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
+    <StyleInclude Source="avares://TreeDataGrid.Avalonia/Themes/Fluent.axaml"/>
 
     <Style Selector="TreeDataGridTextCell">
       <Setter Property="Theme" Value="{DynamicResource NeoTreeDataGridTextCellTheme}" />

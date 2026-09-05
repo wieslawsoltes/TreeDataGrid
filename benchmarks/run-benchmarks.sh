@@ -11,4 +11,7 @@ NUGET_PACKAGES="${package_root%/}/"
 export NUGET_PACKAGES
 
 dotnet build "$project" -c Release -p:DisableSourceLink=true
+# BenchmarkDotNet locates its project relative to the working directory. This is
+# essential when comparing different worktrees from one shell.
+cd "$repo_dir"
 dotnet "$dll" "$@"

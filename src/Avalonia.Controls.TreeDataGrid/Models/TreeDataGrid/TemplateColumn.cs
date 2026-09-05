@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using Avalonia.Controls.Templates;
@@ -11,7 +11,7 @@ namespace Avalonia.Controls.Models.TreeDataGrid
     /// </summary>
     /// <typeparam name="TModel">The model type.</typeparam>
     public class TemplateColumn<TModel> : ColumnBase<TModel>, ITextSearchableColumn<TModel>,
-        IReusableCellColumn<TModel>
+        IReusableCellColumn<TModel>, global::Avalonia.Controls.Presentation.ICellColumn<TModel>
     {
         private readonly Func<Control, IDataTemplate> _getCellTemplate;
         private readonly Func<Control, IDataTemplate>? _getEditingCellTemplate;
@@ -99,6 +99,16 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         public override ICell CreateCell(IRow<TModel> row)
         {
             return new TemplateCell(row.Model, _getCellTemplate, _getEditingCellTemplate, Options);
+        }
+
+        public ICell CreateCell(global::TreeDataGridCore.Models.IRow<TModel> row) =>
+            new TemplateCell(row.Model, _getCellTemplate, _getEditingCellTemplate, Options);
+
+        public bool TryReuseCell(ICell cell, global::TreeDataGridCore.Models.IRow<TModel> row)
+        {
+            if (cell is not TemplateCell template) return false;
+            template.SetValue(row.Model);
+            return true;
         }
 
         public override Comparison<TModel?>? GetComparison(ListSortDirection direction)

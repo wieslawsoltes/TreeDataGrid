@@ -31,7 +31,8 @@ dotnet test tests/Avalonia.Controls.TreeDataGrid.Tests/Avalonia.Controls.TreeDat
 ## Package Validation
 
 ```bash
-dotnet pack src/Avalonia.Controls.TreeDataGrid/Avalonia.Controls.TreeDataGrid.csproj -c Release -o artifacts/packages
+dotnet pack Avalonia.Controls.TreeDataGrid.slnx -c Release -o artifacts/packages
+python3 build/verify-package-layout.py artifacts/packages
 ```
 
 Before publishing, verify:

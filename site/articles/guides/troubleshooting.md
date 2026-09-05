@@ -27,7 +27,7 @@ Likely cause:
 
 Fix:
 
-- add `avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml` or `Generic.axaml`
+- add `avares://TreeDataGrid.Avalonia/Themes/Fluent.axaml` or `Generic.axaml`
 - ensure include is loaded before window containing `TreeDataGrid`
 
 ## Rows Do Not Appear

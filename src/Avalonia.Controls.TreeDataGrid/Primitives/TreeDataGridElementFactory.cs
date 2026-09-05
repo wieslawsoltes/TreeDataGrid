@@ -1,4 +1,6 @@
-﻿using System;
+using IExpanderCell = Avalonia.Controls.Models.TreeDataGrid.IExpanderCellPresentation;
+using IRow = global::TreeDataGridCore.Models.IRow;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;

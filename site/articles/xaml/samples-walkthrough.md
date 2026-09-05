@@ -13,7 +13,7 @@ This article explains the TreeDataGrid XAML patterns used in `samples/TreeDataGr
 ```xml
 <Application.Styles>
   <FluentTheme/>
-  <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
+  <StyleInclude Source="avares://TreeDataGrid.Avalonia/Themes/Fluent.axaml"/>
 </Application.Styles>
 ```
 

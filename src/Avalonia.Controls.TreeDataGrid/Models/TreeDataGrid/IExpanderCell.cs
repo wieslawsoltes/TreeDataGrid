@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Avalonia.Controls.Models.TreeDataGrid
 {
@@ -6,16 +6,18 @@ namespace Avalonia.Controls.Models.TreeDataGrid
     /// Represents a cell in a <see cref="HierarchicalTreeDataGridSource{TModel}"/> which displays
     /// an expander to reveal nested data.
     /// </summary>
-    public interface IExpanderCell : ICell, IExpander
+    public interface IExpanderCell : ICell, IExpander, IExpanderCellPresentation
     {
         /// <summary>
         /// Gets the cell content.
         /// </summary>
-        object? Content { get; }
+        new object? Content { get; }
+        object? IExpanderCellPresentation.Content => Content;
 
         /// <summary>
         /// Gets the row that the cell belongs to.
         /// </summary>
-        IRow Row { get; }
+        new IRow Row { get; }
+        global::TreeDataGridCore.Models.IRow IExpanderCellPresentation.Row => Row;
     }
 }

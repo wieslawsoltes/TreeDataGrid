@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <PackageSmokeSource Condition="'$(PackageSmokeSource)' == ''">$(MSBuildThisFileDirectory)../../artifacts/packages</PackageSmokeSource>
+    <RestoreAdditionalProjectSources>$(PackageSmokeSource)</RestoreAdditionalProjectSources>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Headless" Version="$(AvaloniaSamplesVersion)" />
+    <PackageReference Include="TreeDataGrid.Controls.Avalonia" Version="$(PackageSmokeVersion)" />
+  </ItemGroup>
+  <Target Name="RequirePackageSmokeVersion" BeforeTargets="CollectPackageReferences">
+    <Error Condition="'$(PackageSmokeVersion)' == ''" Text="PackageSmokeVersion is required." />
+  </Target>
+</Project>

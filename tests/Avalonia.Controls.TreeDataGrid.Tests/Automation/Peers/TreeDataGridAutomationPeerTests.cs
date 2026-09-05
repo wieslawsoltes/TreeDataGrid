@@ -8,6 +8,8 @@ using Avalonia.Controls.Automation.Peers;
 using Avalonia.Controls.Selection;
 using Avalonia.Threading;
 using Avalonia.Headless.XUnit;
+using System.Collections;
+using System.Collections.Generic;
 using Xunit;
 
 namespace Avalonia.Controls.TreeDataGridTests.Automation.Peers
@@ -65,6 +67,39 @@ namespace Avalonia.Controls.TreeDataGridTests.Automation.Peers
 
             Assert.Single(selectedPeers);
             Assert.IsType<TreeDataGridRowAutomationPeer>(selectedPeers[0]);
+        }
+
+        [AvaloniaFact]
+        public void Should_Expose_SelectionProvider_For_Custom_Legacy_RowSelection()
+        {
+            var (target, source, items, root) = AutomationPeerTestHelper.CreateFlatTarget(singleSelect: true);
+            var selection = new NonInteractiveRowSelectionModel<AutomationPeerTestHelper.FlatRowModel>(items);
+            source.Selection = selection;
+            var peer = AutomationPeerTestHelper.CreatePeer<TreeDataGridAutomationPeer>(target);
+            var selectionProvider = Assert.IsAssignableFrom<ISelectionProvider>(peer.GetProvider<ISelectionProvider>());
+
+            selection.Select(source.Rows.RowIndexToModelIndex(0));
+            root.UpdateLayout();
+            Dispatcher.UIThread.RunJobs();
+
+            Assert.Single(selectionProvider.GetSelection());
+        }
+
+        private sealed class NonInteractiveRowSelectionModel<T> : TreeSelectionModelBase<T>,
+            ITreeDataGridRowSelectionModel<T> where T : class
+        {
+            public NonInteractiveRowSelectionModel(IEnumerable<T> source)
+                : base(source)
+            {
+            }
+
+            IEnumerable? ITreeDataGridSelection.Source
+            {
+                get => Source;
+                set => Source = value;
+            }
+
+            protected internal override IEnumerable<T>? GetChildren(T node) => null;
         }
     }
 }

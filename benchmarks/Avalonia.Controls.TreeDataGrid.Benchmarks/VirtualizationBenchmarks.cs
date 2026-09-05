@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using Avalonia.Controls.Adapters;
+using Core = global::TreeDataGridCore;
 using System.Linq;
 using Avalonia;
 using Avalonia.Collections;
@@ -28,6 +31,10 @@ public class VirtualizationBenchmarks
     private const int CollectionMoveOperations = 6_000;
     private const int DetachReattachOperations = 200;
 
+    [Params(false, true)]
+    public bool NeutralSource { get; set; }
+
+    private IDisposable? _sourceLifetime;
     private AppBuilder? _appBuilder;
     private Window? _window;
     private TreeDataGridControl? _grid;
@@ -50,6 +57,14 @@ public class VirtualizationBenchmarks
         _grid = null;
         _scroll = null;
         _items = null;
+    }
+
+    [Benchmark]
+    public int CreateAndLayoutGrid()
+    {
+        CreateGrid(rowCount: 1_000, columnCount: 12);
+        try { return _grid!.RowsPresenter!.GetRealizedElements().Count(); }
+        finally { CleanupGrid(); }
     }
 
     [IterationSetup(Target = nameof(VerticalSmallScrolls))]
@@ -260,6 +275,31 @@ public class VirtualizationBenchmarks
         return _grid!.RowsPresenter!.GetRealizedElements().Count();
     }
 
+    [IterationSetup(Target = nameof(HorizontalFarColumnScrolls))]
+    public void SetupHorizontalFarColumnScrolls()
+    {
+        CreateGrid(rowCount: 1_000, columnCount: 1_000);
+        _scroll!.Offset = new Vector(90_000, 0);
+        _grid!.UpdateLayout();
+    }
+
+    [IterationCleanup(Target = nameof(HorizontalFarColumnScrolls))]
+    public void CleanupHorizontalFarColumnScrolls() => CleanupGrid();
+
+    // The initial jump is outside the timed region. Exercise the same recycling workload
+    // near column 900, where a scan from column zero is repeated by every realized row.
+    [Benchmark(OperationsPerInvoke = HorizontalColumnOperations)]
+    public int HorizontalFarColumnScrolls()
+    {
+        var scroll = _scroll!;
+        for (var i = 0; i < HorizontalColumnOperations; ++i)
+        {
+            scroll.Offset = new Vector((i & 1) == 0 ? 90_100 : 90_000, 0);
+            _grid!.UpdateLayout();
+        }
+        return _grid!.RowsPresenter!.GetRealizedElements().Count();
+    }
+
     [IterationSetup(Target = nameof(CollectionInsertRemoveBurst))]
     public void SetupCollectionInsertRemoveBurst() => CreateGrid(rowCount: 10_000, columnCount: 12);
 
@@ -337,7 +377,23 @@ public class VirtualizationBenchmarks
         _items = new AvaloniaList<RowModel>(Enumerable.Range(0, rowCount)
             .Select(x => new RowModel(x, $"Item {x}")));
 
-        var source = new FlatTreeDataGridSource<RowModel>(_items)
+        ITreeDataGridSource? source = null;
+        Core.ITreeDataGridSource? neutralModel = null;
+        if (NeutralSource)
+        {
+            var model = new Core.FlatTreeDataGridSource<RowModel>(_items);
+            model.Columns.Add(new Core.Models.TextColumn<RowModel, int>("ID", x => x.Id, new Core.GridLength(80)));
+            for (var i = 1; i < columnCount; ++i)
+            {
+                var column = i;
+                model.Columns.Add(new Core.Models.TextColumn<RowModel, string>($"Column {column}", x => $"{x.Title}-{column}", new Core.GridLength(100)));
+            }
+            neutralModel = model;
+            _sourceLifetime = model;
+        }
+        else
+        {
+        var legacySource = new FlatTreeDataGridSource<RowModel>(_items)
         {
             Columns =
             {
@@ -348,15 +404,20 @@ public class VirtualizationBenchmarks
         for (var i = 1; i < columnCount; ++i)
         {
             var column = i;
-            source.Columns.Add(new TextColumn<RowModel, string>(
+            legacySource.Columns.Add(new TextColumn<RowModel, string>(
                 $"Column {column}",
                 x => $"{x.Title}-{column}",
                 new GridLength(100)));
         }
 
+            source = legacySource;
+            _sourceLifetime = legacySource;
+        }
+
         _grid = new TreeDataGridControl
         {
             Source = source,
+            Model = neutralModel,
             Template = TreeDataGridTemplate(cacheLength, alwaysMeasureViewportChanges),
         };
 
@@ -390,6 +451,8 @@ public class VirtualizationBenchmarks
     {
         _window?.Close();
         Dispatcher.UIThread.RunJobs();
+        _sourceLifetime?.Dispose();
+        _sourceLifetime = null;
         _window = null;
         _grid = null;
         _scroll = null;

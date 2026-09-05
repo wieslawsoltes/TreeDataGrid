@@ -135,6 +135,16 @@ namespace Avalonia.Experimental.Data
             return Instance(ObservableEx.SingleValue(source), mode, FallbackValue);
         }
 
+        internal TypedBindingExpression<TIn, TOut> InstanceForCell(TIn source)
+        {
+            return TypedBindingExpression<TIn, TOut>.CreateForCell(
+                source,
+                Read ?? throw new InvalidOperationException("Cannot bind TypedBinding: Read is uninitialized."),
+                Write,
+                Links ?? throw new InvalidOperationException("Cannot bind TypedBinding: Links is uninitialized."),
+                FallbackValue);
+        }
+
         private TypedBindingExpression<TIn, TOut> CreateExpression(
             AvaloniaObject target,
             AvaloniaProperty property,

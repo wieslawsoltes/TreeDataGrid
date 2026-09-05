@@ -25,3 +25,8 @@ comparing two TreeDataGrid revisions. Benchmark artifacts are intentionally igno
 The virtualization benchmarks execute hundreds or thousands of layout operations per
 iteration and report normalized per-operation results. This keeps each measured
 iteration long enough to avoid drawing conclusions from sub-100 ms layout samples.
+
+The [v11 geometry and recycling results](SCROLL_RECYCLING_RESULTS.md) compare the
+native Core baseline, shared column geometry caching, and bounded horizontal
+cell-model recycling. They include a far-column scrolling workload, direct geometry
+lookups, and an alternating revision runner for checking machine-load drift.

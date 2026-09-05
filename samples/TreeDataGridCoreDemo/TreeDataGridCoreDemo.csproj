@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>False</IsPackable>
+    <OutputType>WinExe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="$(AvaloniaSamplesVersion)" />
+    <PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaSamplesVersion)" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaSamplesVersion)" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="$(AvaloniaSamplesVersion)" />
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />
+    <PackageReference Include="ReactiveUI.Avalonia" Version="$(ReactiveUIAvaloniaVersion)" />
+    <PackageReference Include="Bogus" Version="34.0.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/TreeDataGrid.Avalonia/TreeDataGrid.Avalonia.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../TreeDataGridDemo/Models/**/*.cs" Link="Shared/Models/%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="../TreeDataGridDemo/ListExtensions.cs" Link="Shared/ListExtensions.cs" />
+    <AvaloniaResource Include="../TreeDataGridDemo/Assets/**" Link="Assets/%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="TreeDataGridCoreDemo.Tests" />
+  </ItemGroup>
+</Project>

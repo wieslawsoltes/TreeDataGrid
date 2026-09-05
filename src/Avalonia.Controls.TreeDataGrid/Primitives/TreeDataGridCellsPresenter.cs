@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Xml.Linq;
 using Avalonia.Controls.Models.TreeDataGrid;
@@ -12,18 +12,18 @@ namespace Avalonia.Controls.Primitives
 {
     public class TreeDataGridCellsPresenter : TreeDataGridColumnarPresenterBase<IColumn>, IChildIndexProvider
     {
-        public static readonly DirectProperty<TreeDataGridCellsPresenter, IRows?> RowsProperty =
-            AvaloniaProperty.RegisterDirect<TreeDataGridCellsPresenter, IRows?>(
+        public static readonly DirectProperty<TreeDataGridCellsPresenter, ITreeDataGridRows?> RowsProperty =
+            AvaloniaProperty.RegisterDirect<TreeDataGridCellsPresenter, ITreeDataGridRows?>(
                 nameof(Rows),
                 o => o.Rows,
                 (o, v) => o.Rows = v);
 
-        private IRows? _rows;
+        private ITreeDataGridRows? _rows;
         private bool _rebindRealizedCells;
 
         public event EventHandler<ChildIndexChangedEventArgs>? ChildIndexChanged;
 
-        public IRows? Rows
+        public ITreeDataGridRows? Rows
         {
             get => _rows;
             set
@@ -107,6 +107,7 @@ namespace Avalonia.Controls.Primitives
         {
             var model = _rows!.RealizeCell(column, index, RowIndex);
             var cell = (TreeDataGridCell)GetElementFromFactory(model, index, this);
+            cell.RecyclingColumn = column;
             cell.Realize(ElementFactory!, GetSelection(), model, index, RowIndex);
             return cell;
         }
@@ -114,6 +115,7 @@ namespace Avalonia.Controls.Primitives
         protected override void RealizeElement(Control element, IColumn column, int index)
         {
             var cell = (TreeDataGridCell)element;
+            cell.RecyclingColumn = column;
 
             if (cell.ColumnIndex == index && cell.RowIndex == RowIndex)
             {
@@ -134,9 +136,33 @@ namespace Avalonia.Controls.Primitives
         protected override void UnrealizeElement(Control element)
         {
             var cell = (TreeDataGridCell)element;
+            var model = cell.Model!;
+            var columnIndex = cell.ColumnIndex;
+            var rowIndex = cell.RowIndex;
+            var column = cell.RecyclingColumn;
+            cell.Unrealize();
+            if (RowIndex < 0 || column is null || _rows is not IRecyclingCellRows pool ||
+                !pool.TryRecycleCell(column, model))
+            {
+                _rows!.UnrealizeCell(model, columnIndex, rowIndex);
+            }
+            ChildIndexChanged?.Invoke(this, new ChildIndexChangedEventArgs(element, cell.RowIndex));
+        }
+
+        protected override void UnrealizeElementOnItemRemoved(Control element)
+        {
+            // Collection changes have already replaced/removed the column at this index.
+            // Dispose directly rather than associating its binding with a different column.
+            var cell = (TreeDataGridCell)element;
             _rows!.UnrealizeCell(cell.Model!, cell.ColumnIndex, cell.RowIndex);
             cell.Unrealize();
             ChildIndexChanged?.Invoke(this, new ChildIndexChangedEventArgs(element, cell.RowIndex));
+        }
+
+        protected override void FinalizeRecycledElement(Control element)
+        {
+            if (element is TreeDataGridTemplateCell cell)
+                cell.FinalizeUnrealize();
         }
 
         protected override void UpdateElementIndex(Control element, int oldIndex, int newIndex)
@@ -212,22 +238,33 @@ namespace Avalonia.Controls.Primitives
                 var oldRowIndex = cell.RowIndex;
                 var model = cell.Model!;
 
-                cell.Unrealize();
-                ChildIndexChanged?.Invoke(this, new ChildIndexChangedEventArgs(cell, cell.RowIndex));
-
-                if (_rows is IReusableCellRows reusableRows &&
-                    reusableRows.TryReuseCell(items[columnIndex], model, RowIndex))
+                var realized = false;
+                try
                 {
-                    cell.Realize(ElementFactory, GetSelection(), model, columnIndex, RowIndex);
-                }
-                else
-                {
-                    _rows.UnrealizeCell(model, oldColumnIndex, oldRowIndex);
-                    model = _rows.RealizeCell(items[columnIndex], columnIndex, RowIndex);
-                    cell.Realize(ElementFactory, GetSelection(), model, columnIndex, RowIndex);
-                }
+                    cell.BeginRebind();
+                    cell.Unrealize();
+                    cell.RecyclingColumn = items[columnIndex];
+                    ChildIndexChanged?.Invoke(this, new ChildIndexChangedEventArgs(cell, cell.RowIndex));
 
-                ChildIndexChanged?.Invoke(this, new ChildIndexChangedEventArgs(cell, columnIndex));
+                    if (_rows is IReusableCellRows reusableRows &&
+                        reusableRows.TryReuseCell(items[columnIndex], model, RowIndex))
+                    {
+                        cell.Realize(ElementFactory, GetSelection(), model, columnIndex, RowIndex);
+                    }
+                    else
+                    {
+                        _rows.UnrealizeCell(model, oldColumnIndex, oldRowIndex);
+                        model = _rows.RealizeCell(items[columnIndex], columnIndex, RowIndex);
+                        cell.Realize(ElementFactory, GetSelection(), model, columnIndex, RowIndex);
+                    }
+
+                    realized = true;
+                    ChildIndexChanged?.Invoke(this, new ChildIndexChangedEventArgs(cell, columnIndex));
+                }
+                finally
+                {
+                    cell.EndRebind(realized);
+                }
             }
         }
 

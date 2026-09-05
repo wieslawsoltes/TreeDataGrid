@@ -1,4 +1,5 @@
-﻿using System;
+using IRow = global::TreeDataGridCore.Models.IRow;
+using System;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Selection;
 using Avalonia.Controls.Utils;
@@ -80,13 +81,13 @@ namespace Avalonia.Controls.Primitives
 
         protected override (int index, double position) GetElementAt(double position)
         {
-            return ((IRows)Items!).GetRowAt(position);
+            return ((ITreeDataGridRows)Items!).GetRowAt(position);
         }
 
         protected override void RealizeElement(Control element, IRow rowModel, int index)
         {
             var row = (TreeDataGridRow)element;
-            row.Realize(ElementFactory, GetSelection(), Columns, (IRows?)Items, index);
+            row.Realize(ElementFactory, GetSelection(), Columns, (ITreeDataGridRows?)Items, index);
             ChildIndexChanged?.Invoke(this, new ChildIndexChangedEventArgs(element, index));
         }
 

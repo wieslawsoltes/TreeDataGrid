@@ -1,0 +1,32 @@
+{
+  "baselineCommit": "b7868ee5c268b2d86c78218a87acf352ae8fdb8e",
+  "date": "2026-09-05",
+  "alternatingRevisionOrder": [
+    "baseline",
+    "geometry",
+    "combined"
+  ],
+  "assemblies": {
+    "baseline": "7d56781b8405fc62363c004a2c10f28d6595d7dc2777dba5f6b3c2dbc88864ce",
+    "geometry": "08d5a4d84674b96e37e566049a05a622f0bb497aa50223df2471fafec22a741c",
+    "combined": "be77069f56baa2fe0c7147ebdb1df6aebc3d3f85f37c202b2c54582b68d31f97"
+  },
+  "sourceHashes": {
+    "baseline": {
+      "src/Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/ColumnListBase.cs": "1ac16ed2e10cee62a7476f1bf2ee07168fb28ab067a4e218f54a9801b3781abd",
+      "src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridCellsPresenter.cs": "085e84bcb75453088ac38b989653742994f2d1b216f036342fdaa191938efae3",
+      "benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/VirtualizationBenchmarks.cs": "d9f5176090cf133726fe1e6c8f030b79707e7ad05cb1d492b043383fe1265bc7"
+    },
+    "geometry": {
+      "src/Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/ColumnListBase.cs": "ca1975e2cc7e858dc50a2f6627bd26932a08c8fb7158c931cebe215793136fb0",
+      "src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridCellsPresenter.cs": "085e84bcb75453088ac38b989653742994f2d1b216f036342fdaa191938efae3",
+      "benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/VirtualizationBenchmarks.cs": "d9f5176090cf133726fe1e6c8f030b79707e7ad05cb1d492b043383fe1265bc7"
+    },
+    "combined": {
+      "src/Avalonia.Controls.TreeDataGrid/Models/TreeDataGrid/ColumnListBase.cs": "ca1975e2cc7e858dc50a2f6627bd26932a08c8fb7158c931cebe215793136fb0",
+      "src/Avalonia.Controls.TreeDataGrid/Primitives/TreeDataGridCellsPresenter.cs": "2d32910bc0c1610e0b3829dcc5b52cd7325ca17f8c5a4ff434d6807ef12fc62b",
+      "benchmarks/Avalonia.Controls.TreeDataGrid.Benchmarks/VirtualizationBenchmarks.cs": "d9f5176090cf133726fe1e6c8f030b79707e7ad05cb1d492b043383fe1265bc7"
+    }
+  },
+  "geometryCommit": "8362fa2a460f749113bd6db5cc4264f1063a417a"
+}

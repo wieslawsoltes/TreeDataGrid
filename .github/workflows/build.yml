@@ -35,7 +35,9 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: |
+            8.0.x
+            10.0.x
 
       - name: Determine version suffix
         id: version
@@ -72,7 +74,9 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: |
+            8.0.x
+            10.0.x
 
       - name: Restore
         run: dotnet restore
@@ -82,6 +86,9 @@ jobs:
 
       - name: Test
         run: dotnet test -c Release --no-build --logger trx --results-directory artifacts/test
+
+      - name: Enforce neutral Core dependencies
+        run: python3 build/check-neutral-dependencies.py
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -141,7 +148,9 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: |
+            8.0.x
+            10.0.x
 
       - name: Restore
         run: dotnet restore
@@ -151,6 +160,16 @@ jobs:
 
       - name: Pack
         run: dotnet pack -c Release --no-build -p:Version="${{ needs.build.outputs.version }}" -o artifacts/packages
+
+      - name: Verify package layout
+        run: python3 build/verify-package-layout.py artifacts/packages "${{ needs.build.outputs.version }}"
+
+      - name: Smoke-test TreeDataGrid.Controls.Avalonia package
+        run: >-
+          dotnet run --project tests/TreeDataGrid.Avalonia.PackageSmoke
+          -c Release
+          -p:PackageSmokeVersion="${{ needs.build.outputs.version }}"
+          -p:PackageSmokeSource="$GITHUB_WORKSPACE/artifacts/packages"
 
       - name: Upload NuGet packages
         uses: actions/upload-artifact@v4

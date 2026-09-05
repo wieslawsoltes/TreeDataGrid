@@ -4,16 +4,22 @@ title: "Package and Assembly"
 
 # Package and Assembly
 
-TreeDataGrid ships as a single NuGet package and a single runtime assembly. This page maps the install identity, assembly name, theme/resource URI root, and generated API route so package setup, XAML theme wiring, and API navigation all point to the same source of truth.
+TreeDataGrid ships framework-neutral Core, preferred Avalonia UI, and compatibility UI packages. This page maps the install identities, assembly names, theme/resource URI roots, and generated API route.
 
 ## Distribution Identity
 
-- NuGet package: `TreeDataGrid`
-- runtime assembly: `Avalonia.Controls.TreeDataGrid.dll`
-- theme resource URI root: `avares://Avalonia.Controls.TreeDataGrid/`
+- preferred NuGet package: `TreeDataGrid.Controls.Avalonia`
+- preferred runtime assembly: `TreeDataGrid.Avalonia.dll`
+- preferred theme resource URI root: `avares://TreeDataGrid.Avalonia/`
+- compatibility package: `TreeDataGrid`
+- compatibility assembly: `Avalonia.Controls.TreeDataGrid.dll`
+- compatibility theme root: `avares://Avalonia.Controls.TreeDataGrid/`
+- framework-neutral package/assembly: `TreeDataGrid.Core`
 - generated API route: `/api`
 
-Use the package name for installation and the assembly name for theme/resource URIs.
+The two UI packages source-link the same implementation and expose the same API.
+Reference only one UI package. New applications should use `TreeDataGrid.Controls.Avalonia`;
+existing applications may retain `TreeDataGrid` unchanged.
 
 ## What the Package Contains
 
@@ -34,7 +40,8 @@ The current generated API exposes `10` public namespaces and `105` public types.
 
 ## Source and Docs Layout
 
-- package source project: `src/Avalonia.Controls.TreeDataGrid/Avalonia.Controls.TreeDataGrid.csproj`
+- compatibility package source project: `src/Avalonia.Controls.TreeDataGrid/Avalonia.Controls.TreeDataGrid.csproj`
+- preferred package source project: `src/TreeDataGrid.Avalonia/TreeDataGrid.Avalonia.csproj`
 - authored guides and concepts: `site/articles/**`
 - merged API namespace/type docs: `src/Avalonia.Controls.TreeDataGrid/apidocs/**`
 - generated API reference: `site/.lunet/build/www/api/**`

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <PackageId>TreeDataGrid.Core</PackageId>
+    <RootNamespace>TreeDataGridCore</RootNamespace>
+    <Description>Framework-neutral TreeDataGrid sources, column definitions, sorting, selection and expansion state.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Avalonia.Controls.TreeDataGrid" />
+    <InternalsVisibleTo Include="TreeDataGrid.Avalonia" />
+    <InternalsVisibleTo Include="TreeDataGrid.Core.Tests" />
+  </ItemGroup>
+  <Import Project="../../build/FrameworkNeutral.targets" />
+</Project>
