@@ -11,6 +11,39 @@ namespace TreeDataGrid.Uno.Tests;
 public class PresentationTests
 {
     [Fact]
+    public void Custom_text_presentation_retains_widths_binding_and_pooling()
+    {
+        using var source = Source();
+        var column = (ValueColumn<Item, string?>)source.Columns[0];
+        column.PresentationKey = "Numeric";
+        var text = new TextCellOptions { Alignment = Microsoft.UI.Xaml.TextAlignment.Right };
+        var options = new TreeDataGridPresentationOptions();
+        options.Columns["Numeric"] = c => new ValueCellColumn<Item, string?>((ValueColumn<Item, string?>)c, CellKind.Text, text);
+        using var view = TreeDataGridPresentation.Create(source, options);
+        Assert.Same(text, view.Columns[0].TextOptions);
+        Assert.Equal(column.Options.MinWidth.Value, view.Columns[0].MinimumWidth);
+        var first = view.RealizeCell(0, 0);
+        view.RecycleCell(view.Columns[0], first);
+        using var second = view.RealizeCell(0, 1);
+        Assert.Same(first, second);
+        second.Write("changed");
+        Assert.Equal("changed", ((Item)source.Rows[1].Model!).Name);
+    }
+
+    [Fact]
+    public void Expander_forwards_inner_text_presentation()
+    {
+        using var source = new HierarchicalTreeDataGridSource<Item>([new Item("a")]);
+        source.Columns.Add(new HierarchicalExpanderColumn<Item>(
+            new TextColumn<Item, string?>("Name", x => x.Name) { PresentationKey = "Right" }, _ => Array.Empty<Item>()));
+        var options = new TreeDataGridPresentationOptions();
+        var text = new TextCellOptions { Alignment = Microsoft.UI.Xaml.TextAlignment.Right };
+        options.Columns["Right"] = c => new ValueCellColumn<Item, string?>((ValueColumn<Item, string?>)c, CellKind.Text, text);
+        using var view = TreeDataGridPresentation.Create(source, options);
+        Assert.Same(text, view.Columns[0].TextOptions);
+    }
+
+    [Fact]
     public void Presentation_exposes_exact_Core_rows_and_source()
     {
         using var source = Source();

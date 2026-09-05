@@ -16,6 +16,10 @@ public partial class TreeDataGridCell : Control
     public static readonly DependencyProperty IsCurrentProperty = DependencyProperty.Register(
         nameof(IsCurrent), typeof(bool), typeof(TreeDataGridCell), new PropertyMetadata(false, OnStateChanged));
     private TextBlock? _text;
+    private TextAlignment _templateTextAlignment;
+    private TextWrapping _templateTextWrapping;
+    private TextTrimming _templateTextTrimming;
+    private TextCellOptions? _appliedTextOptions;
     private CheckBox? _check;
     private ContentPresenter? _content;
     private Button? _expander;
@@ -56,6 +60,10 @@ public partial class TreeDataGridCell : Control
         if (_content is not null) _content.Content = null;
         base.OnApplyTemplate();
         _text = GetTemplateChild("PART_Text") as TextBlock;
+        _templateTextAlignment = _text?.TextAlignment ?? TextAlignment.Left;
+        _templateTextWrapping = _text?.TextWrapping ?? TextWrapping.NoWrap;
+        _templateTextTrimming = _text?.TextTrimming ?? TextTrimming.None;
+        _appliedTextOptions = null;
         _check = GetTemplateChild("PART_CheckBox") as CheckBox;
         _content = GetTemplateChild("PART_Content") as ContentPresenter;
         _expander = GetTemplateChild("PART_Expander") as Button;
@@ -143,7 +151,23 @@ public partial class TreeDataGridCell : Control
             _expander.Visibility = _expanderValue is null ? Visibility.Collapsed : Visibility.Visible;
             _expander.Margin = new(_indent * 20, 0, 0, 0);
         }
-        if (_text is not null) _text.Visibility = !IsEditing && _kind == CellKind.Text ? Visibility.Visible : Visibility.Collapsed;
+        if (_text is not null)
+        {
+            _text.Visibility = !IsEditing && _kind == CellKind.Text ? Visibility.Visible : Visibility.Collapsed;
+            var options = Column?.TextOptions;
+            if (!ReferenceEquals(options, _appliedTextOptions))
+            {
+                // Options are immutable. Avoid boxing/DP writes on every row
+                // recycle, but restore template defaults when options go away.
+                var alignment = options?.Alignment ?? _templateTextAlignment;
+                var wrapping = options?.Wrapping ?? _templateTextWrapping;
+                var trimming = options?.Trimming ?? _templateTextTrimming;
+                if (_text.TextAlignment != alignment) _text.TextAlignment = alignment;
+                if (_text.TextWrapping != wrapping) _text.TextWrapping = wrapping;
+                if (_text.TextTrimming != trimming) _text.TextTrimming = trimming;
+                _appliedTextOptions = options;
+            }
+        }
         if (_check is not null)
         {
             _check.Visibility = !IsEditing && _kind == CellKind.CheckBox ? Visibility.Visible : Visibility.Collapsed;

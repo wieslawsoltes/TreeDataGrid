@@ -10,6 +10,7 @@ using Microsoft.UI.Xaml.Media;
 using TreeDataGridCore;
 using TreeDataGridCore.Models;
 using Uno.Controls.Primitives;
+using Uno.Controls.Presentation;
 
 namespace TreeDataGridUnoSample;
 
@@ -90,6 +91,37 @@ internal static class RuntimeChecks
         unsorted.Columns[1].Width = new(260);
         await Task.Delay(100);
         Check(retained.ActualWidth == 260 && ReferenceEquals(retainedParent, VisualTreeHelper.GetParent(retained)), "Column resize discarded its retained cell or width.");
+        // A custom cell can be rebound to a different text presentation. Exercise
+        // that public contract directly; replacing a column factory intentionally
+        // retires its controls because the factory may choose a different type.
+        var originalColumn = retained.Column!;
+        var originalValue = retained.Value!;
+        var modelRow = unsorted.Rows[retained.RowIndex];
+        using var alignedColumn = new ValueCellColumn<Item, string>(
+            (ValueColumn<Item, string>)originalColumn.Model, CellKind.Text,
+            new TextCellOptions { Alignment = TextAlignment.Right, Wrapping = TextWrapping.Wrap, Trimming = TextTrimming.CharacterEllipsis });
+        using var alignedValue = alignedColumn.CreateCell(modelRow);
+        var rowIndex = retained.RowIndex;
+        var columnIndex = retained.ColumnIndex;
+        var loadsBeforeAlignment = ((TrackedCell)retained).Loads;
+        var unloadsBeforeAlignment = ((TrackedCell)retained).Unloads;
+        retained.BeginRebind();
+        retained.Unrealize();
+        retained.Realize(alignedColumn, alignedValue, modelRow, columnIndex, rowIndex, null);
+        retained.EndRebind(true);
+        var alignedText = Descendants(retained).OfType<TextBlock>().Single(x => x.Name == "PART_Text");
+        Check(alignedText.TextAlignment == TextAlignment.Right && alignedText.TextWrapping == TextWrapping.Wrap &&
+            alignedText.TextTrimming == TextTrimming.CharacterEllipsis, "Uno text presentation was not applied.");
+        retained.BeginRebind();
+        retained.Unrealize();
+        retained.Realize(originalColumn, originalValue, modelRow, columnIndex, rowIndex, null);
+        retained.EndRebind(true);
+        Check(ReferenceEquals(retainedParent, VisualTreeHelper.GetParent(retained)) &&
+            ((TrackedCell)retained).Loads == loadsBeforeAlignment && ((TrackedCell)retained).Unloads == unloadsBeforeAlignment,
+            "Text-option rebind detached its retained cell.");
+        Check(alignedText.TextAlignment == TextAlignment.Left && alignedText.TextWrapping == TextWrapping.NoWrap &&
+            alignedText.TextTrimming == TextTrimming.None, "Rebinding retained the previous column's text options.");
+        Console.WriteLine("UNO_TEXT_PRESENTATION_PASSED: alignment, wrapping, trimming, retained parent, reset to template defaults");
         grid.Model = null;
         await Task.Delay(100);
         Check(grid.RowsPresenter.RealizedCells.Count == 0, "Source removal retained realized cells.");

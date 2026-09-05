@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/Samples/">
+    <Project Path="../samples/TreeDataGridUnoActivityMonitor/TreeDataGridUnoActivityMonitor.csproj" />
     <Project Path="../samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj" />
   </Folder>
   <Folder Name="/Tests/">

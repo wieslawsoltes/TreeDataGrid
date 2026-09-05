@@ -4,11 +4,20 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
+using Microsoft.UI.Xaml;
 using TreeDataGridCore.Models;
 
 namespace Uno.Controls.Presentation;
 
 public enum CellKind { Text, CheckBox, Template, Expander }
+
+/// <summary>Immutable Uno text presentation, separate from framework-neutral column definitions.</summary>
+public sealed record TextCellOptions
+{
+    public TextAlignment Alignment { get; init; } = TextAlignment.Left;
+    public TextWrapping Wrapping { get; init; } = TextWrapping.NoWrap;
+    public TextTrimming Trimming { get; init; } = TextTrimming.None;
+}
 
 /// <summary>A view-owned column over a shared Core definition.</summary>
 public abstract class CellColumn : IDisposable
@@ -33,6 +42,7 @@ public abstract class CellColumn : IDisposable
     public virtual CellKind Kind => CellKind.Text;
     public virtual CellKind ContentKind => Kind;
     public virtual bool IsThreeState => false;
+    public virtual TextCellOptions? TextOptions => null;
     public abstract CellValue CreateCell(IRow row);
     public virtual void Dispose() { }
 }
@@ -49,17 +59,19 @@ public abstract class CellValue : NotifyingBase, IDisposable
     internal virtual bool TrySuspend() => false;
 }
 
-internal sealed class ValueCellColumn<TModel, TValue> : CellColumn where TModel : class
+public sealed class ValueCellColumn<TModel, TValue> : CellColumn where TModel : class
 {
     private readonly ValueColumn<TModel, TValue> _column;
     private readonly CellKind _kind;
-    public ValueCellColumn(ValueColumn<TModel, TValue> column, CellKind kind) : base(column)
+    public ValueCellColumn(ValueColumn<TModel, TValue> column, CellKind kind, TextCellOptions? textOptions = null) : base(column)
     {
         if (column.Options.MinWidth.IsStar || column.Options.MaxWidth?.IsStar == true)
             throw new ArgumentException("Column minimum and maximum widths must use pixels or Auto.", nameof(column));
         _column = column;
         _kind = kind;
+        TextOptions = textOptions;
     }
+    public override TextCellOptions? TextOptions { get; }
     public override CellKind Kind => _kind;
     public override bool IsThreeState => _column is CheckBoxColumn<TModel> check && check.IsThreeState;
     public override double MinimumWidth => _column.Options.MinWidth.IsAuto ? MeasuredWidth : _column.Options.MinWidth.Value;
@@ -127,6 +139,7 @@ internal sealed class ExpanderCellColumn<TModel> : CellColumn where TModel : cla
     public override CellKind Kind => CellKind.Expander;
     public override CellKind ContentKind => _inner.ContentKind;
     public override bool IsThreeState => _inner.IsThreeState;
+    public override TextCellOptions? TextOptions => _inner.TextOptions;
     public CellColumn Inner => _inner;
     public override double MinimumWidth => _inner.MinimumWidth;
     public override double MaximumWidth => _inner.MaximumWidth;

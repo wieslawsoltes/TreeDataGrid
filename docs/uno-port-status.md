@@ -323,6 +323,46 @@ open; the complete showcase and Activity Monitor are still pending.
   and native X11/package-consumer checks. Hosted macOS remained queued. Master
   was rechecked at `3ca47316`; no rebase is necessary. New-head CI remains separate.
 
+### Activity Monitor checkpoint (2026-09-05)
+
+- Ported the original PR #12 five-tab shell, tables, numeric comparisons, filters,
+  inspectors, demo/native telemetry and Skia charts. Sources and selection now
+  come from the actual Core assembly. No Avalonia model/presentation shim is used.
+- Added immutable Uno `TextCellOptions` and public value-column presentation for
+  numeric alignment; expanders forward inner text options. Rebind restores the
+  template's defaults when options are absent, without detaching the control.
+  Immutable-option identity avoids repeating text dependency-property writes
+  on normal row recycling. This is a code-path safeguard, not a measured
+  performance claim; the comparative benchmark gate remains open.
+  Core column definitions remain UI-neutral. Replacing a column factory may
+  intentionally retire controls because its factory may choose another type;
+  that is distinct from row recycling/rebind, which retains parents/templates.
+- Fixed snapshot selection loss during Core source replacement, overlapping
+  capture/disposal, late capture results after unload, provider-error reporting
+  and retry, source cleanup, repeat disposal, and timer/storyboard lifetimes.
+- Corrected native process-count units, bounded native buffer reads, unsigned
+  counter resets/PID-reuse deltas, host-port cleanup, 32-bit interface timeval
+  layout and sysctl value widths. Root-volume totals avoid shared APFS capacity
+  duplication; unavailable process compression displays `—`, not wired memory.
+- A controlled CPU-load comparison against .NET `Process.TotalProcessorTime`
+  exposed an additional Apple Silicon error: treating Mach ticks as nanoseconds
+  underreported process CPU by about 41.7×. CPU/user deltas now use
+  `mach_timebase_info`; the macOS-only numeric sanity check passes after the fix.
+- Preserved OneWay compiled template updates across row replacements. Corrected
+  chart hover bounds and explicit Skia-resource disposal, and removed a canvas
+  clear that erased the compositor background. Compacted the desktop shell and
+  made navigation/inspector scrollable to keep all tabs accessible.
+- Local validation: 75 Uno, 23 sample-state and 202 Core tests pass. Full showcase
+  native smoke passes, including text-option reset/parent retention. Activity
+  Monitor demo and live macOS runs pass all five section checks, stable-key
+  selection, retained cell/template identity without unload/reload, last-row
+  virtualization, and async lifetime/failure checks. Live runs display 280 rows
+  in each process table and 29 interfaces on this machine. Native 2048×1280
+  renders were inspected. These are desktop checks, not browser/WinAppSDK proof.
+- CI now builds Activity Monitor and runs its deterministic native X11 checks
+  using both project and package references. Native telemetry is read-only and
+  local. Main still points to `3ca47316`; no rebase is needed at this checkpoint.
+
 ### Remaining implementation and verification
 
 - Complete control theme styling and automation, and test actual OS input/focus
@@ -337,9 +377,10 @@ open; the complete showcase and Activity Monitor are still pending.
 - Add runtime failure-path, unload/GC, nested expansion, and lifecycle tests;
   measure recycling allocations/timing against the current Avalonia benchmarks.
   The current binding/geometry unit tests alone do not prove these requirements.
-- Port all showcase scenarios and Activity Monitor with shared model source where
-  practical. Drag/drop and declarative XAML showcases and Activity Monitor are
-  still missing; existing scenarios also need their full interaction controls.
+- Finish all showcase scenarios with shared model source where practical.
+  Drag/drop and declarative XAML showcases are still missing; existing scenarios
+  also need their full interaction controls. Activity Monitor desktop is now
+  present, while its additional platform heads remain unfinished.
 - Restore browser and Windows App SDK heads, finish solution/package/CI lanes, verify real
   heads, update public README, review the full diff, and finish draft PR #26.
 

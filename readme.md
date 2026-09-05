@@ -43,6 +43,15 @@ dotnet run --project samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj 
 ```
 
 The port is not yet feature-complete or released as a supported NuGet package.
+The separate [Activity Monitor sample](samples/TreeDataGridUnoActivityMonitor/README.md)
+provides CPU, Memory, Energy, Disk and Network tables, charts, filtering and
+selection over the same Core API. It uses live read-only macOS telemetry or demo
+data on other desktop systems:
+
+```sh
+dotnet run --project samples/TreeDataGridUnoActivityMonitor/TreeDataGridUnoActivityMonitor.csproj -c Release -f net10.0-desktop
+```
+
 `solutions/TreeDataGrid.Uno.slnx` groups its Core, controls, sample, and tests separately from
 the Avalonia solution. See the [Uno sample README](samples/TreeDataGridUnoSample/README.md)
 for offline and validation commands.
