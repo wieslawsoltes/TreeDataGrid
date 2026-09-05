@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using Avalonia.Utilities;
 
 namespace Avalonia.Controls.Models.TreeDataGrid
@@ -29,6 +30,9 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         private bool _columnWidthsDirty = true;
         private readonly List<(double min, double max)> _committedConstraints = new();
         private double _viewportWidth;
+        private readonly List<double> _columnEnds = new();
+        private bool _geometryDirty = true;
+        private double _estimatedElementSize = -1;
 
         public event EventHandler? LayoutInvalidated;
 
@@ -57,18 +61,22 @@ namespace Avalonia.Controls.Models.TreeDataGrid
 
         public (int index, double x) GetColumnAt(double x)
         {
-            var start = 0.0;
+            EnsureGeometry();
 
-            for (var i = 0; i < Count; ++i)
+            // Upper bound skips zero-width columns and preserves exclusive right edges.
+            var low = 0;
+            var high = _columnEnds.Count;
+            while (low < high)
             {
-                var column = this[i];
-                var end = start + column.ActualWidth;
-                if (x >= start && x < end)
-                    return (i, start);
-                if (double.IsNaN(column.ActualWidth))
-                    return (-1, -1);
-                start += column.ActualWidth;
+                var middle = low + ((high - low) / 2);
+                if (_columnEnds[middle] <= x)
+                    low = middle + 1;
+                else
+                    high = middle;
             }
+
+            if (x >= 0 && low < _columnEnds.Count && x < _columnEnds[low])
+                return (low, low == 0 ? 0 : _columnEnds[low - 1]);
 
             return (-1, -1);
         }
@@ -129,24 +137,54 @@ namespace Avalonia.Controls.Models.TreeDataGrid
 
         double IColumnViewportEstimator.EstimateElementSize()
         {
-            var total = 0.0;
-            var divisor = 0.0;
+            EnsureGeometry();
+            return _estimatedElementSize;
+        }
 
-            // Average the size of the realized elements.
-            foreach (var column in this)
+        private void EnsureGeometry()
+        {
+            if (!_geometryDirty)
+                return;
+
+            _columnEnds.Clear();
+            var end = 0.0;
+            var total = 0.0;
+            var measuredCount = 0;
+            var knownPrefix = true;
+            for (var i = 0; i < Count; ++i)
             {
-                var size = column.ActualWidth;
-                if (double.IsNaN(size) || size <= 0)
-                    continue;
-                total += size;
-                ++divisor;
+                var width = this[i].ActualWidth;
+                // Positions beyond an unmeasured column are unknown. The average still
+                // includes measured columns beyond that point, as in the uncached estimator.
+                knownPrefix &= !double.IsNaN(width) && width >= 0;
+                if (knownPrefix)
+                {
+                    end += width;
+                    _columnEnds.Add(end);
+                }
+                if (!double.IsNaN(width) && width > 0)
+                {
+                    total += width;
+                    ++measuredCount;
+                }
             }
 
-            // We don't have any elements on which to base our estimate.
-            if (divisor == 0 || total == 0)
-                return -1;
+            _estimatedElementSize = measuredCount > 0 ? total / measuredCount : -1;
+            _geometryDirty = false;
+        }
 
-            return total / divisor;
+        private void SubscribeColumn(IColumn column) =>
+            WeakEventHandlerManager.Subscribe<INotifyPropertyChanged, PropertyChangedEventArgs, ColumnListBase<TColumn>>(
+                column, nameof(column.PropertyChanged), OnColumnPropertyChanged);
+
+        private void UnsubscribeColumn(IColumn column) =>
+            WeakEventHandlerManager.Unsubscribe<PropertyChangedEventArgs, ColumnListBase<TColumn>>(
+                column, nameof(column.PropertyChanged), OnColumnPropertyChanged);
+
+        private void OnColumnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(e.PropertyName) || e.PropertyName == nameof(IColumn.ActualWidth))
+                _geometryDirty = true;
         }
 
         public double GetEstimatedWidth(double constraint)
@@ -256,6 +294,9 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         protected override void ClearItems()
         {
             _columnWidthsDirty = true;
+            _geometryDirty = true;
+            foreach (var column in this)
+                UnsubscribeColumn(column);
             _committedConstraints.Clear();
             base.ClearItems();
         }
@@ -263,6 +304,8 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         protected override void InsertItem(int index, TColumn item)
         {
             _columnWidthsDirty = true;
+            _geometryDirty = true;
+            SubscribeColumn(item);
             _committedConstraints.Insert(index, (double.NaN, double.NaN));
             base.InsertItem(index, item);
         }
@@ -277,6 +320,7 @@ namespace Avalonia.Controls.Models.TreeDataGrid
             // Keep the constraint snapshots aligned before the collection-changed event is raised,
             // so synchronous listeners always observe a consistent column list.
             CheckReentrancy();
+            _geometryDirty = true;
             var constraints = _committedConstraints[oldIndex];
             _committedConstraints.RemoveAt(oldIndex);
             _committedConstraints.Insert(newIndex, constraints);
@@ -287,6 +331,8 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         protected override void RemoveItem(int index)
         {
             _columnWidthsDirty = true;
+            _geometryDirty = true;
+            UnsubscribeColumn(this[index]);
             _committedConstraints.RemoveAt(index);
             base.RemoveItem(index);
         }
@@ -294,6 +340,9 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         protected override void SetItem(int index, TColumn item)
         {
             _columnWidthsDirty = true;
+            _geometryDirty = true;
+            UnsubscribeColumn(this[index]);
+            SubscribeColumn(item);
             _committedConstraints[index] = (double.NaN, double.NaN);
             base.SetItem(index, item);
         }
@@ -304,6 +353,8 @@ namespace Avalonia.Controls.Models.TreeDataGrid
                 return;
 
             _columnWidthsDirty = false;
+            // Custom columns may commit widths without raising PropertyChanged.
+            _geometryDirty = true;
             var totalStars = 0.0;
             var availableSpace = _viewportWidth;
             var invalidated = false;
@@ -390,6 +441,7 @@ namespace Avalonia.Controls.Models.TreeDataGrid
                 _committedConstraints[i] = (column.MinActualWidth, column.MaxActualWidth);
             }
 
+            _geometryDirty = true;
             if (invalidated)
             {
                 LayoutInvalidated?.Invoke(this, EventArgs.Empty);
