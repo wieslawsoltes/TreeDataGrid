@@ -1,0 +1,22 @@
+<Page x:Class="TreeDataGridUnoSample.MainPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:tdg="using:Uno.Controls"
+      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+  <Page.Resources>
+    <DataTemplate x:Key="RuntimeCellTemplate">
+      <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Margin="8,0" />
+    </DataTemplate>
+  </Page.Resources>
+  <Grid Padding="16" RowSpacing="12">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+    <StackPanel>
+      <TextBlock Text="TreeDataGrid / Uno" FontSize="24" FontWeight="SemiBold" />
+      <TextBlock Text="Countries · shared Core source · click column headers to sort" />
+    </StackPanel>
+    <tdg:TreeDataGrid x:Name="CountriesGrid" Grid.Row="1" />
+  </Grid>
+</Page>
