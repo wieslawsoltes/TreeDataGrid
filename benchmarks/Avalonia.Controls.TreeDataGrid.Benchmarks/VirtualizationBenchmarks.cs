@@ -275,6 +275,31 @@ public class VirtualizationBenchmarks
         return _grid!.RowsPresenter!.GetRealizedElements().Count();
     }
 
+    [IterationSetup(Target = nameof(HorizontalFarColumnScrolls))]
+    public void SetupHorizontalFarColumnScrolls()
+    {
+        CreateGrid(rowCount: 1_000, columnCount: 1_000);
+        _scroll!.Offset = new Vector(90_000, 0);
+        _grid!.UpdateLayout();
+    }
+
+    [IterationCleanup(Target = nameof(HorizontalFarColumnScrolls))]
+    public void CleanupHorizontalFarColumnScrolls() => CleanupGrid();
+
+    // The initial jump is outside the timed region. Exercise the same recycling workload
+    // near column 900, where a scan from column zero is repeated by every realized row.
+    [Benchmark(OperationsPerInvoke = HorizontalColumnOperations)]
+    public int HorizontalFarColumnScrolls()
+    {
+        var scroll = _scroll!;
+        for (var i = 0; i < HorizontalColumnOperations; ++i)
+        {
+            scroll.Offset = new Vector((i & 1) == 0 ? 90_100 : 90_000, 0);
+            _grid!.UpdateLayout();
+        }
+        return _grid!.RowsPresenter!.GetRealizedElements().Count();
+    }
+
     [IterationSetup(Target = nameof(CollectionInsertRemoveBurst))]
     public void SetupCollectionInsertRemoveBurst() => CreateGrid(rowCount: 10_000, columnCount: 12);
 
