@@ -50,6 +50,21 @@ namespace Avalonia.Controls.Primitives
             get => IsSelected || this.FindAncestorOfType<TreeDataGridRow>()?.IsSelected == true;
         }
 
+        /// <summary>
+        /// Begins a synchronous replacement of this cell's row. The presenter still calls
+        /// Unrealize and Realize, including their normal clearing/prepared events.
+        /// This hook is not called when a cell is merely returned to the recycle pool.
+        /// </summary>
+        public virtual void BeginRebind() { }
+
+        /// <summary>
+        /// Ends the synchronous replacement, including when a lifecycle callback throws.
+        /// </summary>
+        /// <param name="realized">True only when Realize completed successfully. On false,
+        /// release any presentation state retained by BeginRebind. Do not assume the model
+        /// or indexes were reset if a callback failed partway through.</param>
+        public virtual void EndRebind(bool realized) { }
+
         public virtual void Realize(
             TreeDataGridElementFactory factory,
             ITreeDataGridSelectionInteraction? selection,

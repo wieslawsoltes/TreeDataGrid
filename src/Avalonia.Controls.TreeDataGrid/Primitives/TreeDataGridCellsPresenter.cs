@@ -238,23 +238,33 @@ namespace Avalonia.Controls.Primitives
                 var oldRowIndex = cell.RowIndex;
                 var model = cell.Model!;
 
-                cell.Unrealize();
-                cell.RecyclingColumn = items[columnIndex];
-                ChildIndexChanged?.Invoke(this, new ChildIndexChangedEventArgs(cell, cell.RowIndex));
-
-                if (_rows is IReusableCellRows reusableRows &&
-                    reusableRows.TryReuseCell(items[columnIndex], model, RowIndex))
+                var realized = false;
+                try
                 {
-                    cell.Realize(ElementFactory, GetSelection(), model, columnIndex, RowIndex);
-                }
-                else
-                {
-                    _rows.UnrealizeCell(model, oldColumnIndex, oldRowIndex);
-                    model = _rows.RealizeCell(items[columnIndex], columnIndex, RowIndex);
-                    cell.Realize(ElementFactory, GetSelection(), model, columnIndex, RowIndex);
-                }
+                    cell.BeginRebind();
+                    cell.Unrealize();
+                    cell.RecyclingColumn = items[columnIndex];
+                    ChildIndexChanged?.Invoke(this, new ChildIndexChangedEventArgs(cell, cell.RowIndex));
 
-                ChildIndexChanged?.Invoke(this, new ChildIndexChangedEventArgs(cell, columnIndex));
+                    if (_rows is IReusableCellRows reusableRows &&
+                        reusableRows.TryReuseCell(items[columnIndex], model, RowIndex))
+                    {
+                        cell.Realize(ElementFactory, GetSelection(), model, columnIndex, RowIndex);
+                    }
+                    else
+                    {
+                        _rows.UnrealizeCell(model, oldColumnIndex, oldRowIndex);
+                        model = _rows.RealizeCell(items[columnIndex], columnIndex, RowIndex);
+                        cell.Realize(ElementFactory, GetSelection(), model, columnIndex, RowIndex);
+                    }
+
+                    realized = true;
+                    ChildIndexChanged?.Invoke(this, new ChildIndexChangedEventArgs(cell, columnIndex));
+                }
+                finally
+                {
+                    cell.EndRebind(realized);
+                }
             }
         }
 
