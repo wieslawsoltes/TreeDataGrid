@@ -21,6 +21,7 @@ public sealed partial class MainPage : Page
     private readonly HierarchicalTreeDataGridSource<Person> _peopleSource;
     private readonly ObservableCollection<TemplateColumnItem> _templateItems = new();
     private readonly FlatTreeDataGridSource<TemplateColumnItem> _templateSource;
+    private readonly WikipediaViewModel _wikipedia = new();
     private bool _ready;
     private int _newPerson;
     private readonly Dictionary<IColumn, GridLength> _originalWidths = new();
@@ -56,7 +57,12 @@ public sealed partial class MainPage : Page
         }));
         CountriesGrid.CellTemplates["Flag"] = (DataTemplate)Resources["FlagTemplate"];
         CountriesGrid.CellTemplates["Details"] = (DataTemplate)Resources["DetailsTemplate"];
-        foreach (var source in new ITreeDataGridSource[] { _source, _peopleSource, _templateSource, _variableSource })
+        CountriesGrid.CellTemplates["WikipediaImage"] = (DataTemplate)Resources["WikipediaImageTemplate"];
+        CountriesGrid.CellTemplates["WikipediaTitle"] = (DataTemplate)Resources["WikipediaTitleTemplate"];
+        CountriesGrid.CellTemplates["WikipediaExtract"] = (DataTemplate)Resources["WikipediaExtractTemplate"];
+        WikipediaStatus.SetBinding(TextBlock.TextProperty, new Microsoft.UI.Xaml.Data.Binding { Source = _wikipedia, Path = new PropertyPath(nameof(WikipediaViewModel.Status)) });
+        Unloaded += (_, _) => _wikipedia.CancelLoad();
+        foreach (var source in new ITreeDataGridSource[] { _source, _peopleSource, _templateSource, _variableSource, _wikipedia.Source })
             foreach (var column in source.Columns) _originalWidths.Add(column, column.Width);
         _ready = true;
         ShowScenario(0);
@@ -65,25 +71,37 @@ public sealed partial class MainPage : Page
     internal HierarchicalTreeDataGridSource<Person> PeopleSource => _peopleSource;
     internal FlatTreeDataGridSource<TemplateColumnItem> TemplateSource => _templateSource;
     internal ObservableCollection<TemplateColumnItem> TemplateItems => _templateItems;
+    internal WikipediaViewModel Wikipedia => _wikipedia;
     internal void ShowScenario(int index)
     {
         if (!_ready) return;
         if (Scenarios.SelectedIndex != index) { Scenarios.SelectedIndex = index; return; }
         CountriesGrid.CancelEdit();
-        CountriesGrid.Model = index switch { 1 => _peopleSource, 2 => _templateSource, 3 => _variableSource, _ => _source };
+        if (index != 4) _wikipedia.CancelLoad();
+        CountriesGrid.Model = index switch { 1 => _peopleSource, 2 => _templateSource, 3 => _variableSource, 4 => _wikipedia.Source, _ => _source };
         ApplySizingMode();
         ScenarioDescription.Text = index switch
         {
             1 => "People · shared Avalonia sample models · expand, edit and mutate the hierarchy",
             2 => "Templates · 200 shared-model rows · sort, scroll and replace selected rows",
             3 => "Variable row countries · shared Country data · multi-line names and measured row heights",
+            4 => "Wikipedia · shared feed models · async data, images and virtualized wrapping rows",
             _ => "Countries · shared Core source · click column headers to sort",
         };
         MutateButton.Visibility = RemoveButton.Visibility = index is 1 or 2 ? Visibility.Visible : Visibility.Collapsed;
         EditButton.Visibility = index == 1 ? Visibility.Visible : Visibility.Collapsed;
+        WikipediaActions.Visibility = index == 4 ? Visibility.Visible : Visibility.Collapsed;
         MutateButton.Content = index == 1 ? "Add child" : "Replace selected";
         if (CountriesGrid.IsLoaded) CountriesGrid.Scroll.ChangeView(0, 0, null, true);
+        if (index == 4 && !_wikipedia.Source.Items.Any() && !_wikipedia.IsLoading)
+        {
+            if (Environment.GetCommandLineArgs().Any(x => x is "--smoke" or "--offline")) _wikipedia.ShowOffline();
+            else _ = _wikipedia.ReloadAsync();
+        }
     }
+    private async void OnReloadWikipedia(object sender, RoutedEventArgs e) => await _wikipedia.ReloadAsync();
+    private void OnOfflineWikipedia(object sender, RoutedEventArgs e) => _wikipedia.ShowOffline();
+    private void OnCancelWikipedia(object sender, RoutedEventArgs e) => _wikipedia.CancelLoad();
     private static TemplateColumnItem CreateTemplateItem(int index) => new()
     {
         Name = $"Item {index:000}", Type = $"Type {(char)('A' + index % 4)}",

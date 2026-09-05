@@ -18,6 +18,9 @@
     <Compile Include="../TreeDataGridDemo/Models/Countries.cs" Link="Models/Countries.cs" />
     <Compile Include="../TreeDataGridDemo/Models/Person.cs" Link="Models/Person.cs" />
     <Compile Include="../TreeDataGridDemo/Models/TemplateColumnItem.cs" Link="Models/TemplateColumnItem.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/OnThisDay.cs" Link="Models/OnThisDay.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/OnThisDayJsonSerializerContext.cs" Link="Models/OnThisDayJsonSerializerContext.cs" />
+    <Content Include="../TreeDataGridDemo/Assets/file.png" Link="Assets/file.png" />
     <Compile Include="../TreeDataGridDemo/ViewModels/PeopleXamlPageViewModel.cs" Link="Models/PeopleXamlPageViewModel.cs" />
   </ItemGroup>
 </Project>

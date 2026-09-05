@@ -36,8 +36,10 @@ jobs:
         run: dotnet test tests/TreeDataGrid.Core.Tests/TreeDataGrid.Core.Tests.csproj -c Release --logger trx --results-directory artifacts/core-tests
       - name: Uno presentation tests
         run: dotnet test tests/TreeDataGrid.Uno.Tests/TreeDataGrid.Uno.Tests.csproj -c Release -p:TreeDataGridUnoTargetFrameworks=net10.0 --logger trx --results-directory artifacts/uno-tests
-      - name: Uno Skia desktop sample build
-        run: dotnet build samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj -c Release
+      - name: Uno solution build
+        run: dotnet build TreeDataGrid.Uno.slnx -c Release
+      - name: Uno sample state tests
+        run: dotnet test samples/TreeDataGridUnoSample.Tests/TreeDataGridUnoSample.Tests.csproj -c Release --logger trx --results-directory artifacts/uno-sample-tests
       - uses: actions/upload-artifact@v4
         if: always()
         with:

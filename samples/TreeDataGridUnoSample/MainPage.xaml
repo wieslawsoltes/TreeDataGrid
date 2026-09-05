@@ -5,6 +5,15 @@
       xmlns:primitives="using:Uno.Controls.Primitives"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
   <Page.Resources>
+    <DataTemplate x:Key="WikipediaImageTemplate">
+      <Image Source="{Binding Image}" Width="96" Height="64" Stretch="Uniform" Margin="4" />
+    </DataTemplate>
+    <DataTemplate x:Key="WikipediaTitleTemplate">
+      <TextBlock Text="{Binding Titles.Normalized}" TextWrapping="Wrap" VerticalAlignment="Top" Margin="8,4" />
+    </DataTemplate>
+    <DataTemplate x:Key="WikipediaExtractTemplate">
+      <TextBlock Text="{Binding Extract}" TextWrapping="Wrap" VerticalAlignment="Top" Margin="8,4" />
+    </DataTemplate>
     <DataTemplate x:Key="WrappingTemplate">
       <TextBlock Text="{Binding Text}" TextWrapping="Wrap" Margin="8,4" />
     </DataTemplate>
@@ -49,6 +58,7 @@
           <ComboBoxItem Content="People" />
           <ComboBoxItem Content="Templates" />
           <ComboBoxItem Content="Variable row countries" />
+          <ComboBoxItem Content="Wikipedia" />
         </ComboBox>
         <ComboBox x:Name="SizingModes" SelectedIndex="0" SelectionChanged="OnSizingModeChanged" MinWidth="180" AutomationProperties.Name="Column sizing">
           <ComboBoxItem Content="Original widths" />
@@ -72,6 +82,14 @@
         <Button x:Name="RemoveButton" Content="Remove selected" Click="OnRemove" Visibility="Collapsed" />
         <Button x:Name="EditButton" Content="Edit cell (F2)" Click="OnEdit" Visibility="Collapsed" />
         <TextBlock Text="Click to select · Shift for ranges · arrows to navigate · double-click or F2 to edit" VerticalAlignment="Center" TextWrapping="Wrap" />
+      </StackPanel>
+      <StackPanel x:Name="WikipediaActions" Visibility="Collapsed" Spacing="8">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button Content="Load live Wikipedia" Click="OnReloadWikipedia" />
+          <Button Content="Offline fixture" Click="OnOfflineWikipedia" />
+          <Button Content="Cancel load" Click="OnCancelWikipedia" />
+        </StackPanel>
+        <TextBlock x:Name="WikipediaStatus" TextWrapping="Wrap" />
       </StackPanel>
     </StackPanel>
     <tdg:TreeDataGrid x:Name="CountriesGrid" Grid.Row="1" />

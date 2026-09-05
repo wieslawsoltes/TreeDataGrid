@@ -57,7 +57,7 @@ Avalonia compatibility shims are not the model architecture for this port.
 ## Progress
 
 Implementation and validation are in progress. This file is a completion checklist,
-not a claim of completed parity. Countries, People, Templates, and variable-height Countries run in the desktop
+not a claim of completed parity. Countries, People, Templates, variable-height Countries, and Wikipedia run in the desktop
 sample. New draft [PR #26](https://github.com/wieslawsoltes/TreeDataGrid/pull/26) is
 open; the complete showcase and Activity Monitor are still pending.
 
@@ -252,6 +252,38 @@ open; the complete showcase and Activity Monitor are still pending.
 - Local validation: 71 Uno tests and 202 unchanged Core tests pass, plus the full
   native smoke suite. This checkpoint has not yet completed remote CI.
 
+### Wikipedia and shared feed checkpoint (2026-09-05)
+
+- Extracted the existing Wikipedia DTOs into a UI-neutral partial shared by the
+  Avalonia and Uno samples; Avalonia image behavior remains in its own partial.
+  The JSON source-generation context and offline file icon are also source-linked.
+  The Uno package graph still contains no Avalonia libraries.
+- Wikipedia uses real Core rows, three view templates, constrained star widths,
+  wrapping extracts, lazy images, sorting, async loading/cancellation, and an
+  explicitly synthetic 240-row fallback. Source updates are committed only by the
+  current request. Scenario changes and unload cancel pending feed requests.
+- Nine new Core-only sample-state tests cover dated/User-Agent requests, shared
+  deserialization, missing pages, empty feeds, HTTP/JSON failures, cancellation,
+  superseding reloads, and disposal. The legacy Avalonia sample's five tests and
+  Core sample's native test pass after the shared model extraction.
+- Native macOS/Skia checks pass for variable wrapping, lazy image creation,
+  packaged image decode, correct retained template/image/model identities after
+  scrolling/sort/reload, and bounded realization. An injected delayed remote
+  image verifies its User-Agent and successful decode after its original cell is
+  rebound to an article with no image; the late completion does not overwrite or
+  detach the reused native Image.
+- Live validation loaded 72 articles for 09-05. It exposed a real image failure:
+  Wikimedia returned 403 without a User-Agent, versus 200 with the sample's
+  identified client. Remote images now use that client followed by native stream
+  decoding. All four realized live thumbnails then decoded. Both offline and live
+  2048×1280 renders were inspected; the full existing native smoke suite passes.
+  Live network checks are optional (`--wikipedia-live`), not deterministic CI.
+- Added `TreeDataGrid.Uno.slnx` for Core/Uno/sample/test development; CI builds that
+  solution and runs the new sample-state tests. Browser and Windows App SDK heads
+  remain unfinished. The prior `1b5634ac` head passed Build/Test/Docs/Pack, Uno
+  Linux/Windows tests, and native Linux X11/package-consumer checks; hosted macOS
+  was still queued. Those remote results do not validate this new checkpoint.
+
 ### Remaining implementation and verification
 
 - Complete control theme styling and automation, and test actual OS input/focus
@@ -267,7 +299,7 @@ open; the complete showcase and Activity Monitor are still pending.
   measure recycling allocations/timing against the current Avalonia benchmarks.
   The current binding/geometry unit tests alone do not prove these requirements.
 - Port all showcase scenarios and Activity Monitor with shared model source where
-  practical. Countries, People, Templates, and variable-height Countries are not
+  practical. Countries, People, Templates, variable-height Countries, and Wikipedia are not
   the requested full suite.
 - Restore browser and Windows App SDK heads, finish solution/package/CI lanes, verify real
   heads, update public README, review the full diff, and finish draft PR #26.
@@ -278,6 +310,7 @@ Run from the `codex/uno-core-port` worktree:
 
 ```sh
 dotnet test tests/TreeDataGrid.Uno.Tests/TreeDataGrid.Uno.Tests.csproj -c Release -p:TreeDataGridUnoTargetFrameworks=net10.0 -p:DisableSourceLink=true
+dotnet test samples/TreeDataGridUnoSample.Tests/TreeDataGridUnoSample.Tests.csproj -c Release -p:DisableSourceLink=true
 DOTNET_ROLL_FORWARD=Major dotnet test tests/TreeDataGrid.Core.Tests/TreeDataGrid.Core.Tests.csproj -c Release -p:DisableSourceLink=true
 dotnet run --project samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj -c Release -f net10.0-desktop -p:DisableSourceLink=true -- --smoke --screenshot-dir "$PWD/artifacts/uno"
 ```
@@ -285,6 +318,7 @@ dotnet run --project samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj 
 The runtime command must exit zero and print
 `UNO_RUNTIME_RECYCLING_PASSED`, `UNO_RUNTIME_SELECTION_PASSED`,
 `UNO_RUNTIME_EDITING_PASSED`, `UNO_RUNTIME_SHOWCASE_PASSED`, and
-`UNO_RUNTIME_COLUMN_SIZING_PASSED`, and `UNO_RUNTIME_ROW_SIZING_PASSED`, followed by `UNO_CORE_SAMPLE_SMOKE_PASSED`. Omit `--smoke`
+`UNO_RUNTIME_COLUMN_SIZING_PASSED`, `UNO_RUNTIME_ROW_SIZING_PASSED`, and
+`UNO_RUNTIME_WIKIPEDIA_PASSED`, followed by `UNO_CORE_SAMPLE_SMOKE_PASSED`. Omit `--smoke`
 to leave the showcase window open for interaction. The optional screenshot
 switch writes a generated artifact, not a checked-in source file.
