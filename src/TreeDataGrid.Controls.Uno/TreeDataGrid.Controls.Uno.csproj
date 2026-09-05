@@ -1,0 +1,16 @@
+<Project Sdk="Uno.Sdk/6.5.31">
+  <PropertyGroup>
+    <TreeDataGridUnoTargetFrameworks Condition="'$(TreeDataGridUnoTargetFrameworks)' == ''">net10.0;net10.0-desktop</TreeDataGridUnoTargetFrameworks>
+    <TargetFrameworks>$(TreeDataGridUnoTargetFrameworks)</TargetFrameworks>
+    <RootNamespace>Uno.Controls</RootNamespace>
+    <PackageId>TreeDataGrid.Controls.Uno</PackageId>
+    <AssemblyName>TreeDataGrid.Controls.Uno</AssemblyName>
+    <IsPackable>true</IsPackable>
+    <GenerateLibraryLayout>true</GenerateLibraryLayout>
+    <Description>Uno Platform presentation of framework-neutral TreeDataGrid Core sources.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../TreeDataGrid.Core/TreeDataGrid.Core.csproj" />
+    <InternalsVisibleTo Include="TreeDataGrid.Uno.Tests" />
+  </ItemGroup>
+</Project>

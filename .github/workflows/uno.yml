@@ -1,0 +1,88 @@
+name: Uno
+
+on:
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: uno-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build-test:
+    name: Uno build and unit tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.201
+      - name: Core tests
+        run: dotnet test tests/TreeDataGrid.Core.Tests/TreeDataGrid.Core.Tests.csproj -c Release --logger trx --results-directory artifacts/core-tests
+      - name: Uno presentation tests
+        run: dotnet test tests/TreeDataGrid.Uno.Tests/TreeDataGrid.Uno.Tests.csproj -c Release -p:TreeDataGridUnoTargetFrameworks=net10.0 --logger trx --results-directory artifacts/uno-tests
+      - name: Uno solution build
+        run: dotnet build solutions/TreeDataGrid.Uno.slnx -c Release
+      - name: Uno sample state tests
+        run: dotnet test samples/TreeDataGridUnoSample.Tests/TreeDataGridUnoSample.Tests.csproj -c Release --logger trx --results-directory artifacts/uno-sample-tests
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uno-tests-${{ matrix.os }}
+          path: artifacts/**/*tests/*.trx
+          if-no-files-found: warn
+
+  native-runtime:
+    name: Uno native runtime (Linux X11)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.201
+      - name: Install X11 runtime dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libfontconfig1 libx11-6 libxrandr2 libxi6 libxcursor1 libgl1
+      - name: Run native control regression checks
+        run: >-
+          xvfb-run -a -s "-screen 0 1280x800x24"
+          dotnet run --project samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj
+          -c Release -f net10.0-desktop -- --smoke
+          --screenshot-dir "$GITHUB_WORKSPACE/artifacts/uno"
+      - name: Pack shared Core and Uno controls
+        run: |
+          dotnet pack src/TreeDataGrid.Core/TreeDataGrid.Core.csproj -c Release -p:PackageVersion=12.0.0.7-ci.${{ github.run_id }} -o artifacts/uno-pack
+          dotnet pack src/TreeDataGrid.Controls.Uno/TreeDataGrid.Controls.Uno.csproj -c Release -p:PackageVersion=12.0.0.7-ci.${{ github.run_id }} -o artifacts/uno-pack
+      - name: Validate native package consumer
+        run: >-
+          xvfb-run -a -s "-screen 0 1280x800x24"
+          dotnet run --project samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj
+          -c Release -f net10.0-desktop
+          -p:TreeDataGridUnoPackageVersion=12.0.0.7-ci.${{ github.run_id }}
+          -p:RestoreAdditionalProjectSources="$GITHUB_WORKSPACE/artifacts/uno-pack"
+          -- --smoke
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uno-native-renders
+          path: artifacts/uno/*.png
+          if-no-files-found: warn

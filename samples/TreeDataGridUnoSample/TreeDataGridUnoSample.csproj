@@ -1,0 +1,28 @@
+<Project Sdk="Uno.Sdk/6.5.31">
+  <PropertyGroup>
+    <TargetFrameworks>net10.0-desktop</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+    <UnoSingleProject>true</UnoSingleProject>
+    <IsPackable>false</IsPackable>
+    <ApplicationTitle>TreeDataGrid Uno Core Sample</ApplicationTitle>
+    <ApplicationId>com.wieslawsoltes.treedatagridunosample</ApplicationId>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/TreeDataGrid.Controls.Uno/TreeDataGrid.Controls.Uno.csproj" Condition="'$(TreeDataGridUnoPackageVersion)' == ''" />
+    <PackageReference Include="TreeDataGrid.Controls.Uno" Version="$(TreeDataGridUnoPackageVersion)" Condition="'$(TreeDataGridUnoPackageVersion)' != ''" />
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />
+    <PackageReference Include="ReactiveUI" Version="19.4.1" />
+    <Compile Include="../TreeDataGridDemo/Models/Country.cs" Link="Models/Country.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/Countries.cs" Link="Models/Countries.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/Person.cs" Link="Models/Person.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/TemplateColumnItem.cs" Link="Models/TemplateColumnItem.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/OnThisDay.cs" Link="Models/OnThisDay.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/OnThisDayJsonSerializerContext.cs" Link="Models/OnThisDayJsonSerializerContext.cs" />
+    <Content Include="../TreeDataGridDemo/Assets/file.png" Link="Assets/file.png" />
+    <Content Include="../TreeDataGridDemo/Assets/folder.png" Link="Assets/folder.png" />
+    <Compile Include="../TreeDataGridDemo/Models/FileTreeNodeModel.cs" Link="Models/FileTreeNodeModel.cs" />
+    <Compile Include="../TreeDataGridDemo/ViewModels/PeopleXamlPageViewModel.cs" Link="Models/PeopleXamlPageViewModel.cs" />
+  </ItemGroup>
+</Project>

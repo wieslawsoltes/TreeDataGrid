@@ -1,0 +1,133 @@
+<Page x:Class="TreeDataGridUnoSample.MainPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:tdg="using:Uno.Controls"
+      xmlns:local="using:TreeDataGridUnoSample"
+      xmlns:primitives="using:Uno.Controls.Primitives"
+      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+  <Page.Resources>
+    <local:FileIconConverter x:Key="FileIconConverter" />
+    <DataTemplate x:Key="FileNameTemplate">
+      <Grid ColumnSpacing="6" Margin="6,2">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="20" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+        <Image Source="{Binding IsDirectory, Converter={StaticResource FileIconConverter}}" Width="16" Height="16" />
+        <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+      </Grid>
+    </DataTemplate>
+    <DataTemplate x:Key="WikipediaImageTemplate">
+      <Image Source="{Binding Image}" Width="96" Height="64" Stretch="Uniform" Margin="4" />
+    </DataTemplate>
+    <DataTemplate x:Key="WikipediaTitleTemplate">
+      <TextBlock Text="{Binding Titles.Normalized}" TextWrapping="Wrap" VerticalAlignment="Top" Margin="8,4" />
+    </DataTemplate>
+    <DataTemplate x:Key="WikipediaExtractTemplate">
+      <TextBlock Text="{Binding Extract}" TextWrapping="Wrap" VerticalAlignment="Top" Margin="8,4" />
+    </DataTemplate>
+    <DataTemplate x:Key="WrappingTemplate">
+      <TextBlock Text="{Binding Text}" TextWrapping="Wrap" Margin="8,4" />
+    </DataTemplate>
+    <DataTemplate x:Key="FlagTemplate">
+      <CheckBox IsChecked="{Binding IsFlagged}" IsEnabled="False" HorizontalAlignment="Center" MinWidth="0" MinHeight="0" />
+    </DataTemplate>
+    <DataTemplate x:Key="DetailsTemplate">
+      <TextBlock Text="{Binding Details}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="8,0" />
+    </DataTemplate>
+    <DataTemplate x:Key="RuntimeCellTemplate">
+      <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Margin="8,0" />
+    </DataTemplate>
+    <DataTemplate x:Key="RuntimeEditingTemplate">
+      <TextBox Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" MinHeight="0" Padding="6,2" />
+    </DataTemplate>
+    <ControlTemplate x:Key="AlternateGridTemplate" TargetType="tdg:TreeDataGrid">
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <ScrollViewer x:Name="PART_HeaderScrollViewer" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+          <primitives:TreeDataGridColumnHeadersPresenter x:Name="PART_ColumnHeadersPresenter" />
+        </ScrollViewer>
+        <ScrollViewer x:Name="PART_ScrollViewer" Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+          <primitives:TreeDataGridRowsPresenter x:Name="PART_RowsPresenter" />
+        </ScrollViewer>
+      </Grid>
+    </ControlTemplate>
+  </Page.Resources>
+  <Grid Padding="16" RowSpacing="12">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+    <StackPanel Spacing="8">
+      <TextBlock Text="TreeDataGrid / Uno" FontSize="24" FontWeight="SemiBold" />
+      <TextBlock x:Name="ScenarioDescription" Text="Countries · shared Core source · click column headers to sort" />
+      <StackPanel Orientation="Horizontal" Spacing="12">
+        <ComboBox x:Name="Scenarios" SelectedIndex="0" SelectionChanged="OnScenarioChanged" MinWidth="180" AutomationProperties.Name="Sample scenario">
+          <ComboBoxItem Content="Countries" />
+          <ComboBoxItem Content="People" />
+          <ComboBoxItem Content="Templates" />
+          <ComboBoxItem Content="Variable row countries" />
+          <ComboBoxItem Content="Wikipedia" />
+          <ComboBoxItem Content="Files (tree)" />
+          <ComboBoxItem Content="Files (flat)" />
+          <ComboBoxItem Content="Find country" />
+        </ComboBox>
+        <ComboBox x:Name="SizingModes" SelectedIndex="0" SelectionChanged="OnSizingModeChanged" MinWidth="180" AutomationProperties.Name="Column sizing">
+          <ComboBoxItem Content="Original widths" />
+          <ComboBoxItem Content="Auto widths" />
+          <ComboBoxItem Content="Auto + star widths" />
+        </ComboBox>
+        <ComboBox x:Name="SelectionModes" SelectedIndex="0" SelectionChanged="OnSelectionModeChanged" MinWidth="180">
+          <ComboBoxItem Content="Source selection" />
+          <ComboBoxItem Content="Multiple rows" />
+          <ComboBoxItem Content="Multiple cells" />
+          <ComboBoxItem Content="No selection" />
+        </ComboBox>
+        <ComboBox x:Name="RowHeightModes" SelectedIndex="0" SelectionChanged="OnRowHeightModeChanged" MinWidth="170" AutomationProperties.Name="Row height">
+          <ComboBoxItem Content="Auto row height" />
+          <ComboBoxItem Content="Fixed 28 px" />
+          <ComboBoxItem Content="Fixed 48 px" />
+        </ComboBox>
+      </StackPanel>
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <Button x:Name="MutateButton" Content="Add child" Click="OnMutate" Visibility="Collapsed" />
+        <Button x:Name="RemoveButton" Content="Remove selected" Click="OnRemove" Visibility="Collapsed" />
+        <Button x:Name="EditButton" Content="Edit cell (F2)" Click="OnEdit" Visibility="Collapsed" />
+        <TextBlock Text="Click to select · Shift for ranges · arrows to navigate · double-click or F2 to edit" VerticalAlignment="Center" TextWrapping="Wrap" />
+      </StackPanel>
+      <StackPanel x:Name="WikipediaActions" Visibility="Collapsed" Spacing="8">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button Content="Load live Wikipedia" Click="OnReloadWikipedia" />
+          <Button Content="Offline fixture" Click="OnOfflineWikipedia" />
+          <Button Content="Cancel load" Click="OnCancelWikipedia" />
+        </StackPanel>
+        <TextBlock x:Name="WikipediaStatus" TextWrapping="Wrap" />
+      </StackPanel>
+      <StackPanel x:Name="FileActions" Visibility="Collapsed" Spacing="8">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <TextBox x:Name="FolderPath" PlaceholderText="Folder path" MinWidth="400" AutomationProperties.Name="Folder path" />
+          <Button Content="Open folder" Click="OnOpenFolder" />
+        </StackPanel>
+        <TextBlock x:Name="FileStatus" TextWrapping="Wrap" />
+      </StackPanel>
+      <StackPanel x:Name="FindActions" Visibility="Collapsed" Spacing="8">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <TextBox x:Name="FindFilter" PlaceholderText="Filter by country or region" Width="300" TextChanged="OnFindFilterChanged" AutomationProperties.Name="Country filter" />
+          <Button Content="Clear sort" Click="OnClearFindSort" />
+        </StackPanel>
+        <TextBlock x:Name="FindStatus" TextWrapping="Wrap" />
+      </StackPanel>
+    </StackPanel>
+    <Grid Grid.Row="1" ColumnSpacing="12">
+      <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+      <Grid x:Name="FindCatalog" Width="220" Visibility="Collapsed" RowSpacing="8">
+        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+        <TextBlock Text="All country models" FontWeight="SemiBold" />
+        <ListView x:Name="FindCountryList" Grid.Row="1" SelectionChanged="OnFindCountryChanged" AutomationProperties.Name="All country models">
+          <ListView.ItemTemplate><DataTemplate><TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" /></DataTemplate></ListView.ItemTemplate>
+        </ListView>
+      </Grid>
+      <tdg:TreeDataGrid x:Name="CountriesGrid" Grid.Column="1" />
+    </Grid>
+  </Grid>
+</Page>

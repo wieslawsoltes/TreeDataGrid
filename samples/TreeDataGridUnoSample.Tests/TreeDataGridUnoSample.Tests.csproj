@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" PrivateAssets="all" />
+    <PackageReference Include="ReactiveUI" Version="19.4.1" />
+    <ProjectReference Include="../../src/TreeDataGrid.Core/TreeDataGrid.Core.csproj" />
+    <Compile Include="../TreeDataGridUnoSample/WikipediaViewModel.cs" Link="WikipediaViewModel.cs" />
+    <Compile Include="../TreeDataGridUnoSample/FilesViewModel.cs" Link="FilesViewModel.cs" />
+    <Compile Include="../TreeDataGridUnoSample/FindCountryViewModel.cs" Link="FindCountryViewModel.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/Country.cs" Link="Models/Country.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/Countries.cs" Link="Models/Countries.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/FileTreeNodeModel.cs" Link="Models/FileTreeNodeModel.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/OnThisDay.cs" Link="Models/OnThisDay.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/OnThisDayJsonSerializerContext.cs" Link="Models/OnThisDayJsonSerializerContext.cs" />
+  </ItemGroup>
+</Project>
