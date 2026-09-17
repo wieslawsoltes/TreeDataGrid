@@ -217,7 +217,14 @@ namespace Avalonia.Controls.Primitives
 
             public Control? Build(object? data, Control? existing)
             {
-                _lastControl = _inner.Build(data, existing ?? _lastControl);
+                var recycled = existing ?? _lastControl;
+                _lastControl = _inner.Build(data, recycled);
+
+                // Reuse does not invalidate this instance; skip-measure would keep the
+                // previous occupant's arrange rect.
+                if (_lastControl is not null && ReferenceEquals(_lastControl, recycled))
+                    _lastControl.InvalidateMeasure();
+
                 return _lastControl;
             }
 
