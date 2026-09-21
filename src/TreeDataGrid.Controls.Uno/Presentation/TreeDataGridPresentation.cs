@@ -74,7 +74,7 @@ public sealed class TreeDataGridPresentation<TModel> : TreeDataGridPresentation,
     // Observe definitions independently of successfully created views. A failed
     // factory must still be retried when its definition is repaired.
     private readonly HashSet<IColumn> _observed = new(ReferenceEqualityComparer.Instance);
-    private readonly Uno.Controls.Models.TreeDataGrid.ColumnListBase<CellColumn> _visible = new();
+    private readonly VisibleColumnList _visible = new();
     private readonly Dictionary<CellColumn, Stack<CellValue>> _pool = new(ReferenceEqualityComparer.Instance);
     private readonly TreeDataGridSelection<TModel> _selection;
     private IRows? _rows;
@@ -315,13 +315,12 @@ public sealed class TreeDataGridPresentation<TModel> : TreeDataGridPresentation,
         List<Exception>? notificationErrors = null;
         try
         {
-            _visible.Reset(items =>
-            {
-                items.Clear();
-                foreach (var column in _model.Columns)
-                    if (column.IsVisible) items.Add(_views[column].View);
-                _selection.ColumnsChanged();
-            });
+            var next = new List<CellColumn>(_model.Columns.Count);
+            foreach (var column in _model.Columns)
+                if (column.IsVisible) next.Add(_views[column].View);
+            // Publish index maps before observers receive the atomic list change.
+            _selection.ColumnsChanged(next);
+            _visible.Synchronize(next);
         }
         catch (Exception error) { (notificationErrors ??= new()).Add(error); }
         try { ColumnsChanged?.Invoke(this, EventArgs.Empty); }

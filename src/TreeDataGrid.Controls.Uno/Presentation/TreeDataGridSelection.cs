@@ -98,12 +98,13 @@ internal sealed class TreeDataGridSelection<TModel>(ITreeDataGridSource<TModel> 
         }
         Changed?.Invoke(this, EventArgs.Empty);
     }
-    internal void ColumnsChanged()
+    internal void ColumnsChanged(IReadOnlyList<CellColumn>? next = null)
     {
+        var visible = next ?? columns;
         _sourceIndexes.Clear();
         _visibleIndexes.Clear();
         for (var i = 0; i < source.Columns.Count; ++i) _sourceIndexes[source.Columns[i]] = i;
-        for (var i = 0; i < columns.Count; ++i) _visibleIndexes[columns[i].Model] = i;
+        for (var i = 0; i < visible.Count; ++i) _visibleIndexes[visible[i].Model] = i;
     }
     private void Detach()
     {
