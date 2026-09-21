@@ -532,7 +532,7 @@ namespace Uno.Controls.Primitives
                         {
                             try
                             {
-                                _scrollAnchorProvider?.RegisterAnchorCandidate(e);
+                                NativeScrollAnchoring.Register(_scrollAnchorProvider, e);
                             }
                             catch (InvalidOperationException ex)
                             {
@@ -604,7 +604,7 @@ namespace Uno.Controls.Primitives
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
             _isDetached = false;
-            _scrollAnchorProvider = FindAncestor<IScrollAnchorProvider>();
+            _scrollAnchorProvider = NativeScrollAnchoring.IsSupported ? FindAncestor<IScrollAnchorProvider>() : null;
             EffectiveViewportChanged -= OnEffectiveViewportChanged;
             EffectiveViewportChanged += OnEffectiveViewportChanged;
             SubscribeToItemChanges();
@@ -641,12 +641,12 @@ namespace Uno.Controls.Primitives
             // is being raised when the parent control hasn't yet been arranged. This is a bug in
             // Avalonia, but we can work around it by forcing MeasureOverride to estimate the
             // viewport.
-            Viewport = e.EffectiveViewport.Size == default ?
+            Viewport = new Size(e.EffectiveViewport.Width, e.EffectiveViewport.Height) == default ?
                 s_invalidViewport :
                 Intersect(e.EffectiveViewport, new Rect(0, 0, ActualWidth, ActualHeight));
 
             // Cache the viewport size for use when estimating viewport on reattachment
-            if (Viewport != s_invalidViewport && Viewport.Size != default)
+            if (Viewport != s_invalidViewport && new Size(Viewport.Width, Viewport.Height) != default)
             {
                 _cachedViewport = Viewport;
             }
@@ -977,7 +977,7 @@ namespace Uno.Controls.Primitives
 
         private void RecycleElement(Control element, int index)
         {
-            _scrollAnchorProvider?.UnregisterAnchorCandidate(element);
+            NativeScrollAnchoring.Unregister(_scrollAnchorProvider, element);
 
             if (TreeDataGrid.ContainsFocus(element, XamlRoot is { } root ? FocusManager.GetFocusedElement(root) as DependencyObject : null))
             {
@@ -1003,7 +1003,7 @@ namespace Uno.Controls.Primitives
         private void RecycleElementOnItemRemoved(Control element)
         {
             var factory = _elementFactory;
-            _scrollAnchorProvider?.UnregisterAnchorCandidate(element);
+            NativeScrollAnchoring.Unregister(_scrollAnchorProvider, element);
 
             if (element == _focusedElement)
             {

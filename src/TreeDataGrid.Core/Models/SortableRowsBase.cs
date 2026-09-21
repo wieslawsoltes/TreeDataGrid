@@ -90,7 +90,6 @@ namespace TreeDataGridCore.Models
                 else
                     _sortedIndexes = null;
 
-                var foo = this.ToArray();
                 CollectionChanged?.Invoke(this, CollectionExtensions.ResetEvent);
             }
         }
