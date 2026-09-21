@@ -15,10 +15,14 @@ public partial class TreeDataGrid
     private int _textSearchStructureRevision;
     private void InitializeTextInput()
     {
-        // Uno advertises an unimplemented CharacterReceived event on Skia.
-        // Never subscribe blindly or replace composed input with VirtualKey A-Z.
-        if (ApiInformation.IsEventPresent("Microsoft.UI.Xaml.UIElement", nameof(CharacterReceived)))
+        // Capability detection rejects Uno's [NotImplemented] event stubs.
+        // Keep composed text on supported heads, never substitute VirtualKey A-Z.
+        if (ApiInformation.IsEventPresent("Microsoft.UI.Xaml.UIElement", "CharacterReceived"))
+        {
+#pragma warning disable Uno0001 // The unsupported event is excluded by the capability check above.
             CharacterReceived += OnCharacterReceived;
+#pragma warning restore Uno0001
+        }
     }
     private void ResetTextSearch()
     {
