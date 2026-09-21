@@ -56,7 +56,8 @@ internal static class RuntimeChecks
         Check(ReferenceEquals(parent, VisualTreeHelper.GetParent(first)), "Sort detached the native cell.");
         Check(first.Loads == loads && first.Unloads == unloads, "Sort unloaded a retained cell.");
         Check(((Item)source.Rows[0].Model!).Name == "Row 199", "Sort did not reorder the Core rows.");
-        Check(text.Text == "Row 199", "Sort did not refresh retained template content.");
+        Check(first.RowIndex == 0 && ReferenceEquals(grid.TryGetCell(0, 0), first) && text.Text == "Row 199",
+            $"Sort lost display-slot identity/content: index={first.RowIndex}, text={text.Text}.");
         foreach (var cell in grid.RowsPresenter!.RealizedCells)
             Check(ReferenceEquals(cell.RowModel, source.Rows[cell.RowIndex].Model), "Sort retained an obsolete model.");
 

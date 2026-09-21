@@ -34,7 +34,7 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
         presenter.InvalidateMeasure();
     }
     private readonly Dictionary<int, TreeDataGridRow> _realized = new();
-    private readonly Stack<TreeDataGridRow> _pool = new();
+    private readonly List<TreeDataGridRow> _pool = new(32);
     private readonly HashSet<TreeDataGridCell> _cells = new();
     private TreeDataGridPresentation? _presentation;
     private ColumnGeometry? _geometry;
@@ -269,8 +269,19 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
     {
         var generation = PresenterGeneration;
         var factory = ElementFactory ?? throw new InvalidOperationException("Rows require an element factory.");
-        while (_pool.TryPop(out var candidate))
+        while (_pool.Count > 0)
         {
+            // Keep a retained display slot attached to its original native row
+            // across sorting/replacement. Otherwise LIFO reverses the viewport
+            // and moves template/focus state to a different visible row.
+            // The pool is capped at 32; this scan allocates nothing and does not
+            // enumerate source rows or maintain another source-sized index.
+            var pooledIndex = _pool.Count - 1;
+            for (var i = pooledIndex; i >= 0; --i)
+                if (_pool[i].RecycledRowIndex == index && ReferenceEquals(_pool[i].Rows, Items))
+                { pooledIndex = i; break; }
+            var candidate = _pool[pooledIndex];
+            _pool.RemoveAt(pooledIndex);
             var reusable = false;
             try
             {
@@ -319,6 +330,7 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
     protected override void UnrealizeElementOnItemRemoved(Control element) => UnrealizeRow((TreeDataGridRow)element, TreeDataGridRowUnrealizeReason.ItemRemoved);
     private void UnrealizeRow(TreeDataGridRow row, TreeDataGridRowUnrealizeReason reason)
     {
+        row.RecycledRowIndex = row.RowIndex;
         if (_realized.GetValueOrDefault(row.RowIndex) == row) _realized.Remove(row.RowIndex);
         else
         {
@@ -338,7 +350,7 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
             var row = (TreeDataGridRow)element;
             var generation = PresenterGeneration;
             if (!ReferenceEquals(row.Rows, Items)) row.Release();
-            if (generation == PresenterGeneration) _pool.Push(row);
+            if (generation == PresenterGeneration) _pool.Add(row);
             else RemoveRecycledElement(row);
         }
         else RemoveRecycledElement(element);
@@ -348,12 +360,7 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
     {
         if (element is TreeDataGridRow row)
         {
-            if (_pool.Contains(row))
-            {
-                var remaining = _pool.Where(candidate => !ReferenceEquals(candidate, row)).Reverse().ToArray();
-                _pool.Clear();
-                foreach (var candidate in remaining) _pool.Push(candidate);
-            }
+            _pool.Remove(row);
             try { row.Release(); }
             finally { base.RemoveRecycledElement(row); }
         }

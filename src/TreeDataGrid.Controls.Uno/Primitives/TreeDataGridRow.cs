@@ -29,6 +29,7 @@ public class TreeDataGridRow : Control
     internal TreeDataGridRowsPresenter? Presenter { get; private set; }
     internal TreeDataGridPresentation? Presentation { get; private set; }
     internal int RealizationVersion { get; private set; }
+    internal int RecycledRowIndex { get; set; } = -1;
     internal bool IsResettingCells { get; set; }
     internal ITreeDataGridSelectionInteraction? StandaloneSelection { get; private set; }
     private bool _realizingStandalone;
