@@ -25,6 +25,40 @@ Avalonia compatibility shims are not the model architecture for this port.
 - Shared source/model data for the samples should remain shared with the Avalonia
   Core sample where practical. Both the showcase and Activity Monitor must run.
 
+## Latest implementation checkpoint: compatibility integration
+
+See the [current completion checklist](uno-current-work.md) for the finite
+remaining implementation review and validation/delivery gates.
+
+The dirty implementation now includes compatible standalone row realization and
+public cells-presenter configuration/realization methods. It uses shared Core
+models, public column measurement, horizontal viewport realization and bounded
+parent-retained control recycling. A native regression fixture is registered but
+UNRUN. Generic presenter extension contracts and remaining standalone lifecycle/
+input differences remain open; see the parity ledger. No validation or delivery
+claim is based on this source-only checkpoint.
+
+The generic stack and columnar presenter bases are also now ported from Avalonia,
+with a native custom-subclass regression fixture authored and registered (UNRUN).
+Headers now adopt the common columnar base, replacing their separate layout/pool
+loop, with compatible public header lifecycle methods and model observation.
+The common engine also retires source/factory changes during layout callbacks.
+Cells now also adopt the shared columnar engine, retaining their Core model pool,
+captured ownership and grid-wide control budget. The separate standalone cells
+layout was removed. Rows now also use the common Core.IRow presenter base, with
+reference Items/ElementFactory/Columns configuration and actual overridable
+lifecycle/layout hooks. The native sparse height geometry, body viewport,
+committed column widths and bounded parented pools are retained as overrides;
+duplicate row-event forwarding was removed. Extended native checks are still
+UNRUN. Remaining API/lifecycle/theme review and all validation gates are open;
+source presence is not behavioral or performance parity evidence.
+
+The presentation now also exposes reference-style source/state/selection/sort/
+move/notification members. Grid input and row/cell highlights use its selection-
+interaction contract, with native default behavior and replace/unload/reload
+observation cleanup. New unit/native fixtures are authored but UNRUN. This does
+not close the separately documented Skia committed-text transport limitation.
+
 ## Required parity and evidence
 
 | Area | Required behavior | Verification |
@@ -60,7 +94,50 @@ Implementation and validation are in progress. This file is a completion checkli
 not a claim of completed parity. Countries, People, Templates, variable-height Countries,
 Wikipedia, Files (tree/flat), and Find Country run in the desktop
 sample. New draft [PR #26](https://github.com/wieslawsoltes/TreeDataGrid/pull/26) is
-open; the complete showcase and Activity Monitor are still pending.
+open. Activity Monitor is implemented in local commit `46d867c1`; complete
+showcase/API parity remains open. The current work follows the
+[implementation-first parity ledger](uno-parity-audit.md): finish missing code
+before the comprehensive validation pass. Earlier results below are historical
+checkpoints, not evidence for the new, unvalidated parity changes.
+
+### Latest row API checkpoint (2026-09-20; unvalidated)
+
+Added the shared-Core-compatible ITreeDataGridRows view contract. It returns
+original Core rows/models and adds caller-owned cell realization/release; normal
+grid cells retain their existing pool. Public Rows now refers to a view facade,
+as in Avalonia, while Model.Rows remains the exact original Core collection.
+Five unit cases and a native realization/writeback/lifetime case are authored,
+unrun. Standalone row/presenter realization and generic base customization remain
+unfinished; no new validation or PR push is claimed.
+
+### Latest column API checkpoint (2026-09-20; unvalidated)
+
+Added IColumns/ColumnListBase<TColumn> and exposed the contract through the
+presentation and row. It retains the actual view columns/Core definitions and
+integrates public measurement/width/geometry operations with native layout.
+Column listeners are weak and collection-owned; no global or per-cell tracker
+was added. Five unit cases plus a native public-width mapping case are authored,
+unrun. This supplies a missing prerequisite; standalone row/presenter realization
+and generic base customization remain incomplete.
+
+### Latest cell API checkpoint (2026-09-20; unvalidated)
+
+The Avalonia-shaped public virtual cell Realize overload now runs in normal grid
+realization and supports borrowed standalone models. Added deterministic adapter
+cleanup, the selection query/event contract and EndEdit. New native/unit checks
+cover override dispatch, Core flyweight identity, reuse, observation, specialized
+values, templates and failure cleanup; all are unrun. Row/presenter/base contracts
+and full input compatibility remain implementation work.
+
+### Latest binding implementation checkpoint (2026-09-20; unvalidated)
+
+Local named-source subscriptions now have deterministic ownership and cleanup;
+Uno-resolved ordinary relative paths preserve setter failures. Explicit sources
+without property-change notifications refresh after writes, and conversion cannot
+write through a replaced nested owner. Native regressions and two unit cases are
+authored but not run. Remaining advanced-binding and public standalone presenter
+contracts are recorded in the API/parity ledgers. This does not advance the
+historical validated baseline or establish complete API parity.
 
 ### Verified foundation (2026-09-05)
 
@@ -365,6 +442,53 @@ open; the complete showcase and Activity Monitor are still pending.
 
 ### Remaining implementation and verification
 
+The current implementation-first work is tracked in
+[the parity ledger](uno-parity-audit.md) and
+[the API compatibility contract](uno-api-compatibility.md). New working changes
+include native headers/drag-drop, real row/cells presenters, RowStyle, row
+lifecycle events and TargetRow/lookup APIs. They have not been built or tested;
+the earlier checkpoint results in this document do not validate these changes.
+The 2026-09-20 working checkpoint additionally restores typed selection deltas
+and cell lifecycle/value events, with unrun unit/native regression cases. Remote
+master and draft PR #26 were re-read and remain at the baseline/head above.
+The same implementation pass adds assignable typed presentation options and a
+public generic presentation. Activity Monitor now supplies typed options. Exact
+typed UI column factory/facade compatibility remains open; new configuration
+unit/native cases have not run.
+The public-column step now adds ICellColumn<TModel>, native column/layout/cell
+contracts and text/checkbox/template facades. Activity Monitor uses the text
+facade. Custom-cell/base-type and remaining layout compatibility are still open;
+all new product code and regression cases remain unvalidated.
+
+Fluent source construction now has the matching text/checkbox/template/row-header
+and expander overloads over actual Core sources. View metadata uses weak-key
+registrations with separate view columns/template caches, preserving source Tag.
+The native search-binding probe includes converter/parameter behavior. Model-index
+row headers snapshot Core flyweight rows rather than retain them. Template and
+row-header descriptors are present, but ItemsSource/ColumnDefinitions and other
+declarative binding types still need implementation. Eight unit cases and one
+native fluent suite are authored but unrun; no current validation is implied.
+
+The next implementation step adds ItemsSource/ColumnDefinitions, text/checkbox/
+hierarchical declarative bindings, actual generated Core source ownership and an
+original-list adapter. Optional neutral Core observer interfaces let Uno bindings
+drive nested expansion/child-reference changes without copied row algorithms.
+Ordinary binding writes explicitly surface setter errors that Uno's native path
+otherwise logs/swallow; native bindings still handle observation. Declarative
+People is now in the scenario selector with the existing shared model code.
+Four source/adapter tests, three Core observer tests and a native declarative
+suite are authored but unrun. Advanced binding forms, Source compatibility and
+full source-lifetime/reentrancy handling remain implementation work.
+
+Source/SourceProperty and Source-based row/cell selection accessors are now added,
+using actual Core sources and matching Source/Model switching. Generated-source
+owners survive promotion into either explicit entry point and retire afterward;
+caller sources are never disposed. Reentrant row reset now removes only captured
+old controls, and cleanup attempts remaining cells/columns after individual errors.
+Four cleanup unit cases and a native source/ownership/reentrancy suite are authored
+but unrun. This does not close the remaining advanced-binding, unload/GC and
+retemplating failure paths or the broader parity ledger.
+
 - Complete control theme styling and automation, and test actual OS input/focus
   routing (including editing and drag/drop interactions with selection).
 - Extend variable-height layout stress and performance coverage, including
@@ -372,19 +496,172 @@ open; the complete showcase and Activity Monitor are still pending.
 - Complete editing, drag/drop, text search, selection cancellation, and
   column-resize/reorder gestures. Header-click sorting and checkbox writeback are
   present, but do not cover the full editing/interaction API.
-- Complete XAML/declarative columns, source extensions, public lifecycle events,
+- Complete XAML/declarative columns, remaining source-extension/lifecycle compatibility,
   template-editing contracts, and dependency-property model binding as required.
 - Add runtime failure-path, unload/GC, nested expansion, and lifecycle tests;
   measure recycling allocations/timing against the current Avalonia benchmarks.
   The current binding/geometry unit tests alone do not prove these requirements.
 - Finish all showcase scenarios with shared model source where practical.
-  Drag/drop and declarative XAML showcases are still missing; existing scenarios
+  Drag/drop and Declarative People are now implemented but unvalidated. Existing scenarios
   also need their full interaction controls. Activity Monitor desktop is now
   present, while its additional platform heads remain unfinished.
 - Restore browser and Windows App SDK heads, finish solution/package/CI lanes, verify real
   heads, update public README, review the full diff, and finish draft PR #26.
 
+The element-factory checkpoint adds Avalonia-named creation/recycling hooks for
+rows, headers and cells, lazy default-factory customization, compatible retained
+parent reuse and factory replacement. The direct pool preserves same-parent-first
+and cross-panel fallback with weak visual-root ownership; native presenter pools
+remain bounded and independently owned. Header reset/factory callbacks are guarded
+against source replacement. The old cell-only delegate remains supported. A native
+factory suite is authored and unrun. Named specialized cell controls and the rest
+of the primitive API remain open; this is implementation progress, not parity or
+validation completion.
+
+The specialized-cell step now adds named text/checkbox/template/expander controls,
+their scalar dependency properties and default styles. Default factories select
+by view-column kind, preserving boolean text columns. Public writeback, template
+content/context and Core expansion use existing subscriptions and retained native
+rendering. Native scalar/retention cases and expander checks are authored, UNRUN.
+Expander inner-control factory customization and remaining public model/base/
+presenter/template/automation contracts still need implementation review.
+
+The expander-inner step now routes child creation and reuse through ElementFactory,
+retains compatible children, and uses a dedicated chevron/Border template. Editing,
+validation, selection foreground, lookup and public value events account for the
+inner/outer ownership relationship. UI expander interfaces expose shared Core rows.
+Native inner-factory/editing/retention/reentrancy cases are authored, UNRUN. This
+closes the missing implementation path, not its correctness/performance gates;
+remaining public cell-model/base/presenter compatibility still needs review.
+
+The public-cell-model step adds TextCell<T>, CheckBoxCell and TemplateCell with
+native typed observable binding and transaction/disposal behavior. Custom-column
+adapters preserve checkbox/template kinds, original factory model identity,
+per-cell templates/culture and actual template editing content. Checkbox writes
+remain enabled independently of text-edit gestures. Six unit cases are authored,
+UNRUN. Arbitrary third-party expander adaptation and custom suspension/reuse are
+still implementation work; no current native parity/performance evidence is implied.
+
+Third-party IExpanderCellPresentation models now preserve original model/Core-row
+identity through recursive adapters. Native content replacement handles compatible
+rebind, changed kinds and empty/restored children; disposal follows the original
+expander's ownership rather than double-disposing borrowed cells. Three unit cases
+and extended native checks are authored and UNRUN. Custom suspension/reuse and
+remaining public primitive compatibility are still implementation work.
+
+Custom column TryReuseCell is now used during synchronous retained-model rebind,
+matching Avalonia's public extension path without exposing its internal suspension
+contract. Original ICell/Core rows are passed through; leftover models are released
+at finalization/reset/eviction. Native long-lived pooling still requires safe
+suspension and now respects custom column reuse policy. Four unit cases and a
+native reuse/subscription/failure suite are authored, UNRUN. Remaining public
+primitive contracts and comprehensive validation are still outstanding.
+
+The primitive contract review corrected two non-platform API deviations: public
+cell Model/template DataContext/model-change sender now expose the original ICell,
+and row lifecycle overrides receive the same row-index arguments as Avalonia.
+Added idempotent protected model-subscription hooks, IsEffectivelySelected and
+public row update/unrealize entry points. Native internals use the explicitly
+named ViewModel adapter. Extended native identity/subscription/row-hook cases are
+authored, UNRUN; standalone realization/presenter contracts still need review.
+
+Row viewport caching now has the reference CacheLength property/default/range,
+edge compensation and viewport override hooks. Small buffered scrolls preserve
+realized containers without measuring again; zero cache replaces the implicit
+one-row overscan with exact viewport intersection. Geometry invalidation covers
+fixed-height column resize as well as source/variable-height changes. Geometry
+and native retention/cache cases are authored, UNRUN. This is implementation
+progress, not evidence of runtime or performance parity.
+
+Declarative writeback now rejects malformed paths before any model getter/setter
+runs and selects numeric/string indexer overloads deterministically. Ambiguous
+fallbacks, private getters, read-only endpoints and copied struct owners fail
+explicitly rather than mutating an arbitrary endpoint or reporting success.
+Focused path/conversion/failure cases are authored and UNRUN. Advanced native
+binding forms and generated metadata/AOT remain open implementation work.
+
+Generated named-property writeback now uses Uno's public metadata provider before
+reflection (with a Windows App SDK guard). Native binding lifetime code handles
+nested mutations, retirement during getter/converter/setter callbacks, error-state
+ownership and cleanup during installation/disposal. Template search shares snapshot
+cleanup so explicit Source bindings do not remain subscribed between searches.
+Five metadata unit cases and a native lifetime/search-snapshot suite are authored,
+UNRUN. This does not establish AOT, advanced binding or runtime parity.
+
+Header/custom-template compatibility now includes the reference Header property,
+standard editor/content-presenter part names, editing visual states, live sort
+resources and a native resize cursor. Template-bound text edits preserve the
+transaction buffer through cancellation/retry and retain native subtrees during
+compatible recycling. Exact write-count, template/parent retention and header
+checks are authored, UNRUN; broader API/platform work and validation remain open.
+
+Row template properties now expose native Rows/Columns/ElementFactory DPs.
+Row-specific factory overrides propagate to expander children and replace only
+that row's cell containers; nested overrides coalesce, and final release clears
+stored source/factory references. Native identity/localization/reentrancy/fallback
+and inner-factory checks are authored, UNRUN. Standalone presenter configuration
+is still outstanding; no full API or runtime parity is claimed.
+
+Navigation/edit ownership corrections now cover vetoed hierarchy movement,
+empty-selection End, row-selection Left/Right semantics, nested/source-changing
+selection callbacks, source retirement during bring-into-view, edit transfer from
+commit callbacks and recursive transaction rejection. Native cases and two session
+unit cases are authored, UNRUN. Native target-cell focus/Tab behavior is explicitly
+still incomplete; this is not a claim of complete keyboard or editing parity.
+
+The subsequent focus checkpoint implements native target-cell focus/system
+visuals, focused-cell F2, guarded editor return focus and display-ordered Tab
+children in all presenters. Focused offscreen rows/cells/headers retain their
+model/parent identity until native focus loss permits recycling. A registered
+native focus/Tab/retention suite is authored, UNRUN. OS input/editor keys/focus
+rendering remain validation gates; the overall implementation ledger stays open.
+
+Generated indexer writeback now follows Uno metadata before reflection, including
+key coercion, read-only rules, retirement and setter error/retry. Nine cases are
+authored, UNRUN. Generated-only endpoints retain the native object value contract
+because indexer metadata lacks a declared type; full AOT and advanced named/
+relative/compiled binding requirements remain outstanding.
+
 ### Reproduction
+
+Browser launch/result transport and Files sandbox mode are now implemented but
+unrun. Both apps accept allowlisted URL flags and publish complete/passed/error
+smoke state; browser pages remain open. Files use the same shared model with
+watchers disabled and explicit snapshot refresh, clearly labeled as sandbox data.
+Four launch/result and two snapshot cases are authored; actual browser execution,
+input/screenshots, AOT/trimming and all remaining parity gates are still pending.
+
+Browser and native Windows App SDK configurations have been restored for both
+samples, with separate source-reference/package-consumer CI build lanes authored.
+The native Windows Activity Monitor chart surface reuses the same drawing code
+through a DPI-aware retained bitmap; desktop/browser retain direct Skia drawing.
+None of these new targets or workflows has been built/run/pushed. Browser file
+sandbox/watchers, smoke-result transport, trimming/AOT and real platform input
+remain implementation/validation work. See `uno-platforms.md` for exact scope.
+
+Appearance implementation now invalidates natural-width/variable-row caches on
+font/theme/flow-direction and row/header-style changes, including retained hidden
+columns, while keeping controls parented. Default foreground inheritance and
+Source-only header sorting were corrected. Three unit cases and a native
+appearance/RTL suite are authored and unrun. Native RTL pointer resizing, scaling,
+high contrast and custom-theme verification are still required; no validation
+or PR push was performed for these edits.
+
+Committed-text search now has the reference prefix/cycling/timeout behavior and
+native-control regression code, still unrun. Supported CharacterReceived heads
+are wired through a capability guard. Skia's public event is unimplemented in the
+inspected Uno source: its actual OS text transport, IME/dead keys/layout handling
+remain open and are not covered by the injected-text suite. Nested grid input
+routing was isolated while implementing this path. No validation was started.
+
+Accessibility implementation now includes grid/row/header-presenter peers matching
+Avalonia's realized-row selection contract, current Core expansion/value actions,
+hidden-container filtering and stale/disabled-provider checks. Notifications use
+existing lifecycle events and already-created peer fields: Uno's inspected
+FromElement implementation may create peers, so it is not used on recycling
+notification paths. A native automation suite is authored and in the smoke
+sequence, but no compilation, provider execution, OS event delivery or assistive-
+technology validation is claimed for this uncommitted implementation.
 
 Run from the `codex/uno-core-port` worktree:
 

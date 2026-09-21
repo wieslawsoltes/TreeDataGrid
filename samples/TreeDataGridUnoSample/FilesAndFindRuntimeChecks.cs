@@ -42,7 +42,9 @@ internal static class FilesAndFindRuntimeChecks
         CheckFoundCountry(page, selected);
         page.ShowScenario(0);
         await Task.Delay(100);
-        Console.WriteLine("UNO_RUNTIME_FILES_FIND_PASSED: shared file nodes, lazy expansion, watcher updates/disposal, checkbox state, flat/tree identity, directory-first sorting, native catalog/filter selection, sorted displayed-row mapping");
+        Console.WriteLine("UNO_RUNTIME_FILES_FIND_PASSED: shared file nodes, lazy expansion, " +
+            (page.Files.WatchChanges ? "watcher updates/disposal" : "sandbox snapshots and explicit refresh") +
+            ", checkbox state, flat/tree identity, directory-first sorting, native catalog/filter selection, sorted displayed-row mapping");
     }
 
     private static async Task CheckFilesAsync(MainPage page, Func<UIElement, string, Task> capture)
@@ -66,30 +68,42 @@ internal static class FilesAndFindRuntimeChecks
             var grid = page.Grid;
             var source = page.Files.Source ?? throw new InvalidOperationException(page.Files.Status);
             var root = page.Files.Root!;
-            Check(ReferenceEquals(grid.Presentation!.Rows, source.Rows), "Files did not expose actual Core rows.");
-            Check(source.Rows.Count == 183 && root.IsWatching, "File root did not load its immediate entries and watcher.");
+            Check(ReferenceEquals(grid.Presentation!.Model.Rows, source.Rows) && source.Rows.Count > 0 &&
+                ReferenceEquals(grid.Presentation.Rows[0], source.Rows[0]), "Files did not expose the actual Core source and row objects.");
+            Check(source.Rows.Count == 183 && root.IsWatching == page.Files.WatchChanges, "File root did not load the expected entries/watch mode.");
             var folder = root.Children.Single(x => x.Name == "nested");
             Check(!folder.HasLoadedChildren && !folder.IsWatching, "Rendering an expander eagerly opened a nested directory.");
-            Check(grid.RowsPresenter.RealizedCells.Count < 200, "Files did not virtualize its cells.");
+            Check(grid.RowsPresenter!.RealizedCells.Count < 200, "Files did not virtualize its cells.");
             source.SortBy(source.Columns[1], System.ComponentModel.ListSortDirection.Ascending);
             var folderRow = FindRow(source, folder);
             grid.BringCellIntoView(folderRow, 1);
             await Task.Delay(100);
             folder.IsExpanded = true;
             await WaitAsync(() => source.Rows.Count == 184);
-            Check(folder.IsWatching && folder.Children.Count == 1, "Expanding did not lazily load the shared folder.");
+            Check(folder.IsWatching == page.Files.WatchChanges && folder.Children.Count == 1, "Expanding did not lazily load the shared folder.");
             await File.WriteAllTextAsync(Path.Combine(folder.Path, "added.txt"), "added");
+            if (!page.Files.WatchChanges)
+            {
+                Check(source.Rows.Count == 184, "A watcher-free snapshot changed without explicit refresh.");
+                var previousRoot = root;
+                await page.Files.OpenAsync(fixture.FullName);
+                source = page.Files.Source!;
+                root = page.Files.Root!;
+                folder = root.Children.Single(x => x.Name == "nested");
+                folder.IsExpanded = true;
+                Check(!previousRoot.HasLoadedChildren && !previousRoot.IsWatching, "Refreshing retained the previous snapshot's child graph.");
+            }
             await WaitAsync(() => source.Rows.Count == 185);
             Check(Enumerable.Range(0, source.Rows.Count).Any(i => ((FileTreeNodeModel)source.Rows[i].Model!).Name == "added.txt"),
-                "A watcher notification did not update the expanded Core hierarchy.");
-            grid.Scroll.ChangeView(0, 0, null, true);
+                "The expected live update or explicit snapshot refresh did not reach the Core hierarchy.");
+            grid.Scroll!.ChangeView(0, 0, null, true);
             await Task.Delay(100);
             await capture(page, "files-tree");
             var file = root.Children.First(x => !x.IsDirectory);
             var fileRow = FindRow(source, file);
             grid.BringCellIntoView(fileRow, 0);
             await Task.Delay(100);
-            var checkBox = ShowcaseRuntimeChecks.Descendants(grid.RowsPresenter.RealizedCells.Single(c => c.RowIndex == fileRow && c.ColumnIndex == 0)).OfType<CheckBox>().Single();
+            var checkBox = ShowcaseRuntimeChecks.Descendants(grid.RowsPresenter!.RealizedCells.Single(c => c.RowIndex == fileRow && c.ColumnIndex == 0)).OfType<CheckBox>().Single();
             checkBox.IsChecked = true;
             Check(file.IsChecked, "Files checkbox did not update its shared model.");
             page.ShowScenario(6);
@@ -116,7 +130,7 @@ internal static class FilesAndFindRuntimeChecks
     {
         var row = page.FindCountry.DisplayedRow;
         Check(row >= 0 && ReferenceEquals(page.FindCountry.Source.Rows[row].Model, selected), "Find Country returned a model index instead of the displayed row.");
-        Check(page.Grid.RowsPresenter.RealizedCells.Any(c => c.RowIndex == row && ReferenceEquals(c.RowModel, selected)), "Find Country did not bring the selected model into view.");
+        Check(page.Grid.RowsPresenter!.RealizedCells.Any(c => c.RowIndex == row && ReferenceEquals(c.RowModel, selected)), "Find Country did not bring the selected model into view.");
         Check(ReferenceEquals(page.FindCountry.Source.RowSelection!.SelectedItem, selected), "Find Country selected another Core model.");
     }
     private static int FindRow(ITreeDataGridSource source, object model)

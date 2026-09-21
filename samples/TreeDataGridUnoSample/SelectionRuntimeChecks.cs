@@ -25,19 +25,53 @@ internal static class SelectionRuntimeChecks
         source.Columns.Add(new TextColumn<Item, string>("Other", x => x.Name, width: new(220)));
         grid.SelectionMode = TreeDataGridSelectionMode.MultipleRows;
         grid.Model = source;
-        grid.Scroll.ChangeView(0, 0, null, true);
+        grid.Scroll!.ChangeView(0, 0, null, true);
         await Task.Delay(200);
-        Check(grid.SelectCell(1, 0), "Selecting a visible row failed.");
+        TreeDataGridSelectionChangedEventArgs? initialDelta = null;
+        void OnInitialSelection(object? sender, TreeDataGridSelectionChangedEventArgs e)
+        {
+            initialDelta = e;
+            Check(grid.RowsPresenter!.RealizedCells.Any(cell => cell.RowIndex == 1 && cell.ColumnIndex == 0 && cell.IsCurrent),
+                "SelectionChanged ran before the current-cell visual state was refreshed.");
+        }
+        grid.SelectionChanged += OnInitialSelection;
+        try { Check(grid.SelectCell(1, 0), "Selecting a visible row failed."); }
+        finally { grid.SelectionChanged -= OnInitialSelection; }
+        Check(initialDelta is not null && initialDelta.SelectedIndexes.SequenceEqual([new IndexPath(1)]) &&
+            ReferenceEquals(initialDelta.SelectedItems.Single(), items[1]), "The control did not forward Core row selection deltas.");
         VerifySelection(grid);
-        Check(grid.RowsPresenter.RealizedCells.Count(x => x.IsSelected) == 2, "Row selection did not highlight every visible cell.");
+        Check(grid.RowsPresenter!.RealizedCells.Count(x => x.IsSelected) == 2, "Row selection did not highlight every visible cell.");
         grid.MoveSelection(TreeDataGridNavigation.Down, extend: true);
         grid.MoveSelection(TreeDataGridNavigation.Down, extend: true);
         Check(source.RowSelection!.Count == 3, "Extended navigation did not preserve its range anchor.");
         VerifySelection(grid);
-        grid.MoveSelection(TreeDataGridNavigation.End);
+        Check(!grid.MoveSelection(TreeDataGridNavigation.Right), "Flat row selection treated Right as horizontal cell navigation.");
+        source.RowSelection.Clear();
+        Check(grid.MoveSelection(TreeDataGridNavigation.End), "End navigation failed without an existing selection.");
         await Task.Delay(200);
         Check(source.RowSelection.SelectedIndex == new IndexPath(199), "End navigation selected the wrong model.");
-        Check(grid.RowsPresenter.RealizedCells.Any(x => x.RowIndex == 199 && x.IsSelected), "End navigation did not bring the selection into view.");
+        Check(grid.RowsPresenter!.RealizedCells.Any(x => x.RowIndex == 199 && x.IsSelected), "End navigation did not bring the selection into view.");
+        var nestedSelection = false;
+        void SelectInsideCallback(object? sender, CancelEventArgs e)
+        {
+            if (nestedSelection) return;
+            nestedSelection = true;
+            Check(grid.SelectCell(1, 0), "The nested selection request failed.");
+        }
+        grid.SelectionChanging += SelectInsideCallback;
+        try { Check(!grid.SelectCell(2, 0), "An outer selection overwrote a newer callback selection."); }
+        finally { grid.SelectionChanging -= SelectInsideCallback; }
+        Check(source.RowSelection.SelectedIndex == new IndexPath(1), "Nested selection lost its chosen row.");
+        using var callbackSource = new FlatTreeDataGridSource<Item>([new("Replacement source")]);
+        callbackSource.Columns.Add(new TextColumn<Item, string>("Name", x => x.Name, width: new(220)));
+        void ReplaceDuringSelection(object? sender, CancelEventArgs e) => grid.Model = callbackSource;
+        grid.SelectionChanging += ReplaceDuringSelection;
+        try
+        {
+            Check(!grid.SelectCell(0, 0) && ReferenceEquals(grid.Model, callbackSource) && callbackSource.RowSelection!.Count == 0,
+                "A selection request was applied to the source installed by its callback.");
+        }
+        finally { grid.SelectionChanging -= ReplaceDuringSelection; grid.Model = source; }
 
         grid.SelectionMode = TreeDataGridSelectionMode.MultipleCells;
         grid.MoveSelection(TreeDataGridNavigation.Home);
@@ -48,12 +82,12 @@ internal static class SelectionRuntimeChecks
         var cells = (ITreeDataGridCellSelectionModel<Item>)source.Selection!;
         Check(cells.Count == 6, "Rectangular selection did not map through the hidden Core column.");
         VerifySelection(grid);
-        Check(grid.RowsPresenter.RealizedCells.Count(x => x.IsSelected) == 4, "Visible rectangular highlight is incorrect.");
+        Check(grid.RowsPresenter!.RealizedCells.Count(x => x.IsSelected) == 4, "Visible rectangular highlight is incorrect.");
         source.SortBy(source.Columns[0], ListSortDirection.Descending);
         grid.BringCellIntoView(source.Rows.ModelIndexToRowIndex(cells.SelectedIndex.RowIndex), 0);
         await Task.Delay(150);
         VerifySelection(grid);
-        Check(grid.RowsPresenter.RealizedCells.Where(x => x.IsSelected).All(x => ((Item)x.RowModel!).Name is "Item 000" or "Item 001"), "Sorting changed the selected model identities.");
+        Check(grid.RowsPresenter!.RealizedCells.Where(x => x.IsSelected).All(x => ((Item)x.RowModel!).Name is "Item 000" or "Item 001"), "Sorting changed the selected model identities.");
 
         // Source creation failure must not leave a new Model DP paired with the
         // previous source's cells, nor dispose the previous working presentation.
@@ -66,19 +100,19 @@ internal static class SelectionRuntimeChecks
         Check(threw && ReferenceEquals(grid.Model, source) && ReferenceEquals(grid.Presentation, previousPresentation), "Failed source replacement did not restore the working Model/presentation pair.");
         VerifySelection(grid);
 
-        var previousPresenter = grid.RowsPresenter;
+        var previousPresenter = grid.RowsPresenter!;
         var previousTemplate = grid.Template;
         var previousSelection = source.Selection;
         grid.Template = alternateTemplate;
         grid.ApplyTemplate();
         await Task.Delay(200);
-        Check(!ReferenceEquals(previousPresenter, grid.RowsPresenter), "The alternate control template was not applied.");
+        Check(!ReferenceEquals(previousPresenter, grid.RowsPresenter!), "The alternate control template was not applied.");
         Check(previousPresenter.RealizedCells.Count == 0, "The old template retained realized cells.");
         Check(ReferenceEquals(previousSelection, source.Selection), "Retemplating replaced shared Core selection.");
         grid.BringCellIntoView(199, 1);
         await Task.Delay(150);
         VerifySelection(grid);
-        Check(grid.RowsPresenter.RealizedCells.Count > 0, "Retemplating lost the rows presentation.");
+        Check(grid.RowsPresenter!.RealizedCells.Count > 0, "Retemplating lost the rows presentation.");
         grid.Template = previousTemplate;
         grid.ApplyTemplate();
         await Task.Delay(150);
@@ -88,23 +122,46 @@ internal static class SelectionRuntimeChecks
         using var hierarchy = new HierarchicalTreeDataGridSource<Node>([new Node("Root", [new Node("Child", [])])]);
         hierarchy.Columns.Add(new HierarchicalExpanderColumn<Node>(new TextColumn<Node, string>("Name", x => x.Name), x => x.Children));
         grid.Model = hierarchy;
-        grid.Scroll.ChangeView(0, 0, null, true);
+        grid.Scroll!.ChangeView(0, 0, null, true);
         await Task.Delay(150);
         grid.SelectCell(0, 0);
         grid.MoveSelection(TreeDataGridNavigation.Right);
         Check(hierarchy.Rows.Count == 2, "Right navigation did not expand the Core row.");
+        void VetoSelection(object? sender, CancelEventArgs e) => e.Cancel = true;
+        grid.SelectionChanging += VetoSelection;
+        try { Check(!grid.MoveSelection(TreeDataGridNavigation.Right), "Child navigation reported success despite selection veto."); }
+        finally { grid.SelectionChanging -= VetoSelection; }
+        Check(hierarchy.RowSelection!.SelectedIndex == new IndexPath(0), "Vetoed child navigation changed selection.");
         grid.MoveSelection(TreeDataGridNavigation.Right);
         Check(hierarchy.RowSelection!.SelectedIndex == new IndexPath(0, 0), "Right navigation did not move into the expanded child.");
+        grid.SelectionChanging += VetoSelection;
+        try { Check(!grid.MoveSelection(TreeDataGridNavigation.Left), "Parent navigation reported success despite selection veto."); }
+        finally { grid.SelectionChanging -= VetoSelection; }
+        Check(hierarchy.RowSelection.SelectedIndex == new IndexPath(0, 0), "Vetoed parent navigation changed selection.");
         grid.MoveSelection(TreeDataGridNavigation.Left);
         Check(hierarchy.RowSelection.SelectedIndex == new IndexPath(0), "Left navigation did not select the parent.");
         grid.MoveSelection(TreeDataGridNavigation.Left);
         Check(hierarchy.Rows.Count == 1, "Left navigation did not collapse the Core row.");
         grid.Model = null;
+
+        grid.Model = source;
+        await Task.Delay(100);
+        void RemoveSourceDuringRealization(object? sender, TreeDataGridCellEventArgs args)
+        {
+            if (args.RowIndex >= 100) grid.Model = null;
+        }
+        grid.CellPrepared += RemoveSourceDuringRealization;
+        try
+        {
+            Check(!grid.BringCellIntoView(150, 0) && grid.Model is null,
+                "Bring-into-view continued against a source removed by realization callbacks.");
+        }
+        finally { grid.CellPrepared -= RemoveSourceDuringRealization; grid.Model = null; }
         Console.WriteLine("UNO_RUNTIME_SELECTION_PASSED: row/cell highlights, sorted/hidden mapping, navigation, bring-into-view, hierarchy, source failure rollback, retemplating");
     }
     private static void VerifySelection(Uno.Controls.TreeDataGrid grid)
     {
-        foreach (var cell in grid.RowsPresenter.RealizedCells)
+        foreach (var cell in grid.RowsPresenter!.RealizedCells)
         {
             Check(cell.IsSelected == grid.Presentation!.Selection.IsSelected(cell.RowIndex, cell.ColumnIndex), "A recycled cell has stale selected state.");
             Check(ReferenceEquals(cell.RowModel, grid.Model!.Rows[cell.RowIndex].Model), "A selected cell retained a stale model.");

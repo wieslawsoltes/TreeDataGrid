@@ -4,13 +4,12 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Input;
 using SkiaSharp;
 using TreeDataGridUnoActivityMonitor.Models;
-using Uno.WinUI.Graphics2DSK;
 using Windows.Foundation;
 using Color = Windows.UI.Color;
 
 namespace TreeDataGridUnoActivityMonitor.Controls;
 
-public sealed class MetricChartCanvas : SKCanvasElement
+public sealed class MetricChartCanvas : MetricChartSurface
 {
     public static readonly DependencyProperty SeriesProperty =
         DependencyProperty.Register(

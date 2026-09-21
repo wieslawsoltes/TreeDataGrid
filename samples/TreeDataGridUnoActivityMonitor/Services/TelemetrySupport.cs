@@ -11,7 +11,7 @@ internal static class MonitorTelemetryProviderFactory
 {
     public static IMonitorTelemetryProvider Create()
     {
-#if __ANDROID__ || __IOS__ || __WASM__
+#if __ANDROID__ || __IOS__ || __WASM__ || WINDOWS
         return new DemoTelemetryProvider();
 #else
         return OperatingSystem.IsMacOS()

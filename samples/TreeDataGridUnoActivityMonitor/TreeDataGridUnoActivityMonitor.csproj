@@ -1,6 +1,8 @@
 <Project Sdk="Uno.Sdk/6.5.31">
   <PropertyGroup>
-    <TargetFrameworks>net10.0-desktop</TargetFrameworks>
+    <TreeDataGridUnoSampleTargetFrameworks Condition="'$(TreeDataGridUnoSampleTargetFrameworks)' == '' and '$(OS)' == 'Windows_NT'">net10.0-desktop;net10.0-browserwasm;net10.0-windows10.0.26100</TreeDataGridUnoSampleTargetFrameworks>
+    <TreeDataGridUnoSampleTargetFrameworks Condition="'$(TreeDataGridUnoSampleTargetFrameworks)' == ''">net10.0-desktop;net10.0-browserwasm</TreeDataGridUnoSampleTargetFrameworks>
+    <TargetFrameworks>$(TreeDataGridUnoSampleTargetFrameworks)</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <UnoSingleProject>true</UnoSingleProject>
     <IsPackable>false</IsPackable>
@@ -10,9 +12,16 @@
     <ApplicationVersion>1</ApplicationVersion>
     <UnoFeatures>SkiaRenderer</UnoFeatures>
   </PropertyGroup>
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <ApplicationManifest>Platforms/Windows/app.manifest</ApplicationManifest>
+  </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../TreeDataGridUnoShared/SampleRunContext.cs" Link="Infrastructure/SampleRunContext.cs" />
     <ProjectReference Include="../../src/TreeDataGrid.Controls.Uno/TreeDataGrid.Controls.Uno.csproj" Condition="'$(TreeDataGridUnoPackageVersion)' == ''" />
     <PackageReference Include="TreeDataGrid.Controls.Uno" Version="$(TreeDataGridUnoPackageVersion)" Condition="'$(TreeDataGridUnoPackageVersion)' != ''" />
     <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />
+    <PackageReference Include="SkiaSharp" Version="3.119.1" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'" />
   </ItemGroup>
 </Project>

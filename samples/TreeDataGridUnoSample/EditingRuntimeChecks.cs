@@ -25,7 +25,7 @@ internal static class EditingRuntimeChecks
         grid.CellTemplates["Editable"] = display;
         grid.CellEditingTemplates["Editable"] = editing;
         grid.Model = source;
-        grid.Scroll.ChangeView(0, 0, null, true);
+        grid.Scroll!.ChangeView(0, 0, null, true);
         await Task.Delay(200);
         Check(grid.BeginEdit(0, 0), "Text edit did not start.");
         var cell = grid.EditingCell!;
@@ -83,6 +83,43 @@ internal static class EditingRuntimeChecks
         replacement.Beginning = () => items[0] = beginReplacement;
         Check(!grid.BeginEdit(0, 0), "BeginEdit accepted a session after its model was replaced.");
         Check(grid.EditingCell is null && beginReplacement.Name == "Replaced during BeginEdit", "BeginEdit replacement retained an obsolete session.");
+        beginReplacement.Beginning = grid.CancelEdit;
+        Check(!grid.BeginEdit(0, 0) && grid.EditingCell is null && grid.TryGetCell(0, 0) is TreeDataGridCell { IsEditing: false },
+            "Cancellation inside BeginEdit left a transaction that the grid did not own.");
+        beginReplacement.Beginning = null;
+        bool? nestedBegin = null;
+        beginReplacement.Beginning = () => nestedBegin = grid.BeginEdit(1, 0);
+        Check(grid.BeginEdit(0, 0) && nestedBegin == false && grid.EditingCell?.RowIndex == 0,
+            "Recursive transaction construction was accepted or displaced its outer edit.");
+        grid.CancelEdit();
+        beginReplacement.Beginning = null;
+
+        Check(grid.BeginEdit(0, 0), "Callback-transfer edit did not start.");
+        grid.EditingCell!.EditingText = "Commit then edit next row";
+        var nextStarted = false;
+        void StartNextEdit(object? sender, Uno.Controls.TreeDataGridCellEventArgs args)
+        {
+            if (args.RowIndex == 0 && args.ColumnIndex == 0 && !nextStarted)
+                nextStarted = grid.BeginEdit(1, 0);
+        }
+        grid.CellValueChanged += StartNextEdit;
+        try { Check(grid.CommitEdit(), "The original callback-transfer edit failed to commit."); }
+        finally { grid.CellValueChanged -= StartNextEdit; }
+        Check(nextStarted && grid.EditingCell?.RowIndex == 1 && beginReplacement.Name == "Commit then edit next row",
+            "An outer commit cleared the newer edit started by CellValueChanged.");
+        grid.CancelEdit();
+
+        Check(grid.BeginEdit(0, 0), "Recursive-commit fixture did not start.");
+        grid.EditingCell!.EditingText = "Commit exactly once";
+        bool? nestedCommit = null;
+        var writes = 0;
+        beginReplacement.WritingName = () => { ++writes; nestedCommit = grid.CommitEdit(); };
+        try
+        {
+            Check(grid.CommitEdit() && nestedCommit == false && writes == 1 && beginReplacement.Name == "Commit exactly once" && grid.EditingCell is null,
+                "A setter recursively committed its active transaction or left stale editing ownership.");
+        }
+        finally { beginReplacement.WritingName = null; }
         grid.Model = null;
         Console.WriteLine("UNO_RUNTIME_EDITING_PASSED: text/number commit, cancel, validation retry, selection veto, row replacement, real template binding, template focus, focus-loss commit, source removal, BeginEdit reentrancy");
     }
@@ -93,11 +130,12 @@ internal static class EditingRuntimeChecks
         private string _name = name;
         private int _age = age;
         private (string Name, int Age)? _snapshot;
-        public string Name { get => _name; set { _name = value; Changed(nameof(Name)); } }
+        public string Name { get => _name; set { WritingName?.Invoke(); _name = value; Changed(nameof(Name)); } }
         public int Age { get => _age; set { if (value < 0) throw new ArgumentOutOfRangeException(nameof(value)); _age = value; Changed(nameof(Age)); } }
         public int Cancels { get; private set; }
         public int Ends { get; private set; }
         public Action? Beginning { get; set; }
+        public Action? WritingName { get; set; }
         public event PropertyChangedEventHandler? PropertyChanged;
         private void Changed(string name) => PropertyChanged?.Invoke(this, new(name));
         public void BeginEdit() { _snapshot ??= (Name, Age); Beginning?.Invoke(); }

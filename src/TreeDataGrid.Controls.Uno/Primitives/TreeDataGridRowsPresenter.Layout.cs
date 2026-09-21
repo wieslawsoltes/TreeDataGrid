@@ -25,7 +25,9 @@ public partial class TreeDataGridRowsPresenter
         var anchor = CaptureAnchor();
         _rowHeight = height;
         _minimumRowHeight = minimum;
-        _rows.Reset(_presentation?.Rows.Count ?? 0, RowEstimate);
+        _rows.Reset(Items?.Count ?? 0, RowEstimate);
+        InvalidateMeasureViewport();
+        foreach (var row in _realized.Values) row.CellsPresenter?.InvalidateMeasure();
         RestoreAnchor(anchor);
         InvalidateMeasure();
     }
@@ -38,14 +40,18 @@ public partial class TreeDataGridRowsPresenter
         if (!AutoRowHeight || (uint)row >= (uint)_rows.Count) return;
         var anchor = CaptureAnchor();
         _rows.Invalidate(row, 1);
+        InvalidateMeasureViewport();
         RestoreAnchor(anchor);
         InvalidateMeasure();
     }
     internal void InvalidateRowMeasurements()
     {
+        // Fixed-height rows still need a fresh column realization/measure pass
+        // when width geometry changes underneath a cached viewport.
+        InvalidateMeasureViewport();
         if (!AutoRowHeight) return;
         var anchor = CaptureAnchor();
-        _rows.Reset(_presentation?.Rows.Count ?? 0, RowEstimate);
+        _rows.Reset(Items?.Count ?? 0, RowEstimate);
         RestoreAnchor(anchor);
         InvalidateMeasure();
     }
@@ -65,6 +71,7 @@ public partial class TreeDataGridRowsPresenter
     }
     private void UpdateRowGeometry(NotifyCollectionChangedEventArgs e)
     {
+        InvalidateMeasureViewport();
         var anchor = CaptureAnchor();
         switch (e.Action)
         {
@@ -88,7 +95,7 @@ public partial class TreeDataGridRowsPresenter
             default:
                 // Reset/sort preserves the viewport's display position, not the
                 // former model identity: sorting must show the newly sorted rows.
-                _rows.Reset(_presentation!.Rows.Count, RowEstimate);
+                _rows.Reset(Items?.Count ?? 0, RowEstimate);
                 break;
         }
         RestoreAnchor(anchor);

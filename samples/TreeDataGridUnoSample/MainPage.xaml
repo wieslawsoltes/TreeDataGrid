@@ -38,6 +38,31 @@
     <DataTemplate x:Key="RuntimeEditingTemplate">
       <TextBox Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" MinHeight="0" Padding="6,2" />
     </DataTemplate>
+    <ControlTemplate x:Key="CompatibleTextCellTemplate" TargetType="primitives:TreeDataGridTextCell">
+      <Grid>
+        <VisualStateManager.VisualStateGroups>
+          <VisualStateGroup x:Name="EditingStates">
+            <VisualState x:Name="NotEditing" />
+            <VisualState x:Name="Editing">
+              <VisualState.Setters>
+                <Setter Target="Display.Visibility" Value="Collapsed" />
+                <Setter Target="PART_Edit.Visibility" Value="Visible" />
+              </VisualState.Setters>
+            </VisualState>
+          </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+        <TextBlock x:Name="Display" Text="{TemplateBinding Value}" Margin="{TemplateBinding Padding}" />
+        <TextBox x:Name="PART_Edit" Visibility="Collapsed" MinHeight="0" Padding="4,2"
+                 Text="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+      </Grid>
+    </ControlTemplate>
+    <ControlTemplate x:Key="CompatibleTemplateCellTemplate" TargetType="primitives:TreeDataGridTemplateCell">
+      <Grid>
+        <ContentPresenter x:Name="PART_ContentPresenter" Content="{TemplateBinding Content}"
+                          ContentTemplate="{TemplateBinding ContentTemplate}" Padding="{TemplateBinding Padding}" />
+        <ContentPresenter x:Name="PART_EditingContentPresenter" Visibility="Collapsed" />
+      </Grid>
+    </ControlTemplate>
     <ControlTemplate x:Key="AlternateGridTemplate" TargetType="tdg:TreeDataGrid">
       <Grid>
         <Grid.RowDefinitions>
@@ -71,6 +96,8 @@
           <ComboBoxItem Content="Files (tree)" />
           <ComboBoxItem Content="Files (flat)" />
           <ComboBoxItem Content="Find country" />
+          <ComboBoxItem Content="Drag and drop" />
+          <ComboBoxItem Content="Declarative People" />
         </ComboBox>
         <ComboBox x:Name="SizingModes" SelectedIndex="0" SelectionChanged="OnSizingModeChanged" MinWidth="180" AutomationProperties.Name="Column sizing">
           <ComboBoxItem Content="Original widths" />
@@ -106,7 +133,7 @@
       <StackPanel x:Name="FileActions" Visibility="Collapsed" Spacing="8">
         <StackPanel Orientation="Horizontal" Spacing="8">
           <TextBox x:Name="FolderPath" PlaceholderText="Folder path" MinWidth="400" AutomationProperties.Name="Folder path" />
-          <Button Content="Open folder" Click="OnOpenFolder" />
+          <Button Content="Open / refresh" Click="OnOpenFolder" />
         </StackPanel>
         <TextBlock x:Name="FileStatus" TextWrapping="Wrap" />
       </StackPanel>
@@ -116,6 +143,14 @@
           <Button Content="Clear sort" Click="OnClearFindSort" />
         </StackPanel>
         <TextBlock x:Name="FindStatus" TextWrapping="Wrap" />
+      </StackPanel>
+      <StackPanel x:Name="DragActions" Visibility="Collapsed" Spacing="8">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button Content="Clear sort to enable moving" Click="OnClearDragSort" />
+          <Button Content="Reset drag/drop data" Click="OnResetDragData" />
+        </StackPanel>
+        <TextBlock Text="Drag selected rows above, inside or below another row. Ctrl/Command-click selects multiple rows. Uncheck Allow Drag to prevent dragging; uncheck Allow Drop to prevent dropping inside a row." TextWrapping="Wrap" />
+        <TextBlock x:Name="DragStatus" Text="Ready. Expand a group to move individual tasks." TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
       </StackPanel>
     </StackPanel>
     <Grid Grid.Row="1" ColumnSpacing="12">
@@ -127,7 +162,19 @@
           <ListView.ItemTemplate><DataTemplate><TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" /></DataTemplate></ListView.ItemTemplate>
         </ListView>
       </Grid>
-      <tdg:TreeDataGrid x:Name="CountriesGrid" Grid.Column="1" />
+      <tdg:TreeDataGrid x:Name="CountriesGrid" Grid.Column="1" CanUserResizeColumns="True">
+        <tdg:TreeDataGrid.ColumnDefinitions>
+          <tdg:TreeDataGridRowHeaderColumn Header="#" Width="45" />
+          <tdg:TreeDataGridHierarchicalExpanderColumn ChildrenBinding="{Binding Children}"
+                                                    HasChildrenBinding="{Binding Children.Count}"
+                                                    IsExpandedBinding="{Binding IsExpanded, Mode=TwoWay}">
+            <tdg:TreeDataGridTextColumn Header="Name" Binding="{Binding Name, Mode=TwoWay}" Width="250" />
+          </tdg:TreeDataGridHierarchicalExpanderColumn>
+          <tdg:TreeDataGridTextColumn Header="Title" Binding="{Binding Title, Mode=TwoWay}" Width="240" />
+          <tdg:TreeDataGridTextColumn Header="Age" Binding="{Binding Age, Mode=TwoWay}" Width="100" />
+          <tdg:TreeDataGridCheckBoxColumn Header="Active" Binding="{Binding IsActive, Mode=TwoWay}" Width="100" />
+        </tdg:TreeDataGrid.ColumnDefinitions>
+      </tdg:TreeDataGrid>
     </Grid>
   </Grid>
 </Page>

@@ -6,19 +6,24 @@ using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media.Imaging;
 using SkiaSharp;
+using TreeDataGridUnoSamples;
 
 namespace TreeDataGridUnoSample;
 
 public partial class App : Application
 {
     private Window? _window;
-    public App() => InitializeComponent();
+    public App()
+    {
+        UnhandledException += (_, e) => { if (SampleRunContext.HasArgument("--smoke")) SampleRunContext.ReportResult(false, e.Exception.ToString()); };
+        InitializeComponent();
+    }
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         var page = new MainPage();
         _window = new Window { Content = page, Title = "TreeDataGrid — Uno / shared Core" };
         _window.Activate();
-        if (Environment.GetCommandLineArgs().Contains("--smoke")) _ = SmokeAsync(page);
+        if (SampleRunContext.HasArgument("--smoke")) _ = SmokeAsync(page);
     }
     private async Task SmokeAsync(MainPage page)
     {
@@ -28,7 +33,7 @@ public partial class App : Application
             page.VerifyInitialRender();
             page.Grid.SelectCell(1, 0);
             await CaptureAsync(page, "countries");
-            page.Grid.Scroll.ChangeView(300, 500, null, true);
+            page.Grid.Scroll!.ChangeView(300, 500, null, true);
             await Task.Delay(500);
             page.VerifyScrolledRender();
             await ShowcaseRuntimeChecks.RunAsync(page, CaptureAsync);
@@ -36,21 +41,45 @@ public partial class App : Application
             await FilesAndFindRuntimeChecks.RunAsync(page, CaptureAsync);
             await RuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"]);
             await SelectionRuntimeChecks.RunAsync(page.Grid, (Microsoft.UI.Xaml.Controls.ControlTemplate)page.Resources["AlternateGridTemplate"]);
+            await SelectionInteractionRuntimeChecks.RunAsync(page);
+            await FocusRuntimeChecks.RunAsync(page);
             await EditingRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"], (DataTemplate)page.Resources["RuntimeEditingTemplate"]);
+            await CellLifecycleRuntimeChecks.RunAsync(page.Grid);
+            await PresentationOptionsRuntimeChecks.RunAsync(page.Grid);
+            await ColumnCompatibilityRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"], (DataTemplate)page.Resources["RuntimeEditingTemplate"]);
+            await SourceExtensionsRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"], (DataTemplate)page.Resources["RuntimeEditingTemplate"]);
+            await DeclarativeRuntimeChecks.RunAsync(page);
+            await BindingLifetimeRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"]);
+            await SourceCompatibilityRuntimeChecks.RunAsync(page.Grid);
+            await AutomationRuntimeChecks.RunAsync(page.Grid);
+            await TextSearchRuntimeChecks.RunAsync(page);
+            await AppearanceRuntimeChecks.RunAsync(page);
+            await ElementFactoryRuntimeChecks.RunAsync(page.Grid);
+            StandaloneCellRuntimeChecks.Run((DataTemplate)page.Resources["RuntimeCellTemplate"]);
+            await StandaloneRowRuntimeChecks.RunAsync(page);
+            await GenericPresenterRuntimeChecks.RunAsync(page);
+            await SpecializedCellRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"],
+                (DataTemplate)page.Resources["RuntimeEditingTemplate"], (Microsoft.UI.Xaml.Controls.ControlTemplate)page.Resources["CompatibleTextCellTemplate"],
+                (Microsoft.UI.Xaml.Controls.ControlTemplate)page.Resources["CompatibleTemplateCellTemplate"]);
+            await ExpanderFactoryRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"], (DataTemplate)page.Resources["RuntimeEditingTemplate"]);
+            await CustomReuseRuntimeChecks.RunAsync(page.Grid);
             await ColumnSizingRuntimeChecks.RunAsync(page.Grid);
             await RowSizingRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["WrappingTemplate"]);
+            await ViewportCacheRuntimeChecks.RunAsync(page.Grid);
             Console.WriteLine("UNO_CORE_SAMPLE_SMOKE_PASSED");
-            Exit();
+            SampleRunContext.ReportResult(true);
+            if (!OperatingSystem.IsBrowser()) Exit();
         }
         catch (Exception error)
         {
             Console.Error.WriteLine(error);
-            Environment.Exit(1);
+            SampleRunContext.ReportResult(false, error.ToString());
+            if (!OperatingSystem.IsBrowser()) Environment.Exit(1);
         }
     }
     private static async Task CaptureAsync(UIElement element, string name)
     {
-        var args = Environment.GetCommandLineArgs();
+        var args = SampleRunContext.Arguments;
         var index = Array.IndexOf(args, "--screenshot-dir");
         if (index < 0 || index + 1 >= args.Length) return;
         var directory = Path.GetFullPath(args[index + 1]);

@@ -29,9 +29,8 @@ public sealed partial class MetricSectionView : UserControl
     {
         var view = (MetricSectionView)d;
         view.Grid.Model = null;
-        view.Grid.PresentationOptions.Columns.Clear();
         view.Grid.CellTemplates["IdentityCell"] = (DataTemplate)Application.Current.Resources["IdentityCell"];
-        view.Section?.ConfigurePresentation(view.Grid.PresentationOptions);
+        view.Grid.PresentationOptions = view.Section?.PresentationOptions;
         view.Grid.Model = view.Section?.Source;
         view.Bindings.Update();
     }

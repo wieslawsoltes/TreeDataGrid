@@ -22,14 +22,17 @@ namespace TreeDataGridDemo.Models
         private bool _isChecked;
         private bool _disposed;
         private readonly Action<Action> _dispatch;
+        private readonly bool _watchChanges;
 
         public FileTreeNodeModel(
             string path,
             bool isDirectory,
             bool isRoot = false,
-            Action<Action>? dispatch = null)
+            Action<Action>? dispatch = null,
+            bool watchChanges = true)
         {
             _dispatch = dispatch ?? CreateDispatcher();
+            _watchChanges = watchChanges && !OperatingSystem.IsBrowser();
             _path = path;
             _name = isRoot ? path : System.IO.Path.GetFileName(Path);
             _isExpanded = isRoot;
@@ -99,28 +102,30 @@ namespace TreeDataGridDemo.Models
 
             foreach (var d in Directory.EnumerateDirectories(Path, "*", options))
             {
-                result.Add(new FileTreeNodeModel(d, true, dispatch: _dispatch));
+                result.Add(new FileTreeNodeModel(d, true, dispatch: _dispatch, watchChanges: _watchChanges));
             }
 
             foreach (var f in Directory.EnumerateFiles(Path, "*", options))
             {
-                try { result.Add(new FileTreeNodeModel(f, false, dispatch: _dispatch)); }
+                try { result.Add(new FileTreeNodeModel(f, false, dispatch: _dispatch, watchChanges: _watchChanges)); }
                 catch (IOException) { } // A directory entry may disappear during enumeration.
                 catch (UnauthorizedAccessException) { }
             }
 
-            _watcher = new FileSystemWatcher
-            {
-                Path = Path,
-                NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName | NotifyFilters.Size | NotifyFilters.LastWrite,
-            };
-
-            _watcher.Changed += OnChanged;
-            _watcher.Created += OnCreated;
-            _watcher.Deleted += OnDeleted;
-            _watcher.Renamed += OnRenamed;
             _children = result;
-            _watcher.EnableRaisingEvents = true;
+            if (_watchChanges && !OperatingSystem.IsBrowser())
+            {
+                _watcher = new FileSystemWatcher
+                {
+                    Path = Path,
+                    NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName | NotifyFilters.Size | NotifyFilters.LastWrite,
+                };
+                _watcher.Changed += OnChanged;
+                _watcher.Created += OnCreated;
+                _watcher.Deleted += OnDeleted;
+                _watcher.Renamed += OnRenamed;
+                _watcher.EnableRaisingEvents = true;
+            }
 
             if (result.Count == 0)
                 HasChildren = false;
@@ -201,7 +206,7 @@ namespace TreeDataGridDemo.Models
                 var node = new FileTreeNodeModel(
                     e.FullPath,
                     File.GetAttributes(e.FullPath).HasFlag(FileAttributes.Directory),
-                    dispatch: _dispatch);
+                    dispatch: _dispatch, watchChanges: _watchChanges);
                 _children!.Add(node);
                 HasChildren = true;
             });

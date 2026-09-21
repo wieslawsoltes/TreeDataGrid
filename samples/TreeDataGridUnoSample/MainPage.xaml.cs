@@ -10,6 +10,7 @@ using TreeDataGridCore.Models;
 using TreeDataGridDemo.Models;
 using TreeDataGridDemo.ViewModels;
 using Uno.Controls.Presentation;
+using Uno.Controls;
 using GridLength = TreeDataGridCore.GridLength;
 
 namespace TreeDataGridUnoSample;
@@ -25,10 +26,12 @@ public sealed partial class MainPage : Page
     private readonly WikipediaViewModel _wikipedia = new();
     private readonly FilesViewModel _files;
     private readonly FindCountryViewModel _find = new();
+    private readonly DragDropViewModel _dragDrop = new();
     private bool _ready;
     private int _newPerson;
     private readonly Dictionary<IColumn, GridLength> _originalWidths = new();
     private readonly HashSet<IColumn> _fileColumns = new();
+    private readonly HashSet<IColumn> _declarativeColumns = new();
     public MainPage()
     {
         InitializeComponent();
@@ -50,7 +53,7 @@ public sealed partial class MainPage : Page
                 ApplySizingMode();
             }
         };
-        FolderPath.Text = Directory.GetCurrentDirectory();
+        FolderPath.Text = BrowserFileSample.InitialDirectory();
         _source = CreateCountrySource(Countries.All);
         _variableSource = CreateCountrySource(CreateVariableCountries());
         _peopleSource = new(_people.People);
@@ -90,7 +93,7 @@ public sealed partial class MainPage : Page
         FindStatus.SetBinding(TextBlock.TextProperty, new Microsoft.UI.Xaml.Data.Binding { Source = _find, Path = new PropertyPath(nameof(FindCountryViewModel.Status)) });
         _find.LocationChanged += BringFoundCountryIntoView;
         Unloaded += (_, _) => { _wikipedia.CancelLoad(); _files.Close(); };
-        foreach (var source in new ITreeDataGridSource[] { _source, _peopleSource, _templateSource, _variableSource, _wikipedia.Source, _find.Source })
+        foreach (var source in new ITreeDataGridSource[] { _source, _peopleSource, _templateSource, _variableSource, _wikipedia.Source, _find.Source, _dragDrop.Source })
             foreach (var column in source.Columns) _originalWidths.Add(column, column.Width);
         _ready = true;
         ShowScenario(0);
@@ -102,15 +105,34 @@ public sealed partial class MainPage : Page
     internal WikipediaViewModel Wikipedia => _wikipedia;
     internal FilesViewModel Files => _files;
     internal FindCountryViewModel FindCountry => _find;
+    internal DragDropViewModel DragDrop => _dragDrop;
     internal void ShowScenario(int index)
     {
         if (!_ready) return;
         if (Scenarios.SelectedIndex != index) { Scenarios.SelectedIndex = index; return; }
         CountriesGrid.CancelEdit();
+        CountriesGrid.RowDragStarted -= OnRowDragStarted;
+        CountriesGrid.RowDragOver -= OnRowDragOver;
+        CountriesGrid.RowDragFailed -= OnRowDragFailed;
+        CountriesGrid.DropCompleted -= OnRowDropCompleted;
+        CountriesGrid.AutoDragDropRows = index == 8;
+        if (index == 8)
+        {
+            CountriesGrid.RowDragStarted += OnRowDragStarted;
+            CountriesGrid.RowDragOver += OnRowDragOver;
+            CountriesGrid.RowDragFailed += OnRowDragFailed;
+            CountriesGrid.DropCompleted += OnRowDropCompleted;
+        }
         if (index != 4) _wikipedia.CancelLoad();
         if (index is not (5 or 6)) _files.Close();
         else _files.FlatMode = index == 6;
-        CountriesGrid.Model = index switch { 1 => _peopleSource, 2 => _templateSource, 3 => _variableSource, 4 => _wikipedia.Source, 5 or 6 => _files.Source, 7 => _find.Source, _ => _source };
+        foreach (var column in _declarativeColumns) _originalWidths.Remove(column);
+        _declarativeColumns.Clear();
+        CountriesGrid.ItemsSource = index == 9 ? _people.People : null;
+        CountriesGrid.Model = index switch { 1 => _peopleSource, 2 => _templateSource, 3 => _variableSource, 4 => _wikipedia.Source, 5 or 6 => _files.Source, 7 => _find.Source, 8 => _dragDrop.Source, 9 => null, _ => _source };
+        if (index == 9 && CountriesGrid.Presentation is { } declarative)
+            foreach (var column in declarative.Model.Columns)
+            { _originalWidths[column] = column.Width; _declarativeColumns.Add(column); }
         ApplySizingMode();
         ScenarioDescription.Text = index switch
         {
@@ -118,27 +140,63 @@ public sealed partial class MainPage : Page
             2 => "Templates · 200 shared-model rows · sort, scroll and replace selected rows",
             3 => "Variable row countries · shared Country data · multi-line names and measured row heights",
             4 => "Wikipedia · shared feed models · async data, images and virtualized wrapping rows",
-            5 => "Files · shared file-system model · lazy hierarchy and live directory notifications",
+            5 => _files.WatchChanges ? "Files · shared file-system model · lazy hierarchy and live directory notifications"
+                : "Files · shared file-system model · lazy snapshot hierarchy · browser paths are sandbox-only",
             6 => "Files · flat view of the same shared directory entries · folders sort first",
             7 => "Find country · complete model list · map the selected model to its filtered/sorted displayed row",
+            8 => "Drag and drop · shared Avalonia model · automatic Core row movement with per-row permissions",
+            9 => "Declarative People · native XAML column definitions and bindings · actual Core hierarchy over the shared Person models",
             _ => "Countries · shared Core source · click column headers to sort",
         };
-        MutateButton.Visibility = RemoveButton.Visibility = index is 1 or 2 ? Visibility.Visible : Visibility.Collapsed;
-        EditButton.Visibility = index == 1 ? Visibility.Visible : Visibility.Collapsed;
+        MutateButton.Visibility = RemoveButton.Visibility = index is 1 or 2 or 9 ? Visibility.Visible : Visibility.Collapsed;
+        EditButton.Visibility = index is 1 or 9 ? Visibility.Visible : Visibility.Collapsed;
         WikipediaActions.Visibility = index == 4 ? Visibility.Visible : Visibility.Collapsed;
         FileActions.Visibility = index is 5 or 6 ? Visibility.Visible : Visibility.Collapsed;
         FindActions.Visibility = FindCatalog.Visibility = index == 7 ? Visibility.Visible : Visibility.Collapsed;
-        MutateButton.Content = index == 1 ? "Add child" : "Replace selected";
-        if (CountriesGrid.IsLoaded) CountriesGrid.Scroll.ChangeView(0, 0, null, true);
+        DragActions.Visibility = index == 8 ? Visibility.Visible : Visibility.Collapsed;
+        MutateButton.Content = index is 1 or 9 ? "Add child" : "Replace selected";
+        if (CountriesGrid.IsLoaded) CountriesGrid.Scroll!.ChangeView(0, 0, null, true);
         if (index == 4 && !_wikipedia.Source.Items.Any() && !_wikipedia.IsLoading)
         {
-            if (Environment.GetCommandLineArgs().Any(x => x is "--smoke" or "--offline")) _wikipedia.ShowOffline();
+            if (TreeDataGridUnoSamples.SampleRunContext.HasArgument("--smoke") || TreeDataGridUnoSamples.SampleRunContext.HasArgument("--offline")) _wikipedia.ShowOffline();
             else _ = _wikipedia.ReloadAsync();
         }
         if (index is 5 or 6 && _files.Root is null) _ = _files.OpenAsync(FolderPath.Text);
         if (index == 7) BringFoundCountryIntoView();
     }
     private void OnFindCountryChanged(object sender, SelectionChangedEventArgs e) => _find.SelectedCountry = FindCountryList.SelectedItem as Country;
+    private void OnClearDragSort(object sender, RoutedEventArgs e)
+    {
+        _dragDrop.Source.ClearSort();
+        DragStatus.Text = "Sort cleared. Rows can be moved.";
+    }
+    private void OnResetDragData(object sender, RoutedEventArgs e)
+    {
+        _dragDrop.Reset();
+        DragStatus.Text = "Drag/drop data reset.";
+    }
+    private void OnRowDragStarted(object? sender, TreeDataGridRowDragStartedEventArgs e)
+    {
+        if (e.Models.OfType<DragDropItem>().Any(model => !model.AllowDrag))
+        {
+            e.AllowedEffects = Windows.ApplicationModel.DataTransfer.DataPackageOperation.None;
+            DragStatus.Text = "A selected row does not allow dragging.";
+        }
+        else if (_dragDrop.Source.IsSorted)
+        {
+            e.Cancel = true;
+            DragStatus.Text = "Clear sorting before moving rows.";
+        }
+        else DragStatus.Text = $"Dragging {e.Models.Count} selected row(s).";
+    }
+    private void OnRowDragOver(object? sender, TreeDataGridRowDragEventArgs e)
+    {
+        if (e.Position == TreeDataGridRowDropPosition.Inside && e.TargetRow?.Model is DragDropItem { AllowDrop: false })
+            e.Inner.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.None;
+    }
+    private void OnRowDragFailed(object? sender, TreeDataGridRowDragFailedEventArgs e) => DragStatus.Text = e.Error.Message;
+    private void OnRowDropCompleted(UIElement sender, DropCompletedEventArgs e) => DragStatus.Text = e.DropResult == Windows.ApplicationModel.DataTransfer.DataPackageOperation.Move
+        ? "Rows moved." : "Drag ended without moving rows.";
     private void OnFindFilterChanged(object sender, TextChangedEventArgs e) { if (_ready) _find.FilterText = FindFilter.Text; }
     private void OnClearFindSort(object sender, RoutedEventArgs e) => _find.Source.ClearSort();
     private void BringFoundCountryIntoView()
@@ -184,7 +242,7 @@ public sealed partial class MainPage : Page
     }
     private void ApplySizingMode()
     {
-        if (!_ready || CountriesGrid.Model is not { } source) return;
+        if (!_ready || CountriesGrid.Presentation?.Model is not { } source) return;
         for (var i = 0; i < source.Columns.Count; ++i)
         {
             var column = source.Columns[i];
@@ -201,12 +259,13 @@ public sealed partial class MainPage : Page
     {
         if (!CountriesGrid.CommitEdit()) return;
         var row = CountriesGrid.Presentation?.Selection.GetAnchor(true).Row ?? -1;
-        if (Scenarios.SelectedIndex == 1)
+        if (Scenarios.SelectedIndex is 1 or 9)
         {
+            var source = CountriesGrid.Presentation!.Model;
             var person = new Person { Name = $"New person {++_newPerson}", Title = "Team member", Age = 25, IsActive = true };
-            if ((uint)row < (uint)_peopleSource.Rows.Count)
+            if ((uint)row < (uint)source.Rows.Count)
             {
-                var parent = (Person)_peopleSource.Rows[row].Model!;
+                var parent = (Person)source.Rows[row].Model!;
                 parent.Children.Add(person);
                 parent.IsExpanded = true;
             }
@@ -227,9 +286,9 @@ public sealed partial class MainPage : Page
     {
         if (!CountriesGrid.CommitEdit()) return;
         var row = CountriesGrid.Presentation?.Selection.GetAnchor(true).Row ?? -1;
-        if (Scenarios.SelectedIndex == 1 && (uint)row < (uint)_peopleSource.Rows.Count)
+        if (Scenarios.SelectedIndex is 1 or 9 && CountriesGrid.Presentation?.Model is { } source && (uint)row < (uint)source.Rows.Count)
         {
-            var path = _peopleSource.Rows.RowIndexToModelIndex(row);
+            var path = source.Rows.RowIndexToModelIndex(row);
             var siblings = _people.People;
             for (var i = 0; i < path.Count - 1; ++i) siblings = siblings[path[i]].Children;
             siblings.RemoveAt(path[path.Count - 1]);
@@ -250,21 +309,22 @@ public sealed partial class MainPage : Page
     }
     public void VerifyInitialRender()
     {
-        if (!ReferenceEquals(CountriesGrid.Presentation?.Rows, _source.Rows))
-            throw new InvalidOperationException("Uno must expose the actual Core rows.");
-        if (!CountriesGrid.RowsPresenter.RealizedCells.Any(cell => cell.ActualWidth > 0 && cell.ActualHeight > 0))
+        if (CountriesGrid.Presentation is not { } presentation || !ReferenceEquals(presentation.Model.Rows, _source.Rows) ||
+            presentation.Rows.Count != _source.Rows.Count || (_source.Rows.Count > 0 && !ReferenceEquals(presentation.Rows[0], _source.Rows[0])))
+            throw new InvalidOperationException("Uno must expose the actual Core source and row objects through its view facade.");
+        if (!CountriesGrid.RowsPresenter!.RealizedCells.Any(cell => cell.ActualWidth > 0 && cell.ActualHeight > 0))
             throw new InvalidOperationException("No cells were rendered.");
-        if (CountriesGrid.RowsPresenter.RealizedCells.Count >= _source.Rows.Count * _source.Columns.Count)
+        if (CountriesGrid.RowsPresenter!.RealizedCells.Count >= _source.Rows.Count * _source.Columns.Count)
             throw new InvalidOperationException("The sample did not virtualize its rows.");
-        Console.WriteLine($"Initial realized cells: {CountriesGrid.RowsPresenter.RealizedCells.Count}");
+        Console.WriteLine($"Initial realized cells: {CountriesGrid.RowsPresenter!.RealizedCells.Count}");
     }
     public void VerifyScrolledRender()
     {
-        if (!CountriesGrid.RowsPresenter.RealizedCells.Any(cell => cell.RowIndex > 0))
+        if (!CountriesGrid.RowsPresenter!.RealizedCells.Any(cell => cell.RowIndex > 0))
             throw new InvalidOperationException("Scrolling did not realize later rows.");
-        foreach (var cell in CountriesGrid.RowsPresenter.RealizedCells)
+        foreach (var cell in CountriesGrid.RowsPresenter!.RealizedCells)
             if (!ReferenceEquals(cell.RowModel, _source.Rows[cell.RowIndex].Model))
                 throw new InvalidOperationException("A recycled cell retained an old Core row.");
-        Console.WriteLine($"Scrolled realized cells: {CountriesGrid.RowsPresenter.RealizedCells.Count}");
+        Console.WriteLine($"Scrolled realized cells: {CountriesGrid.RowsPresenter!.RealizedCells.Count}");
     }
 }

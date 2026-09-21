@@ -9,6 +9,7 @@ internal sealed class CellEditSession : IDisposable
     private CellValue? _cell;
     private IEditableObject? _editable;
     private readonly bool _writeValue;
+    public bool IsCommitting { get; private set; }
     public CellEditSession(CellValue cell, object? model, bool writeValue)
     {
         _cell = cell;
@@ -26,7 +27,8 @@ internal sealed class CellEditSession : IDisposable
     public Exception? Error { get; private set; }
     public bool Commit(object? value)
     {
-        if (_cell is not { } cell) return false;
+        if (_cell is not { } cell || IsCommitting) return false;
+        IsCommitting = true;
         try
         {
             if (_writeValue) cell.Write(value);
@@ -41,6 +43,7 @@ internal sealed class CellEditSession : IDisposable
             return true;
         }
         catch (Exception error) { Error = error; return false; }
+        finally { IsCommitting = false; }
     }
     public void Cancel()
     {

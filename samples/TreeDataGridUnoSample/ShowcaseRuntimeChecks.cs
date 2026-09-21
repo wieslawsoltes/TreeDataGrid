@@ -16,7 +16,8 @@ internal static class ShowcaseRuntimeChecks
         page.ShowScenario(1);
         var grid = page.Grid;
         await Task.Delay(200);
-        Check(ReferenceEquals(grid.Presentation!.Rows, page.PeopleSource.Rows), "People did not use shared Core rows.");
+        Check(ReferenceEquals(grid.Presentation!.Model.Rows, page.PeopleSource.Rows) && page.PeopleSource.Rows.Count > 0 &&
+            ReferenceEquals(grid.Presentation.Rows[0], page.PeopleSource.Rows[0]), "People did not use the shared Core source and row objects.");
         Check(page.PeopleSource.Rows.Count == 6, "The shared People sample did not initialize its nested expansion bindings.");
         var manager = (Person)page.PeopleSource.Rows[0].Model!;
         manager.IsExpanded = false;
@@ -35,7 +36,7 @@ internal static class ShowcaseRuntimeChecks
         Check(editor.Text == "-1" && editor.ActualWidth > 0 && editor.ActualHeight > 0, "Invalid editor is not rendered with the user's input.");
         await capture(page, "people-validation");
         grid.CancelEdit();
-        var active = grid.RowsPresenter.RealizedCells.Single(c => c.RowIndex == 0 && c.ColumnIndex == 3);
+        var active = grid.RowsPresenter!.RealizedCells.Single(c => c.RowIndex == 0 && c.ColumnIndex == 3);
         var checkBox = Descendants(active).OfType<CheckBox>().Single();
         checkBox.IsChecked = !manager.IsActive;
         Check(manager.IsActive == checkBox.IsChecked, "Native checkbox changes did not write the shared Person.");
@@ -43,16 +44,16 @@ internal static class ShowcaseRuntimeChecks
         var added = new Person { Name = "Added child", Age = 21 };
         manager.Children.Add(added);
         await Task.Delay(100);
-        Check(grid.RowsPresenter.RealizedCells.Any(c => ReferenceEquals(c.RowModel, added)), "Adding a shared child did not update the native hierarchy.");
+        Check(grid.RowsPresenter!.RealizedCells.Any(c => ReferenceEquals(c.RowModel, added)), "Adding a shared child did not update the native hierarchy.");
         manager.Children.Remove(added);
         grid.SelectCell(0, 0);
         await capture(page, "people");
 
         page.ShowScenario(2);
         await Task.Delay(200);
-        Check(grid.RowsPresenter.RealizedCells.Count < page.TemplateSource.Rows.Count * page.TemplateSource.Columns.Count,
+        Check(grid.RowsPresenter!.RealizedCells.Count < page.TemplateSource.Rows.Count * page.TemplateSource.Columns.Count,
             "Template sample did not virtualize rows.");
-        var cell = grid.RowsPresenter.RealizedCells.Single(c => c.RowIndex == 0 && c.ColumnIndex == 3);
+        var cell = grid.RowsPresenter!.RealizedCells.Single(c => c.RowIndex == 0 && c.ColumnIndex == 3);
         var text = Descendants(cell).OfType<TextBlock>().Single(t => t.Text == "Details for item 001");
         var parent = VisualTreeHelper.GetParent(text);
         var previous = page.TemplateItems[0];
@@ -61,9 +62,9 @@ internal static class ShowcaseRuntimeChecks
         Check(text.Text == "Replaced details" && ReferenceEquals(parent, VisualTreeHelper.GetParent(text)),
             "Template sample replacement recreated or failed to refresh its content.");
         await capture(page, "templates");
-        grid.Scroll.ChangeView(null, 1500, null, true);
+        grid.Scroll!.ChangeView(null, 1500, null, true);
         await Task.Delay(150);
-        foreach (var visible in grid.RowsPresenter.RealizedCells.Where(c => c.ColumnIndex == 3))
+        foreach (var visible in grid.RowsPresenter!.RealizedCells.Where(c => c.ColumnIndex == 3))
         {
             var model = (TemplateColumnItem)page.TemplateSource.Rows[visible.RowIndex].Model!;
             Check(Descendants(visible).OfType<TextBlock>().Any(t => t.Text == model.Details), "Scrolling retained another template row's details.");
@@ -71,12 +72,12 @@ internal static class ShowcaseRuntimeChecks
         page.TemplateItems[0] = previous;
         page.ShowScenario(3);
         await Task.Delay(200);
-        Check(grid.RowsPresenter.RealizedCells.Select(c => grid.RowsPresenter.GetRowHeight(c.RowIndex)).Distinct().Count() > 1,
+        Check(grid.RowsPresenter!.RealizedCells.Select(c => grid.RowsPresenter!.GetRowHeight(c.RowIndex)).Distinct().Count() > 1,
             "Variable-country sample did not measure multi-line row heights.");
         await capture(page, "variable-countries");
         Check(grid.BringCellIntoView(100, 0), "Variable-country bring-into-view failed.");
         await Task.Delay(150);
-        Check(grid.RowsPresenter.RealizedCells.Any(c => c.RowIndex == 100), "Variable-country target was not realized.");
+        Check(grid.RowsPresenter!.RealizedCells.Any(c => c.RowIndex == 100), "Variable-country target was not realized.");
         page.ShowScenario(0);
         await Task.Delay(150);
         Console.WriteLine("UNO_RUNTIME_SHOWCASE_PASSED: shared People hierarchy, expander editing, validation, checkbox writeback, child mutation, template replacement/scroll, scenario switching");

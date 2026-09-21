@@ -82,6 +82,29 @@ public class EditingTests
         Assert.Equal(1, model.Begins);
         Assert.Equal(1, model.Cancels);
     }
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Recursive_commit_does_not_repeat_write_or_end_transaction(bool duringEnd)
+    {
+        var value = new EditValue();
+        var model = new Editable();
+        using var edit = new CellEditSession(value, model, true);
+        Action recurse = () =>
+        {
+            Assert.True(edit.IsCommitting);
+            Assert.False(edit.Commit("recursive"));
+            Assert.Null(edit.Error);
+        };
+        if (duringEnd) model.Ending = recurse;
+        else value.AfterWrite = recurse;
+        Assert.True(edit.Commit("original"));
+        Assert.False(edit.IsCommitting);
+        Assert.False(edit.IsActive);
+        Assert.Equal("original", value.LastValue);
+        Assert.Equal(1, value.Writes);
+        Assert.Equal(1, model.Ends);
+    }
     private sealed class EditValue : CellValue
     {
         public int Writes;
@@ -102,8 +125,9 @@ public class EditingTests
     {
         public int Begins, Cancels, Ends;
         public bool FailBegin;
+        public Action? Ending;
         public void BeginEdit() { ++Begins; if (FailBegin) throw new InvalidOperationException("begin"); }
         public void CancelEdit() => ++Cancels;
-        public void EndEdit() => ++Ends;
+        public void EndEdit() { ++Ends; Ending?.Invoke(); }
     }
 }

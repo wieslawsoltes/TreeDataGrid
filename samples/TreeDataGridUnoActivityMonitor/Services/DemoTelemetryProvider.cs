@@ -191,7 +191,7 @@ internal sealed class DemoTelemetryProvider : IMonitorTelemetryProvider
 
         var summary = new SystemSummarySnapshot
         {
-            HostName = Environment.MachineName,
+            HostName = OperatingSystem.IsBrowser() ? "Browser demo" : Environment.MachineName,
             PlatformLabel = ".NET 10 cross-platform shell",
             ModeDescription = "Demo telemetry keeps the full TreeDataGrid and chart surface running on non-macOS targets.",
             IsDemoMode = true,

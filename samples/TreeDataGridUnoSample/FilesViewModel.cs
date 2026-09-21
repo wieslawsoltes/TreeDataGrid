@@ -7,15 +7,16 @@ using TreeDataGridDemo.Models;
 
 namespace TreeDataGridUnoSample;
 
-internal sealed class FilesViewModel(Action<Action> dispatch) : NotifyingBase, IDisposable
+internal sealed class FilesViewModel(Action<Action> dispatch, bool? watchChanges = null) : NotifyingBase, IDisposable
 {
+    public bool WatchChanges { get; } = !OperatingSystem.IsBrowser() && watchChanges != false;
     private HierarchicalTreeDataGridSource<FileTreeNodeModel>? _tree;
     private FlatTreeDataGridSource<FileTreeNodeModel>? _flat;
     private ITreeDataGridSource? _source;
     private bool _flatMode;
     private int _generation;
     private bool _disposed;
-    private string _status = "Open a folder to inspect it. The sample never modifies files.";
+    private string _status = "Open a folder to inspect it. The file view is read-only.";
     public FileTreeNodeModel? Root { get; private set; }
     public ITreeDataGridSource? Source { get => _source; private set => RaiseAndSetIfChanged(ref _source, value); }
     public string Status { get => _status; private set => RaiseAndSetIfChanged(ref _status, value); }
@@ -39,7 +40,7 @@ internal sealed class FilesViewModel(Action<Action> dispatch) : NotifyingBase, I
             var fullPath = Path.GetFullPath(path);
             staged = await Task.Run(() =>
             {
-                var root = new FileTreeNodeModel(fullPath, true, true, dispatch);
+                var root = new FileTreeNodeModel(fullPath, true, true, dispatch, WatchChanges);
                 try { _ = root.Children; return root; }
                 catch { root.Dispose(); throw; }
             });
@@ -56,7 +57,11 @@ internal sealed class FilesViewModel(Action<Action> dispatch) : NotifyingBase, I
                 _tree = tree;
                 _flat = flat;
                 Source = FlatMode ? flat : tree;
-                Status = $"{Root.Path} · {Root.Children.Count} immediate entries · live, read-only file-system view";
+                Status = $"{Root.Path} · {Root.Children.Count} immediate entries · " + (WatchChanges
+                    ? "live, read-only file-system view"
+                    : OperatingSystem.IsBrowser()
+                        ? "browser sandbox snapshot, not your computer's files · Open / refresh reloads entries"
+                        : "read-only snapshot · Open / refresh reloads entries");
             }
             catch { tree.Dispose(); flat.Dispose(); throw; }
         }

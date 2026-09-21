@@ -20,10 +20,10 @@ public class PresentationTests
         var options = new TreeDataGridPresentationOptions();
         options.Columns["Numeric"] = c => new ValueCellColumn<Item, string?>((ValueColumn<Item, string?>)c, CellKind.Text, text);
         using var view = TreeDataGridPresentation.Create(source, options);
-        Assert.Same(text, view.Columns[0].TextOptions);
-        Assert.Equal(column.Options.MinWidth.Value, view.Columns[0].MinimumWidth);
+        Assert.Same(text, view.NativeColumns[0].TextOptions);
+        Assert.Equal(column.Options.MinWidth.Value, view.NativeColumns[0].MinimumWidth);
         var first = view.RealizeCell(0, 0);
-        view.RecycleCell(view.Columns[0], first);
+        view.RecycleCell(view.NativeColumns[0], first);
         using var second = view.RealizeCell(0, 1);
         Assert.Same(first, second);
         second.Write("changed");
@@ -40,16 +40,16 @@ public class PresentationTests
         var text = new TextCellOptions { Alignment = Microsoft.UI.Xaml.TextAlignment.Right };
         options.Columns["Right"] = c => new ValueCellColumn<Item, string?>((ValueColumn<Item, string?>)c, CellKind.Text, text);
         using var view = TreeDataGridPresentation.Create(source, options);
-        Assert.Same(text, view.Columns[0].TextOptions);
+        Assert.Same(text, view.NativeColumns[0].TextOptions);
     }
 
     [Fact]
-    public void Presentation_exposes_exact_Core_rows_and_source()
+    public void Presentation_view_rows_expose_exact_Core_row_objects_and_source()
     {
         using var source = Source();
         using var view = TreeDataGridPresentation.Create(source);
         Assert.Same(source, view.Model);
-        Assert.Same(source.Rows, view.Rows);
+        Assert.Same(source.Rows, view.Model.Rows);
         Assert.Same(source.Rows[0], view.Rows[0]);
         using var cell = view.RealizeCell(0, 0);
         Assert.Equal("b", cell.Value);
@@ -61,7 +61,7 @@ public class PresentationTests
         using var source = Source();
         using var view = TreeDataGridPresentation.Create(source);
         var first = view.RealizeCell(0, 0);
-        view.RecycleCell(view.Columns[0], first);
+        view.RecycleCell(view.NativeColumns[0], first);
         Assert.Null(first.Value);
         using var second = view.RealizeCell(0, 1);
         Assert.Same(first, second);
@@ -95,7 +95,7 @@ public class PresentationTests
         using var view = TreeDataGridPresentation.Create(source);
         var first = view.RealizeCell(0, 0);
         Assert.Same(source.Rows[0].Model, first.Value);
-        view.RecycleCell(view.Columns[0], first);
+        view.RecycleCell(view.NativeColumns[0], first);
         Assert.Null(first.Value);
         using var next = view.RealizeCell(0, 1);
         Assert.Same(first, next);
@@ -108,7 +108,7 @@ public class PresentationTests
         using var source = Source();
         using var view = TreeDataGridPresentation.Create(source);
         var first = view.RealizeCell(0, 0);
-        view.RecycleCell(view.Columns[0], first);
+        view.RecycleCell(view.NativeColumns[0], first);
         view.Suspend();
         source.SortBy(source.Columns[0], ListSortDirection.Ascending);
         view.Resume();
@@ -128,8 +128,8 @@ public class PresentationTests
         source.Columns[0].IsVisible = false;
         source.Columns.Add(new TextColumn<Item, string?>("Other", x => x.Name));
         view.Resume();
-        Assert.Single(view.Columns);
-        Assert.Same(source.Columns[1], view.Columns[0].Model);
+        Assert.Single(view.NativeColumns);
+        Assert.Same(source.Columns[1], view.NativeColumns[0].Model);
     }
 
     [Fact]
@@ -138,9 +138,9 @@ public class PresentationTests
         using var source = Source();
         source.Columns.Add(new TextColumn<Item, string?>("Other", x => x.Name));
         using var view = TreeDataGridPresentation.Create(source);
-        var first = view.Columns[0];
+        var first = view.NativeColumns[0];
         source.Columns.Move(0, 1);
-        Assert.Same(first, view.Columns[1]);
+        Assert.Same(first, view.NativeColumns[1]);
     }
 
     [Fact]
@@ -154,7 +154,7 @@ public class PresentationTests
         using var view = TreeDataGridPresentation.Create(source, options);
         source.Columns[0].PresentationKey = null;
         Assert.Equal(1, custom!.Disposals);
-        Assert.NotSame(custom, view.Columns[0]);
+        Assert.NotSame(custom, view.NativeColumns[0]);
     }
 
     [Fact]
@@ -165,12 +165,12 @@ public class PresentationTests
         var options = new TreeDataGridPresentationOptions();
         options.Columns["Custom"] = column => new CountingColumn(column);
         using var view = TreeDataGridPresentation.Create(source, options);
-        var previous = (CountingColumn)view.Columns[0];
+        var previous = (CountingColumn)view.NativeColumns[0];
         Assert.Throws<InvalidOperationException>(() => source.Columns[0].PresentationKey = "Missing");
-        Assert.Same(previous, view.Columns[0]);
+        Assert.Same(previous, view.NativeColumns[0]);
         Assert.Equal(0, previous.Disposals);
         source.Columns[0].PresentationKey = null;
-        Assert.NotSame(previous, view.Columns[0]);
+        Assert.NotSame(previous, view.NativeColumns[0]);
         Assert.Equal(1, previous.Disposals);
         using var cell = view.RealizeCell(0, 0);
         Assert.Equal("b", cell.Value);
@@ -183,10 +183,10 @@ public class PresentationTests
         using var view = TreeDataGridPresentation.Create(source);
         var column = new TextColumn<Item, string?>("Other", x => x.Name) { PresentationKey = "Missing" };
         Assert.Throws<InvalidOperationException>(() => source.Columns.Add(column));
-        Assert.Single(view.Columns);
+        Assert.Single(view.NativeColumns);
         column.PresentationKey = null;
-        Assert.Equal(2, view.Columns.Count);
-        Assert.Same(column, view.Columns[1].Model);
+        Assert.Equal(2, view.NativeColumns.Count);
+        Assert.Same(column, view.NativeColumns[1].Model);
     }
 
     [Fact]
@@ -201,7 +201,7 @@ public class PresentationTests
         view.ColumnsChanged += (_, _) => ++changes;
         column.PresentationKey = null;
         Assert.Equal(0, changes);
-        Assert.Single(view.Columns);
+        Assert.Single(view.NativeColumns);
     }
 
     [Fact]
@@ -209,11 +209,11 @@ public class PresentationTests
     {
         using var source = Source();
         using var view = TreeDataGridPresentation.Create(source);
-        var previous = view.Columns[0];
+        var previous = view.NativeColumns[0];
         view.Suspend();
         source.Columns[0].PresentationKey = "Missing";
         Assert.Throws<InvalidOperationException>(view.Resume);
-        Assert.Same(previous, view.Columns[0]);
+        Assert.Same(previous, view.NativeColumns[0]);
         source.Columns[0].PresentationKey = null;
         view.Resume();
         using var cell = view.RealizeCell(0, 0);
@@ -263,7 +263,7 @@ public class PresentationTests
         options.Columns["Custom"] = column => new CountingColumn(column);
         using var view = TreeDataGridPresentation.Create(source, options);
         var cell = (CountingCell)view.RealizeCell(0, 0);
-        view.RecycleCell(view.Columns[0], cell);
+        view.RecycleCell(view.NativeColumns[0], cell);
         Assert.Equal(1, cell.Disposals);
     }
 
@@ -274,7 +274,7 @@ public class PresentationTests
         using var view = TreeDataGridPresentation.Create(source);
         var cells = new CellValue[257];
         for (var i = 0; i < cells.Length; ++i) cells[i] = view.RealizeCell(0, 0);
-        foreach (var cell in cells) view.RecycleCell(view.Columns[0], cell);
+        foreach (var cell in cells) view.RecycleCell(view.NativeColumns[0], cell);
         Assert.Throws<ObjectDisposedException>(() => cells[^1].Write("disposed"));
         Assert.Null(cells[0].Value);
     }

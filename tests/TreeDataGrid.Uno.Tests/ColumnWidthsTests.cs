@@ -10,6 +10,51 @@ namespace TreeDataGrid.Uno.Tests;
 public class ColumnWidthsTests
 {
     [Fact]
+    public void Appearance_reset_allows_auto_measurements_to_shrink_without_changing_Core_width()
+    {
+        using var column = Column(GridLength.Auto);
+        column.RecordWidth(240);
+        Assert.False(column.RecordWidth(80));
+        Assert.Equal(240, ColumnWidths.Calculate([column], 500)[0]);
+        column.ResetWidthMeasurement();
+        Assert.False(column.HasWidthMeasurement);
+        Assert.True(column.RecordWidth(80));
+        Assert.Equal(80, ColumnWidths.Calculate([column], 500)[0]);
+        Assert.True(column.Model.Width.IsAuto);
+    }
+    [Fact]
+    public void Appearance_reset_reaches_expander_inner_auto_constraints()
+    {
+        using var source = new HierarchicalTreeDataGridSource<Item>([new("Parent")]);
+        source.Columns.Add(new HierarchicalExpanderColumn<Item>(new TextColumn<Item, string>("Name", x => x.Name,
+            width: GridLength.Star, options: new() { MinWidth = GridLength.Auto, MaxWidth = GridLength.Auto }), _ => Array.Empty<Item>()));
+        using var view = TreeDataGridPresentation.Create(source);
+        var column = view.NativeColumns[0];
+        column.RecordWidth(250);
+        Assert.Equal(250, column.MinimumWidth);
+        column.ResetWidthMeasurement();
+        column.RecordWidth(90);
+        Assert.Equal(90, column.MinimumWidth);
+        Assert.Equal(90, column.MaximumWidth);
+        Assert.True(source.Columns[0].Width.IsStar);
+    }
+    [Fact]
+    public void Appearance_reset_includes_hidden_retained_columns()
+    {
+        using var source = new FlatTreeDataGridSource<Item>([new("Item")]);
+        source.Columns.Add(new TextColumn<Item, string>("Name", x => x.Name));
+        using var view = TreeDataGridPresentation.Create(source);
+        var column = view.NativeColumns[0];
+        column.RecordWidth(200);
+        source.Columns[0].IsVisible = false;
+        view.ResetColumnMeasurements();
+        source.Columns[0].IsVisible = true;
+        Assert.Same(column, view.NativeColumns[0]);
+        Assert.False(column.HasWidthMeasurement);
+        column.RecordWidth(80);
+        Assert.Equal(80, ColumnWidths.Calculate(view.NativeColumns, 500)[0]);
+    }
+    [Fact]
     public void Fixed_auto_and_weighted_stars_share_remaining_space()
     {
         var auto = Column(GridLength.Auto);

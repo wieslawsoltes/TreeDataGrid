@@ -1,16 +1,32 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TreeDataGridCore;
 using TreeDataGridCore.Models;
 using TreeDataGridCore.Selection;
+using Microsoft.UI.Xaml.Input;
 
 namespace Uno.Controls.Presentation;
 
-public enum TreeDataGridSelectionMode { Source, None, SingleRow, MultipleRows, SingleCell, MultipleCells }
-
 /// <summary>Maps visible UI indexes to the shared Core selection. It owns no selected items.</summary>
-public abstract class TreeDataGridSelection
+public abstract class TreeDataGridSelection : Uno.Controls.Selection.ITreeDataGridSelectionInteraction
 {
+    public virtual void OnPreviewKeyDown(TreeDataGrid sender, KeyRoutedEventArgs e) { }
+    public virtual void OnKeyDown(TreeDataGrid sender, KeyRoutedEventArgs e) => sender.ProcessSelectionKeyDown(e);
+    public virtual void OnKeyUp(TreeDataGrid sender, KeyRoutedEventArgs e) { }
+    public virtual void OnTextInput(TreeDataGrid sender, CharacterReceivedRoutedEventArgs e) => sender.ProcessSelectionTextInput(e);
+    public virtual void OnPointerPressed(TreeDataGrid sender, PointerRoutedEventArgs e) => sender.ProcessSelectionPointerPressed(e);
+    public virtual void OnPointerMoved(TreeDataGrid sender, PointerRoutedEventArgs e) { }
+    public virtual void OnPointerReleased(TreeDataGrid sender, PointerRoutedEventArgs e) => sender.ProcessSelectionPointerReleased(e);
+    event EventHandler? Uno.Controls.Selection.ITreeDataGridSelectionInteraction.SelectionChanged
+    {
+        add => Changed += value;
+        remove => Changed -= value;
+    }
+    public virtual bool IsCellSelected(int columnIndex, int rowIndex) => IsCellSelection && IsSelected(rowIndex, columnIndex);
+    public virtual bool IsRowSelected(IRow rowModel) => rowModel is IModelIndexableRow indexed &&
+        Model is ITreeDataGridRowSelectionModel rows && rows.IsSelected(indexed.ModelIndexPath);
+    public virtual bool IsRowSelected(int rowIndex) => !IsCellSelection && IsSelected(rowIndex, 0);
     public abstract ITreeDataGridSelection? Model { get; }
     public abstract bool IsCellSelection { get; }
     public abstract bool IsSelected(int row, int column);
@@ -20,6 +36,8 @@ public abstract class TreeDataGridSelection
     public abstract void Clear();
     public abstract void Configure(TreeDataGridSelectionMode mode);
     public abstract event EventHandler? Changed;
+    /// <summary>Selection deltas, separate from visual/anchor invalidation.</summary>
+    public abstract event EventHandler<TreeDataGridSelectionChangedEventArgs>? SelectionChanged;
 }
 
 internal sealed class TreeDataGridSelection<TModel>(ITreeDataGridSource<TModel> source,
@@ -29,9 +47,26 @@ internal sealed class TreeDataGridSelection<TModel>(ITreeDataGridSource<TModel> 
     private readonly Dictionary<IColumn, int> _sourceIndexes = new(ReferenceEqualityComparer.Instance);
     private readonly Dictionary<IColumn, int> _visibleIndexes = new(ReferenceEqualityComparer.Instance);
     private bool _active;
+    private CellIndex[] _selectedCells = Array.Empty<CellIndex>();
+    private EventHandler<TreeDataGridSelectionChangedEventArgs>? _selectionChanged;
     public override ITreeDataGridSelection? Model => source.Selection;
     public override bool IsCellSelection => Model is ITreeDataGridCellSelectionModel<TModel>;
+    public override bool IsRowSelected(int rowIndex) => (uint)rowIndex < (uint)source.Rows.Count &&
+        Model is ITreeDataGridRowSelectionModel rows && rows.IsSelected(source.Rows.RowIndexToModelIndex(rowIndex));
     public override event EventHandler? Changed;
+    public override event EventHandler<TreeDataGridSelectionChangedEventArgs>? SelectionChanged
+    {
+        add
+        {
+            if (_selectionChanged is null && value is not null) CaptureSelectedCells();
+            _selectionChanged += value;
+        }
+        remove
+        {
+            _selectionChanged -= value;
+            if (_selectionChanged is null) _selectedCells = Array.Empty<CellIndex>();
+        }
+    }
 
     internal void Resume()
     {
@@ -50,8 +85,16 @@ internal sealed class TreeDataGridSelection<TModel>(ITreeDataGridSource<TModel> 
         {
             Detach();
             _selection = source.Selection;
-            if (_selection is ITreeDataGridRowSelectionModel rows) rows.StateChanged += OnChanged;
-            if (_selection is ITreeDataGridCellSelectionModel<TModel> cells) cells.SelectionChanged += OnChanged;
+            if (_selection is ITreeDataGridRowSelectionModel rows)
+            {
+                rows.StateChanged += OnChanged;
+                rows.SelectionChanged += OnRowSelectionChanged;
+            }
+            if (_selection is ITreeDataGridCellSelectionModel<TModel> cells)
+            {
+                if (_selectionChanged is not null) CaptureSelectedCells();
+                cells.SelectionChanged += OnCellSelectionChanged;
+            }
         }
         Changed?.Invoke(this, EventArgs.Empty);
     }
@@ -64,11 +107,53 @@ internal sealed class TreeDataGridSelection<TModel>(ITreeDataGridSource<TModel> 
     }
     private void Detach()
     {
-        if (_selection is ITreeDataGridRowSelectionModel rows) rows.StateChanged -= OnChanged;
-        if (_selection is ITreeDataGridCellSelectionModel<TModel> cells) cells.SelectionChanged -= OnChanged;
+        if (_selection is ITreeDataGridRowSelectionModel rows)
+        {
+            rows.StateChanged -= OnChanged;
+            rows.SelectionChanged -= OnRowSelectionChanged;
+        }
+        if (_selection is ITreeDataGridCellSelectionModel<TModel> cells) cells.SelectionChanged -= OnCellSelectionChanged;
         _selection = null;
+        _selectedCells = Array.Empty<CellIndex>();
     }
-    private void OnChanged(object? sender, EventArgs e) => Changed?.Invoke(this, EventArgs.Empty);
+    private bool IsCurrentSelection(object? sender) =>
+        _active && ReferenceEquals(sender, _selection) && ReferenceEquals(_selection, source.Selection);
+    private void OnChanged(object? sender, EventArgs e)
+    {
+        if (IsCurrentSelection(sender)) Changed?.Invoke(this, EventArgs.Empty);
+    }
+    private void CaptureSelectedCells() => _selectedCells = _active && _selection is ITreeDataGridCellSelectionModel<TModel> cells
+        ? cells.SelectedIndexes.ToArray() : Array.Empty<CellIndex>();
+    private void OnRowSelectionChanged(object? sender, TreeSelectionModelSelectionChangedEventArgs e)
+    {
+        if (!IsCurrentSelection(sender)) return;
+        // Core's item views can resolve lazily. Capture while the original
+        // model/index mapping is valid, before application callbacks mutate it.
+        _selectionChanged?.Invoke(this, new(
+            e.DeselectedIndexes.ToArray(), e.SelectedIndexes.ToArray(),
+            e.DeselectedItems.ToArray(), e.SelectedItems.ToArray()));
+    }
+    private void OnCellSelectionChanged(object? sender, TreeDataGridCellSelectionChangedEventArgs<TModel> e)
+    {
+        if (!IsCurrentSelection(sender)) return;
+        try
+        {
+            if (_selectionChanged is not { } handler) return;
+            var selected = ((ITreeDataGridCellSelectionModel<TModel>)sender!).SelectedIndexes.ToArray();
+            var previous = _selectedCells;
+            // Commit the baseline first: nested selection changes must diff
+            // against this state, not the state preceding the outer event.
+            _selectedCells = selected;
+            var args = new TreeDataGridSelectionChangedEventArgs(
+                deselectedCellIndexes: previous.Except(selected).ToArray(),
+                selectedCellIndexes: selected.Except(previous).ToArray());
+            handler(this, args);
+        }
+        finally
+        {
+            if (IsCurrentSelection(sender)) Changed?.Invoke(this, EventArgs.Empty);
+        }
+    }
     private bool TryIndex(int row, int column, out CellIndex index)
     {
         if ((uint)row < (uint)source.Rows.Count && (uint)column < (uint)columns.Count &&
@@ -162,21 +247,20 @@ internal sealed class TreeDataGridSelection<TModel>(ITreeDataGridSource<TModel> 
     }
     public override void Configure(TreeDataGridSelectionMode mode)
     {
-        switch (mode)
+        if (mode == TreeDataGridSelectionMode.Source) return;
+        if (mode == TreeDataGridSelectionMode.None) { source.Selection = null; return; }
+        if ((mode & ~(TreeDataGridSelectionMode.Row | TreeDataGridSelectionMode.Cell | TreeDataGridSelectionMode.Multiple)) != 0)
+            throw new ArgumentOutOfRangeException(nameof(mode));
+        var singleSelect = (mode & TreeDataGridSelectionMode.Multiple) == 0;
+        if ((mode & TreeDataGridSelectionMode.Cell) != 0)
         {
-            case TreeDataGridSelectionMode.Source: return;
-            case TreeDataGridSelectionMode.None: source.Selection = null; break;
-            case TreeDataGridSelectionMode.SingleRow:
-            case TreeDataGridSelectionMode.MultipleRows:
-                if (source.Selection is not ITreeDataGridRowSelectionModel) source.Selection = new TreeDataGridRowSelectionModel<TModel>(source);
-                ((ITreeDataGridRowSelectionModel)source.Selection!).SingleSelect = mode == TreeDataGridSelectionMode.SingleRow;
-                break;
-            case TreeDataGridSelectionMode.SingleCell:
-            case TreeDataGridSelectionMode.MultipleCells:
-                if (source.Selection is not ITreeDataGridCellSelectionModel<TModel>) source.Selection = new TreeDataGridCellSelectionModel<TModel>(source);
-                ((ITreeDataGridCellSelectionModel<TModel>)source.Selection!).SingleSelect = mode == TreeDataGridSelectionMode.SingleCell;
-                break;
-            default: throw new ArgumentOutOfRangeException(nameof(mode));
+            if (source.Selection is not ITreeDataGridCellSelectionModel<TModel>) source.Selection = new TreeDataGridCellSelectionModel<TModel>(source);
+            ((ITreeDataGridCellSelectionModel<TModel>)source.Selection!).SingleSelect = singleSelect;
+        }
+        else
+        {
+            if (source.Selection is not ITreeDataGridRowSelectionModel) source.Selection = new TreeDataGridRowSelectionModel<TModel>(source);
+            ((ITreeDataGridRowSelectionModel)source.Selection!).SingleSelect = singleSelect;
         }
     }
     private static int Inclusive(int delta) => delta >= 0 ? delta + 1 : delta - 1;

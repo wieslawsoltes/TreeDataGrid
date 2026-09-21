@@ -1,6 +1,8 @@
 <Project Sdk="Uno.Sdk/6.5.31">
   <PropertyGroup>
-    <TargetFrameworks>net10.0-desktop</TargetFrameworks>
+    <TreeDataGridUnoSampleTargetFrameworks Condition="'$(TreeDataGridUnoSampleTargetFrameworks)' == '' and '$(OS)' == 'Windows_NT'">net10.0-desktop;net10.0-browserwasm;net10.0-windows10.0.26100</TreeDataGridUnoSampleTargetFrameworks>
+    <TreeDataGridUnoSampleTargetFrameworks Condition="'$(TreeDataGridUnoSampleTargetFrameworks)' == ''">net10.0-desktop;net10.0-browserwasm</TreeDataGridUnoSampleTargetFrameworks>
+    <TargetFrameworks>$(TreeDataGridUnoSampleTargetFrameworks)</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <UnoSingleProject>true</UnoSingleProject>
     <IsPackable>false</IsPackable>
@@ -8,15 +10,25 @@
     <ApplicationId>com.wieslawsoltes.treedatagridunosample</ApplicationId>
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
     <ApplicationVersion>1</ApplicationVersion>
+    <UnoFeatures>SkiaRenderer</UnoFeatures>
+  </PropertyGroup>
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <ApplicationManifest>Platforms/Windows/app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../TreeDataGridUnoShared/SampleRunContext.cs" Link="Infrastructure/SampleRunContext.cs" />
     <ProjectReference Include="../../src/TreeDataGrid.Controls.Uno/TreeDataGrid.Controls.Uno.csproj" Condition="'$(TreeDataGridUnoPackageVersion)' == ''" />
     <PackageReference Include="TreeDataGrid.Controls.Uno" Version="$(TreeDataGridUnoPackageVersion)" Condition="'$(TreeDataGridUnoPackageVersion)' != ''" />
     <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />
+    <PackageReference Include="SkiaSharp" Version="3.119.1" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'" />
     <PackageReference Include="ReactiveUI" Version="19.4.1" />
+    <PackageReference Include="Bogus" Version="34.0.2" />
     <Compile Include="../TreeDataGridDemo/Models/Country.cs" Link="Models/Country.cs" />
     <Compile Include="../TreeDataGridDemo/Models/Countries.cs" Link="Models/Countries.cs" />
     <Compile Include="../TreeDataGridDemo/Models/Person.cs" Link="Models/Person.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/DragDropItem.cs" Link="Models/DragDropItem.cs" />
     <Compile Include="../TreeDataGridDemo/Models/TemplateColumnItem.cs" Link="Models/TemplateColumnItem.cs" />
     <Compile Include="../TreeDataGridDemo/Models/OnThisDay.cs" Link="Models/OnThisDay.cs" />
     <Compile Include="../TreeDataGridDemo/Models/OnThisDayJsonSerializerContext.cs" Link="Models/OnThisDayJsonSerializerContext.cs" />

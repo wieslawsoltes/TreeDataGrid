@@ -13,7 +13,7 @@ public sealed partial class MainPage : Page
 {
     private readonly DispatcherTimer _refreshTimer = new() { Interval = TimeSpan.FromSeconds(1) };
     private Storyboard? _pulse;
-    private readonly bool _smoke = Environment.GetCommandLineArgs().Contains("--smoke");
+    private readonly bool _smoke = TreeDataGridUnoSamples.SampleRunContext.HasArgument("--smoke");
 
     public MainPage()
     {
@@ -28,7 +28,7 @@ public sealed partial class MainPage : Page
     internal MonitorShellViewModel ViewModel { get; private set; }
     internal Uno.Controls.TreeDataGrid Table => SectionView.Table;
     private static MonitorShellViewModel CreateViewModel() => new(
-        Environment.GetCommandLineArgs().Contains("--demo") ? new DemoTelemetryProvider() : MonitorTelemetryProviderFactory.Create());
+        TreeDataGridUnoSamples.SampleRunContext.HasArgument("--demo") ? new DemoTelemetryProvider() : MonitorTelemetryProviderFactory.Create());
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {

@@ -11,6 +11,46 @@ namespace TreeDataGridUnoSample.Tests;
 public class FilesViewModelTests
 {
     [Fact]
+    public async Task Snapshot_mode_is_inherited_by_lazy_children_and_refreshes_explicitly()
+    {
+        using var fixture = new DirectoryFixture();
+        var folderPath = Directory.CreateDirectory(System.IO.Path.Combine(fixture.Path, "nested")).FullName;
+        await File.WriteAllTextAsync(System.IO.Path.Combine(folderPath, "first.txt"), "first");
+        using var model = new FilesViewModel(action => action(), watchChanges: false);
+        await model.OpenAsync(fixture.Path);
+        var oldRoot = model.Root!;
+        var oldFolder = Assert.Single(oldRoot.Children);
+        Assert.False(model.WatchChanges);
+        Assert.False(oldRoot.IsWatching);
+        Assert.False(oldFolder.HasLoadedChildren);
+        Assert.Single(oldFolder.Children);
+        Assert.False(oldFolder.IsWatching);
+        await File.WriteAllTextAsync(System.IO.Path.Combine(folderPath, "second.txt"), "second");
+        Assert.Single(oldFolder.Children);
+        await model.OpenAsync(fixture.Path);
+        Assert.NotSame(oldRoot, model.Root);
+        Assert.False(oldRoot.HasLoadedChildren);
+        Assert.False(oldFolder.HasLoadedChildren);
+        Assert.Equal(2, Assert.Single(model.Root!.Children).Children.Count);
+        Assert.Contains("snapshot", model.Status);
+        Assert.Contains("refresh", model.Status);
+    }
+    [Fact]
+    public async Task Failed_snapshot_refresh_keeps_the_working_snapshot()
+    {
+        using var fixture = new DirectoryFixture();
+        await File.WriteAllTextAsync(System.IO.Path.Combine(fixture.Path, "file.txt"), "file");
+        using var model = new FilesViewModel(action => action(), watchChanges: false);
+        await model.OpenAsync(fixture.Path);
+        var source = model.Source;
+        var root = model.Root;
+        await model.OpenAsync(System.IO.Path.Combine(fixture.Path, "missing"));
+        Assert.Same(source, model.Source);
+        Assert.Same(root, model.Root);
+        Assert.Single(root!.Children);
+        Assert.False(root.IsWatching);
+    }
+    [Fact]
     public async Task Shared_nodes_report_create_change_rename_delete_and_release_watchers()
     {
         using var fixture = new DirectoryFixture();

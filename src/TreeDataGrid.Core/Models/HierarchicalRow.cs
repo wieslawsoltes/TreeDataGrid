@@ -21,6 +21,7 @@ namespace TreeDataGridCore.Models
         private IEnumerable<TModel>? _childModels;
         private ChildRows? _childRows;
         private readonly IDisposable? _isExpandedSubscription;
+        private IDisposable? _childrenPropertySubscription;
         private readonly bool _observesExpansionViaModel;
         private INotifyPropertyChanged? _modelNotifications;
         private bool _isExpanded;
@@ -51,12 +52,13 @@ namespace TreeDataGridCore.Models
             if (expanded.HasValue)
             {
                 _isExpandedSubscription =
-                    (expanderColumn as IModelExpansionObserver<TModel>)?.ExpansionObserver?.Subscribe(
+                    (expanderColumn as IModelExpansionObserver<TModel>)?.SubscribeToExpansion(
                         model, OnModelIsExpandedChanged);
             }
             _observesExpansionViaModel = expanded.HasValue && _isExpandedSubscription is null;
             if (_observesExpansionViaModel || _isExpanded)
                 SubscribeToModelChanges();
+            UpdateChildrenPropertySubscription();
         }
 
         /// <summary>
@@ -114,6 +116,8 @@ namespace TreeDataGridCore.Models
         public void Dispose()
         {
             _isExpandedSubscription?.Dispose();
+            _childrenPropertySubscription?.Dispose();
+            _childrenPropertySubscription = null;
             UnsubscribeFromModelChanges();
             _childRows?.Dispose();
         }
@@ -297,6 +301,24 @@ namespace TreeDataGridCore.Models
                 SubscribeToModelChanges();
             else
                 UnsubscribeFromModelChanges();
+            UpdateChildrenPropertySubscription();
+        }
+
+        private void UpdateChildrenPropertySubscription()
+        {
+            // Do not evaluate a lazy Children binding just to show a collapsed
+            // expander. Collection-reference observation is needed once expanded,
+            // or after discovering an empty collection that can later be replaced.
+            if (_isExpanded || _showExpander == false)
+            {
+                _childrenPropertySubscription ??= (_expanderColumn as IModelChildrenObserver<TModel>)?
+                    .SubscribeToChildren(Model, RefreshChildModels);
+            }
+            else
+            {
+                _childrenPropertySubscription?.Dispose();
+                _childrenPropertySubscription = null;
+            }
         }
 
         private void Collapse()

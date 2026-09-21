@@ -31,9 +31,9 @@ internal static class RuntimeChecks
             CompareDescending = (x, y) => string.CompareOrdinal(y?.Name, x?.Name),
         }));
         grid.Model = source;
-        grid.Scroll.ChangeView(0, 0, null, true);
+        grid.Scroll!.ChangeView(0, 0, null, true);
         await Task.Delay(300);
-        var first = (TrackedCell)grid.RowsPresenter.RealizedCells.Single(x => x.RowIndex == 0);
+        var first = (TrackedCell)grid.RowsPresenter!.RealizedCells.Single(x => x.RowIndex == 0);
         var parent = VisualTreeHelper.GetParent(first);
         var text = Descendants(first).OfType<TextBlock>().Single(x => x.Text == "Row 000");
         var templateParent = VisualTreeHelper.GetParent(text);
@@ -43,7 +43,7 @@ internal static class RuntimeChecks
 
         items[0] = new Item("Replacement");
         await Task.Delay(100);
-        Check(ReferenceEquals(first, grid.RowsPresenter.RealizedCells.Single(x => x.RowIndex == 0)), "Replacement discarded its native cell.");
+        Check(ReferenceEquals(first, grid.RowsPresenter!.RealizedCells.Single(x => x.RowIndex == 0)), "Replacement discarded its native cell.");
         Check(first.Begins == 1 && first.Ends == 1 && first.LastSucceeded, "Replacement hooks are unbalanced.");
         Check(ReferenceEquals(parent, VisualTreeHelper.GetParent(first)), "Replacement changed the native parent.");
         Check(ReferenceEquals(templateParent, VisualTreeHelper.GetParent(text)) && text.Text == "Replacement", "Replacement recreated or failed to update template content.");
@@ -57,13 +57,13 @@ internal static class RuntimeChecks
         Check(first.Loads == loads && first.Unloads == unloads, "Sort unloaded a retained cell.");
         Check(((Item)source.Rows[0].Model!).Name == "Row 199", "Sort did not reorder the Core rows.");
         Check(text.Text == "Row 199", "Sort did not refresh retained template content.");
-        foreach (var cell in grid.RowsPresenter.RealizedCells)
+        foreach (var cell in grid.RowsPresenter!.RealizedCells)
             Check(ReferenceEquals(cell.RowModel, source.Rows[cell.RowIndex].Model), "Sort retained an obsolete model.");
 
         var beforeScroll = controls.Count;
-        grid.Scroll.ChangeView(null, 1500, null, true);
+        grid.Scroll!.ChangeView(null, 1500, null, true);
         await Task.Delay(200);
-        Check(grid.RowsPresenter.RealizedCells.All(x => x.RowIndex > 0), "Scroll did not advance the viewport.");
+        Check(grid.RowsPresenter!.RealizedCells.All(x => x.RowIndex > 0), "Scroll did not advance the viewport.");
         Check(controls.Count <= beforeScroll + 4, "Scroll allocated a second viewport of native controls.");
         Check(first.Unloads == unloads && ReferenceEquals(parent, VisualTreeHelper.GetParent(first)), "Scrolling detached a pooled control.");
         Check(ReferenceEquals(templateParent, VisualTreeHelper.GetParent(text)), "Scrolling discarded the retained template.");
@@ -74,9 +74,9 @@ internal static class RuntimeChecks
         using var unsorted = new FlatTreeDataGridSource<Item>(items);
         unsorted.Columns.Add(new TextColumn<Item, string>("Name", x => x.Name));
         grid.Model = unsorted;
-        grid.Scroll.ChangeView(0, 0, null, true);
+        grid.Scroll!.ChangeView(0, 0, null, true);
         await Task.Delay(200);
-        var retained = grid.RowsPresenter.RealizedCells.First(x => x.RowIndex == 2);
+        var retained = grid.RowsPresenter!.RealizedCells.First(x => x.RowIndex == 2);
         var retainedRow = retained.RowModel;
         var oldIndex = retained.RowIndex;
         items.Insert(0, new Item("Inserted"));
@@ -124,21 +124,21 @@ internal static class RuntimeChecks
         Console.WriteLine("UNO_TEXT_PRESENTATION_PASSED: alignment, wrapping, trimming, retained parent, reset to template defaults");
         grid.Model = null;
         await Task.Delay(100);
-        Check(grid.RowsPresenter.RealizedCells.Count == 0, "Source removal retained realized cells.");
+        Check(grid.RowsPresenter!.RealizedCells.Count == 0, "Source removal retained realized cells.");
         using var wide = new FlatTreeDataGridSource<Item>(items.Take(4).ToArray());
         for (var i = 0; i < 1000; ++i)
             wide.Columns.Add(new TextColumn<Item, string>($"Column {i}", x => x.Name, width: new(100)));
         grid.Model = wide;
-        grid.Scroll.ChangeView(0, 0, null, true);
+        grid.Scroll!.ChangeView(0, 0, null, true);
         await Task.Delay(200);
-        var columnBudget = (int)Math.Ceiling(grid.Scroll.ViewportWidth / 100) + 1;
-        Check(grid.ColumnHeadersPresenter.RealizedCount <= columnBudget, "Headers are not horizontally virtualized.");
-        Check(grid.RowsPresenter.RealizedCells.Count <= 4 * columnBudget, "Cells are not horizontally virtualized.");
-        grid.Scroll.ChangeView(90000, null, null, true);
+        var columnBudget = (int)Math.Ceiling(grid.Scroll!.ViewportWidth / 100) + 1;
+        Check(grid.ColumnHeadersPresenter!.RealizedCount <= columnBudget, "Headers are not horizontally virtualized.");
+        Check(grid.RowsPresenter!.RealizedCells.Count <= 4 * columnBudget, "Cells are not horizontally virtualized.");
+        grid.Scroll!.ChangeView(90000, null, null, true);
         await Task.Delay(200);
-        Check(grid.RowsPresenter.RealizedCells.Count > 0 && grid.RowsPresenter.RealizedCells.All(x => x.ColumnIndex >= 899), "Wide-grid scroll failed to advance column realization.");
-        Check(grid.ColumnHeadersPresenter.RealizedCount <= columnBudget, "Scrolling grew the header realization window.");
-        foreach (var cell in grid.RowsPresenter.RealizedCells)
+        Check(grid.RowsPresenter!.RealizedCells.Count > 0 && grid.RowsPresenter!.RealizedCells.All(x => x.ColumnIndex >= 899), "Wide-grid scroll failed to advance column realization.");
+        Check(grid.ColumnHeadersPresenter!.RealizedCount <= columnBudget, "Scrolling grew the header realization window.");
+        foreach (var cell in grid.RowsPresenter!.RealizedCells)
             Check(cell.ActualWidth == 100, "Recycled wide-grid cell has incorrect geometry.");
         grid.Model = null;
         Console.WriteLine("UNO_RUNTIME_RECYCLING_PASSED: replacement, template identity, parent retention, sort, scrolling, index shifts, column reorder/resize, source removal, 1000-column virtualization");

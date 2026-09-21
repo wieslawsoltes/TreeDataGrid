@@ -6,12 +6,43 @@ using TreeDataGridCore;
 using TreeDataGridCore.Models;
 using TreeDataGridCore.Selection;
 using Uno.Controls.Presentation;
+using Uno.Controls;
 using Xunit;
 
 namespace TreeDataGrid.Uno.Tests;
 
 public class SelectionTests
 {
+    [Fact]
+    public void Container_selection_contract_distinguishes_rows_and_cells_and_forwards_notifications()
+    {
+        using var source = Source();
+        using var view = TreeDataGridPresentation.Create(source);
+        Uno.Controls.Selection.ITreeDataGridSelectionInteraction interaction = view.Selection;
+        var changes = 0;
+        void Changed(object? sender, EventArgs args) => ++changes;
+        interaction.SelectionChanged += Changed;
+        source.SortBy(source.Columns[0], ListSortDirection.Ascending);
+        view.Selection.Select(0, 0);
+        Assert.True(interaction.IsRowSelected(0));
+        Assert.True(interaction.IsRowSelected(source.Rows[0]));
+        Assert.False(interaction.IsCellSelected(0, 0));
+        Assert.False(interaction.IsRowSelected(-1));
+        Assert.True(changes > 0);
+        interaction.SelectionChanged -= Changed;
+        changes = 0;
+        view.Selection.Configure(TreeDataGridSelectionMode.Cell);
+        view.Selection.Select(1, 1);
+        Assert.True(interaction.IsCellSelected(1, 1));
+        Assert.False(interaction.IsRowSelected(1));
+        Assert.False(interaction.IsRowSelected(source.Rows[1]));
+        Assert.Equal(0, changes);
+        source.Columns.Clear();
+        view.Selection.Configure(TreeDataGridSelectionMode.Row);
+        source.RowSelection!.SelectedIndex = new IndexPath(1);
+        Assert.True(interaction.IsRowSelected(source.Rows.ModelIndexToRowIndex(new IndexPath(1))));
+    }
+
     [Fact]
     public void Default_selection_uses_exact_Core_model()
     {

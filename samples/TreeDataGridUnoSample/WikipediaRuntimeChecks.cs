@@ -23,20 +23,21 @@ internal static class WikipediaRuntimeChecks
         await Task.Delay(300);
         var grid = page.Grid;
         var source = page.Wikipedia.Source;
-        Check(ReferenceEquals(grid.Presentation!.Rows, source.Rows), "Wikipedia copied the Core rows.");
+        Check(ReferenceEquals(grid.Presentation!.Model.Rows, source.Rows) && source.Rows.Count > 0 &&
+            ReferenceEquals(grid.Presentation.Rows[0], source.Rows[0]), "Wikipedia copied the Core source or row objects.");
         Check(source.Rows.Count == 240, "Wikipedia offline fixture is not populated.");
-        Check(grid.RowsPresenter.RealizedCells.Count < 100, "Wikipedia realized all rows.");
-        Check(grid.RowsPresenter.RealizedCells.Select(c => grid.RowsPresenter.GetRowHeight(c.RowIndex)).Distinct().Count() > 1,
+        Check(grid.RowsPresenter!.RealizedCells.Count < 100, "Wikipedia realized all rows.");
+        Check(grid.RowsPresenter!.RealizedCells.Select(c => grid.RowsPresenter!.GetRowHeight(c.RowIndex)).Distinct().Count() > 1,
             "Wikipedia extracts did not produce measured wrapping heights.");
         var items = source.Items.ToArray();
         Check(items.Count(x => x.HasCreatedImage) < 40 && !items[200].HasCreatedImage,
             "Wikipedia eagerly created images for unrealized rows.");
         VerifyContent(page);
-        var firstImage = ShowcaseRuntimeChecks.Descendants(grid.RowsPresenter.RealizedCells.Single(c => c.RowIndex == 0 && c.ColumnIndex == 0)).OfType<Image>().Single();
+        var firstImage = ShowcaseRuntimeChecks.Descendants(grid.RowsPresenter!.RealizedCells.Single(c => c.RowIndex == 0 && c.ColumnIndex == 0)).OfType<Image>().Single();
         for (var i = 0; i < 30 && (firstImage.Source as BitmapImage)?.PixelWidth is not > 0; ++i) await Task.Delay(50);
         Check((firstImage.Source as BitmapImage)?.PixelWidth > 0, "Wikipedia packaged image did not decode.");
         var parent = VisualTreeHelper.GetParent(firstImage);
-        var retainedCell = grid.RowsPresenter.RealizedCells.Single(c => c.RowIndex == 0 && c.ColumnIndex == 0);
+        var retainedCell = grid.RowsPresenter!.RealizedCells.Single(c => c.RowIndex == 0 && c.ColumnIndex == 0);
         var loads = 0;
         var unloads = 0;
         RoutedEventHandler loaded = (_, _) => ++loads;
@@ -48,26 +49,26 @@ internal static class WikipediaRuntimeChecks
             await capture(page, "wikipedia");
             Check(grid.BringCellIntoView(200, 2), "Wikipedia bring-into-view failed.");
             await Task.Delay(200);
-            Check(grid.RowsPresenter.RealizedCells.Any(c => c.RowIndex == 200), "Wikipedia scroll target was not realized.");
+            Check(grid.RowsPresenter!.RealizedCells.Any(c => c.RowIndex == 200), "Wikipedia scroll target was not realized.");
             VerifyContent(page);
             Check(loads == 0 && unloads == 0 && ReferenceEquals(parent, VisualTreeHelper.GetParent(firstImage)),
                 "Wikipedia scrolling detached retained cells or image templates.");
-            Check(grid.RowsPresenter.RealizedCells.Count < 100, "Wikipedia scrolling lost virtualization.");
+            Check(grid.RowsPresenter!.RealizedCells.Count < 100, "Wikipedia scrolling lost virtualization.");
             source.SortBy(source.Columns[1], System.ComponentModel.ListSortDirection.Descending);
-            grid.Scroll.ChangeView(0, 0, null, true);
+            grid.Scroll!.ChangeView(0, 0, null, true);
             await Task.Delay(200);
             VerifyContent(page);
             Check(((OnThisDayArticle)source.Rows[0].Model!).Titles!.Normalized == "Offline article 240", "Wikipedia title sorting failed.");
             page.Wikipedia.ShowOffline();
             await Task.Delay(200);
             VerifyContent(page);
-            if (Environment.GetCommandLineArgs().Contains("--wikipedia-live"))
+            if (TreeDataGridUnoSamples.SampleRunContext.HasArgument("--wikipedia-live"))
             {
                 await page.Wikipedia.ReloadAsync();
                 await Task.Delay(300);
                 VerifyContent(page);
                 Console.WriteLine($"UNO_WIKIPEDIA_LIVE_RESULT: {page.Wikipedia.Status}");
-                var articles = grid.RowsPresenter.RealizedCells.Select(x => x.RowModel).OfType<OnThisDayArticle>()
+                var articles = grid.RowsPresenter!.RealizedCells.Select(x => x.RowModel).OfType<OnThisDayArticle>()
                     .Where(x => x.Thumbnail?.Source?.StartsWith("https:", StringComparison.Ordinal) == true).Distinct().ToArray();
                 await Task.WhenAll(articles.Select(x => x.ImageLoadingTask));
                 var decoded = articles.Count(x => x.Image?.PixelWidth > 0);
@@ -121,7 +122,7 @@ internal static class WikipediaRuntimeChecks
         {
             await Task.Delay(150);
             Check(requested, "Realizing a remote image did not start its lazy download.");
-            var image = ShowcaseRuntimeChecks.Descendants(grid.RowsPresenter.RealizedCells.Single(c => c.ColumnIndex == 0)).OfType<Image>().Single();
+            var image = ShowcaseRuntimeChecks.Descendants(grid.RowsPresenter!.RealizedCells.Single(c => c.ColumnIndex == 0)).OfType<Image>().Single();
             var parent = VisualTreeHelper.GetParent(image);
             var oldImage = article.Image;
             items[0] = replacement;
@@ -150,7 +151,7 @@ internal static class WikipediaRuntimeChecks
 
     private static void VerifyContent(MainPage page)
     {
-        foreach (var cell in page.Grid.RowsPresenter.RealizedCells)
+        foreach (var cell in page.Grid.RowsPresenter!.RealizedCells)
         {
             var article = (OnThisDayArticle)page.Wikipedia.Source.Rows[cell.RowIndex].Model!;
             Check(ReferenceEquals(cell.RowModel, article), "Wikipedia retained a previous article model.");

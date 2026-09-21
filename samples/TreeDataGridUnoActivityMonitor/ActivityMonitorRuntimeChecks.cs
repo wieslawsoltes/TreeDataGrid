@@ -38,7 +38,7 @@ internal static class ActivityMonitorRuntimeChecks
             Check(section.InspectorTitle == selected.Name, "Selection did not update the inspector.");
             Check(source.SortBy(source.Columns[1], ListSortDirection.Descending), "Numeric sort is missing.");
             await SettleAsync(page);
-            var identity = page.Table.RowsPresenter.RealizedCells.First(x => x.ColumnIndex == 0);
+            var identity = page.Table.RowsPresenter!.RealizedCells.First(x => x.ColumnIndex == 0);
             var parent = VisualTreeHelper.GetParent(identity);
             var text = Descendants(identity).OfType<TextBlock>().First(x => x.Text == ((MonitorRowBase)identity.RowModel!).Name);
             var textParent = VisualTreeHelper.GetParent(text);
@@ -56,7 +56,7 @@ internal static class ActivityMonitorRuntimeChecks
                 "Snapshot replacement detached/re-attached a retained native cell.");
             Check(ReferenceEquals(textParent, VisualTreeHelper.GetParent(text)), "Snapshot replacement discarded template content.");
             Check(text.Text == ((MonitorRowBase)identity.RowModel!).Name, "Retained identity template did not bind the new row.");
-            foreach (var cell in page.Table.RowsPresenter.RealizedCells)
+            foreach (var cell in page.Table.RowsPresenter!.RealizedCells)
                 Check(ReferenceEquals(cell.RowModel, source.Rows[cell.RowIndex].Model), "Snapshot retained an obsolete row model.");
             var remainsVisible = source.Rows.Any(x => ((MonitorRowBase)x.Model!).StableId == selected.StableId);
             if (remainsVisible)
@@ -74,7 +74,7 @@ internal static class ActivityMonitorRuntimeChecks
             }
             Check(!ReferenceEquals(selected, selection.SelectedItem), "Telemetry did not replace row objects.");
             selected = (MonitorRowBase)selection.SelectedItem!;
-            var numeric = page.Table.RowsPresenter.RealizedCells.First(x => x.ColumnIndex == 1);
+            var numeric = page.Table.RowsPresenter!.RealizedCells.First(x => x.ColumnIndex == 1);
             Check(Descendants(numeric).OfType<TextBlock>().Any(x => x.TextAlignment == TextAlignment.Right && x.Text.Length > 0),
                 "Numeric text was not right-aligned by the Uno presentation.");
             await CaptureAsync(page, "activity-" + kind.ToString().ToLowerInvariant());
@@ -93,9 +93,9 @@ internal static class ActivityMonitorRuntimeChecks
             Check(source.Rows.Count == count, "Clearing the filter lost rows.");
             page.Table.BringCellIntoView(count - 1, 0);
             await SettleAsync(page);
-            Check(page.Table.RowsPresenter.RealizedCells.Any(x => x.RowIndex == count - 1), "Last process cannot be brought into view.");
-            Check(page.Table.RowsPresenter.RealizedCells.Count < 150, "Activity Monitor realized an unbounded table.");
-            page.Table.Scroll.ChangeView(0, 0, null, true);
+            Check(page.Table.RowsPresenter!.RealizedCells.Any(x => x.RowIndex == count - 1), "Last process cannot be brought into view.");
+            Check(page.Table.RowsPresenter!.RealizedCells.Count < 150, "Activity Monitor realized an unbounded table.");
+            page.Table.Scroll!.ChangeView(0, 0, null, true);
             Console.WriteLine($"UNO_ACTIVITY_SECTION_PASSED: {kind}, rows={count}, samples={section.TrendSeries.Samples.Length}");
         }
         page.Stop();
@@ -147,7 +147,7 @@ internal static class ActivityMonitorRuntimeChecks
     }
     private static async Task CaptureAsync(UIElement element, string name)
     {
-        var args = Environment.GetCommandLineArgs();
+        var args = TreeDataGridUnoSamples.SampleRunContext.Arguments;
         var index = Array.IndexOf(args, "--screenshot-dir");
         if (index < 0 || index + 1 >= args.Length) return;
         var directory = Path.GetFullPath(args[index + 1]);

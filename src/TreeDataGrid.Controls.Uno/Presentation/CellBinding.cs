@@ -41,6 +41,7 @@ internal sealed class CellBinding<TModel, TValue> : IDisposable where TModel : c
     public TValue? Value { get; private set; }
     public Exception? Error { get; private set; }
     public bool CanWrite => _column.Setter is not null;
+    internal bool UsesColumn(ValueColumn<TModel, TValue> column) => ReferenceEquals(_column, column);
 
     public void Retarget(TModel model)
     {

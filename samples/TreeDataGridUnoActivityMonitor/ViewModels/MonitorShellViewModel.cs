@@ -492,7 +492,7 @@ public abstract class MetricSectionViewModel : NotifyingBase, IDisposable
     }
 
     public abstract ITreeDataGridSource Source { get; }
-    public abstract void ConfigurePresentation(TreeDataGridPresentationOptions options);
+    public abstract ITreeDataGridPresentationOptions PresentationOptions { get; }
     public abstract void Dispose();
 
     public void ApplySnapshot(MetricSectionSnapshot snapshot)
@@ -527,6 +527,12 @@ internal abstract partial class MetricSectionViewModel<TRow> : MetricSectionView
         TypedSource = new FlatTreeDataGridSource<TRow>(Array.Empty<TRow>());
         ConfigureColumns(TypedSource.Columns);
 
+        var presentation = new TreeDataGridPresentationOptions<TRow>();
+        presentation.Columns["Numeric"] = column => new Uno.Controls.Models.TreeDataGrid.TextColumn<TRow, string>(
+            (ValueColumn<TRow, string?>)column,
+            new Uno.Controls.Models.TreeDataGrid.TextColumnOptions<TRow> { TextAlignment = Microsoft.UI.Xaml.TextAlignment.Right });
+        PresentationOptions = presentation;
+
         _selection = new TreeDataGridRowSelectionModel<TRow>(TypedSource)
         {
             SingleSelect = true,
@@ -537,10 +543,7 @@ internal abstract partial class MetricSectionViewModel<TRow> : MetricSectionView
 
     protected FlatTreeDataGridSource<TRow> TypedSource { get; }
     public override ITreeDataGridSource Source => TypedSource;
-    public override void ConfigurePresentation(TreeDataGridPresentationOptions options) =>
-        options.Columns["Numeric"] = column => new ValueCellColumn<TRow, string?>(
-            (ValueColumn<TRow, string?>)column, CellKind.Text,
-            new TextCellOptions { Alignment = Microsoft.UI.Xaml.TextAlignment.Right });
+    public override ITreeDataGridPresentationOptions PresentationOptions { get; }
 
     public override void Dispose()
     {
