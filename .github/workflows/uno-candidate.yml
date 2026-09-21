@@ -30,6 +30,13 @@ jobs:
         run: |
           mkdir -p artifacts/candidate
           python3 .github/uno-candidate.py
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          for name in json.loads(Path('artifacts/candidate/files.json').read_text()):
+              path = Path(name)
+              path.write_text('\n'.join(line.rstrip() for line in path.read_text().splitlines()) + '\n')
+          PY
           git diff --check
       - name: Install X11 dependencies
         run: |
