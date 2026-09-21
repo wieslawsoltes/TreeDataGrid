@@ -14,6 +14,7 @@ using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation;
 using Microsoft.UI.Input;
 using RowDropPosition = Uno.Controls.TreeDataGridRowDropPosition;
+using IndexPath = TreeDataGridCore.IndexPath;
 
 namespace Uno.Controls;
 

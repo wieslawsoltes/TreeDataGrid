@@ -1,20 +1,88 @@
 using Microsoft.UI.Input;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 
 namespace Uno.Controls.Primitives;
 
-/// <summary>Native header grip; Uno/WinUI expose cursor configuration to subclasses.</summary>
-public class TreeDataGridColumnResizer : Thumb
+/// <summary>
+/// A themeable header grip that delegates dragging and pointer capture to a
+/// native Thumb. Thumb is sealed on Uno and Windows App SDK.
+/// </summary>
+[TemplatePart(Name = "PART_Thumb", Type = typeof(Thumb))]
+public partial class TreeDataGridColumnResizer : Control
 {
     private InputSystemCursor? _resizeCursor;
+    private Thumb? _thumb;
+    private int _templateVersion;
+
     public TreeDataGridColumnResizer()
     {
-        Loaded += (_, _) => ProtectedCursor = _resizeCursor ??= InputSystemCursor.Create(InputSystemCursorShape.SizeWestEast);
-        Unloaded += (_, _) =>
+        DefaultStyleKey = typeof(TreeDataGridColumnResizer);
+        Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
+    }
+
+    public event DragStartedEventHandler? DragStarted;
+    public event DragDeltaEventHandler? DragDelta;
+    public event DragCompletedEventHandler? DragCompleted;
+
+    public bool IsDragging => _thumb?.IsDragging == true;
+    public void CancelDrag() => _thumb?.CancelDrag();
+
+    protected override void OnApplyTemplate()
+    {
+        var version = ++_templateVersion;
+        var previous = _thumb;
+        if (previous is not null)
+        {
+            // Complete the old drag while its completion event is still wired,
+            // so a header cannot remain in the resizing state after retemplating.
+            try { previous.CancelDrag(); }
+            finally
+            {
+                previous.DragStarted -= OnDragStarted;
+                previous.DragDelta -= OnDragDelta;
+                previous.DragCompleted -= OnDragCompleted;
+                if (ReferenceEquals(_thumb, previous)) _thumb = null;
+            }
+        }
+        if (version != _templateVersion) return;
+        base.OnApplyTemplate();
+        if (version != _templateVersion) return;
+        _thumb = GetTemplateChild("PART_Thumb") as Thumb;
+        if (_thumb is not null)
+        {
+            _thumb.DragStarted += OnDragStarted;
+            _thumb.DragDelta += OnDragDelta;
+            _thumb.DragCompleted += OnDragCompleted;
+        }
+    }
+
+    private void OnLoaded(object sender, RoutedEventArgs e) =>
+        ProtectedCursor = _resizeCursor ??= InputSystemCursor.Create(InputSystemCursorShape.SizeWestEast);
+
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        try { CancelDrag(); }
+        finally
         {
             ProtectedCursor = null;
             _resizeCursor?.Dispose();
             _resizeCursor = null;
-        };
+        }
+    }
+
+    private void OnDragStarted(object sender, DragStartedEventArgs e)
+    {
+        if (ReferenceEquals(sender, _thumb)) DragStarted?.Invoke(this, e);
+    }
+    private void OnDragDelta(object sender, DragDeltaEventArgs e)
+    {
+        if (ReferenceEquals(sender, _thumb)) DragDelta?.Invoke(this, e);
+    }
+    private void OnDragCompleted(object sender, DragCompletedEventArgs e)
+    {
+        if (ReferenceEquals(sender, _thumb)) DragCompleted?.Invoke(this, e);
     }
 }

@@ -4,9 +4,10 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using TreeDataGridCore;
 using TreeDataGridCore.Models;
-using UI = Uno.Controls.Models.TreeDataGrid;
 
 namespace Uno.Controls.Presentation;
+
+using UI = global::Uno.Controls.Models.TreeDataGrid;
 
 // One view facade, not another row collection: indexers/enumeration/mappings
 // return the Core objects directly. Active public cells belong to their caller.

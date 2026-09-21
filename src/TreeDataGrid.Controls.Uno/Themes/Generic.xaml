@@ -47,10 +47,52 @@
     </ResourceDictionary>
   </ResourceDictionary.ThemeDictionaries>
 
-  <PathGeometry x:Key="TreeDataGridSortIconDescendingPath" Figures="M1875 1011l-787 787v-1798h-128v1798l-787 -787l-90 90l941 941l941 -941z" />
-  <PathGeometry x:Key="TreeDataGridSortIconAscendingPath" Figures="M1965 947l-941 -941l-941 941l90 90l787 -787v1798h128v-1798l787 787z" />
-  <PathGeometry x:Key="TreeDataGridItemCollapsedChevronPathData" Figures="M 1,0 10,10 l -9,10 -1,-1 L 8,10 -0,1 Z" />
-  <PathGeometry x:Key="TreeDataGridItemExpandedChevronPathData" Figures="M0,1 L10,10 20,1 19,0 10,8 1,0 Z" />
+  <!-- Explicit figures retain the original glyph vertices on every head.
+       Uno's compiled XAML does not convert a string to PathFigureCollection. -->
+  <PathGeometry x:Key="TreeDataGridSortIconDescendingPath">
+    <PathFigure StartPoint="1875,1011" IsClosed="True">
+      <LineSegment Point="1088,1798" /><LineSegment Point="1088,0" />
+      <LineSegment Point="960,0" /><LineSegment Point="960,1798" />
+      <LineSegment Point="173,1011" /><LineSegment Point="83,1101" />
+      <LineSegment Point="1024,2042" /><LineSegment Point="1965,1101" />
+    </PathFigure>
+  </PathGeometry>
+  <PathGeometry x:Key="TreeDataGridSortIconAscendingPath">
+    <PathFigure StartPoint="1965,947" IsClosed="True">
+      <LineSegment Point="1024,6" /><LineSegment Point="83,947" />
+      <LineSegment Point="173,1037" /><LineSegment Point="960,250" />
+      <LineSegment Point="960,2048" /><LineSegment Point="1088,2048" />
+      <LineSegment Point="1088,250" /><LineSegment Point="1875,1037" />
+    </PathFigure>
+  </PathGeometry>
+  <PathGeometry x:Key="TreeDataGridItemCollapsedChevronPathData">
+    <PathFigure StartPoint="1,0" IsClosed="True">
+      <LineSegment Point="10,10" /><LineSegment Point="1,20" />
+      <LineSegment Point="0,19" /><LineSegment Point="8,10" /><LineSegment Point="0,1" />
+    </PathFigure>
+  </PathGeometry>
+  <PathGeometry x:Key="TreeDataGridItemExpandedChevronPathData">
+    <PathFigure StartPoint="0,1" IsClosed="True">
+      <LineSegment Point="10,10" /><LineSegment Point="20,1" />
+      <LineSegment Point="19,0" /><LineSegment Point="10,8" /><LineSegment Point="1,0" />
+    </PathFigure>
+  </PathGeometry>
+
+  <Style TargetType="primitives:TreeDataGridColumnResizer">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="IsTabStop" Value="False" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="primitives:TreeDataGridColumnResizer">
+          <Thumb x:Name="PART_Thumb" Background="{TemplateBinding Background}" IsTabStop="False">
+            <Thumb.Template>
+              <ControlTemplate TargetType="Thumb"><Border Background="{TemplateBinding Background}" /></ControlTemplate>
+            </Thumb.Template>
+          </Thumb>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
 
   <DataTemplate x:Key="TreeDataGridHeaderStringTemplate">
     <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" />
@@ -130,11 +172,7 @@
                       Margin="2,0" VerticalAlignment="Center" Fill="{TemplateBinding Foreground}" Visibility="Collapsed" />
                 <Rectangle Grid.Column="2" Width="1" HorizontalAlignment="Right"
                            Fill="{ThemeResource TreeDataGridGridLinesBrush}" />
-                <primitives:TreeDataGridColumnResizer x:Name="PART_Resizer" Grid.Column="2" Width="5" Background="Transparent" IsTabStop="False">
-                  <Thumb.Template>
-                    <ControlTemplate TargetType="Thumb"><Border Background="{TemplateBinding Background}" /></ControlTemplate>
-                  </Thumb.Template>
-                </primitives:TreeDataGridColumnResizer>
+                <primitives:TreeDataGridColumnResizer x:Name="PART_Resizer" Grid.Column="2" Width="5" Background="Transparent" IsTabStop="False" />
               </Grid>
             </Border>
           </Grid>

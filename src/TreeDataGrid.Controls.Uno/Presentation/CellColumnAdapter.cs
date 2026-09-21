@@ -5,9 +5,10 @@ using Microsoft.UI.Xaml;
 using TreeDataGridCore.Models;
 using UICell = Uno.Controls.Models.TreeDataGrid.ICell;
 using UITextCell = Uno.Controls.Models.TreeDataGrid.ITextCell;
-using UI = Uno.Controls.Models.TreeDataGrid;
 
 namespace Uno.Controls.Presentation;
+
+using UI = global::Uno.Controls.Models.TreeDataGrid;
 
 /// <summary>Adapts a public column implementation without copying its Core source.</summary>
 internal sealed class CellColumnAdapter<TModel> : CellColumn where TModel : class

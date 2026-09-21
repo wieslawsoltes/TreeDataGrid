@@ -1,9 +1,10 @@
 using System;
 using Microsoft.UI.Xaml.Data;
 using TreeDataGridCore.Models;
-using UI = Uno.Controls.Models.TreeDataGrid;
 
 namespace Uno.Controls.Presentation;
+
+using UI = global::Uno.Controls.Models.TreeDataGrid;
 
 internal sealed class DeclarativeCellColumn<TModel> : ValueCellColumn<TModel, object?> where TModel : class
 {

@@ -10,7 +10,7 @@ using Uno.Controls.Models.TreeDataGrid;
 namespace Uno.Controls.Primitives;
 
 /// <summary>A themeable column header with independent content, sort glyph and resize grip.</summary>
-[TemplatePart(Name = "PART_Resizer", Type = typeof(Thumb))]
+[TemplatePart(Name = "PART_Resizer", Type = typeof(Control))]
 public partial class TreeDataGridColumnHeader : Button
 {
     protected override Microsoft.UI.Xaml.Automation.Peers.AutomationPeer OnCreateAutomationPeer() =>
@@ -21,7 +21,7 @@ public partial class TreeDataGridColumnHeader : Button
         nameof(Header), typeof(object), typeof(TreeDataGridColumnHeader), new PropertyMetadata(null));
     public static readonly DependencyProperty SortDirectionProperty = DependencyProperty.Register(
         nameof(SortDirection), typeof(ListSortDirection?), typeof(TreeDataGridColumnHeader), new PropertyMetadata(null, StateChanged));
-    private Thumb? _resizer;
+    private Control? _resizer;
     private TreeDataGrid? _owner;
     private IColumns? _columns;
     private IColumn? _model;
@@ -139,23 +139,40 @@ public partial class TreeDataGridColumnHeader : Button
     }
     protected override void OnApplyTemplate()
     {
-        if (_resizer is not null)
+        if (_resizer is Thumb oldThumb)
         {
-            _resizer.DragStarted -= OnResizeStarted;
-            _resizer.DragDelta -= OnResizeDelta;
-            _resizer.DragCompleted -= OnResizeCompleted;
-            _resizer.DoubleTapped -= OnResizeDoubleTapped;
+            oldThumb.DragStarted -= OnResizeStarted;
+            oldThumb.DragDelta -= OnResizeDelta;
+            oldThumb.DragCompleted -= OnResizeCompleted;
+            oldThumb.CancelDrag();
         }
+        else if (_resizer is TreeDataGridColumnResizer oldGrip)
+        {
+            oldGrip.DragStarted -= OnResizeStarted;
+            oldGrip.DragDelta -= OnResizeDelta;
+            oldGrip.DragCompleted -= OnResizeCompleted;
+            oldGrip.CancelDrag();
+        }
+        if (_resizer is not null) _resizer.DoubleTapped -= OnResizeDoubleTapped;
         _resizing = false;
         base.OnApplyTemplate();
-        _resizer = GetTemplateChild("PART_Resizer") as Thumb;
-        if (_resizer is not null)
+        // Keep accepting a native Thumb in application-supplied header templates.
+        // The default theme uses a composed grip because WinUI Thumb is sealed.
+        var part = GetTemplateChild("PART_Resizer");
+        _resizer = part is Thumb or TreeDataGridColumnResizer ? (Control)part : null;
+        if (_resizer is Thumb thumb)
         {
-            _resizer.DragStarted += OnResizeStarted;
-            _resizer.DragDelta += OnResizeDelta;
-            _resizer.DragCompleted += OnResizeCompleted;
-            _resizer.DoubleTapped += OnResizeDoubleTapped;
+            thumb.DragStarted += OnResizeStarted;
+            thumb.DragDelta += OnResizeDelta;
+            thumb.DragCompleted += OnResizeCompleted;
         }
+        else if (_resizer is TreeDataGridColumnResizer grip)
+        {
+            grip.DragStarted += OnResizeStarted;
+            grip.DragDelta += OnResizeDelta;
+            grip.DragCompleted += OnResizeCompleted;
+        }
+        if (_resizer is not null) _resizer.DoubleTapped += OnResizeDoubleTapped;
         UpdateState();
     }
     private static void StateChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e) =>

@@ -4,9 +4,10 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
 using Uno.Controls.Models.TreeDataGrid;
 using Uno.Controls.Presentation;
-using Core = TreeDataGridCore.Models;
 
 namespace Uno.Controls;
+
+using Core = global::TreeDataGridCore.Models;
 
 public abstract class TreeDataGridColumn : ColumnCreateOptions
 {

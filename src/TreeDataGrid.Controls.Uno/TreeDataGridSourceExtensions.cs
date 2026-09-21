@@ -4,13 +4,14 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
 using TreeDataGridCore;
 using Uno.Controls.Presentation;
-using Core = TreeDataGridCore.Models;
 using GridLength = Microsoft.UI.Xaml.GridLength;
 using GridUnitType = Microsoft.UI.Xaml.GridUnitType;
 using Uno.Controls.Models.TreeDataGrid;
 
 namespace Uno.Controls
 {
+    using Core = global::TreeDataGridCore.Models;
+
     public class ColumnCreateOptions
     {
         public GridLength Width { get; set; } = GridLength.Auto;
