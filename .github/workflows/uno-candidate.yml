@@ -1,0 +1,188 @@
+name: Uno candidate validation
+
+# Temporary, branch-scoped repair harness. It creates unreferenced candidate Git
+# objects for review; it NEVER updates a branch or publishes a package.
+on:
+  push:
+    branches: [codex/uno-core-port]
+    paths: [.github/workflows/uno-candidate.yml]
+permissions:
+  contents: write
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      TreeDataGridUnoSampleTargetFrameworks: net10.0-desktop
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.201
+      - name: Apply exact reviewed candidate edits
+        shell: bash
+        run: |
+          mkdir -p artifacts/candidate
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          changed = []
+          def replace(name, old, new, count=1):
+              path = Path(name)
+              text = path.read_text()
+              assert text.count(old) == count, (name, old, text.count(old))
+              path.write_text(text.replace(old, new))
+              if name not in changed: changed.append(name)
+          presenter = 'src/TreeDataGrid.Controls.Uno/Primitives/TreeDataGridPresenterBase.cs'
+          replace(presenter, 'e.EffectiveViewport.Size == default',
+                  'new Size(e.EffectiveViewport.Width, e.EffectiveViewport.Height) == default')
+          replace(presenter, 'Viewport.Size != default', 'new Size(Viewport.Width, Viewport.Height) != default')
+          replace(presenter, '_scrollAnchorProvider = FindAncestor<IScrollAnchorProvider>();',
+                  '_scrollAnchorProvider = NativeScrollAnchoring.IsSupported ? FindAncestor<IScrollAnchorProvider>() : null;')
+          replace(presenter, '_scrollAnchorProvider?.RegisterAnchorCandidate(e);',
+                  'NativeScrollAnchoring.Register(_scrollAnchorProvider, e);')
+          replace(presenter, '_scrollAnchorProvider?.UnregisterAnchorCandidate(element);',
+                  'NativeScrollAnchoring.Unregister(_scrollAnchorProvider, element);', 2)
+          helper = 'src/TreeDataGrid.Controls.Uno/Primitives/NativeScrollAnchoring.cs'
+          assert not Path(helper).exists()
+          Path(helper).write_text('''using Microsoft.UI.Xaml;
+          using Microsoft.UI.Xaml.Controls;
+          using Windows.Foundation.Metadata;
+
+          namespace Uno.Controls.Primitives;
+
+          // The specialized presenters retain their own source/viewport anchors.
+          // This optional bridge uses native anchoring only on implemented heads.
+          // Cache metadata once, not for every realized row/cell.
+          internal static class NativeScrollAnchoring
+          {
+              internal static bool IsSupported { get; } =
+                  ApiInformation.IsMethodPresent("Microsoft.UI.Xaml.Controls.IScrollAnchorProvider", "RegisterAnchorCandidate") &&
+                  ApiInformation.IsMethodPresent("Microsoft.UI.Xaml.Controls.IScrollAnchorProvider", "UnregisterAnchorCandidate");
+
+              internal static void Register(IScrollAnchorProvider? provider, UIElement element)
+              {
+                  if (!IsSupported || provider is null) return;
+          #pragma warning disable Uno0001 // The implemented native capability is checked above.
+                  provider.RegisterAnchorCandidate(element);
+          #pragma warning restore Uno0001
+              }
+              internal static void Unregister(IScrollAnchorProvider? provider, UIElement element)
+              {
+                  if (!IsSupported || provider is null) return;
+          #pragma warning disable Uno0001 // The implemented native capability is checked above.
+                  provider.UnregisterAnchorCandidate(element);
+          #pragma warning restore Uno0001
+              }
+          }
+          ''')
+          changed.append(helper)
+          replace('src/TreeDataGrid.Core/Models/SortableRowsBase.cs', '                var foo = this.ToArray();\n', '')
+          test = 'tests/TreeDataGrid.Core.Tests/SortAllocationTests.cs'
+          assert not Path(test).exists()
+          Path(test).write_text('''using System;
+          using System.Collections.Specialized;
+          using System.Linq;
+          using TreeDataGridCore.Models;
+          using Xunit;
+
+          namespace TreeDataGridCore.Tests;
+
+          public class SortAllocationTests
+          {
+              [Fact]
+              public void Clearing_sort_does_not_allocate_a_snapshot_of_materialized_child_rows()
+              {
+                  const int count = 4096;
+                  var models = Enumerable.Range(0, count).Select(_ => new Node()).ToArray();
+                  var model = new Node { Children = models };
+                  var column = new HierarchicalExpanderColumn<Node>(
+                      new TextColumn<Node, string>("Name", _ => "row"), node => node.Children);
+                  using var row = new HierarchicalRow<Node>(new Controller(), column, new IndexPath(0), model, null);
+                  row.IsExpanded = true;
+                  var rows = Assert.IsAssignableFrom<SortableRowsBase<Node, HierarchicalRow<Node>>>(row.Children);
+                  Assert.Equal(count, rows.Count);
+                  Assert.Same(models[0], rows[0].Model);
+                  // Warm JIT and observers before measuring thread-local allocation.
+                  for (var i = 0; i < 16; ++i) rows.Sort(null);
+                  var before = GC.GetAllocatedBytesForCurrentThread();
+                  for (var i = 0; i < 100; ++i) rows.Sort(null);
+                  var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+                  Assert.True(allocated < 4096, $"Sort reset allocated {allocated:N0} bytes.");
+                  Assert.Same(models[0], rows[0].Model);
+                  Assert.Same(models[^1], rows[count - 1].Model);
+              }
+              private sealed class Node
+              {
+                  internal Node[] Children { get; init; } = Array.Empty<Node>();
+              }
+              private sealed class Controller : IExpanderRowController<Node>
+              {
+                  public void OnBeginExpandCollapse(IExpanderRow<Node> row) { }
+                  public void OnEndExpandCollapse(IExpanderRow<Node> row) { }
+                  public void OnChildCollectionChanged(IExpanderRow<Node> row, NotifyCollectionChangedEventArgs e) { }
+              }
+          }
+          ''')
+          changed.append(test)
+          Path('artifacts/candidate/files.json').write_text(json.dumps(changed))
+          PY
+          git diff --check
+          git diff --stat
+      - name: Core regression and allocation tests
+        id: core
+        continue-on-error: true
+        run: dotnet test tests/TreeDataGrid.Core.Tests/TreeDataGrid.Core.Tests.csproj -c Release --logger trx --results-directory artifacts/core-tests
+      - name: Uno presentation tests
+        id: uno
+        continue-on-error: true
+        run: dotnet test tests/TreeDataGrid.Uno.Tests/TreeDataGrid.Uno.Tests.csproj -c Release -p:TreeDataGridUnoTargetFrameworks=net10.0 --logger trx --results-directory artifacts/uno-tests
+      - name: Build native Uno sample
+        id: native
+        continue-on-error: true
+        run: dotnet build samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj -c Release -f net10.0-desktop
+      - name: Record reviewable candidate without changing any reference
+        uses: actions/github-script@v7
+        env:
+          CORE_RESULT: ${{ steps.core.outcome }}
+          UNO_RESULT: ${{ steps.uno.outcome }}
+          NATIVE_RESULT: ${{ steps.native.outcome }}
+        with:
+          script: |
+            const fs = require('fs');
+            const paths = JSON.parse(fs.readFileSync('artifacts/candidate/files.json', 'utf8'));
+            const scope = {owner: context.repo.owner, repo: context.repo.repo};
+            const base = await github.rest.git.getCommit({...scope, commit_sha: context.sha});
+            const tree = [];
+            for (const path of paths) {
+              const blob = await github.rest.git.createBlob({...scope, content: fs.readFileSync(path, 'utf8'), encoding: 'utf-8'});
+              tree.push({path, mode: '100644', type: 'blob', sha: blob.data.sha});
+            }
+            const result = await github.rest.git.createTree({...scope, base_tree: base.data.tree.sha, tree});
+            const candidate = await github.rest.git.createCommit({...scope,
+              message: 'Fix native viewport compilation and remove shared Core sort snapshots',
+              tree: result.data.sha, parents: [context.sha]});
+            const report = {base: context.sha, commit: candidate.data.sha, tree: result.data.sha,
+              core: process.env.CORE_RESULT, uno: process.env.UNO_RESULT, native: process.env.NATIVE_RESULT, files: tree};
+            fs.writeFileSync('artifacts/candidate/report.json', JSON.stringify(report, null, 2));
+            console.log('UNO_CANDIDATE_REPORT=' + JSON.stringify(report));
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uno-candidate-validation
+          path: artifacts
+          if-no-files-found: error
+          retention-days: 7
+      - name: Enforce candidate validation outcome
+        if: always()
+        env:
+          CORE_RESULT: ${{ steps.core.outcome }}
+          UNO_RESULT: ${{ steps.uno.outcome }}
+          NATIVE_RESULT: ${{ steps.native.outcome }}
+        run: test "$CORE_RESULT" = success && test "$UNO_RESULT" = success && test "$NATIVE_RESULT" = success
