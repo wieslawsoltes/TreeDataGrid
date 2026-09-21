@@ -30,6 +30,7 @@ public partial class App : Application
         try
         {
             await Task.Delay(1500);
+            if (await TryRunSelectedSuiteAsync(page)) return;
             page.VerifyInitialRender();
             page.Grid.SelectCell(1, 0);
             await CaptureAsync(page, "countries");

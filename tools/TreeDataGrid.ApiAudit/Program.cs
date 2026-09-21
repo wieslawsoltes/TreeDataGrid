@@ -140,7 +140,7 @@ internal sealed record Surface(InputAssembly[] Inputs, ApiEntry[] Entries, strin
             {
                 if (member is INamedTypeSymbol nested) { VisitType(nested, assembly); continue; }
                 if (!Visible(member)) continue;
-                if (member is IMethodSymbol method && method.MethodKind is MethodKind.PropertyGet or MethodKind.PropertySet or MethodKind.EventAdd or MethodKind.EventRemove) continue;
+                if (member is IMethodSymbol accessor && accessor.MethodKind is MethodKind.PropertyGet or MethodKind.PropertySet or MethodKind.EventAdd or MethodKind.EventRemove) continue;
                 Add(member, assembly);
                 switch (member)
                 {

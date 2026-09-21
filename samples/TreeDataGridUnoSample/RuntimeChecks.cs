@@ -95,6 +95,10 @@ internal static class RuntimeChecks
         // A custom cell can be rebound to a different text presentation. Exercise
         // that public contract directly; replacing a column factory intentionally
         // retires its controls because the factory may choose a different type.
+        var originalText = Descendants(retained).OfType<TextBlock>().Single(x => x.Name == "PART_Text");
+        var originalAlignment = originalText.TextAlignment;
+        var originalWrapping = originalText.TextWrapping;
+        var originalTrimming = originalText.TextTrimming;
         var originalColumn = retained.Column!;
         var originalValue = retained.Value!;
         var modelRow = unsorted.Rows[retained.RowIndex];
@@ -120,8 +124,8 @@ internal static class RuntimeChecks
         Check(ReferenceEquals(retainedParent, VisualTreeHelper.GetParent(retained)) &&
             ((TrackedCell)retained).Loads == loadsBeforeAlignment && ((TrackedCell)retained).Unloads == unloadsBeforeAlignment,
             "Text-option rebind detached its retained cell.");
-        Check(alignedText.TextAlignment == TextAlignment.Left && alignedText.TextWrapping == TextWrapping.NoWrap &&
-            alignedText.TextTrimming == TextTrimming.None, "Rebinding retained the previous column's text options.");
+        Check(alignedText.TextAlignment == originalAlignment && alignedText.TextWrapping == originalWrapping &&
+            alignedText.TextTrimming == originalTrimming, "Rebinding retained the previous column's text options instead of restoring the template defaults.");
         Console.WriteLine("UNO_TEXT_PRESENTATION_PASSED: alignment, wrapping, trimming, retained parent, reset to template defaults");
         grid.Model = null;
         await Task.Delay(100);

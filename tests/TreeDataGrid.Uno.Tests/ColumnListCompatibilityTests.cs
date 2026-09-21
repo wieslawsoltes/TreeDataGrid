@@ -32,18 +32,19 @@ public class ColumnListCompatibilityTests
         Assert.Equal(180, source.Columns[0].Width.Value);
         Assert.Equal((0, 0d), columns.GetColumnAt(179));
         Assert.Equal((-1, -1d), columns.GetColumnAt(180));
-        var notifications = 0;
-        columns.CollectionChanged += (_, e) =>
+        var notifications = new List<NotifyCollectionChangedAction>();
+        NotifyCollectionChangedEventHandler handler = (_, e) =>
         {
-            Assert.Equal(NotifyCollectionChangedAction.Reset, e.Action);
-            ++notifications;
+            notifications.Add(e.Action);
             Assert.Equal(columns.Count, presentation.NativeColumns.Count);
         };
+        columns.CollectionChanged += handler;
         source.Columns[1].IsVisible = true;
-        Assert.Equal(1, notifications);
+        Assert.Equal(NotifyCollectionChangedAction.Add, Assert.Single(notifications));
         Assert.Equal(2, columns.Count);
         source.Columns.Move(1, 0);
-        Assert.Equal(2, notifications);
+        Assert.Equal(new[] { NotifyCollectionChangedAction.Add, NotifyCollectionChangedAction.Move }, notifications);
+        columns.CollectionChanged -= handler;
         Assert.Same(source.Columns[1], ((CellColumn)columns[1]).Model);
     }
 
