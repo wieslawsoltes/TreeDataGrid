@@ -153,7 +153,11 @@ public partial class TreeDataGridCellsPresenter : TreeDataGridColumnarPresenterB
         var generation = PresenterGeneration;
         var rowIndex = RowIndex;
         var rows = Rows ?? throw new InvalidOperationException("Cells require an ITreeDataGridRows collection.");
-        var factory = ElementFactory ?? throw new InvalidOperationException("Cells require an element factory.");
+        // A null row-level factory means inherit the owning grid factory.
+        // A TemplateBinding may deliver null after Attach has run, so resolve
+        // the effective value at the ownership boundary, not only on attachment.
+        var factory = ElementFactory ?? Presenter?.Owner?.ElementFactory
+            ?? throw new InvalidOperationException("Cells require an element factory.");
         var row = rows[rowIndex];
         var rowModel = row.Model;
         var presentation = Presentation;
