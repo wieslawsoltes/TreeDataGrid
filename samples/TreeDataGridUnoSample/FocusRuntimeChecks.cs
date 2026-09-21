@@ -33,7 +33,7 @@ internal static class FocusRuntimeChecks
             Check(initial.IsTabStop && initial.Focus(FocusState.Keyboard), "Default cells did not accept native keyboard focus.");
             Check(grid.SelectCell(1, 1) && grid.MoveSelection(TreeDataGridNavigation.Down), "Focused row navigation failed.");
             var cell = (TreeDataGridCell)grid.TryGetCell(1, 2)!;
-            Check(ReferenceEquals(FocusManager.GetFocusedElement(grid.XamlRoot), cell),
+            Check(ReferenceEquals(FocusManager.GetFocusedElement(grid.XamlRoot ?? throw new InvalidOperationException("The focus fixture must be attached to a XamlRoot.")), cell),
                 "Vertical row navigation did not focus the matching column in the next row.");
             Check(ReferenceEquals(Next(FocusNavigationDirection.Next), grid.TryGetCell(2, 2)) &&
                 ReferenceEquals(Next(FocusNavigationDirection.Previous), grid.TryGetCell(0, 2)),
@@ -45,7 +45,7 @@ internal static class FocusRuntimeChecks
             cell.Unloaded += (_, _) => ++unloads;
             Check(grid.BringCellIntoView(150, 7), "Far two-axis bring-into-view failed.");
             await Settle();
-            Check(ReferenceEquals(FocusManager.GetFocusedElement(grid.XamlRoot), cell) &&
+            Check(ReferenceEquals(FocusManager.GetFocusedElement(grid.XamlRoot ?? throw new InvalidOperationException("The focus fixture must be attached to a XamlRoot.")), cell) &&
                 ReferenceEquals(grid.TryGetRow(2), row) && ReferenceEquals(cell.RowModel, items[2]) &&
                 cell.RowIndex == 2 && cell.ColumnIndex == 1 && ReferenceEquals(cell.Parent, parent) && unloads == 0,
                 "Scrolling recycled or detached the focused row/cell for another model.");
@@ -58,7 +58,7 @@ internal static class FocusRuntimeChecks
             Check(grid.BringCellIntoView(150, 0), "Horizontal return failed.");
             await Settle();
             Check(ReferenceEquals(grid.TryGetCell(7, 150), horizontal) && horizontal.ColumnIndex == 7 &&
-                ReferenceEquals(FocusManager.GetFocusedElement(grid.XamlRoot), horizontal),
+                ReferenceEquals(FocusManager.GetFocusedElement(grid.XamlRoot ?? throw new InvalidOperationException("The focus fixture must be attached to a XamlRoot.")), horizontal),
                 "Horizontal virtualization recycled the focused column.");
             Check(before.Focus(FocusState.Keyboard), "Could not release horizontal focus retention.");
             await Settle();
@@ -70,7 +70,7 @@ internal static class FocusRuntimeChecks
             Check(grid.BringCellIntoView(150, 7), "Header retention scrolling failed.");
             await Settle();
             Check(ReferenceEquals(grid.ColumnHeadersPresenter!.TryGetElement(0), header) && header.ColumnIndex == 0 &&
-                ReferenceEquals(header.Parent, headerParent) && ReferenceEquals(FocusManager.GetFocusedElement(grid.XamlRoot), header),
+                ReferenceEquals(header.Parent, headerParent) && ReferenceEquals(FocusManager.GetFocusedElement(grid.XamlRoot ?? throw new InvalidOperationException("The focus fixture must be attached to a XamlRoot.")), header),
                 "Horizontal scrolling recycled the focused header.");
             Check(after.Focus(FocusState.Keyboard), "Could not release header focus retention.");
             await Settle();

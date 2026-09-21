@@ -60,7 +60,7 @@ internal static class AppearanceRuntimeChecks
             row.ClearValue(Control.BorderThicknessProperty);
             cell.ClearValue(Control.BorderThicknessProperty);
             await Task.Delay(100);
-            var customForeground = new SolidColorBrush(Colors.Fuchsia);
+            var customForeground = new SolidColorBrush(Microsoft.UI.Colors.Fuchsia);
             grid.Foreground = customForeground;
             await Task.Delay(50);
             var header = grid.ColumnHeadersPresenter!.RealizedHeaders.Single();

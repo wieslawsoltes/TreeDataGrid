@@ -81,7 +81,7 @@ internal static class ViewportCacheRuntimeChecks
             Check(presenter.RealizedRows.Count == 0 && presenter.RealizedCells.Count == 0, "Emptying the source retained buffered realizations.");
             items.Add(new("Restored row"));
             await Settle();
-            Check(presenter.RealizedRows.Count == 1 && grid.TryGetRow(0)?.Model == items[0],
+            Check(presenter.RealizedRows.Count == 1 && ReferenceEquals(grid.TryGetRow(0)?.Model, items[0]),
                 "The cache did not recover after the source became empty.");
             grid.Model = null;
             Check(presenter.RealizedCells.Count == 0, "Source removal retained cached cells.");

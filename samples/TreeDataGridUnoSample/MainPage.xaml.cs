@@ -35,6 +35,16 @@ public sealed partial class MainPage : Page
     public MainPage()
     {
         InitializeComponent();
+        // Preserve live-region metadata on implemented native heads without
+        // invoking the generated Uno stub on unsupported renderers.
+        if (Windows.Foundation.Metadata.ApiInformation.IsMethodPresent(
+            "Microsoft.UI.Xaml.Automation.AutomationProperties", "SetLiveSetting"))
+        {
+#pragma warning disable Uno0001 // The implemented capability is checked above.
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetLiveSetting(
+                DragStatus, Microsoft.UI.Xaml.Automation.Peers.AutomationLiveSetting.Polite);
+#pragma warning restore Uno0001
+        }
         var queue = DispatcherQueue;
         _files = new(action => queue.TryEnqueue(() => action()));
         _files.PropertyChanged += (_, e) =>

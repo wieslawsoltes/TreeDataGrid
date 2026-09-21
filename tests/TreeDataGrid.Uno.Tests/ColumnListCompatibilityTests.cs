@@ -129,7 +129,7 @@ public class ColumnListCompatibilityTests
         columns.CollectionChanged += Changing;
         columns.CollectionChanged += Second;
         columns.Add(column);
-        Assert.Equal(1, columns.Count);
+        Assert.Single(columns);
         Assert.Equal(1, column.Subscribers);
         Assert.Equal(0, rejected.Subscribers);
         columns.CollectionChanged -= Changing;

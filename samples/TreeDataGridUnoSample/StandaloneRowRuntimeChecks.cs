@@ -24,7 +24,7 @@ internal static class StandaloneRowRuntimeChecks
         var models = new[] { new Item("First"), new Item("Second") };
         using var source = new FlatTreeDataGridSource<Item>(models);
         for (var i = 0; i < 8; ++i)
-            source.Columns.Add(new TextColumn<Item, string>($"Column {i}", x => x.Name, (x, value) => x.Name = value, width: new(120)));
+            source.Columns.Add(new TreeDataGridCore.Models.TextColumn<Item, string>($"Column {i}", x => x.Name, (x, value) => x.Name = value, width: new(120)));
         using var view = TreeDataGridPresentation.Create(source);
         var factory = new Factory();
         var row = new CustomRow();

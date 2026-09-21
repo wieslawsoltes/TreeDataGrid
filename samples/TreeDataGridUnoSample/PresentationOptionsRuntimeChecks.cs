@@ -76,7 +76,7 @@ internal static class PresentationOptionsRuntimeChecks
     {
         var options = new TreeDataGridPresentationOptions<Item>();
         options.Columns["Formatted"] = column => new Uno.Controls.Models.TreeDataGrid.TextColumn<Item, string>(
-            (ValueColumn<Item, string>)column, new Uno.Controls.Models.TreeDataGrid.TextColumnOptions<Item> { StringFormat = format });
+            (ValueColumn<Item, string?>)column, new Uno.Controls.Models.TreeDataGrid.TextColumnOptions<Item> { StringFormat = format });
         return options;
     }
     private static void Check(bool condition, string message) { if (!condition) throw new InvalidOperationException(message); }

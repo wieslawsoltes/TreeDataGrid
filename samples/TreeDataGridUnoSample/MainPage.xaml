@@ -150,7 +150,7 @@
           <Button Content="Reset drag/drop data" Click="OnResetDragData" />
         </StackPanel>
         <TextBlock Text="Drag selected rows above, inside or below another row. Ctrl/Command-click selects multiple rows. Uncheck Allow Drag to prevent dragging; uncheck Allow Drop to prevent dropping inside a row." TextWrapping="Wrap" />
-        <TextBlock x:Name="DragStatus" Text="Ready. Expand a group to move individual tasks." TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+        <TextBlock x:Name="DragStatus" Text="Ready. Expand a group to move individual tasks." TextWrapping="Wrap" />
       </StackPanel>
     </StackPanel>
     <Grid Grid.Row="1" ColumnSpacing="12">

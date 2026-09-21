@@ -18,7 +18,7 @@ public class SelectionTests
     {
         using var source = Source();
         using var view = TreeDataGridPresentation.Create(source);
-        Uno.Controls.Selection.ITreeDataGridSelectionInteraction interaction = view.Selection;
+        global::Uno.Controls.Selection.ITreeDataGridSelectionInteraction interaction = view.Selection;
         var changes = 0;
         void Changed(object? sender, EventArgs args) => ++changes;
         interaction.SelectionChanged += Changed;
