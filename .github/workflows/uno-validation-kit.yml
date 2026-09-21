@@ -1,7 +1,6 @@
 name: Uno offline validation kit
 
-# The large artifact is rebuilt only when this recipe changes, or on demand;
-# ordinary source pushes continue to use the lightweight Uno test matrix.
+# Rebuild only when this recipe changes, or explicitly on demand.
 on:
   push:
     paths: [.github/workflows/uno-validation-kit.yml]
@@ -9,50 +8,75 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   validation-kit:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    env:
-      DOTNET_INSTALL_DIR: /tmp/treedatagrid-dotnet
-      DOTNET_NOLOGO: true
-      DOTNET_CLI_TELEMETRY_OPTOUT: true
-      TreeDataGridUnoTargetFrameworks: net10.0-desktop
-      TreeDataGridUnoSampleTargetFrameworks: net10.0-desktop
-      NUGET_PACKAGES: /tmp/treedatagrid-packages
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - uses: actions/setup-dotnet@v4
+      # Reuse the exact public SDK/package snapshot from this PR's successful
+      # restore. Split it without changing its contents or evaluating user code.
+      - uses: actions/download-artifact@v4
         with:
-          dotnet-version: 10.0.201
-      - name: Restore the exact validation dependencies
+          github-token: ${{ github.token }}
+          run-id: 35650268309
+          name: uno-offline-validation-kit
+          path: kit
+      - name: Split portable validation archives below transfer limits
         shell: bash
         run: |
-          dotnet restore tests/TreeDataGrid.Core.Tests/TreeDataGrid.Core.Tests.csproj
-          dotnet restore tests/TreeDataGrid.Uno.Tests/TreeDataGrid.Uno.Tests.csproj -p:TreeDataGridUnoTargetFrameworks=net10.0
-          dotnet restore samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj
-          dotnet restore samples/TreeDataGridUnoActivityMonitor/TreeDataGridUnoActivityMonitor.csproj
-          dotnet restore samples/TreeDataGridUnoSample.Tests/TreeDataGridUnoSample.Tests.csproj
-      - name: Package the isolated toolchain and public package cache
-        shell: bash
-        run: |
-          mkdir -p artifacts/validation-kit
-          dotnet --info > artifacts/validation-kit/dotnet-info.txt
-          git rev-parse HEAD > artifacts/validation-kit/commit.txt
-          git archive --format=tar HEAD > artifacts/validation-kit/source.tar
-          # These directories were created specifically for this job. Never
-          # archive a runner home, NuGet.Config, .git, credentials or environment.
-          tar -czf artifacts/validation-kit/dotnet.tar.gz -C "$DOTNET_INSTALL_DIR" .
-          tar -czf artifacts/validation-kit/packages.tar.gz -C "$NUGET_PACKAGES" .
-          cd artifacts/validation-kit
-          sha256sum *.tar* > SHA256SUMS
+          cd kit
+          sha256sum --check SHA256SUMS
+          mkdir -p ../artifacts/metadata ../artifacts/parts
+          cp source.tar SHA256SUMS commit.txt dotnet-info.txt ../artifacts/metadata/
+          tar -cf ../artifacts/archives.tar dotnet.tar.gz packages.tar.gz
+          cd ../artifacts
+          sha256sum archives.tar > metadata/archives.sha256
+          split -b 400M -d -a 2 archives.tar parts/kit.part
+          ls -lh parts/
       - uses: actions/upload-artifact@v4
         with:
-          name: uno-offline-validation-kit
-          path: artifacts/validation-kit
+          name: uno-kit-metadata
+          path: artifacts/metadata
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uno-kit-part00
+          path: artifacts/parts/kit.part00
           compression-level: 0
-          if-no-files-found: error
-          retention-days: 1
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uno-kit-part01
+          path: artifacts/parts/kit.part01
+          compression-level: 0
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uno-kit-part02
+          path: artifacts/parts/kit.part02
+          compression-level: 0
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uno-kit-part03
+          path: artifacts/parts/kit.part03
+          compression-level: 0
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uno-kit-part04
+          path: artifacts/parts/kit.part04
+          compression-level: 0
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uno-kit-part05
+          path: artifacts/parts/kit.part05
+          compression-level: 0
+          if-no-files-found: ignore
+          retention-days: 7
