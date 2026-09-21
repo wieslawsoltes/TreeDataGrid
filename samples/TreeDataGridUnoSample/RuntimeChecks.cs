@@ -44,7 +44,7 @@ internal static class RuntimeChecks
         items[0] = new Item("Replacement");
         await Task.Delay(100);
         Check(ReferenceEquals(first, grid.RowsPresenter!.RealizedCells.Single(x => x.RowIndex == 0)), "Replacement discarded its native cell.");
-        Check(first.Begins == 1 && first.Ends == 1 && first.LastSucceeded, "Replacement hooks are unbalanced.");
+        Check(first.Begins == 1 && first.Ends == 1 && first.LastSucceeded, $"Replacement hooks are unbalanced: begins={first.Begins}, ends={first.Ends}, succeeded={first.LastSucceeded}.");
         Check(ReferenceEquals(parent, VisualTreeHelper.GetParent(first)), "Replacement changed the native parent.");
         Check(ReferenceEquals(templateParent, VisualTreeHelper.GetParent(text)) && text.Text == "Replacement", "Replacement recreated or failed to update template content.");
         Check(first.Loads == loads && first.Unloads == unloads, "Replacement detached and reattached the cell.");

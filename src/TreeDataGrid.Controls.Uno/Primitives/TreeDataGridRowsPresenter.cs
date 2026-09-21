@@ -237,7 +237,15 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
         UpdateRowGeometry(e);
         base.OnItemsCollectionChanged(sender, e);
         if (revision != _revision || IsInLayout) return;
-        FinalizeUnrealize();
+        // Replacement/sort scopes finish when the next layout rebinds retained
+        // rows. Closing them here sends EndRebind(false) before reuse and clears
+        // retained template state. Do not eagerly realize rows inside Reset:
+        // a source may still be completing its items/selection transaction.
+        // Source detachment, empty collections and actual removals must release
+        // ownership now; surplus recycled rows are finalized after measurement.
+        if (sender is null || Items is null || Items.Count == 0 ||
+            e.Action is not (NotifyCollectionChangedAction.Replace or NotifyCollectionChangedAction.Reset))
+            FinalizeUnrealize();
         RefreshSelection();
         foreach (var row in _realized.Values) row.NotifyAutomationStateChanged();
     }
