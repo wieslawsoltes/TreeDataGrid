@@ -76,7 +76,7 @@ internal static class RowSizingRuntimeChecks
             await Task.Delay(200);
             Check(presenter.RealizedCells.Any(x => x.RowIndex == 149) &&
                 presenter.GetRowStart(149) + presenter.GetRowHeight(149) <= grid.Scroll!.VerticalOffset + grid.Scroll!.ViewportHeight + 1,
-                "The last variable-height row was not brought fully into view.");
+                $"Last row: realized={presenter.RealizedCells.Any(x => x.RowIndex == 149)}, top={presenter.GetRowStart(149)}, height={presenter.GetRowHeight(149)}, offset={grid.Scroll!.VerticalOffset}, viewport={grid.Scroll.ViewportHeight}, extent={grid.Scroll.ExtentHeight}.");
 
             grid.RowHeight = 40;
             await Task.Delay(150);

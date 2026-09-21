@@ -56,7 +56,7 @@ internal static class ViewportCacheRuntimeChecks
             await Settle();
             Check(initial.SetEquals(presenter.RealizedRows) && cells.SetEquals(presenter.RealizedCells) && unloads == 0 &&
                 parents.All(pair => ReferenceEquals(pair.Key.Parent, pair.Value)),
-                "Shrinking/growing the cache detached or replaced compatible pooled controls.");
+                $"Shrinking/growing cache: oldRows={initial.Count}, newRows={presenter.RealizedRows.Count}, retainedRows={initial.Intersect(presenter.RealizedRows).Count()}, oldCells={cells.Count}, newCells={presenter.RealizedCells.Count}, retainedCells={cells.Intersect(presenter.RealizedCells).Count()}, unloads={unloads}, retainedParents={parents.Count(pair => ReferenceEquals(pair.Key.Parent, pair.Value))}.");
 
             foreach (var invalid in new[] { -1d, 2.1, double.NaN, double.PositiveInfinity })
             {

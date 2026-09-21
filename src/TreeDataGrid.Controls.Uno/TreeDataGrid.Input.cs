@@ -94,34 +94,37 @@ public partial class TreeDataGrid
         if (_scroll is not { } scroll || _presentation is not { } presentation || (uint)row >= (uint)presentation.Rows.Count ||
             (uint)column >= (uint)_geometry.Count || _presenter is not { } presenter) return false;
         var structure = _textSearchStructureRevision;
-        var x = _geometry.Start(column);
-        var right = x + _geometry.Width(column);
-        var y = presenter.GetRowStart(row);
-        var bottom = y + presenter.GetRowHeight(row);
-        var horizontal = x < scroll.HorizontalOffset ? x : right > scroll.HorizontalOffset + scroll.ViewportWidth
-            ? Math.Max(x, right - scroll.ViewportWidth) : scroll.HorizontalOffset;
-        var vertical = y < scroll.VerticalOffset ? y : bottom > scroll.VerticalOffset + scroll.ViewportHeight
-            ? Math.Max(y, bottom - scroll.ViewportHeight) : scroll.VerticalOffset;
-        _pendingVerticalAnchor = null;
-        presenter.CancelPendingAnchor();
-        scroll.ChangeView(horizontal, vertical, null, true);
-        if (!Current()) return false;
-        UpdateViewport();
-        if (!Current()) return false;
-        UpdateLayout();
-        if (!Current()) return false;
-        // Realizing an estimated row can change its height and every later offset.
-        // Correct the requested target against the newly measured geometry.
-        y = presenter.GetRowStart(row);
-        bottom = y + presenter.GetRowHeight(row);
-        var current = _pendingVerticalAnchor ?? scroll.VerticalOffset;
-        vertical = y < current ? y : bottom > current + scroll.ViewportHeight
-            ? Math.Max(y, bottom - scroll.ViewportHeight) : current;
-        _pendingVerticalAnchor = null;
-        presenter.CancelPendingAnchor();
-        scroll.ChangeView(horizontal, vertical, null, true);
-        if (!Current()) return false;
-        UpdateViewport();
+        // Measuring a distant variable-height viewport changes both its row
+        // positions and ScrollViewer's extent. Converge using committed geometry
+        // instead of issuing a second request against a still-stale extent.
+        // The bound protects against application callbacks which oscillate layout.
+        for (var pass = 0; pass < 8; ++pass)
+        {
+            var x = _geometry.Start(column);
+            var right = x + _geometry.Width(column);
+            var y = presenter.GetRowStart(row);
+            var height = presenter.GetRowHeight(row);
+            var bottom = y + height;
+            var horizontal = x < scroll.HorizontalOffset ? x : right > scroll.HorizontalOffset + scroll.ViewportWidth
+                ? Math.Max(x, right - scroll.ViewportWidth) : scroll.HorizontalOffset;
+            var vertical = y < scroll.VerticalOffset ? y : bottom > scroll.VerticalOffset + scroll.ViewportHeight
+                ? Math.Max(y, bottom - scroll.ViewportHeight) : scroll.VerticalOffset;
+            _pendingVerticalAnchor = null;
+            presenter.CancelPendingAnchor();
+            scroll.ChangeView(horizontal, vertical, null, true);
+            if (!Current()) return false;
+            UpdateViewport();
+            if (!Current()) return false;
+            UpdateLayout();
+            if (!Current()) return false;
+            y = presenter.GetRowStart(row);
+            height = presenter.GetRowHeight(row);
+            var current = _pendingVerticalAnchor ?? scroll.VerticalOffset;
+            var visible = height > scroll.ViewportHeight
+                ? Math.Abs(y - current) < 0.5
+                : y >= current - 0.5 && y + height <= current + scroll.ViewportHeight + 0.5;
+            if (visible && presenter.TryGetElement(row) is not null) return true;
+        }
         return Current();
         bool Current() => structure == _textSearchStructureRevision && ReferenceEquals(_presentation, presentation) &&
             ReferenceEquals(_presenter, presenter) && ReferenceEquals(_scroll, scroll) &&

@@ -93,8 +93,21 @@ internal static class FocusRuntimeChecks
         }
         finally { grid.Model = null; page.Content = previousContent; }
 
-        DependencyObject? Next(FocusNavigationDirection direction) =>
-            FocusManager.FindNextElement(direction, new FindNextElementOptions { SearchRoot = grid.RowsPresenter });
+        DependencyObject? Next(FocusNavigationDirection direction)
+        {
+            // FindNextElement is XY-only. TryMoveFocus uses the real platform Tab
+            // traversal; restore the origin so forward/reverse assertions remain
+            // independent and keep subsequent retention checks on that same cell.
+            var root = grid.XamlRoot ?? throw new InvalidOperationException("The focus fixture must be attached.");
+            var original = FocusManager.GetFocusedElement(root) as Control
+                ?? throw new InvalidOperationException("The fixture requires a focused control.");
+            try
+            {
+                if (!FocusManager.TryMoveFocus(direction, new FindNextElementOptions { SearchRoot = grid.RowsPresenter })) return null;
+                return FocusManager.GetFocusedElement(root) as DependencyObject;
+            }
+            finally { Check(original.Focus(FocusState.Keyboard), "Could not restore the focus origin after Tab traversal."); }
+        }
         async Task Settle() { await Task.Delay(100); grid.UpdateLayout(); }
     }
 

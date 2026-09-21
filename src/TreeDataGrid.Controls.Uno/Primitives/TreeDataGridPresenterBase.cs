@@ -150,7 +150,10 @@ namespace Uno.Controls.Primitives
                 // Create and measure the element to be brought into view. Store it in a field so that
                 // it can be re-used in the layout pass.
                 var scrollToElement = GetOrCreateElement(items, index);
-                scrollToElement.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                // A specialized presenter must record the target's actual row
+                // height/column width before computing its scroll rectangle.
+                // Calling Control.Measure directly bypasses that layout contract.
+                MeasureElement(index, scrollToElement, new Size(double.PositiveInfinity, double.PositiveInfinity));
 
                 // Get the expected position of the element and put it in place.
                 var anchorU = GetElementPosition(index);

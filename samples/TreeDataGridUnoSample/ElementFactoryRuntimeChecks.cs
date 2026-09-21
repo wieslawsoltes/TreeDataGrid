@@ -61,7 +61,7 @@ internal static class ElementFactoryRuntimeChecks
             Check(((CustomCell)cell).Unloads == unloaded, "Compatible cell recycling detached and reattached its control.");
             Check(((CustomCell)cell).CompatibleRealizations == 2 && ReferenceEquals(((CustomCell)cell).LastModel, cell.Model),
                 "Recycling did not invoke the compatible cell override exactly once for the replacement.");
-            Check(customRow.LastUnrealized == 0 && customRow.LastReason == TreeDataGridRowUnrealizeReason.Recycle &&
+            Check(customRow.LastUnrealized == 0 && customRow.LastReason == TreeDataGridRowUnrealizeReason.ItemRemoved &&
                 customRow.Realizations > 1, "Row recycling did not use Avalonia-compatible indexed lifecycle hooks.");
 
             items[0] = new Item("Other replacement");
