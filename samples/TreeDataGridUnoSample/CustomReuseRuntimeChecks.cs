@@ -91,7 +91,7 @@ internal static class CustomReuseRuntimeChecks
             await Task.Delay(100);
             column.ThrowOnReuse = true;
             var threw = false;
-            try { items[0] = new("Throwing reuse"); }
+            try { items[0] = new("Throwing reuse"); grid.UpdateLayout(); }
             catch (InvalidOperationException) { threw = true; }
             finally { grid.Model = null; }
             Check(threw && items.All(item => item.Subscribers == 0) && column.Cells.All(cell => cell.Disposals == 1),

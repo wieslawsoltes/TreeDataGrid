@@ -167,7 +167,14 @@ public partial class TreeDataGridCellsPresenter : TreeDataGridColumnarPresenterB
         try
         {
             if (nativeColumn is not null)
-                value = TakeRetainedModel(nativeColumn, presentation!, index, rowIndex) ?? presentation!.RealizeCell(index, rowIndex);
+            {
+                value = TakeRetainedModel(nativeColumn, presentation!, index, rowIndex);
+                // A custom reuse callback may replace/dispose the entire source.
+                // Check retirement before attempting a fresh cell in the old view.
+                EnsureGeneration(generation);
+                value ??= presentation!.RealizeCell(index, rowIndex);
+                EnsureGeneration(generation);
+            }
             model = value?.PresentationModel ?? rows.RealizeCell(column, index, rowIndex);
             EnsureGeneration(generation);
             var legacy = nativePresenter?.Owner is { HasCustomCellFactory: true } owner && ReferenceEquals(factory, owner.ElementFactory);
@@ -416,7 +423,7 @@ public partial class TreeDataGridCellsPresenter : TreeDataGridColumnarPresenterB
 
     protected override Size MeasureOverride(Size availableSize)
     {
-        if (RowIndex < 0 || _row?.IsResettingCells == true || Rows is null || RowIndex >= Rows.Count || Items is not IColumns) return default;
+        if (_resettingCells || RowIndex < 0 || _row?.IsResettingCells == true || Rows is null || RowIndex >= Rows.Count || Items is not IColumns) return default;
         // The native rows presenter constrains each row to the committed extent.
         // Natural-width measurement must not be capped by that previous extent,
         // or a wider Auto cell can never grow its column on first realization.

@@ -170,8 +170,13 @@ namespace Uno.Controls.Primitives
         {
             // Native Measure performs valid-constraint caching. Do not emulate
             // Avalonia's private measure-validity state with stale desired sizes.
+            var generation = PresenterGeneration;
+            var columns = Columns!;
             MeasureNative(element, availableSize);
-            return Columns!.CellMeasured(index, rowIndex, element.DesiredSize);
+            // Template construction and custom MeasureOverride are user code.
+            // They may retire this layout and clear its column collection.
+            EnsureGeneration(generation);
+            return columns.CellMeasured(index, rowIndex, element.DesiredSize);
         }
 
         protected sealed override double CalculateSizeU(Size availableSize)

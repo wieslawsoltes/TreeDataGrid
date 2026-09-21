@@ -103,7 +103,7 @@ internal static class FocusRuntimeChecks
                 ?? throw new InvalidOperationException("The fixture requires a focused control.");
             try
             {
-                if (!FocusManager.TryMoveFocus(direction, new FindNextElementOptions { SearchRoot = grid.RowsPresenter })) return null;
+                if (!FocusManager.TryMoveFocus(direction, new FindNextElementOptions { SearchRoot = root.Content })) return null;
                 return FocusManager.GetFocusedElement(root) as DependencyObject;
             }
             finally { Check(original.Focus(FocusState.Keyboard), "Could not restore the focus origin after Tab traversal."); }

@@ -1216,7 +1216,7 @@ namespace Uno.Controls.Primitives
 
         private void OnUnrealizedFocusedElementLostFocus(object? sender, RoutedEventArgs e)
         {
-            if (_focusedElement is null || sender != _focusedElement)
+            if (_focusedElement is null || !ReferenceEquals(sender, _focusedElement))
                 return;
             var element = _focusedElement;
             if (TreeDataGrid.ContainsFocus(element, XamlRoot is { } root ? FocusManager.GetFocusedElement(root) as DependencyObject : null))
