@@ -4,7 +4,7 @@ name: Uno candidate validation
 on:
   push:
     branches: [codex/uno-core-port]
-    paths: [.github/workflows/uno-candidate.yml]
+    paths: [.github/workflows/uno-candidate.yml, .github/uno-candidate.py]
 permissions:
   contents: write
 jobs:
@@ -24,52 +24,17 @@ jobs:
           dotnet-version: |
             8.0.x
             10.0.201
-      - name: Apply reviewed test and sample compiler corrections
+      - name: Apply exact reviewed candidate
         run: |
           mkdir -p artifacts/candidate artifacts/logs
-          python3 - <<'PY'
-          from pathlib import Path
-          import json
-          changed = []
-          def replace(name, old, new, count=1):
-              path = Path(name)
-              text = path.read_text()
-              matches = text.count(old)
-              assert matches > 0 and (count is None or matches == count), (name, old, matches)
-              path.write_text(text.replace(old, new))
-              if name not in changed: changed.append(name)
-          tests = 'tests/TreeDataGrid.Uno.Tests/'
-          sample = 'samples/TreeDataGridUnoSample/'
-          replace(tests + 'SelectionTests.cs', '        Uno.Controls.Selection.ITreeDataGridSelectionInteraction interaction',
-              '        global::Uno.Controls.Selection.ITreeDataGridSelectionInteraction interaction')
-          replace(tests + 'ColumnListCompatibilityTests.cs', '        Assert.Equal(1, columns.Count);', '        Assert.Single(columns);')
-          replace(sample + 'AppearanceRuntimeChecks.cs', 'Colors.Fuchsia', 'Microsoft.UI.Colors.Fuchsia')
-          replace(sample + 'PresentationOptionsRuntimeChecks.cs', '(ValueColumn<Item, string>)column', '(ValueColumn<Item, string?>)column')
-          replace(sample + 'FocusRuntimeChecks.cs', 'FocusManager.GetFocusedElement(grid.XamlRoot)',
-              'FocusManager.GetFocusedElement(grid.XamlRoot ?? throw new InvalidOperationException("The focus fixture must be attached to a XamlRoot."))', count=None)
-          replace(sample + 'StandaloneRowRuntimeChecks.cs', 'new TextColumn<Item, string>(', 'new TreeDataGridCore.Models.TextColumn<Item, string>(')
-          replace(sample + 'ViewportCacheRuntimeChecks.cs', 'grid.TryGetRow(0)?.Model == items[0]', 'ReferenceEquals(grid.TryGetRow(0)?.Model, items[0])')
-          replace(sample + 'MainPage.xaml', ' AutomationProperties.LiveSetting="Polite"', '')
-          replace(sample + 'MainPage.xaml.cs', '        InitializeComponent();', '''        InitializeComponent();
-                  // Preserve live-region metadata on implemented native heads without
-                  // invoking the generated Uno stub on unsupported renderers.
-                  if (Windows.Foundation.Metadata.ApiInformation.IsMethodPresent(
-                      "Microsoft.UI.Xaml.Automation.AutomationProperties", "SetLiveSetting"))
-                  {
-          #pragma warning disable Uno0001 // The implemented capability is checked above.
-                      Microsoft.UI.Xaml.Automation.AutomationProperties.SetLiveSetting(
-                          DragStatus, Microsoft.UI.Xaml.Automation.Peers.AutomationLiveSetting.Polite);
-          #pragma warning restore Uno0001
-                  }''')
-          Path('artifacts/candidate/files.json').write_text(json.dumps(changed))
-          PY
+          python3 .github/uno-candidate.py
           git diff --check
           git diff --stat
       - name: Install X11 runtime dependencies
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq xvfb libfontconfig1 libx11-6 libxrandr2 libxi6 libxcursor1 libgl1
-      - name: Execute all independent validation gates and record exit codes
+      - name: Execute independent validation gates
         run: |
           python3 -u - <<'PY'
           import json, subprocess
@@ -97,7 +62,7 @@ jobs:
               run(name + '-smoke', ['xvfb-run','-a','-s','-screen 0 1280x800x24','dotnet','run','--project',f'samples/{project}/{project}.csproj','--no-build','-c','Release','-f','net10.0-desktop','--','--smoke','--screenshot-dir',str(Path('artifacts/native-smoke').resolve()),*extra], prerequisite=name)
           Path('artifacts/candidate/outcomes.json').write_text(json.dumps(results))
           PY
-      - name: Record candidate without changing any reference
+      - name: Record candidate without updating references
         uses: actions/github-script@v7
         with:
           script: |
@@ -113,7 +78,7 @@ jobs:
             }
             const result = await github.rest.git.createTree({...scope, base_tree: base.data.tree.sha, tree});
             const candidate = await github.rest.git.createCommit({...scope,
-              message: 'Correct Uno native sample and regression test compilation',
+              message: 'Complete retained native row rebinds before releasing deferred cell state',
               tree: result.data.sha, parents: [context.sha]});
             const report = {base: context.sha, commit: candidate.data.sha, tree: result.data.sha, outcomes, files: tree};
             fs.writeFileSync('artifacts/candidate/report.json', JSON.stringify(report, null, 2));
