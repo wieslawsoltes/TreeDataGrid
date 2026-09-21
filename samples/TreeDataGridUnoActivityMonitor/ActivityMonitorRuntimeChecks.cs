@@ -152,6 +152,10 @@ internal static class ActivityMonitorRuntimeChecks
         if (index < 0 || index + 1 >= args.Length) return;
         var directory = Path.GetFullPath(args[index + 1]);
         Directory.CreateDirectory(directory);
+#if __WASM__
+        await Task.CompletedTask;
+        throw new PlatformNotSupportedException("The DOM renderer requires browser-driver screenshots; RenderTargetBitmap is unavailable.");
+#else
         var bitmap = new RenderTargetBitmap();
         await bitmap.RenderAsync(element);
         using var image = SKImage.FromPixelCopy(new SKImageInfo(bitmap.PixelWidth, bitmap.PixelHeight,
@@ -160,6 +164,7 @@ internal static class ActivityMonitorRuntimeChecks
         var path = Path.Combine(directory, name + ".png");
         File.WriteAllBytes(path, png.ToArray());
         Console.WriteLine($"UNO_ACTIVITY_SCREENSHOT: {path} ({bitmap.PixelWidth}x{bitmap.PixelHeight})");
+#endif
     }
     private static void Check(bool condition, string message) { if (!condition) throw new InvalidOperationException(message); }
     private sealed class DelayedProvider : IMonitorTelemetryProvider

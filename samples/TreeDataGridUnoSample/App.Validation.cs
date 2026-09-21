@@ -23,7 +23,10 @@ public partial class App
         await RunSelectedSuiteAsync(page, name);
         Console.WriteLine($"UNO_SUITE_PASSED: {name}; elapsedMs={stopwatch.Elapsed.TotalMilliseconds:F3}");
         SampleRunContext.ReportResult(true);
-        if (!OperatingSystem.IsBrowser()) Exit();
+
+#if !__WASM__
+            Exit();
+#endif
         return true;
     }
 

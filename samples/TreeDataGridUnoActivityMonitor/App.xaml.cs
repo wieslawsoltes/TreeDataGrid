@@ -33,7 +33,10 @@ public partial class App : Application
             page.Stop();
             Console.WriteLine("UNO_ACTIVITY_MONITOR_SMOKE_PASSED");
             SampleRunContext.ReportResult(true);
-            if (!OperatingSystem.IsBrowser()) Exit();
+
+#if !__WASM__
+            Exit();
+#endif
         }
         catch (Exception error)
         {

@@ -9,78 +9,81 @@ def replace(name, old, new, count=1):
     path.write_text(text.replace(old, new))
     if name not in changed: changed.append(name)
 
-def wrap(name, start, end, alternative):
-    path = Path(name)
-    text = path.read_text()
-    first = text.index(start)
-    last = text.index(end, first) + len(end)
-    old = text[first:last]
-    replace(name, old, '#if __WASM__\n' + alternative + '\n#else\n' + old + '\n#endif')
-
-replace('samples/TreeDataGridUnoSample/FocusRuntimeChecks.cs',
-    'FocusManager.FindNextElement(direction, new FindNextElementOptions { SearchRoot = grid.RowsPresenter })',
-    'FocusManager.FindNextElement(direction)')
-for name in ['samples/TreeDataGridUnoSample/App.xaml.cs',
-             'samples/TreeDataGridUnoSample/App.Validation.cs',
-             'samples/TreeDataGridUnoActivityMonitor/App.xaml.cs']:
-    path = Path(name)
-    text = path.read_text()
-    old = 'if (!OperatingSystem.IsBrowser()) Exit();'
-    assert old in text
-    text = text.replace(old, '\n#if !__WASM__\n            Exit();\n#endif')
-    path.write_text(text)
-    changed.append(name)
-wrap('samples/TreeDataGridUnoSample/App.xaml.cs',
-     '        var bitmap = new RenderTargetBitmap();',
-     '        Console.WriteLine($"UNO_SCREENSHOT: {path} ({bitmap.PixelWidth}x{bitmap.PixelHeight})");',
-     '        throw new PlatformNotSupportedException("The DOM renderer requires browser-driver screenshots; RenderTargetBitmap is unavailable.");')
-wrap('samples/TreeDataGridUnoActivityMonitor/ActivityMonitorRuntimeChecks.cs',
-     '        var bitmap = new RenderTargetBitmap();',
-     '        Console.WriteLine($"UNO_ACTIVITY_SCREENSHOT: {path} ({bitmap.PixelWidth}x{bitmap.PixelHeight})");',
-     '        await Task.CompletedTask;\n        throw new PlatformNotSupportedException("The DOM renderer requires browser-driver screenshots; RenderTargetBitmap is unavailable.");')
-replace('samples/TreeDataGridUnoSample/AppearanceRuntimeChecks.cs',
-    '            grid.FlowDirection = FlowDirection.RightToLeft;',
-    '            ConfigureRightToLeft(grid);')
-replace('samples/TreeDataGridUnoSample/AppearanceRuntimeChecks.cs',
-    '    internal static async Task RunAsync(MainPage page)', '''    private static void ConfigureRightToLeft(FrameworkElement element)
-    {
-#if __WASM__
-        throw new PlatformNotSupportedException("The DOM renderer does not implement the native FlowDirection contract; this RTL gate requires an implemented head.");
-#else
-        element.FlowDirection = FlowDirection.RightToLeft;
-#endif
-    }
-
-    internal static async Task RunAsync(MainPage page)''')
-replace('samples/TreeDataGridUnoSample/MainPage.xaml.cs',
-    '"Microsoft.UI.Xaml.Automation.AutomationProperties", "SetLiveSetting"',
-    '''
-#if WINDOWS
-                "Microsoft.UI.Xaml.Automation.AutomationProperties",
-#else
-                typeof(Microsoft.UI.Xaml.Automation.AutomationProperties).AssemblyQualifiedName!,
-#endif
-                "SetLiveSetting"''')
-replace('tools/TreeDataGrid.ApiAudit/Program.cs',
-    'var baseline = Surface.Read([baselinePath, corePath]);\n    var target = Surface.Read([targetPath, corePath]);',
-    '''var baseline = Surface.Read([baselinePath, corePath], Environment.GetEnvironmentVariable("TREEDATAGRID_API_BASELINE_REFERENCES"));
-    var target = Surface.Read([targetPath, corePath], Environment.GetEnvironmentVariable("TREEDATAGRID_API_TARGET_REFERENCES"));''')
-replace('tools/TreeDataGrid.ApiAudit/Program.cs',
-    'public static Surface Read(string[] inputs)', 'public static Surface Read(string[] inputs, string? referenceDirectories)')
-replace('tools/TreeDataGrid.ApiAudit/Program.cs',
-    '        foreach (var input in inputs) AddReference(input);', '''        foreach (var input in inputs) AddReference(input);
-        foreach (var directory in (referenceDirectories ?? "").Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
+replace('samples/TreeDataGridUnoSample/FocusRuntimeChecks.cs', '''        DependencyObject? Next(FocusNavigationDirection direction) =>
+            FocusManager.FindNextElement(direction, new FindNextElementOptions { SearchRoot = grid.RowsPresenter });''', '''        DependencyObject? Next(FocusNavigationDirection direction)
         {
-            if (!Directory.Exists(directory)) throw new DirectoryNotFoundException(directory);
-            foreach (var file in Directory.EnumerateFiles(directory, "*.dll").Order(StringComparer.Ordinal)) AddReference(file);
+            // FindNextElement is XY-only. TryMoveFocus uses the real platform Tab
+            // traversal; restore the origin so forward/reverse assertions remain
+            // independent and keep subsequent retention checks on that same cell.
+            var root = grid.XamlRoot ?? throw new InvalidOperationException("The focus fixture must be attached.");
+            var original = FocusManager.GetFocusedElement(root) as Control
+                ?? throw new InvalidOperationException("The fixture requires a focused control.");
+            try
+            {
+                if (!FocusManager.TryMoveFocus(direction, new FindNextElementOptions { SearchRoot = grid.RowsPresenter })) return null;
+                return FocusManager.GetFocusedElement(root) as DependencyObject;
+            }
+            finally { Check(original.Focus(FocusState.Keyboard), "Could not restore the focus origin after Tab traversal."); }
         }''')
-replace('tools/TreeDataGrid.ApiAudit/Program.cs',
-    '    Console.WriteLine("UNO_API_AUDIT=" + JsonSerializer.Serialize(report));', '''    Console.WriteLine("UNO_API_AUDIT=" + JsonSerializer.Serialize(new
+replace('samples/TreeDataGridUnoSample/ElementFactoryRuntimeChecks.cs',
+    'customRow.LastReason == TreeDataGridRowUnrealizeReason.Recycle',
+    'customRow.LastReason == TreeDataGridRowUnrealizeReason.ItemRemoved')
+replace('src/TreeDataGrid.Controls.Uno/Primitives/TreeDataGridPresenterBase.cs',
+    '                scrollToElement.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));',
+    '''                // A specialized presenter must record the target's actual row
+                // height/column width before computing its scroll rectangle.
+                // Calling Control.Measure directly bypasses that layout contract.
+                MeasureElement(index, scrollToElement, new Size(double.PositiveInfinity, double.PositiveInfinity));''')
+name = 'src/TreeDataGrid.Controls.Uno/TreeDataGrid.Input.cs'
+text = Path(name).read_text()
+start = text.index('    public bool BringCellIntoView(int row, int column)')
+end = text.index('    public bool MoveSelection(', start)
+replace(name, text[start:end], '''    public bool BringCellIntoView(int row, int column)
     {
-        report.baselineShapes, report.targetShapes, report.exactNormalizedMatches,
-        report.missingOrDifferent, report.additionalOrDifferent,
-        unresolvedBaselineTypes = baseline.UnresolvedTypes.Length,
-        unresolvedTargetTypes = target.UnresolvedTypes.Length,
-        report.completeApiParityProven,
-    }));''')
+        if (_scroll is not { } scroll || _presentation is not { } presentation || (uint)row >= (uint)presentation.Rows.Count ||
+            (uint)column >= (uint)_geometry.Count || _presenter is not { } presenter) return false;
+        var structure = _textSearchStructureRevision;
+        // Measuring a distant variable-height viewport changes both its row
+        // positions and ScrollViewer's extent. Converge using committed geometry
+        // instead of issuing a second request against a still-stale extent.
+        // The bound protects against application callbacks which oscillate layout.
+        for (var pass = 0; pass < 8; ++pass)
+        {
+            var x = _geometry.Start(column);
+            var right = x + _geometry.Width(column);
+            var y = presenter.GetRowStart(row);
+            var height = presenter.GetRowHeight(row);
+            var bottom = y + height;
+            var horizontal = x < scroll.HorizontalOffset ? x : right > scroll.HorizontalOffset + scroll.ViewportWidth
+                ? Math.Max(x, right - scroll.ViewportWidth) : scroll.HorizontalOffset;
+            var vertical = y < scroll.VerticalOffset ? y : bottom > scroll.VerticalOffset + scroll.ViewportHeight
+                ? Math.Max(y, bottom - scroll.ViewportHeight) : scroll.VerticalOffset;
+            _pendingVerticalAnchor = null;
+            presenter.CancelPendingAnchor();
+            scroll.ChangeView(horizontal, vertical, null, true);
+            if (!Current()) return false;
+            UpdateViewport();
+            if (!Current()) return false;
+            UpdateLayout();
+            if (!Current()) return false;
+            y = presenter.GetRowStart(row);
+            height = presenter.GetRowHeight(row);
+            var current = _pendingVerticalAnchor ?? scroll.VerticalOffset;
+            var visible = height > scroll.ViewportHeight
+                ? Math.Abs(y - current) < 0.5
+                : y >= current - 0.5 && y + height <= current + scroll.ViewportHeight + 0.5;
+            if (visible && presenter.TryGetElement(row) is not null) return true;
+        }
+        return Current();
+        bool Current() => structure == _textSearchStructureRevision && ReferenceEquals(_presentation, presentation) &&
+            ReferenceEquals(_presenter, presenter) && ReferenceEquals(_scroll, scroll) &&
+            (uint)row < (uint)presentation.Rows.Count && (uint)column < (uint)_geometry.Count;
+    }
+''')
+replace('samples/TreeDataGridUnoSample/ViewportCacheRuntimeChecks.cs',
+    '"Shrinking/growing the cache detached or replaced compatible pooled controls."',
+    '$"Shrinking/growing cache: oldRows={initial.Count}, newRows={presenter.RealizedRows.Count}, retainedRows={initial.Intersect(presenter.RealizedRows).Count()}, oldCells={cells.Count}, newCells={presenter.RealizedCells.Count}, retainedCells={cells.Intersect(presenter.RealizedCells).Count()}, unloads={unloads}, retainedParents={parents.Count(pair => ReferenceEquals(pair.Key.Parent, pair.Value))}."')
+replace('samples/TreeDataGridUnoSample/RowSizingRuntimeChecks.cs',
+    '"The last variable-height row was not brought fully into view."',
+    '$"Last row: realized={presenter.RealizedCells.Any(x => x.RowIndex == 149)}, top={presenter.GetRowStart(149)}, height={presenter.GetRowHeight(149)}, offset={grid.Scroll!.VerticalOffset}, viewport={grid.Scroll.ViewportHeight}, extent={grid.Scroll.ExtentHeight}."')
 Path('artifacts/candidate/files.json').write_text(json.dumps(changed))

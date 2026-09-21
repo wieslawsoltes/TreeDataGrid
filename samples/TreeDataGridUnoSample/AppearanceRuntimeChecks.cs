@@ -18,6 +18,15 @@ namespace TreeDataGridUnoSample;
 /// <summary>Authored native appearance/layout gates. Actual OS high contrast and pointer resizing are separate gates.</summary>
 internal static class AppearanceRuntimeChecks
 {
+    private static void ConfigureRightToLeft(FrameworkElement element)
+    {
+#if __WASM__
+        throw new PlatformNotSupportedException("The DOM renderer does not implement the native FlowDirection contract; this RTL gate requires an implemented head.");
+#else
+        element.FlowDirection = FlowDirection.RightToLeft;
+#endif
+    }
+
     internal static async Task RunAsync(MainPage page)
     {
         var content = page.Content;
@@ -97,7 +106,7 @@ internal static class AppearanceRuntimeChecks
             using var wide = new FlatTreeDataGridSource<Item>([new("RTL text")]);
             for (var i = 0; i < 3; ++i) wide.WithTextColumn(x => x.Name, options => options.Width = new(250));
             grid.Source = wide;
-            grid.FlowDirection = FlowDirection.RightToLeft;
+            ConfigureRightToLeft(grid);
             grid.Scroll!.ChangeView(0, 0, null, true);
             await Task.Delay(100);
             var first = Bounds(grid.TryGetCell(0, 0)!);

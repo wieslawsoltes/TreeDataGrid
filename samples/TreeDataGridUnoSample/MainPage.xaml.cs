@@ -38,7 +38,13 @@ public sealed partial class MainPage : Page
         // Preserve live-region metadata on implemented native heads without
         // invoking the generated Uno stub on unsupported renderers.
         if (Windows.Foundation.Metadata.ApiInformation.IsMethodPresent(
-            "Microsoft.UI.Xaml.Automation.AutomationProperties", "SetLiveSetting"))
+
+#if WINDOWS
+                "Microsoft.UI.Xaml.Automation.AutomationProperties",
+#else
+                typeof(Microsoft.UI.Xaml.Automation.AutomationProperties).AssemblyQualifiedName!,
+#endif
+                "SetLiveSetting"))
         {
 #pragma warning disable Uno0001 // The implemented capability is checked above.
             Microsoft.UI.Xaml.Automation.AutomationProperties.SetLiveSetting(

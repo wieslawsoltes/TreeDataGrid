@@ -69,7 +69,10 @@ public partial class App : Application
             await ViewportCacheRuntimeChecks.RunAsync(page.Grid);
             Console.WriteLine("UNO_CORE_SAMPLE_SMOKE_PASSED");
             SampleRunContext.ReportResult(true);
-            if (!OperatingSystem.IsBrowser()) Exit();
+
+#if !__WASM__
+            Exit();
+#endif
         }
         catch (Exception error)
         {
@@ -87,6 +90,9 @@ public partial class App : Application
         Directory.CreateDirectory(directory);
         if (element is FrameworkElement frameworkElement) frameworkElement.UpdateLayout();
         await Task.Delay(75);
+#if __WASM__
+        throw new PlatformNotSupportedException("The DOM renderer requires browser-driver screenshots; RenderTargetBitmap is unavailable.");
+#else
         var bitmap = new RenderTargetBitmap();
         await bitmap.RenderAsync(element);
         using var image = SKImage.FromPixelCopy(new SKImageInfo(bitmap.PixelWidth, bitmap.PixelHeight,
@@ -95,5 +101,6 @@ public partial class App : Application
         var path = Path.Combine(directory, name + ".png");
         File.WriteAllBytes(path, png.ToArray());
         Console.WriteLine($"UNO_SCREENSHOT: {path} ({bitmap.PixelWidth}x{bitmap.PixelHeight})");
+#endif
     }
 }

@@ -25,8 +25,8 @@ try
     var strict = args.Length == 5 && args[4] == "--strict";
     if (args.Length == 5 && !strict) throw new ArgumentException("The only optional argument is --strict.");
     Directory.CreateDirectory(output);
-    var baseline = Surface.Read([baselinePath, corePath]);
-    var target = Surface.Read([targetPath, corePath]);
+    var baseline = Surface.Read([baselinePath, corePath], Environment.GetEnvironmentVariable("TREEDATAGRID_API_BASELINE_REFERENCES"));
+    var target = Surface.Read([targetPath, corePath], Environment.GetEnvironmentVariable("TREEDATAGRID_API_TARGET_REFERENCES"));
     var left = baseline.Entries.Select(entry => entry.Normalized).ToHashSet(StringComparer.Ordinal);
     var right = target.Entries.Select(entry => entry.Normalized).ToHashSet(StringComparer.Ordinal);
     var missing = left.Except(right).Order(StringComparer.Ordinal).ToArray();
@@ -59,7 +59,14 @@ try
         }
     };
     File.WriteAllText(Path.Combine(output, "summary.json"), JsonSerializer.Serialize(report, jsonOptions) + "\n");
-    Console.WriteLine("UNO_API_AUDIT=" + JsonSerializer.Serialize(report));
+    Console.WriteLine("UNO_API_AUDIT=" + JsonSerializer.Serialize(new
+    {
+        report.baselineShapes, report.targetShapes, report.exactNormalizedMatches,
+        report.missingOrDifferent, report.additionalOrDifferent,
+        unresolvedBaselineTypes = baseline.UnresolvedTypes.Length,
+        unresolvedTargetTypes = target.UnresolvedTypes.Length,
+        report.completeApiParityProven,
+    }));
     return strict && (missing.Length > 0 || baseline.UnresolvedTypes.Length > 0 || target.UnresolvedTypes.Length > 0) ? 1 : 0;
 }
 catch (Exception error)
@@ -93,12 +100,17 @@ internal sealed record Surface(InputAssembly[] Inputs, ApiEntry[] Entries, strin
         miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
             SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
-    public static Surface Read(string[] inputs)
+    public static Surface Read(string[] inputs, string? referenceDirectories)
     {
         foreach (var input in inputs)
             if (!File.Exists(input)) throw new FileNotFoundException("API input assembly is missing", input);
         var references = new Dictionary<string, PortableExecutableReference>(StringComparer.OrdinalIgnoreCase);
         foreach (var input in inputs) AddReference(input);
+        foreach (var directory in (referenceDirectories ?? "").Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (!Directory.Exists(directory)) throw new DirectoryNotFoundException(directory);
+            foreach (var file in Directory.EnumerateFiles(directory, "*.dll").Order(StringComparer.Ordinal)) AddReference(file);
+        }
         foreach (var directory in inputs.Select(Path.GetDirectoryName).Distinct())
             foreach (var file in Directory.EnumerateFiles(directory!, "*.dll").Order(StringComparer.Ordinal)) AddReference(file);
         foreach (var file in ((string?)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") ?? "").Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
