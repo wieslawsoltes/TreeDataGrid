@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "observedDate": "2026-09-22",
+  "repository": "wieslawsoltes/TreeDataGrid",
+  "pullRequest": 26,
+  "branch": "codex/uno-core-port",
+  "productCommit": "5ed67958522f0e254bd6a0d5557154d48f802eac",
+  "testedMergeCommit": "e0f760d48bf6d222abfa0f21748dc36faa1ea293",
+  "subsequentDocumentationChangesAlterProductCode": false,
+  "executionEnvironment": "GitHub Actions",
+  "workflows": [
+    { "name": "Uno", "runId": 35783715226, "status": "completed", "conclusion": "success" },
+    { "name": "Build", "runId": 35783715283, "status": "completed", "conclusion": "success" },
+    { "name": "Uno validation report", "runId": 35783715258, "status": "completed", "conclusion": "success", "jobId": 106935256126, "artifactId": 10718624091 },
+    { "name": "Uno trimmed binding contract", "runId": 35783715249, "status": "completed", "conclusion": "success" },
+    { "name": "Uno dependency snapshot", "runId": 35783715284, "status": "completed", "conclusion": "success" },
+    { "name": "Uno paired native performance", "runId": 35783715321, "status": "completed", "conclusion": "failure", "jobId": 106935256027, "artifactId": 10719391863, "failureReason": "Median time/allocation ratios exceed the unchanged 1.10 diagnostic budget; both benchmark hosts built and all four measurement processes completed successfully." }
+  ],
+  "unitTests": {
+    "core": 210,
+    "uno": 281,
+    "avalonia": 520,
+    "sampleState": 36,
+    "totalPassed": 1047,
+    "failed": 0,
+    "skipped": 0
+  },
+  "nativeSuites": { "registered": 33, "passed": 33 },
+  "sequentialShowcasePassed": true,
+  "nativeMeasurementRecoveryPassed": true,
+  "bothNativeSampleBuildsPassed": true,
+  "nativeSampleBuildWarnings": 0,
+  "nativeSampleBuildErrors": 0,
+  "activityMonitorAllSectionsAndLifetimePassed": true,
+  "trimmedBindingConsumerPublishedAndExecuted": true,
+  "desktopBuildTestMatrix": { "windows": "success", "linux": "success", "macos": "success" },
+  "linuxNativePackageConsumers": "success",
+  "windowsAppSdkSamplesAndPackageConsumers": "success",
+  "browserSampleBuildsAndPackageConsumerPublication": "success",
+  "browserRuntimeParityProven": false,
+  "completePhysicalInputAccessibilityDpiParityProven": false,
+  "api": {
+    "baselineShapes": 1748,
+    "targetShapes": 1544,
+    "exactNamespaceNormalizedMatches": 830,
+    "missingOrDifferent": 918,
+    "additionalOrDifferent": 714,
+    "unresolvedBaselineTypes": 0,
+    "unresolvedTargetTypes": 0,
+    "strictIdenticalAssemblySelfComparisonPassed": true,
+    "completeApiParityProven": false,
+    "categories": {
+      "declaration-changed-at-same-identity": 193,
+      "exported-type-not-found-at-identity": 63,
+      "member-not-declared-on-matched-type": 107,
+      "member-of-absent-exported-type": 428,
+      "overload-or-parameter-identity-difference": 127
+    },
+    "note": "Counts are declaration differences, not feature-completion percentages. Candidates are not approved equivalences. Relocated Core and native/inherited contracts require explicit review."
+  },
+  "performance": {
+    "completePerformanceParityProven": false,
+    "diagnosticBudget": 1.10,
+    "diagnosticBudgetMet": false,
+    "pairs": 2,
+    "processOrder": "AB/BA alternating",
+    "columns": 64,
+    "iterationsPerWorkloadPerProcess": 25,
+    "scope": "Synchronous UI work and verified layout settlement; not GPU completion, frame rate, physical input or all-feature performance."
+  },
+  "merged": false,
+  "publicPackageReleasePerformed": false
+}

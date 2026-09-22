@@ -1,196 +1,162 @@
 # Current Uno completion checklist
 
-Updated 2026-09-22. This supersedes the 2026-09-21 24/28-suite checkpoint.
-The latest Windows and binding-lifetime continuation is recorded in
-[Windows and binding validation](uno-windows-binding-validation-2026-09-22.md).
+Updated 2026-09-22. Supersedes the older 989-test / 30-of-31-suite checkpoint.
 **Complete API, functional and performance parity is not yet certified.**
-The detailed implementation and measurement report is
-[Uno parity validation: 2026-09-22](uno-validation-2026-09-22.md).
 
-## Branch and architecture
+The [implementation report](uno-geometry-observable-validation-2026-09-22.md)
+describes this continuation. The subsequent
+[final CI checkpoint](uno-ci-checkpoint-5ed67958.json) records completed workflow
+outcomes and supersedes the report's earlier browser-upload-in-progress observation.
 
-PR #26 uses `codex/uno-core-port`, based on master `3ca47316`. Changes are
-committed directly to that branch; no merge or package release is implied.
-`TreeDataGrid.Controls.Uno` references the actual `TreeDataGrid.Core` assembly
-shared with Avalonia. Model, hierarchy, selection and source ownership remain in
-Core; native presentation, binding, layout and input remain in the view.
+## Branch, architecture and revision
 
-## Latest Windows and binding continuation
+PR #26 remains draft on `codex/uno-core-port`, based on master
+`3ca47316d724e5e040ab0281a880e8df999b25fc`. Changes are committed directly to the
+PR branch. Nothing was merged or released publicly.
 
-- Native Windows App SDK library and both samples build, packages are produced,
-  and both PackageReference sample consumers publish successfully in run
-  `35747491998`, job `106812743366`, at `a69db731`.
-- The Activity Monitor identity template now has an initialized compiled resource
-  dictionary. Its retained x:Bind content still retargets across immutable telemetry
-  snapshots. MetricSeries has a genuinely initialized, XAML-activatable empty
-  constructor; required declarations remain, and three new tests pass.
-- `CellBinding` now serializes reentrant lifetime operations and validates a
-  revision after application getters, subscription accessors and value equality.
-  A retired result/error is never published, including same-row retargets.
-  Eleven reentrancy tests and a zero-allocation warmed-retarget regression pass.
-- Local validation records 989 passed unit cases (Core 210, Uno 227, Avalonia 520,
-  sample state 32), zero failed/skipped, all 30 TreeDataGrid native suites and
-  Activity Monitor checks passing. The separate bare-Uno recovery test and
-  sequential integration still fail. The first local all-suite invocation was
-  interrupted by the host; all seven uncompleted suites were executed separately.
-  See the linked report for the exact environment and evidence boundaries.
+`TreeDataGrid.Controls.Uno` uses the actual `TreeDataGrid.Core` assembly shared with
+Avalonia. Source, hierarchy, rows and selection remain Core objects; native binding,
+presentation, recycling, input and accessibility remain in Uno.
 
-These local results cover product implementation `021489e6` plus the added
-allocation test. The completed Windows CI evidence covers `a69db731`; do not
-silently promote an earlier CI result to a later revision. No complete CI result
-for the binding correction was available when this report was recorded.
+Tested product: **`5ed67958522f0e254bd6a0d5557154d48f802eac`**.
+CI merge input: **`e0f760d48bf6d222abfa0f21748dc36faa1ea293`**.
+The later documentation-only commit does not change product sources.
 
-## Current verified implementation
+## Completed CI
 
-- Retained row/cell/template identity across replacement, sorting and scrolling;
-  precise visible-column mutations and pre-published selection mappings.
-  The native recycling suite includes 1,000-column virtualization.
-- Declarative null-intermediate-owner expansion recovery, live theme/foreground
-  propagation and cache shrink/regrowth now pass their complete isolated suites.
-- Grid-level and standalone variable-height bring-into-view pass. The standalone
-  path corrects geometry after native effective-viewport delivery, retaining
-  native routing/cancellation and rejecting obsolete requests/source generations.
-  New tests cover distant/final/reverse targets, tall-row TargetRect, supersession,
-  source removal, unload/reattach, bounded realization and model identity.
-- Cross-column recycling now reuses factory-compatible, same-parent native
-  controls rather than creating another complete visual tree for each horizontal
-  column window. Previous column models are released, never transferred to a
-  different column. Legacy delegates retain their own compatibility behavior.
-  A 128-column regression verifies six disjoint/reverse windows, no additional
-  controls after boundary priming, zero unload/reparent events and correct formats.
-- Default text cells have a specialized smaller visual tree without unused
-  checkbox/expander/display trees. Native editing, template editing, independent
-  selection/current/validation states, borders and theme resources are retained.
-- Reuse/measurement callbacks check ownership generations before accessing a
-  possibly retired presentation. Custom, expander and element factories pass
-  reentrancy/cleanup checks, including row-factory fallback and legacy delegates.
-- Focus tests use native forward/reverse Tab traversal rooted in XamlRoot content
-  and verify two-axis focused-container retention. Physical input is separate.
-- Windows-only sample SkiaSharp references are aligned to 3.119.2. Subsequent
-  Activity Monitor XBF/required-member corrections close the Windows sample
-  build and package-consumer publishing gates at the checkpoint above.
+| Workflow | Run | Result |
+| --- | --- | --- |
+| Uno multi-platform builds and package consumers | 35783715226 | Success |
+| Repository Build | 35783715283 | Success |
+| Committed-source functional/API inventory validation | 35783715258 | Success |
+| Real trimmed binding consumer publication and execution | 35783715249 | Success |
+| Dependency snapshot | 35783715284 | Success |
+| Paired native performance | 35783715321 | **Failure: ratio budget exceeded** |
 
-## Earlier completed functional evidence
+The Uno workflow completed all three desktop build/test jobs, Linux native runtime
+and package-consumer checks, Windows App SDK sample builds/packing/package-consumer
+publication, and both browser sample builds/packing/package-consumer publication.
+Those build/publication successes do not prove browser runtime or physical-input
+behavior.
 
-Implementation `502f5ab9` was tested as merge `6b8c179a` in
-[run 35740892721](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/35740892721),
-job `106790044799`, artifact `10700020208`: **974 unit tests passed**, zero
-failed/skipped (Core 210, Uno 215, Avalonia 520, sample state 29), both native
-samples built with zero warnings/errors, all Activity Monitor demo/lifetime
-checks passed, and **30/30 isolated TreeDataGrid suites passed**.
+[Functional run 35783715258](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/35783715258),
+job `106935256126`, artifact `10718624091`, reports all twelve exit codes zero,
+with no checkout modification:
 
-The later test-only commit `60dbd59b` adds a framework-only exception-recovery
-probe. [Run 35742390581](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/35742390581),
-job `106795206950`, artifact `10700431491`, tested merge `84de2cb7` and again
-passed all 974 unit tests, both native builds, Activity Monitor and the same 30
-TreeDataGrid suites. The new probe fails: the aggregate is now **30/31**, not 31/31.
-This is a newly exposed dependency failure, not a skipped or accepted test.
+| Gate | Result |
+| --- | --- |
+| Shared Core | 210 passed; zero failures/skips |
+| Uno | 281 passed; zero failures/skips |
+| Avalonia | 520 passed; zero failures/skips |
+| Sample state | 36 passed; zero failures/skips |
+| Total unit cases | **1,047 passed** |
+| Both native sample builds | Passed; zero warnings/errors |
+| Sequential showcase | Passed, including post-exception sizing/cache tests |
+| Independently hosted native suites | **33/33 passed** |
+| Bare native measurement-recovery probe | Passed |
+| Activity Monitor | All five sections and lifetime checks passed |
+| Metadata dependencies | Zero unresolved baseline/target types |
+| Strict identical-assembly API self-comparison | Zero differences |
 
-Sequential integration still fails after the intentionally throwing custom-reuse
-callback. The next single-row source retains the previous 5,600-pixel native
-extent and has zero realized rows/cells. Later sequential assertions are unrun,
-even though their individual suites pass. CI correctly remains failed.
+## Implemented in this continuation
 
-An earlier `74418d7` run also recorded a delayed Wikipedia-image assertion and
-an X11/GLX teardown error after automation assertions. Both passed on the later
-checkpoints above. Do not infer that repeated environment/render reliability is
-fully established from one successful isolated run.
+Uniform RowGeometry queries now use O(1) arithmetic, and uniform structural mutations
+allocate no row storage. Sparse measured rows retain the Fenwick path. Small-range
+invalidation avoids whole-measurement scans and key snapshots. Exact floating
+boundaries, int.MaxValue counts, overflow rollback and zero warmed allocations are
+tested. The initial captured-LINQ allocation was corrected without relaxing its test.
 
-## Independently reproduced native framework defect
+Observable TextCell<T>/CheckBoxCell rejected writes now roll back only unsuperseded
+proposals. Same-input retry invokes validation again. Source normalization, successful
+nested writes and newer notification values survive reentrancy. Failed EndEdit cannot
+resurrect a disposed/cancelled edit; the existing Value/Text/writer order is retained.
 
-`NativeLayoutRecoveryRuntimeChecks` uses only a bare native `Control`, with no
-TreeDataGrid source, presenter, factory, template or binding. It measures once,
-throws deliberately from the next MeasureOverride, catches the exception, then
-invalidates and measures with the **same constraint** and a new natural width.
+Whole-row recycling avoids redundant local child visibility changes inside balanced
+deferred rebinds. Horizontal-only/standalone recycling still hides normally. Native
+checks cover exact retained identity, zero child collapse on replacement/sort,
+normal horizontal collapse, bounded realization and full source cleanup.
 
-The executed result is:
+The metadata audit now classifies every raw difference using documentation identities,
+declaring types and overload names. Candidates are suggestions, not approved
+compatibility mappings. Six deterministic classifier tests pass. A concrete omission
+identified by that report, TreeDataGridCheckBoxCellAutomationPeer, is now ported and
+created by native checkbox controls. Its typed Owner, toggle cycle, read-only/disabled
+rejection and retired-provider contracts pass native assertions.
 
-```text
-framework=Uno.UI, Version=255.255.255.255
-exception=System.InvalidOperationException
-before=2; after=2; actualWidth=40; expectedWidth=80; constraint=300,200
-```
+The new suites add 30 unit cases relative to starting head `161eda63`: ten geometry,
+fourteen observable-write and six API-classification cases. There is also a new native
+row-recycling suite and expanded automation assertions.
 
-The native framework never calls the override after the handled failure. The
-inspected Uno 6.6.166 source sets `MeasuringSelf` before `MeasureCore` but clears
-it only on normal return. Upstream has an exception-safe helper clearing it in
-`finally`; see the linked source and commit in the detailed report.
+## Previously reported blockers
 
-A dependency with verified exception-safe measurement is required to close this
-acceptance boundary. Do not hide it with a changed constraint/delay, swallowed
-exceptions, reflection into native private flags or forced visual-tree rebuilding.
-The framework repository has not been modified by this port.
+This continuation started from `161eda63`, newer than the previous visible report.
+Intervening changes had already updated Uno.Sdk to 6.7.30, fixed native measurement
+recovery/sequential integration, and completed browser package publishing plus
+explicit trimmed binding contracts. These are inherited fixes, not newly implemented
+here. Current runs reconfirm their exercised behavior; old reports remain historical.
 
-## Paired native performance evidence
+Existing retained row/cell/template identity, cross-column reuse, standalone/grid
+variable bring-into-view, declarative null recovery, themes, cache resizing, custom
+factories, editing, selection/lifetime and wide-grid tests continue to pass.
 
-The paired benchmark now builds and runs both native hosts against the same Core
-source. [Run 35740892949](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/35740892949),
-job `106790049143`, artifact `10699900110`, measures implementation `502f5ab9`
-in two AB/BA pairs with 64 columns and 25 iterations per workload/process.
-Geometry, model/text identity, viewport and bounded realization are checked.
+## API acceptance remains open
 
-| Workload | Avalonia median ms | Uno median ms | Uno/Avalonia time | Uno median allocated bytes |
-| --- | ---: | ---: | ---: | ---: |
-| Horizontal scroll | 0.50705 | 1.56590 | 3.09 | 29,940 |
-| Vertical scroll | 1.35360 | 3.31270 | 2.45 | 212,584 |
-| Distant diagonal scroll | 2.54945 | 13.99850 | 5.49 | 1,075,688 |
-| Replace visible row | 2.05135 | 4.27800 | 2.09 | 110,352 |
-| Resize visible column | 3.73280 | 4.77600 | 1.28 | 138,224 |
-| Sort | 34.89330 | 47.40700 | 1.36 | 1,097,952 |
+Current compiled surface: baseline 1,748; target 1,544; exact namespace-normalized
+matches 830; missing-or-different baseline entries 918; additional-or-different
+entries 714. These are NOT feature-completion percentages.
 
-Before the recycling/template fixes, measured Uno median allocations were
-3,690,312 bytes for horizontal scroll, 17,138,928 for distant diagonal scroll,
-and 63,116,936 for sort. Latest values are approximately 99.2%, 93.7% and 98.3%
-lower. Different revision runs use different hosted runners; only each run's
-Uno-versus-Avalonia comparison is paired on one machine. Raw measurements and
-p95/settlement metrics are retained in the artifacts and detailed report.
+| Raw-difference category | Count |
+| --- | ---: |
+| Changed declaration at the same documentation identity | 193 |
+| Exported type not found at that identity | 63 |
+| Member not declared on a matched type | 107 |
+| Member of an absent exported type | 428 |
+| Overload/native-parameter identity difference | 127 |
 
-**The unchanged 1.10 median time/allocation ratio budget still fails.** Sorting
-allocates less than Avalonia in this workload, but remains slower. This benchmark
-covers synchronous UI-thread work and verified layout-settlement latency, not
-GPU completion, frame rate, physical input, variable-height or all-feature parity.
+Relocated Core contracts, generated/binding Avalonia exports, inherited members,
+native type differences and actual omissions require explicit review. The checkbox
+peer reduces absent identities from 64 to 63 and raw differences from 921 to 918.
+Inventory execution/self-comparison is not strict cross-framework API acceptance;
+completeApiParityProven remains false.
 
-## Remaining platform and API gates
+## Performance remains below acceptance
 
-The three-OS desktop build/unit matrix is distinct from Windows App SDK and
-browser package consumers. Windows App SDK sample builds, all framework package
-assets and both package-consuming sample publications now pass at `a69db731`.
-Native Windows runtime input, accessibility, scaling and rendering acceptance
-remain separate; a successful build/publish does not execute those checks.
+[Paired run 35783715321](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/35783715321),
+job `106935256027`, artifact `10719391863`, built and executed both hosts on one
+machine with two AB/BA pairs, 64 columns and 25 iterations. The unchanged **1.10
+median time/allocation ratio budget fails**.
 
-Both browser samples build and Core/Uno packages are produced. Trimmed package
-publishing still fails on model/interface/property/indexer discovery, TypeDescriptor
-conversion, and reflection in ReactiveUI/Rx/Uno dependencies. Explicit preservation
-and generated/registered-accessor contracts remain necessary; trimming diagnostics
-have not been disabled. Browser runtime automation remains a separate gate.
+| Workload | Avalonia median ms | Uno median ms | Uno / Avalonia |
+| --- | ---: | ---: | ---: |
+| Horizontal scroll | 0.63865 | 3.01625 | 4.72 |
+| Vertical scroll | 1.59780 | 4.21040 | 2.64 |
+| Distant diagonal scroll | 2.98110 | 36.21515 | 12.15 |
+| Replace visible row | 2.57530 | 4.53425 | 1.76 |
+| Resize visible column | 4.98270 | 6.76810 | 1.36 |
+| Sort | 39.07605 | 66.75290 | 1.71 |
 
-The compiled metadata audit resolves both dependency sets and its strict self-diff
-passes. It reports 1,748 baseline/1,525 target shapes, 823 exact namespace-normalized
-matches, 925 missing-or-different and 702 additional-or-different entries. These
-are not feature-completion percentages. Relocated Core contracts, native types,
-inheritance/accessibility and true omissions need explicit classification and
-compatibility tests. `completeApiParityProven` correctly remains false.
+Sorting allocates less than Avalonia but remains slower. The same-runner visibility
+experiment reduced some allocation/visibility operations, not overall timing; some
+medians increased. Its complete before/after table is in the report. Different
+hosted runner/revision timings are not controlled speedups. Sampled profiles include
+waits/startup. Acceptance measures synchronous UI work/verified settlement, not
+GPU completion, frame rate or all-feature performance.
 
-Remaining acceptance also includes real pointer/keyboard/drag-drop, Unicode/IME,
-accessibility, scaling and multi-head rendering checks, plus closing the measured
-rebind/layout/selection performance gaps. No budget or assertion was weakened.
+## Remaining acceptance
 
-## Reproduction
+Complete actual public contracts and tested Core/native equivalence decisions;
+close native timing/allocation gaps; execute browser runtime automation and physical
+pointer/keyboard/Unicode/IME/drag-drop/screen-reader/DPI coverage; expand mixed-mutation
+and variable-height performance. Finite suite success does not certify every feature.
 
 ```sh
-TreeDataGridUnoSampleTargetFrameworks=net10.0-desktop \
-  python3 build/validate-uno-linux.py
-
-# After building the desktop showcase:
-python3 build/run-uno-native-suites.py \
-  --suite bring-into-view --suite cross-column-recycling
-python3 build/run-uno-native-suites.py --suite native-layout-recovery
-
-python3 build/run-native-parity.py \
-  --pairs 2 --columns 64 --iterations 25 --max-ratio 1.10
+TreeDataGridUnoSampleTargetFrameworks=net10.0-desktop python3 build/validate-uno-linux.py
+python3 build/run-uno-native-suites.py --suite row-recycling-visibility --suite automation
+python3 build/run-native-parity.py --pairs 2 --columns 64 --iterations 25 --max-ratio 1.10
 ```
 
-The read-only workflows execute their unchanged checkout and preserve revisions,
-toolchains, TRX files, native logs, screenshots and raw metrics, including failures.
-Later completed run artifacts take precedence over this dated checkpoint; a job
-step displaying success is not proof that the aggregate or all assertions passed.
+Permanent workflows preserve committed inputs, failures, hashes, TRX, native logs
+and metrics. Temporary candidate mutation workflows were removed after manual
+promotion. No assertion, trimming diagnostic or performance threshold was weakened.
+Later completed artifacts supersede this checkpoint; running/cancelled work never
+counts as successful validation.
