@@ -19,6 +19,26 @@ internal static class RuntimeChecks
 {
     public static async Task RunAsync(Uno.Controls.TreeDataGrid grid, DataTemplate template)
     {
+        var previousFactory = grid.CellFactory;
+        var hadTemplate = grid.CellTemplates.TryGetValue("Runtime", out var previousTemplate);
+        try { await RunCoreAsync(grid, template); }
+        finally
+        {
+            // The sequential suite reuses this grid. A tracked legacy factory
+            // otherwise leaks into automation/specialized-cell tests and replaces
+            // every expander with a generic TrackedCell. Restore on failures too.
+            try { grid.Model = null; }
+            finally
+            {
+                grid.CellFactory = previousFactory;
+                if (hadTemplate) grid.CellTemplates["Runtime"] = previousTemplate!;
+                else grid.CellTemplates.Remove("Runtime");
+            }
+        }
+    }
+
+    private static async Task RunCoreAsync(Uno.Controls.TreeDataGrid grid, DataTemplate template)
+    {
         grid.Model = null;
         var controls = new List<TrackedCell>();
         grid.CellFactory = _ => { var cell = new TrackedCell(); controls.Add(cell); return cell; };
