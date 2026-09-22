@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using TreeDataGrid.Tools.ApiAudit;
 
 // Read compiled metadata; never load/execute application assemblies or access
 // static properties. Namespace normalization is explicit and recorded. This
@@ -32,14 +33,22 @@ try
     var missing = left.Except(right).Order(StringComparer.Ordinal).ToArray();
     var additional = right.Except(left).Order(StringComparer.Ordinal).ToArray();
     var matched = left.Intersect(right).Count();
+    var classified = ApiDifferences.Classify(baseline.Entries, target.Entries);
+    if (classified.Length != missing.Length) throw new InvalidDataException("API classification lost raw differences.");
+    var categories = new SortedDictionary<string, int>(StringComparer.Ordinal);
+    foreach (var group in classified.GroupBy(item => item.Category)) categories.Add(group.Key, group.Count());
+    var absentTypes = classified.Where(item => item.Category == "exported-type-not-found-at-identity")
+        .Select(item => item.Baseline.Identity).Order(StringComparer.Ordinal).ToArray();
     var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
     File.WriteAllText(Path.Combine(output, "avalonia.json"), JsonSerializer.Serialize(baseline, jsonOptions) + "\n");
     File.WriteAllText(Path.Combine(output, "uno.json"), JsonSerializer.Serialize(target, jsonOptions) + "\n");
     File.WriteAllLines(Path.Combine(output, "missing-or-different.txt"), missing);
     File.WriteAllLines(Path.Combine(output, "additional-or-different.txt"), additional);
+    File.WriteAllText(Path.Combine(output, "classified-differences.json"), JsonSerializer.Serialize(classified, jsonOptions) + "\n");
+    File.WriteAllLines(Path.Combine(output, "absent-exported-types.txt"), absentTypes);
     var report = new
     {
-        schemaVersion = 1,
+        schemaVersion = 2,
         mode = "declared-public-and-protected-metadata-shapes",
         namespaceMappings = Surface.NamespaceMappings,
         baselineShapes = left.Count,
@@ -47,12 +56,15 @@ try
         exactNormalizedMatches = matched,
         missingOrDifferent = missing.Length,
         additionalOrDifferent = additional.Length,
+        differenceCategories = categories,
+        absentExportedTypeIdentities = absentTypes,
         unresolvedBaselineTypes = baseline.UnresolvedTypes,
         unresolvedTargetTypes = target.UnresolvedTypes,
         completeApiParityProven = false,
         limitations = new[]
         {
-            "Native framework property/event types, relocated Core APIs and inheritance require explicit classification.",
+            "Native framework types, relocated Core APIs and inheritance require explicit compatibility review.",
+            "Documentation identities classify differences; candidate matches do not establish equivalence or remove raw differences.",
             "Matching declarations do not validate method bodies, event ordering, native input or timing.",
             "Inherited external framework members and custom attributes are not included in this declared-member inventory.",
             "Unresolved metadata dependencies are reported; they are never silently treated as matching contracts."
@@ -67,6 +79,8 @@ try
         unresolvedTargetTypes = target.UnresolvedTypes.Length,
         report.completeApiParityProven,
     }));
+    Console.WriteLine("UNO_API_DIFFERENCE_CATEGORIES=" + JsonSerializer.Serialize(categories));
+    Console.WriteLine("UNO_API_ABSENT_EXPORTED_TYPES=" + JsonSerializer.Serialize(absentTypes));
     return strict && (missing.Length > 0 || baseline.UnresolvedTypes.Length > 0 || target.UnresolvedTypes.Length > 0) ? 1 : 0;
 }
 catch (Exception error)
@@ -75,7 +89,6 @@ catch (Exception error)
     return 2;
 }
 
-internal sealed record ApiEntry(string Assembly, string Kind, string Raw, string Normalized);
 internal sealed record InputAssembly(string Name, string Sha256);
 internal sealed record Surface(InputAssembly[] Inputs, ApiEntry[] Entries, string[] UnresolvedTypes)
 {
@@ -181,9 +194,17 @@ internal sealed record Surface(InputAssembly[] Inputs, ApiEntry[] Entries, strin
             }
             if (symbol is IFieldSymbol { HasConstantValue: true } field)
                 text += " | constant=" + JsonSerializer.Serialize(field.ConstantValue);
-            var normalized = text;
-            foreach (var map in NamespaceMappings) normalized = normalized.Replace(map.Key + ".", map.Value + ".", StringComparison.Ordinal);
-            entries.Add(new(assembly, symbol.Kind.ToString(), text, normalized));
+            var identity = symbol.GetDocumentationCommentId()
+                ?? throw new InvalidDataException($"No metadata documentation identity for {symbol.Kind}: {text}");
+            var owner = (symbol as INamedTypeSymbol ?? symbol.ContainingType)?.GetDocumentationCommentId()
+                ?? throw new InvalidDataException($"No declaring type for {identity}");
+            entries.Add(new(assembly, symbol.Kind.ToString(), text, Normalize(text),
+                Normalize(identity), Normalize(owner), symbol.MetadataName));
+        }
+        static string Normalize(string value)
+        {
+            foreach (var map in NamespaceMappings) value = value.Replace(map.Key + ".", map.Value + ".", StringComparison.Ordinal);
+            return value;
         }
         void CheckType(ITypeSymbol? type)
         {
