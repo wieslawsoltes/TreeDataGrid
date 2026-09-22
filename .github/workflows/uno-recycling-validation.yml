@@ -1,0 +1,93 @@
+name: Validate exact Uno recycling implementation
+on:
+  push:
+    branches: [codex/uno-port-recycling-validation]
+permissions:
+  contents: write
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      TreeDataGridUnoSampleTargetFrameworks: net10.0-desktop
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Reconstruct the exact locally tested implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          gzip -dc .github/uno-recycling-validation.patch.gz > "$RUNNER_TEMP/implementation.patch"
+          echo '4fe32b7bc859ad48126ed076d45ea47c4c40efbb739fafb6c7f855d0a54308eb' " $RUNNER_TEMP/implementation.patch" | sha256sum --check
+          git checkout --detach 5872719ad8074cc69d8f6de4a5848185a9964c16
+          git apply --unidiff-zero --index "$RUNNER_TEMP/implementation.patch"
+          test "$(git write-tree)" = 6b8a2d4b881da9354ff6266af87a5ba5101cbddf
+          git -c user.name='Wiesław Šoltés' -c user.email=wieslawsoltes@users.noreply.github.com commit -m 'Optimize synchronous row recycling and complete native column and automation contracts'
+          mkdir -p artifacts
+          cp "$RUNNER_TEMP/implementation.patch" artifacts/implementation.patch
+          git rev-parse HEAD HEAD^{tree} > artifacts/validated-revision.txt
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.201
+      - name: Install native runtime dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb fonts-dejavu-core libfontconfig1 libx11-6 libxrandr2 libxi6 libxcursor1 libgl1
+      - name: Execute all existing functional and API inventory gates
+        run: python3 -u build/validate-uno-linux.py
+      - name: Publish and execute the real trimmed binding consumer
+        run: |
+          dotnet publish tests/TreeDataGrid.Uno.TrimTests/TreeDataGrid.Uno.TrimTests.csproj -c Release -r linux-x64 --self-contained true -p:TreeDataGridUnoTargetFrameworks=net10.0 -o artifacts/trimmed-binding
+          artifacts/trimmed-binding/TreeDataGrid.Uno.TrimTests
+      - name: Verify no validation-time source changes
+        run: |
+          git diff --exit-code
+          git diff --cached --exit-code
+          test "$(git rev-parse HEAD^{tree})" = 6b8a2d4b881da9354ff6266af87a5ba5101cbddf
+      - name: Record verified Git objects without updating any branch
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const cp = require('child_process');
+            const scope = {owner: context.repo.owner, repo: context.repo.repo};
+            const parent = '5872719ad8074cc69d8f6de4a5848185a9964c16';
+            const expectedTree = '6b8a2d4b881da9354ff6266af87a5ba5101cbddf';
+            const base = await github.rest.git.getCommit({...scope, commit_sha: parent});
+            const names = cp.execFileSync('git', ['diff', '--name-only', '-z', parent, 'HEAD']).toString().split('\0').filter(Boolean);
+            const entries = [];
+            for (const path of names) {
+              const content = fs.readFileSync(path);
+              const expected = cp.execFileSync('git', ['hash-object', path]).toString().trim();
+              const blob = await github.rest.git.createBlob({...scope, encoding: 'base64', content: content.toString('base64')});
+              if (blob.data.sha !== expected) throw new Error('Blob mismatch: ' + path);
+              entries.push({path, type: 'blob', mode: '100644', sha: expected});
+            }
+            const tree = await github.rest.git.createTree({...scope, base_tree: base.data.tree.sha, tree: entries});
+            if (tree.data.sha !== expectedTree) throw new Error('Verified source tree mismatch');
+            const commit = await github.rest.git.createCommit({...scope, tree: tree.data.sha, parents: [parent], message: 'Optimize synchronous row recycling and complete native column and automation contracts'});
+            const report = {parent, commit: commit.data.sha, tree: tree.data.sha, entries, correctness: 'passed', performanceParityProven: false, refUpdated: false};
+            fs.writeFileSync('artifacts/verified-candidate.json', JSON.stringify(report, null, 2));
+            console.log('VERIFIED_UNO_IMPLEMENTATION=' + JSON.stringify(report));
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uno-recycling-verified-evidence
+          path: |
+            artifacts/validated-revision.txt
+            artifacts/implementation.patch
+            artifacts/verified-candidate.json
+            artifacts/validation-outcomes.json
+            artifacts/logs
+            artifacts/*-tests
+            artifacts/uno-native-suites
+            artifacts/api-audit
+            artifacts/api-self-check
+          if-no-files-found: error
+          retention-days: 14
