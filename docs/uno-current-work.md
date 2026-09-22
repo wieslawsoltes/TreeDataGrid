@@ -1,6 +1,8 @@
 # Current Uno completion checklist
 
 Updated 2026-09-22. This supersedes the 2026-09-21 24/28-suite checkpoint.
+The latest Windows and binding-lifetime continuation is recorded in
+[Windows and binding validation](uno-windows-binding-validation-2026-09-22.md).
 **Complete API, functional and performance parity is not yet certified.**
 The detailed implementation and measurement report is
 [Uno parity validation: 2026-09-22](uno-validation-2026-09-22.md).
@@ -12,6 +14,31 @@ committed directly to that branch; no merge or package release is implied.
 `TreeDataGrid.Controls.Uno` references the actual `TreeDataGrid.Core` assembly
 shared with Avalonia. Model, hierarchy, selection and source ownership remain in
 Core; native presentation, binding, layout and input remain in the view.
+
+## Latest Windows and binding continuation
+
+- Native Windows App SDK library and both samples build, packages are produced,
+  and both PackageReference sample consumers publish successfully in run
+  `35747491998`, job `106812743366`, at `a69db731`.
+- The Activity Monitor identity template now has an initialized compiled resource
+  dictionary. Its retained x:Bind content still retargets across immutable telemetry
+  snapshots. MetricSeries has a genuinely initialized, XAML-activatable empty
+  constructor; required declarations remain, and three new tests pass.
+- `CellBinding` now serializes reentrant lifetime operations and validates a
+  revision after application getters, subscription accessors and value equality.
+  A retired result/error is never published, including same-row retargets.
+  Eleven reentrancy tests and a zero-allocation warmed-retarget regression pass.
+- Local validation records 989 passed unit cases (Core 210, Uno 227, Avalonia 520,
+  sample state 32), zero failed/skipped, all 30 TreeDataGrid native suites and
+  Activity Monitor checks passing. The separate bare-Uno recovery test and
+  sequential integration still fail. The first local all-suite invocation was
+  interrupted by the host; all seven uncompleted suites were executed separately.
+  See the linked report for the exact environment and evidence boundaries.
+
+These local results cover product implementation `021489e6` plus the added
+allocation test. The completed Windows CI evidence covers `a69db731`; do not
+silently promote an earlier CI result to a later revision. No complete CI result
+for the binding correction was available when this report was recorded.
 
 ## Current verified implementation
 
@@ -39,11 +66,11 @@ Core; native presentation, binding, layout and input remain in the view.
   reentrancy/cleanup checks, including row-factory fallback and legacy delegates.
 - Focus tests use native forward/reverse Tab traversal rooted in XamlRoot content
   and verify two-axis focused-container retention. Physical input is separate.
-- Windows-only sample SkiaSharp references are aligned to 3.119.2; the downgrade
-  failure is fixed. Native Windows library/showcase builds reach completion;
-  the separate Activity Monitor XBF and package-consumer gates remain open.
+- Windows-only sample SkiaSharp references are aligned to 3.119.2. Subsequent
+  Activity Monitor XBF/required-member corrections close the Windows sample
+  build and package-consumer publishing gates at the checkpoint above.
 
-## Completed functional evidence
+## Earlier completed functional evidence
 
 Implementation `502f5ab9` was tested as merge `6b8c179a` in
 [run 35740892721](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/35740892721),
@@ -126,9 +153,10 @@ GPU completion, frame rate, physical input, variable-height or all-feature parit
 ## Remaining platform and API gates
 
 The three-OS desktop build/unit matrix is distinct from Windows App SDK and
-browser package consumers. Native Windows builds the library and showcase after
-the SkiaSharp correction, but Activity Monitor fails XBF WMC0612 Property Not Found
-at `App.xaml(168,48)`. Later Windows package-consumer steps are not validated.
+browser package consumers. Windows App SDK sample builds, all framework package
+assets and both package-consuming sample publications now pass at `a69db731`.
+Native Windows runtime input, accessibility, scaling and rendering acceptance
+remain separate; a successful build/publish does not execute those checks.
 
 Both browser samples build and Core/Uno packages are produced. Trimmed package
 publishing still fails on model/interface/property/indexer discovery, TypeDescriptor
