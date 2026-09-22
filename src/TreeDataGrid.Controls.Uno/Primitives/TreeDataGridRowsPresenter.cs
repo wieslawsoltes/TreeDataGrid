@@ -345,15 +345,32 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
 
     protected override void RecycleElementToFactory(Control element, TreeDataGridElementFactory? factory)
     {
-        if (_resetDepth == 0 && _pool.Count < 32)
+        if (_resetDepth != 0)
         {
-            var row = (TreeDataGridRow)element;
-            var generation = PresenterGeneration;
-            if (!ReferenceEquals(row.Rows, Items)) row.Release();
-            if (generation == PresenterGeneration) _pool.Add(row);
-            else RemoveRecycledElement(row);
+            RemoveRecycledElement(element);
+            return;
         }
-        else RemoveRecycledElement(element);
+        var row = (TreeDataGridRow)element;
+        var generation = PresenterGeneration;
+        var retained = false;
+        try
+        {
+            if (!ReferenceEquals(row.Rows, Items)) row.Release();
+            if (generation != PresenterGeneration) return;
+            // A previous, larger viewport can fill the pool before CacheLength
+            // shrinks. Discarding the incoming row then destroys the most recent
+            // viewport's template tree. Evict the oldest pooled row instead;
+            // the 32-row and 256-cell limits remain unchanged.
+            if (_pool.Count == 32) RemoveRecycledElement(_pool[0]);
+            // Releasing the victim invokes native/application cleanup callbacks.
+            // A nested source/factory reset must not admit this retired row.
+            if (generation == PresenterGeneration && _resetDepth == 0 && _pool.Count < 32)
+            {
+                _pool.Add(row);
+                retained = true;
+            }
+        }
+        finally { if (!retained) RemoveRecycledElement(row); }
     }
 
     protected override void RemoveRecycledElement(Control element)
