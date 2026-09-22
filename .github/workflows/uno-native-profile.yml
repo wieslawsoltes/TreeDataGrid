@@ -56,6 +56,12 @@ jobs:
               > "artifacts/native-profile/$framework-exclusive.txt"
             "$RUNNER_TEMP/trace-tools/dotnet-trace" report "artifacts/native-profile/$framework.nettrace" topN -n 120 --inclusive --verbose \
               > "artifacts/native-profile/$framework-inclusive.txt"
+            echo "::group::$framework exclusive sampled stacks (includes waits/startup)"
+            cat "artifacts/native-profile/$framework-exclusive.txt"
+            echo '::endgroup::'
+            echo "::group::$framework inclusive sampled stacks (includes waits/startup)"
+            cat "artifacts/native-profile/$framework-inclusive.txt"
+            echo '::endgroup::'
             "$RUNNER_TEMP/trace-tools/dotnet-trace" convert "artifacts/native-profile/$framework.nettrace" --format Speedscope \
               --output "artifacts/native-profile/$framework"
           done
