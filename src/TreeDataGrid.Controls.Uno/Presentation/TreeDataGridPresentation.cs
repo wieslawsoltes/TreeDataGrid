@@ -279,7 +279,15 @@ public sealed class TreeDataGridPresentation<TModel> : TreeDataGridPresentation,
         foreach (var column in desired)
         {
             if (_observed.ContainsKey(column)) continue;
-            PropertyChangedEventHandler handler = (_, args) => OnColumnChanged(column, args);
+            PropertyChangedEventHandler? handler = null;
+            handler = (_, args) =>
+            {
+                // A multicast event may already have captured this handler
+                // before an earlier observer removes and re-adds the definition.
+                // Its replacement view must not receive that retired event.
+                if (_observed.TryGetValue(column, out var current) && ReferenceEquals(current, handler))
+                    OnColumnChanged(column, args);
+            };
             _observed.Add(column, handler);
             if (_active) column.PropertyChanged += handler;
         }
