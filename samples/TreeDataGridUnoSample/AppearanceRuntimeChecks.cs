@@ -38,7 +38,7 @@ internal static class AppearanceRuntimeChecks
             page.Content = grid;
             await Task.Delay(150);
             var row = grid.TryGetRow(0)!;
-            var cell = grid.TryGetCell(0, 0)!;
+            var cell = (TreeDataGridCell)grid.TryGetCell(0, 0)!;
             var parent = VisualTreeHelper.GetParent(cell);
             var width = grid.Presentation!.Columns[0].ActualWidth;
             var height = grid.RowsPresenter!.GetRowHeight(0);
