@@ -9,6 +9,7 @@ using TreeDataGridCore;
 using Uno.Controls.Presentation;
 using Uno.Controls.Primitives;
 using UI = Uno.Controls.Models.TreeDataGrid;
+using GridLength = Microsoft.UI.Xaml.GridLength;
 
 namespace TreeDataGridUnoSample;
 

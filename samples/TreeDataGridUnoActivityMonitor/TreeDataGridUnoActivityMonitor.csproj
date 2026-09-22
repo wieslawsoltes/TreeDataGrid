@@ -24,7 +24,7 @@
     <ProjectReference Include="../../src/TreeDataGrid.Controls.Uno/TreeDataGrid.Controls.Uno.csproj" Condition="'$(TreeDataGridUnoPackageVersion)' == ''" />
     <PackageReference Include="TreeDataGrid.Controls.Uno" Version="$(TreeDataGridUnoPackageVersion)" Condition="'$(TreeDataGridUnoPackageVersion)' != ''" />
     <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />
-    <PackageReference Include="SkiaSharp" Version="3.119.1" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'" />
+    <PackageReference Include="SkiaSharp" Version="3.119.2" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">
     <!-- Override the Uno browser toolchain's vulnerable 10.0.2 dependency. -->

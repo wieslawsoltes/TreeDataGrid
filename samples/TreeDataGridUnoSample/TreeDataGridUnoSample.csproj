@@ -24,7 +24,7 @@
     <ProjectReference Include="../../src/TreeDataGrid.Controls.Uno/TreeDataGrid.Controls.Uno.csproj" Condition="'$(TreeDataGridUnoPackageVersion)' == ''" />
     <PackageReference Include="TreeDataGrid.Controls.Uno" Version="$(TreeDataGridUnoPackageVersion)" Condition="'$(TreeDataGridUnoPackageVersion)' != ''" />
     <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />
-    <PackageReference Include="SkiaSharp" Version="3.119.1" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'" />
+    <PackageReference Include="SkiaSharp" Version="3.119.2" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'" />
     <PackageReference Include="ReactiveUI" Version="19.4.1" />
     <PackageReference Include="Bogus" Version="34.0.2" />
     <Compile Include="../TreeDataGridDemo/Models/Country.cs" Link="Models/Country.cs" />
