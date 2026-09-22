@@ -13,7 +13,7 @@ using Uno.Controls.Automation.Peers;
 
 namespace TreeDataGridUnoSample;
 
-/// <summary>Native peer/provider gates, authored for the post-implementation validation pass.</summary>
+/// <summary>Native peer/provider gates, including sequential source and factory state.</summary>
 internal static class AutomationRuntimeChecks
 {
     public static async Task RunAsync(Uno.Controls.TreeDataGrid grid)
@@ -37,11 +37,12 @@ internal static class AutomationRuntimeChecks
             grid.Model = source;
             grid.Scroll!.ChangeView(0, 0, null, true);
             await Task.Delay(150);
-            Check(grid.TryGetCell(0, 0) is global::Uno.Controls.Primitives.TreeDataGridExpanderCell { Indent: 0, IsExpanded: false, ShowExpander: true },
-                "The default factory did not expose the expander control's scalar contract.");
+            var initialCell = grid.TryGetCell(0, 0);
+            Check(initialCell is global::Uno.Controls.Primitives.TreeDataGridExpanderCell { Indent: 0, IsExpanded: false, ShowExpander: true },
+                $"The default factory did not expose the expander scalar contract: cell={initialCell?.GetType().FullName ?? "null"}; factory={grid.ElementFactory.GetType().FullName}; delegate={grid.CellFactory is not null}; rows={source.Rows.Count}; realized={grid.RowsPresenter!.RealizedRows.Count}; offset={grid.Scroll.VerticalOffset}; coreExpanded={((IExpander)source.Rows[0]).IsExpanded}; coreShow={((IExpander)source.Rows[0]).ShowExpander}.");
             var gridPeer = (TreeDataGridAutomationPeer)FrameworkElementAutomationPeer.CreatePeerForElement(grid);
             Check(gridPeer.GetAutomationControlType() == AutomationControlType.DataGrid, "Grid automation role differs from Avalonia.");
-            var selection = (ISelectionProvider)gridPeer.GetPattern(PatternInterface.Selection);
+            var selection = RuntimeAssertions.Pattern<ISelectionProvider>(gridPeer, PatternInterface.Selection);
             Check(selection.CanSelectMultiple && !selection.IsSelectionRequired, "Row selection capabilities are incorrect.");
             var rowPeer = RowPeer(0);
             Check(rowPeer.GetAutomationControlType() == AutomationControlType.TreeItem && rowPeer.IsReadOnly, "Row automation contract is incorrect.");
@@ -67,10 +68,10 @@ internal static class AutomationRuntimeChecks
             expanderControl.IsExpanded = true;
             grid.UpdateLayout();
             Check(source.Rows.Count == 3 && expanderControl.IsExpanded, "Public IsExpanded did not expand the shared Core row.");
-            var text = (IValueProvider)CellPeer(0).GetPattern(PatternInterface.Value);
+            var text = RuntimeAssertions.Pattern<IValueProvider>(CellPeer(0), PatternInterface.Value);
             text.SetValue("Changed by automation");
             Check(root.Name == "Changed by automation" && text.Value == root.Name, "Text automation value did not use the live model.");
-            var checkbox = (IToggleProvider)CellPeer(1).GetPattern(PatternInterface.Toggle);
+            var checkbox = RuntimeAssertions.Pattern<IToggleProvider>(CellPeer(1), PatternInterface.Toggle);
             checkbox.Toggle();
             Check(root.Checked == true && checkbox.ToggleState == ToggleState.On, "Checkbox automation did not write true.");
             checkbox.Toggle();
@@ -86,8 +87,10 @@ internal static class AutomationRuntimeChecks
             grid.SelectionMode = TreeDataGridSelectionMode.MultipleRows;
             var headers = FrameworkElementAutomationPeer.CreatePeerForElement(grid.ColumnHeadersPresenter!);
             Check(headers.GetAutomationControlType() == AutomationControlType.Header && !headers.IsContentElement(), "Header presenter role is incorrect.");
-            Check(headers.GetChildren().All(x => x.GetAutomationControlType() == AutomationControlType.HeaderItem), "Header children expose pooled/non-header controls.");
-            var children = rowPeer.GetChildren().Cast<TreeDataGridCellAutomationPeer>().ToArray();
+            var headerChildren = headers.GetChildren() ?? throw new InvalidOperationException("Realized headers have no accessible children.");
+            Check(headerChildren.All(x => x.GetAutomationControlType() == AutomationControlType.HeaderItem), "Header children expose pooled/non-header controls.");
+            var children = (rowPeer.GetChildren() ?? throw new InvalidOperationException("The realized row has no accessible cells."))
+                .Cast<TreeDataGridCellAutomationPeer>().ToArray();
             Check(children.Select(x => x.Owner.ColumnIndex).SequenceEqual(children.Select(x => x.Owner.ColumnIndex).OrderBy(x => x)),
                 "Accessible row cells are not in column order.");
 

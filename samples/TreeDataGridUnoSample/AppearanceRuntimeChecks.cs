@@ -101,7 +101,7 @@ internal static class AppearanceRuntimeChecks
             // model, not the mutually exclusive Model compatibility slot.
             Check(grid.Model is null, "Appearance fixture is not exercising Source-only configuration.");
             var headerPeer = FrameworkElementAutomationPeer.CreatePeerForElement(header);
-            ((IInvokeProvider)headerPeer.GetPattern(PatternInterface.Invoke)).Invoke();
+            RuntimeAssertions.Pattern<IInvokeProvider>(headerPeer, PatternInterface.Invoke).Invoke();
             await Task.Delay(100);
             Check(((Item)source.Rows[0].Model!).Name.StartsWith("Alpha", StringComparison.Ordinal), "Header sorting ignored Source-only configuration.");
 
