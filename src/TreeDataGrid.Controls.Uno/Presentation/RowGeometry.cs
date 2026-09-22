@@ -5,9 +5,9 @@ using System.Linq;
 namespace Uno.Controls.Presentation;
 
 /// <summary>
-/// Estimated uniform rows plus sparse measured deviations. Unknown rows require no
-/// per-row allocation; prefix queries and height changes take O(log row count).
-/// No source or model objects are retained by the geometry.
+/// Estimated uniform rows plus sparse measured deviations. Uniform queries are
+/// O(1); measured prefix queries and height changes are O(log row count).
+/// Unknown rows require no per-row storage and no source/model is retained.
 /// </summary>
 internal sealed class RowGeometry
 {
@@ -32,6 +32,7 @@ internal sealed class RowGeometry
     {
         if ((uint)row > (uint)Count) throw new ArgumentOutOfRangeException(nameof(row));
         var result = row * Estimate;
+        if (_heights.Count == 0) return result;
         for (var index = row; index > 0; index -= index & -index)
             if (_tree.TryGetValue(index, out var delta)) result += delta;
         return result;
@@ -49,7 +50,9 @@ internal sealed class RowGeometry
         var delta = height - previous;
         if (!double.IsFinite(TotalHeight + delta)) throw new ArgumentOutOfRangeException(nameof(height));
         if (height == Estimate) _heights.Remove(row); else _heights[row] = height;
-        AddDelta(row, delta);
+        // Once all deviations disappear, clear accumulated floating-point
+        // residuals as well. Future uniform queries use the exact base geometry.
+        if (_heights.Count == 0) _tree.Clear(); else AddDelta(row, delta);
         return true;
     }
     private void AddDelta(int row, double delta)
@@ -66,6 +69,17 @@ internal sealed class RowGeometry
     {
         if (double.IsNaN(offset)) throw new ArgumentOutOfRangeException(nameof(offset));
         if (offset <= 0 || Count == 0) return 0;
+        if (_heights.Count == 0)
+        {
+            if (offset >= Count * Estimate) return Count;
+            var result = (int)Math.Min(Count - 1d, Math.Floor(offset / Estimate));
+            // Division can round across an integer at a boundary. Compare with
+            // the same multiplication used by Start so exact starts, and their
+            // adjacent representable offsets, map consistently in both directions.
+            if (result > 0 && result * Estimate > offset) --result;
+            else if (result < Count - 1 && (result + 1d) * Estimate <= offset) ++result;
+            return result;
+        }
         var row = 0;
         var prefix = 0d;
         var bit = 1;
@@ -82,13 +96,22 @@ internal sealed class RowGeometry
     public void Insert(int index, int count)
     {
         if ((uint)index > (uint)Count || count < 0 || count > int.MaxValue - Count) throw new ArgumentOutOfRangeException(nameof(count));
+        if (count == 0) return;
+        var nextCount = Count + count;
+        // Preserve Reset's finite-base invariant and reject an overflowing
+        // extent before changing either indexes or retained measurements.
+        if (!double.IsFinite(nextCount * Estimate) || !double.IsFinite(TotalHeight + count * Estimate))
+            throw new ArgumentOutOfRangeException(nameof(count), "The resulting row extent must be finite.");
+        if (_heights.Count == 0) { Count = nextCount; return; }
         _heights = _heights.ToDictionary(x => x.Key >= index ? x.Key + count : x.Key, x => x.Value);
-        Count += count;
+        Count = nextCount;
         Rebuild();
     }
     public void Remove(int index, int count)
     {
         if (index < 0 || count < 0 || index > Count - count) throw new ArgumentOutOfRangeException(nameof(count));
+        if (count == 0) return;
+        if (_heights.Count == 0) { Count -= count; return; }
         _heights = _heights.Where(x => x.Key < index || x.Key >= index + count)
             .ToDictionary(x => x.Key >= index + count ? x.Key - count : x.Key, x => x.Value);
         Count -= count;
@@ -98,6 +121,7 @@ internal sealed class RowGeometry
     {
         if (count < 0 || oldIndex < 0 || newIndex < 0 || oldIndex > Count - count || newIndex > Count - count)
             throw new ArgumentOutOfRangeException(nameof(count));
+        if (count == 0 || oldIndex == newIndex || _heights.Count == 0) return;
         _heights = _heights.ToDictionary(x => MapMove(x.Key, oldIndex, newIndex, count), x => x.Value);
         Rebuild();
     }
@@ -109,7 +133,30 @@ internal sealed class RowGeometry
     }
     public void Invalidate(int index, int count)
     {
-        foreach (var row in _heights.Keys.Where(x => x >= index && x < index + count).ToArray()) SetHeight(row, Estimate);
+        if (index < 0 || count < 0 || index > Count - count) throw new ArgumentOutOfRangeException(nameof(count));
+        if (count == 0 || _heights.Count == 0) return;
+        if (index == 0 && count == Count)
+        {
+            _heights.Clear();
+            _tree.Clear();
+            return;
+        }
+        if (count <= _heights.Count)
+        {
+            // A cell notification usually invalidates one row. Do not scan
+            // every previously measured row, allocate a closure or snapshot keys.
+            var end = index + count;
+            for (var row = index; row < end; ++row)
+                if (_heights.ContainsKey(row)) SetHeight(row, Estimate);
+        }
+        else
+        {
+            // .NET permits Dictionary.Remove during enumeration. SetHeight only
+            // removes from this dictionary when restoring the uniform estimate;
+            // the Fenwick mutations are in a separate dictionary.
+            foreach (var pair in _heights)
+                if (pair.Key >= index && pair.Key - index < count) SetHeight(pair.Key, Estimate);
+        }
     }
     private void Rebuild()
     {
