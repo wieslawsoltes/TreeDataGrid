@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using Microsoft.UI.Xaml;
@@ -34,7 +35,11 @@ public class TextCell<T> : NotifyingBase, ITextCell, IDisposable, IEditableObjec
     private string? _editText;
     private bool _editing;
     private bool _disposed;
+    private bool _writeFailed;
     private int _receiving;
+    private int _valueRevision;
+    private int _writeRevision;
+    private int _editRevision;
     public TextCell(T? value) { _value = value; IsReadOnly = true; }
     public TextCell(IObservable<T> binding, bool isReadOnly, ITextCellOptions? options = null)
         : this(binding, binding as IObserver<T>, isReadOnly, options) { }
@@ -61,9 +66,43 @@ public class TextCell<T> : NotifyingBase, ITextCell, IDisposable, IEditableObjec
         set
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
-            if (!RaiseAndSetIfChanged(ref _value, value)) return;
-            RaisePropertyChanged(nameof(Text));
-            if (!_disposed && !IsReadOnly && !_editing && _receiving == 0) _writer!.OnNext(value!);
+            var revision = unchecked(++_valueRevision);
+            var previous = _value;
+            var changed = !EqualityComparer<T?>.Default.Equals(previous, value);
+            if (_disposed || revision != _valueRevision) return;
+            if (!changed && !_writeFailed) return;
+            if (changed)
+            {
+                _value = value;
+                // Keep the established Value -> Text -> writer notification order.
+                // Application callbacks can supersede the pending write.
+                RaisePropertyChanged(nameof(Value));
+                if (_disposed || revision != _valueRevision) return;
+                RaisePropertyChanged(nameof(Text));
+                if (_disposed || revision != _valueRevision) return;
+            }
+            if (IsReadOnly || _editing || _receiving != 0) return;
+            var write = unchecked(++_writeRevision);
+            _writeFailed = false;
+            try { _writer!.OnNext(value!); }
+            catch (Exception error)
+            {
+                // A subject may publish a normalized/accepted value before another
+                // observer throws. Retain that newer source value, but retry a
+                // rejected equal-valued write unless a later write superseded it.
+                if (!_disposed && write == _writeRevision) _writeFailed = true;
+                if (!_disposed && revision == _valueRevision && changed)
+                {
+                    _value = previous;
+                    try
+                    {
+                        RaisePropertyChanged(nameof(Value));
+                        if (!_disposed && revision == _valueRevision) RaisePropertyChanged(nameof(Text));
+                    }
+                    catch (Exception rollback) { throw new AggregateException(error, rollback); }
+                }
+                throw;
+            }
         }
     }
     object? ICell.Value => Value;
@@ -73,6 +112,7 @@ public class TextCell<T> : NotifyingBase, ITextCell, IDisposable, IEditableObjec
             ? string.Format(_options.Culture, format, _value) : _value?.ToString();
         set
         {
+            ObjectDisposedException.ThrowIf(_disposed, this);
             if (_editing) { _editText = value; return; }
             var type = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
             Value = value is null && (!typeof(T).IsValueType || Nullable.GetUnderlyingType(typeof(T)) is not null)
@@ -81,23 +121,44 @@ public class TextCell<T> : NotifyingBase, ITextCell, IDisposable, IEditableObjec
     }
     public void BeginEdit()
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         if (_editing || IsReadOnly) return;
-        _editText = Convert.ToString(_value, _options?.Culture ?? CultureInfo.CurrentCulture);
+        var edit = unchecked(++_editRevision);
+        var text = Convert.ToString(_value, _options?.Culture ?? CultureInfo.CurrentCulture);
+        if (_disposed || edit != _editRevision) return;
+        _editText = text;
         _editing = true;
     }
-    public void CancelEdit() { _editing = false; _editText = null; }
+    public void CancelEdit()
+    {
+        unchecked { ++_editRevision; }
+        _editing = false;
+        _editText = null;
+        _writeFailed = false;
+    }
     public void EndEdit()
     {
         if (!_editing) return;
+        var edit = _editRevision;
         var text = _editText;
         _editing = false;
-        try { Text = text; _editText = null; }
-        catch { _editing = true; throw; }
+        try
+        {
+            Text = text;
+            if (!_disposed && edit == _editRevision) _editText = null;
+        }
+        catch
+        {
+            if (!_disposed && edit == _editRevision) _editing = true;
+            throw;
+        }
     }
     public void Dispose()
     {
         if (_disposed) return;
         _disposed = true;
+        unchecked { ++_valueRevision; ++_writeRevision; }
+        CancelEdit();
         var subscription = _subscription;
         _subscription = null;
         subscription?.Dispose();
@@ -107,7 +168,13 @@ public class TextCell<T> : NotifyingBase, ITextCell, IDisposable, IEditableObjec
     {
         if (_disposed) return;
         ++_receiving;
-        try { Error = null; Value = value; RaisePropertyChanged(nameof(Error)); }
+        try
+        {
+            Error = null;
+            _writeFailed = false;
+            Value = value;
+            if (!_disposed) RaisePropertyChanged(nameof(Error));
+        }
         finally { --_receiving; }
     }
     private void ErrorReceived(Exception error) { if (!_disposed) { Error = error; RaisePropertyChanged(nameof(Error)); } }
@@ -119,7 +186,10 @@ public class CheckBoxCell : NotifyingBase, ICell, IDisposable, IBoundCellState
     private IDisposable? _subscription;
     private bool? _value;
     private bool _disposed;
+    private bool _writeFailed;
     private int _receiving;
+    private int _valueRevision;
+    private int _writeRevision;
     public CheckBoxCell(bool? value) { _value = value; IsReadOnly = true; }
     public CheckBoxCell(IObservable<bool?> binding, bool isReadOnly, bool isThreeState)
         : this(binding, binding as IObserver<bool?>, isReadOnly, isThreeState) { }
@@ -144,7 +214,31 @@ public class CheckBoxCell : NotifyingBase, ICell, IDisposable, IBoundCellState
         set
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
-            if (RaiseAndSetIfChanged(ref _value, value) && !_disposed && !IsReadOnly && _receiving == 0) _writer!.OnNext(value);
+            var revision = unchecked(++_valueRevision);
+            var previous = _value;
+            var changed = previous != value;
+            if (!changed && !_writeFailed) return;
+            if (changed)
+            {
+                _value = value;
+                RaisePropertyChanged(nameof(Value));
+                if (_disposed || revision != _valueRevision) return;
+            }
+            if (IsReadOnly || _receiving != 0) return;
+            var write = unchecked(++_writeRevision);
+            _writeFailed = false;
+            try { _writer!.OnNext(value); }
+            catch (Exception error)
+            {
+                if (!_disposed && write == _writeRevision) _writeFailed = true;
+                if (!_disposed && revision == _valueRevision && changed)
+                {
+                    _value = previous;
+                    try { RaisePropertyChanged(nameof(Value)); }
+                    catch (Exception rollback) { throw new AggregateException(error, rollback); }
+                }
+                throw;
+            }
         }
     }
     object? ICell.Value => Value;
@@ -152,6 +246,8 @@ public class CheckBoxCell : NotifyingBase, ICell, IDisposable, IBoundCellState
     {
         if (_disposed) return;
         _disposed = true;
+        unchecked { ++_valueRevision; ++_writeRevision; }
+        _writeFailed = false;
         var subscription = _subscription;
         _subscription = null;
         subscription?.Dispose();
@@ -161,7 +257,13 @@ public class CheckBoxCell : NotifyingBase, ICell, IDisposable, IBoundCellState
     {
         if (_disposed) return;
         ++_receiving;
-        try { Error = null; Value = value; RaisePropertyChanged(nameof(Error)); }
+        try
+        {
+            Error = null;
+            _writeFailed = false;
+            Value = value;
+            if (!_disposed) RaisePropertyChanged(nameof(Error));
+        }
         finally { --_receiving; }
     }
     private void ErrorReceived(Exception error) { if (!_disposed) { Error = error; RaisePropertyChanged(nameof(Error)); } }
