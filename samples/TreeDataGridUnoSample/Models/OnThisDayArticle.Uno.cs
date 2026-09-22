@@ -5,6 +5,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using TreeDataGridUnoSample;
 
@@ -50,17 +51,25 @@ internal partial class OnThisDayArticle
             using var stream = new MemoryStream(bytes, writable: false);
             using var randomAccess = stream.AsRandomAccessStream();
             var decoded = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
+            ImageBrush? decodeConsumer = null;
             void Opened(object sender, RoutedEventArgs args) => decoded.TrySetResult(null);
             void Failed(object sender, ExceptionRoutedEventArgs args) => decoded.TrySetResult(args.ErrorMessage);
             image.ImageOpened += Opened;
             image.ImageFailed += Failed;
             try
             {
-                // Keep the model-specific image and both stream wrappers alive
-                // through the decode event, even if the original Image control
-                // has already been retargeted to a different article. Some native
-                // paths complete SetSourceAsync before the decode notification.
+#if __SKIA__
+                // Uno's ForceLoad subscribes (which may start a decode), then
+                // invalidates immediately (starting another and cancelling the
+                // first). A cancelled decode can overwrite successful dimensions.
+                // Set the stream once, then keep a public, non-visual consumer
+                // until decoding finishes. Existing template consumers reuse the
+                // same operation; a recycled-away bitmap still decodes exactly once.
+                image.SetSource(randomAccess);
+                decodeConsumer = new ImageBrush { ImageSource = image };
+#else
                 await image.SetSourceAsync(randomAccess);
+#endif
                 var error = await decoded.Task.WaitAsync(TimeSpan.FromSeconds(15));
                 if (error is not null)
                     throw new InvalidDataException($"Image decode failed for '{uri}': {error}");
@@ -69,6 +78,7 @@ internal partial class OnThisDayArticle
             }
             finally
             {
+                decodeConsumer?.ClearValue(ImageBrush.ImageSourceProperty);
                 image.ImageOpened -= Opened;
                 image.ImageFailed -= Failed;
             }
