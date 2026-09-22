@@ -55,7 +55,7 @@ public class DeclarativeItemsSourceTests
         Assert.Equal(NotifyCollectionChangedAction.Add, Assert.Single(changes).Action);
         changes.Clear();
         items.Clear();
-        Assert.Equal(0, view.Count);
+        Assert.Empty(view);
         Assert.Equal(NotifyCollectionChangedAction.Reset, Assert.Single(changes).Action);
     }
 
@@ -79,7 +79,7 @@ public class DeclarativeItemsSourceTests
         Assert.Equal(2, source.Rows.Count);
         Assert.Same(child, source.Rows[1].Model);
         root.Children.Clear();
-        Assert.Equal(1, source.Rows.Count);
+        Assert.Single(source.Rows);
         var replacement = new Node();
         root.Children.Add(replacement);
         Assert.Equal(2, source.Rows.Count);
