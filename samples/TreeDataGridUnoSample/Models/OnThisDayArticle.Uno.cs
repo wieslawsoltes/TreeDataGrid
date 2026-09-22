@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media.Imaging;
 using TreeDataGridUnoSample;
 
@@ -35,6 +36,8 @@ internal partial class OnThisDayArticle
     [JsonIgnore]
     internal bool HasCreatedImage => _image is not null;
 
+    // Completion includes the native decode outcome, not just HTTP/stream
+    // delivery. A native failure is recorded in ImageLoadError for the view.
     internal Task ImageLoadingTask { get; private set; } = Task.CompletedTask;
     internal string? ImageLoadError { get; private set; }
     internal HttpClient? ImageHttpClient { get; set; }
@@ -43,14 +46,33 @@ internal partial class OnThisDayArticle
     {
         try
         {
-            // Wikimedia rejects the default native downloader's empty User-Agent.
-            // Download with the sample's identified client, then decode on the UI
-            // context. The model-specific BitmapImage remains stable across await.
             var bytes = await (ImageHttpClient ?? ImageClient).GetByteArrayAsync(uri);
-            using var stream = new MemoryStream(bytes);
+            using var stream = new MemoryStream(bytes, writable: false);
             using var randomAccess = stream.AsRandomAccessStream();
-            await image.SetSourceAsync(randomAccess);
+            var decoded = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
+            void Opened(object sender, RoutedEventArgs args) => decoded.TrySetResult(null);
+            void Failed(object sender, ExceptionRoutedEventArgs args) => decoded.TrySetResult(args.ErrorMessage);
+            image.ImageOpened += Opened;
+            image.ImageFailed += Failed;
+            try
+            {
+                // Keep the model-specific image and both stream wrappers alive
+                // through the decode event, even if the original Image control
+                // has already been retargeted to a different article. Some native
+                // paths complete SetSourceAsync before the decode notification.
+                await image.SetSourceAsync(randomAccess);
+                var error = await decoded.Task.WaitAsync(TimeSpan.FromSeconds(15));
+                if (error is not null)
+                    throw new InvalidDataException($"Image decode failed for '{uri}': {error}");
+                if (image.PixelWidth <= 0 || image.PixelHeight <= 0)
+                    throw new InvalidDataException($"Image decode for '{uri}' produced no pixels.");
+            }
+            finally
+            {
+                image.ImageOpened -= Opened;
+                image.ImageFailed -= Failed;
+            }
         }
-        catch (Exception error) { ImageLoadError = error.Message; }
+        catch (Exception error) { ImageLoadError = error.ToString(); }
     }
 }
