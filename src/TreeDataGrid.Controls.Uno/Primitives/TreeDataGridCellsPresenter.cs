@@ -198,6 +198,15 @@ public partial class TreeDataGridCellsPresenter : TreeDataGridColumnarPresenterB
                 if (reusable) { cell = candidate; break; }
             }
             EnsureGeneration(generation);
+            // Native container compatibility belongs to the factory, not to the
+            // column identity. Prefer the same column (retaining model/template
+            // state), then reuse a compatible offscreen control from another
+            // column in this same row. Otherwise each horizontal window creates
+            // an entire new native template tree until the global pool overflows.
+            // The legacy delegate has no compatibility-key contract; keep its
+            // existing per-column behavior rather than guessing compatibility.
+            if (cell is null && !legacy) cell = TakeCompatibleColumnCell(factory, model, generation);
+            EnsureGeneration(generation);
             if (cell is null)
             {
                 var created = legacy ? nativePresenter!.Owner!.CellFactory(nativeColumn!) : factory.GetOrCreateElement(model, this);
@@ -224,6 +233,41 @@ public partial class TreeDataGridCellsPresenter : TreeDataGridColumnarPresenterB
                 finally { if (cell is not null) RemoveRecycledElement(cell); }
             }
         }
+    }
+
+    private TreeDataGridCell? TakeCompatibleColumnCell(TreeDataGridElementFactory factory, ICell model, int generation)
+    {
+        IColumn? previousColumn = null;
+        TreeDataGridCell? candidate = null;
+        // A bounded pool scan: no source-sized mapping, source enumeration,
+        // temporary list, boxing or change to the native parent is necessary.
+        foreach (var pair in _pool)
+        {
+            if (!pair.Value.TryPeek(out var next)) continue;
+            var compatible = factory.CanReuseElement(next, model);
+            EnsureGeneration(generation);
+            if (!compatible) continue;
+            previousColumn = pair.Key;
+            candidate = next;
+            break;
+        }
+        if (candidate is null) return null;
+        var stack = _pool[previousColumn!];
+        stack.Pop();
+        if (stack.Count == 0) _pool.Remove(previousColumn!);
+        ReleaseReservation(candidate);
+        var transferred = false;
+        try
+        {
+            // Never retarget the previous column's bound model across columns.
+            // Only the compatible native control is transferred; the new lease
+            // already owns the correct column-specific model and metadata.
+            ReleaseRetainedModel(candidate);
+            EnsureGeneration(generation);
+            transferred = true;
+            return candidate;
+        }
+        finally { if (!transferred) RemoveRecycledElement(candidate); }
     }
 
     protected override void RealizeElement(Control element, IColumn column, int index)
