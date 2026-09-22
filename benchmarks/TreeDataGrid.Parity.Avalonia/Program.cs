@@ -7,7 +7,6 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Themes.Fluent;
 using Avalonia.VisualTree;
-using TreeDataGridCore;
 using GridControl = global::Avalonia.Controls.TreeDataGrid;
 
 namespace TreeDataGrid.Parity.Avalonia;
@@ -62,7 +61,9 @@ internal sealed class NativeHost : INativeParityHost
         { Setters = { new Setter(Layoutable.HeightProperty, (double)ParityWorkload.RowHeight) } });
     public string Framework => "Avalonia";
     public string UiAssembly => typeof(Application).Assembly.FullName!;
-    public void Bind(FlatTreeDataGridSource<BenchRow> source)
+    // The benchmark must exercise the same Core source as Uno, not the legacy
+    // Avalonia facade with the same short type name.
+    public void Bind(global::TreeDataGridCore.FlatTreeDataGridSource<BenchRow> source)
     {
         Grid.Model = source;
         Grid.UpdateLayout();
@@ -74,7 +75,7 @@ internal sealed class NativeHost : INativeParityHost
     }
     public void Scroll(double x, double y) => _scroll!.Offset = new Vector(x, y);
     public void UpdateLayout() => Grid.UpdateLayout();
-    public Frame Inspect(FlatTreeDataGridSource<BenchRow> source, double x, double y)
+    public Frame Inspect(global::TreeDataGridCore.FlatTreeDataGridSource<BenchRow> source, double x, double y)
     {
         var scroll = _scroll!;
         var rows = _rows!.GetRealizedElements().OfType<TreeDataGridRow>().Where(row => row.RowIndex >= 0).ToArray();
