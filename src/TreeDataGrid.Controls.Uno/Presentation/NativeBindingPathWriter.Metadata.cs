@@ -5,6 +5,15 @@ namespace Uno.Controls.Presentation;
 
 internal static partial class NativeBindingPathWriter
 {
+    private static Type? GetMetadataPropertyType(Type type, string name)
+    {
+#if !WINDOWS
+        return global::Uno.UI.DataBinding.BindableMetadata.Provider?.GetBindableTypeByType(type)?.GetProperty(name)?.PropertyType;
+#else
+        return null;
+#endif
+    }
+
     private static Endpoint? TryResolveMetadataIndexer(object owner, string token)
     {
 #if !WINDOWS
@@ -12,15 +21,13 @@ internal static partial class NativeBindingPathWriter
         var getter = type?.GetIndexerGetter();
         var setter = type?.GetIndexerSetter();
         if (getter is null && setter is null) return null;
-        // Uno's generated getter contract uses a string key, including numeric
-        // tokens. Match the native reader's quote coercion; do not redirect its
-        // write to an unrelated CLR int overload merely because one exists.
         var key = StringKey(token);
-        // Generated metadata does not expose an indexer's declared value type.
-        // Use a matching public declaration when retained; generated-only/AOT
-        // endpoints use the native object contract without guessing from a value.
-        var valueType = FindIndexer(owner.GetType(), typeof(string))?.PropertyType ?? typeof(object);
-        return new(valueType,
+        // Native generated indexers use string keys; do not redirect to an
+        // unrelated int overload. Registration supplies the declared value type.
+        var valueType = TreeDataGridBindingRegistry.FindIndexer(owner.GetType(), typeof(string))?.Accessor.ValueType;
+        if (valueType is null && BindingFeatures.ReflectionEnabled)
+            valueType = FindIndexer(owner.GetType(), typeof(string))?.PropertyType;
+        return new(valueType ?? typeof(object),
             () => getter is not null ? getter(owner, key) :
                 throw new InvalidOperationException("The generated bound indexer is not readable."),
             value =>
@@ -36,9 +43,8 @@ internal static partial class NativeBindingPathWriter
     private static Endpoint? TryResolveMetadata(object owner, string name)
     {
 #if !WINDOWS
-        // Use the same public generated metadata as Uno's binding engine before
-        // reflection. Do not cache providers, model instances or generated
-        // delegates globally: applications can replace their metadata provider.
+        // A host may replace its provider. Never cache provider instances or
+        // model owners in the global syntax/registration caches.
         var property = global::Uno.UI.DataBinding.BindableMetadata.Provider?
             .GetBindableTypeByType(owner.GetType())?.GetProperty(name);
         if (property is null) return null;
@@ -59,8 +65,6 @@ internal static partial class NativeBindingPathWriter
                 setter(owner, value, null);
             });
 #else
-        // Windows App SDK does not expose Uno's metadata provider. Its native
-        // binding engine remains responsible for target evaluation/observation.
         return null;
 #endif
     }

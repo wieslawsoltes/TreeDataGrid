@@ -75,14 +75,10 @@ public class TreeDataGridCheckBoxColumn : TreeDataGridColumn
             column, binding, readOnly, options, checkBox: true, threeState: threeState));
     }
 
-    private static Type? GetValueType(Binding binding, Type? type)
-    {
-        // Type discovery only. Native binding, not this reflection walk, evaluates
-        // values, observes nested/indexer paths and performs conversion/writeback.
-        foreach (var segment in (binding.Path?.Path ?? string.Empty).Split('.', StringSplitOptions.RemoveEmptyEntries))
-            type = type?.GetProperty(segment)?.PropertyType;
-        return type;
-    }
+    private static Type? GetValueType(Binding binding, Type? type) =>
+        // Use the same grammar as writeback, including indexers. Explicit Source
+        // is not the row type. No getter is invoked merely to discover nullability.
+        NativeBindingPathWriter.GetPathValueType(binding.Source?.GetType() ?? type, binding.Path?.Path ?? string.Empty);
 }
 
 public class TreeDataGridTemplateColumn : TreeDataGridColumn

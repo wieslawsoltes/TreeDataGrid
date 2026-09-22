@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using TreeDataGridCore;
 
@@ -18,11 +19,11 @@ internal sealed class DeclarativeSource : IDisposable
     internal static DeclarativeSource Create(IEnumerable items, IReadOnlyList<TreeDataGridColumn> definitions)
     {
         var projected = new DeclarativeItemsSource(items);
-        var context = new DeclarativeSourceContext(projected.FirstOrDefault(x => x is not null), GetItemType(items));
+        var sample = projected.FirstOrDefault(x => x is not null);
+        var context = new DeclarativeSourceContext(sample, sample?.GetType() ?? GetItemType(items));
         ITreeDataGridSource? source = null;
         try
         {
-            // Build definitions before subscribing a presentation to the source.
             var columns = definitions.Select(column => column.CreateCoreColumn<object>(context: context)).ToArray();
             if (definitions.Any(column => column.IsHierarchical))
             {
@@ -47,8 +48,16 @@ internal sealed class DeclarativeSource : IDisposable
         try { (Source as IDisposable)?.Dispose(); }
         finally { _context.Dispose(); }
     }
-    private static Type? GetItemType(IEnumerable items) => items.GetType().IsArray ? items.GetType().GetElementType() :
-        items.GetType().GetInterfaces().FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEnumerable<>))?.GetGenericArguments()[0];
+    private static Type? GetItemType(IEnumerable items)
+    {
+        var type = items.GetType();
+        if (type.IsArray) return type.GetElementType();
+        if (TreeDataGridBindingRegistry.FindCollectionItemType(type) is { } registered) return registered;
+        return BindingFeatures.ReflectionEnabled ? GetReflectedItemType(type) : null;
+    }
+    [RequiresUnreferencedCode("Empty collection item-type discovery requires preserved interfaces. Use RegisterCollection<TCollection,TModel> in trimmed hosts.")]
+    private static Type? GetReflectedItemType(Type type) =>
+        type.GetInterfaces().FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEnumerable<>))?.GetGenericArguments()[0];
 }
 
 internal sealed class DeclarativeSourceContext(object? sample, Type? declaredType) : IDisposable
