@@ -375,7 +375,60 @@
     </Setter>
   </Style>
   <Style TargetType="primitives:TreeDataGridCell" BasedOn="{StaticResource TreeDataGridCellStyle}" />
-  <Style TargetType="primitives:TreeDataGridTextCell" BasedOn="{StaticResource TreeDataGridCellStyle}" />
+  <!-- Text columns do not need a checkbox, expander, nested column grids or a
+       display ContentPresenter. Keep native editing and independent overlay
+       states without constructing unused control/template trees per cell. -->
+  <Style TargetType="primitives:TreeDataGridTextCell" BasedOn="{StaticResource TreeDataGridCellStyle}">
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="primitives:TreeDataGridTextCell">
+          <Border x:Name="CellBorder" Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="{TemplateBinding CornerRadius}">
+            <Grid>
+              <VisualStateManager.VisualStateGroups>
+                <VisualStateGroup x:Name="SelectionStates">
+                  <VisualState x:Name="Unselected" />
+                  <VisualState x:Name="Selected">
+                    <VisualState.Setters>
+                      <Setter Target="SelectionBackground.Opacity" Value="1" />
+                      <Setter Target="PART_Text.Foreground" Value="{ThemeResource TreeDataGridSelectedCellForegroundBrush}" />
+                    </VisualState.Setters>
+                  </VisualState>
+                  <VisualState x:Name="RowSelected">
+                    <VisualState.Setters>
+                      <Setter Target="PART_Text.Foreground" Value="{ThemeResource TreeDataGridSelectedCellForegroundBrush}" />
+                    </VisualState.Setters>
+                  </VisualState>
+                </VisualStateGroup>
+                <VisualStateGroup x:Name="CurrentStates">
+                  <VisualState x:Name="NotCurrent" />
+                  <VisualState x:Name="Current">
+                    <VisualState.Setters><Setter Target="CurrentBorder.Opacity" Value="1" /></VisualState.Setters>
+                  </VisualState>
+                </VisualStateGroup>
+                <VisualStateGroup x:Name="ValidationStates">
+                  <VisualState x:Name="Valid" />
+                  <VisualState x:Name="Invalid">
+                    <VisualState.Setters><Setter Target="ValidationBorder.Opacity" Value="1" /></VisualState.Setters>
+                  </VisualState>
+                </VisualStateGroup>
+              </VisualStateManager.VisualStateGroups>
+              <Border x:Name="SelectionBackground" Background="{ThemeResource TreeDataGridSelectedCellBackgroundBrush}" Opacity="0" />
+              <TextBlock x:Name="PART_Text" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
+                         TextTrimming="CharacterEllipsis" Foreground="{TemplateBinding Foreground}" />
+              <Grid x:Name="PART_EditorHost" Visibility="Collapsed" />
+              <ContentPresenter x:Name="PART_EditingContent" Visibility="Collapsed" />
+              <Border x:Name="CurrentBorder" BorderBrush="{ThemeResource TreeDataGridCurrentCellBorderBrush}"
+                      BorderThickness="1" Opacity="0" IsHitTestVisible="False" />
+              <Border x:Name="ValidationBorder" BorderBrush="{ThemeResource TreeDataGridValidationBorderBrush}"
+                      BorderThickness="1" Opacity="0" IsHitTestVisible="False" />
+            </Grid>
+          </Border>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
   <Style TargetType="primitives:TreeDataGridCheckBoxCell" BasedOn="{StaticResource TreeDataGridCellStyle}" />
   <Style TargetType="primitives:TreeDataGridTemplateCell" BasedOn="{StaticResource TreeDataGridCellStyle}" />
   <Style TargetType="primitives:TreeDataGridExpanderCell" BasedOn="{StaticResource TreeDataGridCellStyle}">
