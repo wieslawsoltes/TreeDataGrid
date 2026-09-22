@@ -1,0 +1,71 @@
+name: Uno native stack profile
+
+on:
+  push:
+    branches: [codex/uno-core-port]
+    paths: [.github/workflows/uno-native-profile.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  profile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      PARITY_COLUMNS: 64
+      PARITY_ITERATIONS: 100
+      DOTNET_EventPipeThreadSamplingRate: 1
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.201
+      - name: Install native environment and pinned tracing tool
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb fonts-dejavu-core libfontconfig1 libx11-6 libxrandr2 libxi6 libxcursor1 libgl1
+          dotnet tool install dotnet-trace --tool-path "$RUNNER_TEMP/trace-tools" --version 10.0.745401
+      - name: Build matched native workloads
+        run: |
+          dotnet build benchmarks/TreeDataGrid.Parity.Avalonia/TreeDataGrid.Parity.Avalonia.csproj -c Release
+          dotnet build benchmarks/TreeDataGrid.Parity.Uno/TreeDataGrid.Parity.Uno.csproj -c Release -f net10.0-desktop
+      - name: Capture independent native stack profiles
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/native-profile
+          export PARITY_REVISION="$(git rev-parse HEAD)"
+          dotnet --info > artifacts/native-profile/dotnet-info.txt
+          for framework in Avalonia Uno; do
+            target=net10.0
+            if [ "$framework" = Uno ]; then target=net10.0-desktop; fi
+            export PARITY_OUTPUT="$PWD/artifacts/native-profile/$framework-measurements.json"
+            dll="benchmarks/TreeDataGrid.Parity.$framework/bin/Release/$target/TreeDataGrid.Parity.$framework.dll"
+            xvfb-run -a -s '-screen 0 1280x800x24' "$RUNNER_TEMP/trace-tools/dotnet-trace" collect \
+              --profile dotnet-sampled-thread-time,dotnet-common --show-child-io \
+              --output "artifacts/native-profile/$framework.nettrace" -- dotnet "$dll"
+            "$RUNNER_TEMP/trace-tools/dotnet-trace" report "artifacts/native-profile/$framework.nettrace" topN -n 120 --verbose \
+              > "artifacts/native-profile/$framework-exclusive.txt"
+            "$RUNNER_TEMP/trace-tools/dotnet-trace" report "artifacts/native-profile/$framework.nettrace" topN -n 120 --inclusive --verbose \
+              > "artifacts/native-profile/$framework-inclusive.txt"
+            "$RUNNER_TEMP/trace-tools/dotnet-trace" convert "artifacts/native-profile/$framework.nettrace" --format Speedscope \
+              --output "artifacts/native-profile/$framework"
+          done
+          echo 'Sampled stack residence includes waits and startup; it is not CPU-only attribution. Profiled timings are not acceptance benchmarks.' \
+            > artifacts/native-profile/SCOPE.txt
+          git diff --exit-code
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uno-native-stack-profiles
+          path: artifacts/native-profile
+          if-no-files-found: error
+          retention-days: 7
