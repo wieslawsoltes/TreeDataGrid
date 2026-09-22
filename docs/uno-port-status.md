@@ -8,10 +8,13 @@ Core assembly. Baseline master is `3ca47316d724e5e040ab0281a880e8df999b25fc`
 directly to the existing draft PR, not to master. No release or merge is implied.
 
 The latest status, exact tested revisions and CI evidence are in the
-[current completion checklist](uno-current-work.md) and
-[2026-09-22 geometry/cells/API report](uno-geometry-observable-validation-2026-09-22.md).
-These supersede older source-only/UNRUN notes. Historical reports remain in the
-repository as dated evidence, not descriptions of the current head.
+[current completion checklist](uno-current-work.md),
+[2026-09-22 geometry/cells/API report](uno-geometry-observable-validation-2026-09-22.md)
+and [final CI checkpoint](uno-ci-checkpoint-5ed67958.json).
+These supersede older source-only/UNRUN notes. The entire previous detailed ledger
+is preserved unmodified in the [historical port-status archive](uno-port-status-history-before-2026-09-22.md),
+including its original requirements, implementation notes and dated evidence.
+Historical results are not descriptions of the current head.
 
 **Complete API, functional and performance parity is not yet certified.**
 The `5ed67958` product checkpoint passes 1,047 unit cases, all 33 independently
