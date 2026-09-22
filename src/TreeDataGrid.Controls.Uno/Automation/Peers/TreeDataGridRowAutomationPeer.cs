@@ -55,9 +55,9 @@ public class TreeDataGridRowAutomationPeer : FrameworkElementAutomationPeer,
             .Where(x => x.RowIndex == Owner.RowIndex && x.Visibility == Visibility.Visible)
             .Select(CreatePeerForElement).Where(x => x is not null).ToList();
     }
-    protected override object GetPatternCore(PatternInterface patternInterface)
+    protected override object? GetPatternCore(PatternInterface patternInterface)
     {
-        if (!IsRealized(Owner)) return null!;
+        if (!IsRealized(Owner)) return null;
         return patternInterface switch
         {
             PatternInterface.Value => this,

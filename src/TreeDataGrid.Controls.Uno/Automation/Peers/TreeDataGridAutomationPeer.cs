@@ -18,8 +18,8 @@ public class TreeDataGridAutomationPeer : FrameworkElementAutomationPeer, ISelec
     public bool IsSelectionRequired => false;
     protected override string GetClassNameCore() => nameof(TreeDataGrid);
     protected override AutomationControlType GetAutomationControlTypeCore() => AutomationControlType.DataGrid;
-    protected override object GetPatternCore(PatternInterface patternInterface) =>
-        patternInterface == PatternInterface.Selection ? Selection is not null ? this : null! : base.GetPatternCore(patternInterface);
+    protected override object? GetPatternCore(PatternInterface patternInterface) =>
+        patternInterface == PatternInterface.Selection ? Selection is not null ? this : null : base.GetPatternCore(patternInterface);
     public IRawElementProviderSimple[] GetSelection()
     {
         var result = new List<IRawElementProviderSimple>();

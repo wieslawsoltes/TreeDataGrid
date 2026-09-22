@@ -53,9 +53,9 @@ public class TreeDataGridCellAutomationPeer : FrameworkElementAutomationPeer,
         var explicitName = base.GetNameCore();
         return !string.IsNullOrEmpty(explicitName) ? explicitName : Value;
     }
-    protected override object GetPatternCore(PatternInterface patternInterface)
+    protected override object? GetPatternCore(PatternInterface patternInterface)
     {
-        if (!Realized) return null!;
+        if (!Realized) return null;
         return patternInterface switch
         {
             PatternInterface.Value when owner.ViewModel?.ContentKind == CellKind.Text => this,
