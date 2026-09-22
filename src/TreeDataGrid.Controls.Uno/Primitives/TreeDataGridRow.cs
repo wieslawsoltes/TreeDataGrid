@@ -31,6 +31,9 @@ public class TreeDataGridRow : Control
     internal int RealizationVersion { get; private set; }
     internal int RecycledRowIndex { get; set; } = -1;
     internal bool IsResettingCells { get; set; }
+    // Set only by the owning presenter during synchronous viewport layout.
+    // Public/standalone unrealization and collection removal still hide now.
+    internal bool IsRecyclingVisibilityDeferred { get; set; }
     internal ITreeDataGridSelectionInteraction? StandaloneSelection { get; private set; }
     private bool _realizingStandalone;
     public TreeDataGridRow() => DefaultStyleKey = typeof(TreeDataGridRow);
@@ -73,6 +76,7 @@ public class TreeDataGridRow : Control
         if (RowIndex >= 0) throw new InvalidOperationException("Row is already realized.");
         if (_realizingStandalone) throw new InvalidOperationException("Row realization is already in progress.");
         if (rowIndex < 0 || (rows is not null && rowIndex >= rows.Count)) throw new ArgumentOutOfRangeException(nameof(rowIndex));
+        IsRecyclingVisibilityDeferred = false;
         var realization = ++RealizationVersion;
         var revision = presenter?.Revision;
         Presenter = presenter;
@@ -144,14 +148,17 @@ public class TreeDataGridRow : Control
                 DataContext = null;
                 IsSelected = false;
                 StandaloneSelection = null;
-                Visibility = Visibility.Collapsed;
+                if (!IsRecyclingVisibilityDeferred) Visibility = Visibility.Collapsed;
                 NotifyAutomationStateChanged();
             }
         }
     }
     internal void Release()
     {
+        IsRecyclingVisibilityDeferred = false;
         System.Runtime.ExceptionServices.ExceptionDispatchInfo? error = null;
+        try { if (RowIndex < 0) Visibility = Visibility.Collapsed; }
+        catch (Exception e) { error = System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(e); }
         try { CellsPresenter?.Reset(); }
         catch (Exception e) { error = System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(e); }
         Presenter = null;

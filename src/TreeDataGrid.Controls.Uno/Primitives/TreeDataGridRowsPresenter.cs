@@ -35,6 +35,7 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
     }
     private readonly Dictionary<int, TreeDataGridRow> _realized = new();
     private readonly List<TreeDataGridRow> _pool = new(32);
+    private readonly HashSet<TreeDataGridRow> _deferredVisibility = new();
     private readonly HashSet<TreeDataGridCell> _cells = new();
     private TreeDataGridPresentation? _presentation;
     private ColumnGeometry? _geometry;
@@ -346,7 +347,38 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
             foreach (var pair in _realized)
                 if (ReferenceEquals(pair.Value, row)) { _realized.Remove(pair.Key); break; }
         }
+        // Collapsing and immediately showing a whole native subtree produces
+        // compositor damage and property propagation even when the same row is
+        // reused in this pass. Do not defer across a dispatcher turn, removal,
+        // source reset or a caller's public Unrealize invocation.
+        row.IsRecyclingVisibilityDeferred = reason == TreeDataGridRowUnrealizeReason.Recycle &&
+            IsInLayout && _resetDepth == 0;
+        if (row.IsRecyclingVisibilityDeferred) _deferredVisibility.Add(row);
         row.Unrealize(reason);
+    }
+
+    protected override bool PreserveRecycledElementVisibility(Control element) =>
+        element is TreeDataGridRow { IsRecyclingVisibilityDeferred: true };
+
+    private void FinishDeferredVisibility()
+    {
+        List<Exception>? errors = null;
+        // Remove ownership before setting the DP: visibility callbacks may
+        // replace the source or reenter layout. Never keep a stale enumerator
+        // across such callbacks. No snapshots/closures on the warmed path.
+        while (_deferredVisibility.Count != 0)
+        {
+            using var iterator = _deferredVisibility.GetEnumerator();
+            iterator.MoveNext();
+            var row = iterator.Current;
+            _deferredVisibility.Remove(row);
+            row.IsRecyclingVisibilityDeferred = false;
+            if (row.RowIndex >= 0) continue;
+            try { row.Visibility = Visibility.Collapsed; }
+            catch (Exception error) { (errors ??= new()).Add(error); }
+        }
+        if (errors is { Count: 1 }) System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(errors[0]).Throw();
+        if (errors is not null) throw new AggregateException(errors);
     }
 
     protected override void RecycleElementToFactory(Control element, TreeDataGridElementFactory? factory)
@@ -492,7 +524,14 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
             _anchor = null;
             return new(Math.Max(Geometry.TotalWidth, measuredWidth), _rows.TotalHeight);
         }
-        finally { _measuringRows = false; FinalizeUnrealize(); }
+        finally
+        {
+            _measuringRows = false;
+            // All unused rows are hidden on every exit, including exceptions
+            // and retired generations, before native layout can return/render.
+            try { FinishDeferredVisibility(); }
+            finally { FinalizeUnrealize(); }
+        }
     }
     protected override Size MeasureElement(int index, Control element, Size availableSize)
     {
