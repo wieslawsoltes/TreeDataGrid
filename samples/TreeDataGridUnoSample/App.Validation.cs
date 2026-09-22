@@ -38,6 +38,7 @@ public partial class App
         {
             case "showcase": return ShowcaseRuntimeChecks.RunAsync(page, CaptureAsync);
             case "wikipedia": return WikipediaRuntimeChecks.RunAsync(page, CaptureAsync);
+            case "image-completion": return WikipediaImageCompletionRuntimeChecks.RunAsync();
             case "files-find": return FilesAndFindRuntimeChecks.RunAsync(page, CaptureAsync);
             case "recycling": return RuntimeChecks.RunAsync(page.Grid, Template("RuntimeCellTemplate"));
             case "viewport-measurement": return ViewportMeasurementRuntimeChecks.RunAsync(page.Grid);
