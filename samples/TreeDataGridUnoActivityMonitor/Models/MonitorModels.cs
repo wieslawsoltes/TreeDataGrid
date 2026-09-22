@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 
 namespace TreeDataGridUnoActivityMonitor.Models;
 
@@ -58,6 +59,21 @@ public sealed class MetricSectionSnapshot
 
 public sealed class MetricSeries
 {
+    // Native WinUI's generated XamlTypeInfo activates public parameterless
+    // constructors. Supply a valid empty series rather than suppressing the
+    // required-member diagnostic or editing generated XAML code.
+    [SetsRequiredMembers]
+    public MetricSeries()
+    {
+        Label = string.Empty;
+        Unit = string.Empty;
+        Samples = ImmutableArray<double>.Empty;
+        CurrentValue = 0;
+        AverageValue = 0;
+        PeakValue = 0;
+        CeilingValue = 1;
+    }
+
     public static MetricSeries Empty(string label, string unit) => new()
     {
         Label = label,
