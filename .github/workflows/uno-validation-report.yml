@@ -13,6 +13,28 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  source-snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Archive the exact validation input
+        run: |
+          mkdir -p artifacts/source
+          git rev-parse HEAD > artifacts/source/revision.txt
+          git rev-parse HEAD^{tree} > artifacts/source/tree.txt
+          git archive --format=tar HEAD > artifacts/source/source.tar
+          cd artifacts/source
+          sha256sum source.tar > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uno-validation-source
+          path: artifacts/source
+          if-no-files-found: error
+          retention-days: 14
+
   validate-committed-sources:
     runs-on: ubuntu-latest
     timeout-minutes: 20
