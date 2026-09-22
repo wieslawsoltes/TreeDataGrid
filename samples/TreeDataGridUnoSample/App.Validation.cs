@@ -59,7 +59,7 @@ public partial class App
                 StandaloneCellRuntimeChecks.Run(Template("RuntimeCellTemplate"));
                 return Task.CompletedTask;
             case "standalone-row": return StandaloneRowRuntimeChecks.RunAsync(page);
-            case "generic-presenter": return GenericPresenterRuntimeChecks.RunAsync(page);
+            case "generic-presenter": return ReviewRuntimeDiagnostics.RunGenericPresenterAsync(page);
             case "specialized-cell": return SpecializedCellRuntimeChecks.RunAsync(page.Grid, Template("RuntimeCellTemplate"),
                 Template("RuntimeEditingTemplate"), ControlTemplate("CompatibleTextCellTemplate"), ControlTemplate("CompatibleTemplateCellTemplate"));
             case "expander-factory": return ExpanderFactoryRuntimeChecks.RunAsync(page.Grid, Template("RuntimeCellTemplate"), Template("RuntimeEditingTemplate"));
