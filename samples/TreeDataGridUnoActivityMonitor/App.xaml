@@ -185,6 +185,7 @@
                             Style="{StaticResource SingleLineEllipsisTextStyle}"
                             Text="{x:Bind Name, Mode=OneWay}" />
                         <Border
+                            x:Name="IdentityBadge"
                             Grid.Column="1"
                             x:Load="{x:Bind HasBadge, Mode=OneWay}"
                             Background="#22333D49"
