@@ -22,6 +22,10 @@ internal static class ColumnSizingRuntimeChecks
         try
         {
             grid.Model = source;
+            // Sequential fixtures can leave a large old scroll extent. Commit
+            // the new single-row extent before positioning this fixture, rather
+            // than racing the previous source's pending native scroll request.
+            grid.UpdateLayout();
             grid.Scroll!.ChangeView(0, 0, null, true);
             await Task.Delay(250);
             var original = Width(grid, 0);
@@ -63,8 +67,17 @@ internal static class ColumnSizingRuntimeChecks
         finally { grid.Model = null; grid.Width = previousWidth; }
         Console.WriteLine("UNO_RUNTIME_COLUMN_SIZING_PASSED: native auto/header measurement, live text growth, monotonic widths, min/max redistribution, viewport resize, Auto constraints, expander inner sizing");
     }
-    private static double Width(Uno.Controls.TreeDataGrid grid, int column) =>
-        grid.RowsPresenter!.RealizedCells.First(x => x.ColumnIndex == column).ActualWidth;
+    private static double Width(Uno.Controls.TreeDataGrid grid, int column)
+    {
+        var cells = grid.RowsPresenter!.RealizedCells;
+        var cell = cells.FirstOrDefault(value => value.ColumnIndex == column);
+        if (cell is not null) return cell.ActualWidth;
+        var scroll = grid.Scroll;
+        throw new InvalidOperationException($"Column {column} has no realized cell: loaded={grid.IsLoaded}; " +
+            $"rows={grid.RowsPresenter.RealizedRows.Count}; cells={cells.Count}; sourceRows={grid.Model?.Rows.Count}; " +
+            $"offset={scroll?.HorizontalOffset},{scroll?.VerticalOffset}; viewport={scroll?.ViewportWidth},{scroll?.ViewportHeight}; " +
+            $"extent={scroll?.ExtentWidth},{scroll?.ExtentHeight}; presenter={grid.RowsPresenter.ActualWidth},{grid.RowsPresenter.ActualHeight}.");
+    }
     private static void Check(bool condition, string message) { if (!condition) throw new InvalidOperationException(message); }
     private sealed class Item(string name) : INotifyPropertyChanged
     {
