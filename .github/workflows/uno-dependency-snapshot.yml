@@ -1,0 +1,91 @@
+name: Uno dependency snapshot
+
+on:
+  pull_request:
+    paths: [.github/workflows/uno-dependency-snapshot.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NUGET_PACKAGES: /tmp/treedatagrid-parity-packages
+      TreeDataGridUnoSampleTargetFrameworks: net10.0-desktop
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.201
+      - name: Restore the current native validation projects
+        run: |
+          dotnet restore samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj
+          dotnet restore tests/TreeDataGrid.Uno.Tests/TreeDataGrid.Uno.Tests.csproj -p:TreeDataGridUnoTargetFrameworks=net10.0
+          dotnet restore tests/Avalonia.Controls.TreeDataGrid.Tests/Avalonia.Controls.TreeDataGrid.Tests.csproj
+          dotnet restore benchmarks/TreeDataGrid.Parity.Avalonia/TreeDataGrid.Parity.Avalonia.csproj
+          dotnet restore benchmarks/TreeDataGrid.Parity.Uno/TreeDataGrid.Parity.Uno.csproj
+          dotnet restore tools/TreeDataGrid.ApiAudit/TreeDataGrid.ApiAudit.csproj
+      - name: Archive only public NuGet package files
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib, json, tarfile
+          root = Path('/tmp/treedatagrid-parity-packages')
+          output = Path('package-inputs'); output.mkdir()
+          batches, batch, size = [], [], 0
+          manifest = {}
+          for path in sorted(root.rglob('*.nupkg')):
+              length = path.stat().st_size
+              if batch and size + length > 300 * 1024 * 1024:
+                  batches.append(batch); batch, size = [], 0
+              batch.append(path); size += length
+              manifest[path.name] = hashlib.sha256(path.read_bytes()).hexdigest()
+          if batch: batches.append(batch)
+          assert len(batches) <= 5, 'More package partitions than configured uploads'
+          for index, paths in enumerate(batches):
+              with tarfile.open(output / f'packages-{index:02d}.tar', 'w') as archive:
+                  for path in paths: archive.add(path, arcname=path.name)
+          (output / 'sha256.json').write_text(json.dumps(manifest, indent=2))
+          print(f'{len(manifest)} packages in {len(batches)} partitions')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uno-packages-00
+          path: package-inputs/packages-00.tar
+          compression-level: 0
+          retention-days: 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uno-packages-01
+          path: package-inputs/packages-01.tar
+          compression-level: 0
+          retention-days: 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uno-packages-02
+          path: package-inputs/packages-02.tar
+          compression-level: 0
+          if-no-files-found: ignore
+          retention-days: 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uno-packages-03
+          path: package-inputs/packages-03.tar
+          compression-level: 0
+          if-no-files-found: ignore
+          retention-days: 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uno-packages-04
+          path: package-inputs/packages-04.tar
+          compression-level: 0
+          if-no-files-found: ignore
+          retention-days: 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uno-packages-manifest
+          path: package-inputs/sha256.json
+          retention-days: 1
