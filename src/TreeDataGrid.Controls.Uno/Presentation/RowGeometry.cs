@@ -68,6 +68,7 @@ internal sealed class RowGeometry
     {
         if (double.IsNaN(offset)) throw new ArgumentOutOfRangeException(nameof(offset));
         if (offset <= 0 || Count == 0) return 0;
+        if (double.IsPositiveInfinity(offset)) return Count;
         if (_heights.Count == 0)
         {
             if (offset >= Count * Estimate) return Count;
@@ -90,7 +91,33 @@ internal sealed class RowGeometry
             var candidate = prefix + bit * Estimate + _tree.GetValueOrDefault((int)next);
             if (candidate <= offset) { row = (int)next; prefix = candidate; }
         }
-        return row;
+        // Descent and Start add floating-point terms in different orders. Use
+        // the actual layout boundaries, not the independently rounded descent
+        // prefix, to decide which side of a representable boundary owns offset.
+        // The common path and one-row corrections stay O(log Count).
+        if (Start(row) > offset)
+        {
+            if (row > 0 && Start(row - 1) <= offset) return row - 1;
+        }
+        else if (row == Count || offset < Start(row + 1))
+        {
+            return row;
+        }
+        else if (row == Count - 1 || offset < Start(row + 2))
+        {
+            return row + 1;
+        }
+        // If accumulated rounding crosses more than one boundary, use a
+        // bounded O(log^2 Count) fallback rather than an unbounded row scan.
+        var first = 0;
+        var last = Count;
+        while (first < last)
+        {
+            var middle = first + (int)(((long)last - first + 1) / 2);
+            if (Start(middle) <= offset) first = middle;
+            else last = middle - 1;
+        }
+        return first;
     }
     public void Insert(int index, int count)
     {
@@ -157,17 +184,26 @@ internal sealed class RowGeometry
             // A cell notification usually invalidates one row. Do not scan
             // every previously measured row, allocate a closure or snapshot keys.
             var end = index + count;
-            for (var row = index; row < end; ++row)
-                if (_heights.ContainsKey(row)) SetHeight(row, Estimate);
+            for (var row = index; row < end; ++row) RestoreEstimatedHeight(row);
         }
         else
         {
-            // .NET permits Dictionary.Remove during enumeration. SetHeight only
-            // removes from this dictionary when restoring the uniform estimate;
-            // the Fenwick mutations are in a separate dictionary.
+            // .NET permits Dictionary.Remove/Clear during enumeration. This
+            // path never adds entries to _heights; Fenwick updates use _tree.
             foreach (var pair in _heights)
-                if (pair.Key >= index && pair.Key - index < count) SetHeight(pair.Key, Estimate);
+                if (pair.Key >= index && pair.Key - index < count) RestoreEstimatedHeight(pair.Key);
         }
+    }
+    private void RestoreEstimatedHeight(int row)
+    {
+        if (!_heights.TryGetValue(row, out var previous)) return;
+        var delta = Estimate - previous;
+        if (!double.IsFinite(TotalHeight + delta))
+            throw new ArgumentOutOfRangeException(nameof(row), "Restoring the estimated height would overflow the row extent.");
+        // Invalidation is exact retirement, not a new measurement subject to
+        // SetHeight's tolerance. Near-estimate entries must not survive it.
+        _heights.Remove(row);
+        if (_heights.Count == 0) _tree.Clear(); else AddDelta(row, delta);
     }
     private void Rebuild()
     {
