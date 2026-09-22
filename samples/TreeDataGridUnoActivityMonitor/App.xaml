@@ -2,12 +2,15 @@
     x:Class="TreeDataGridUnoActivityMonitor.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:models="using:TreeDataGridUnoActivityMonitor.Models"
+    xmlns:local="using:TreeDataGridUnoActivityMonitor"
     RequestedTheme="Dark">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+                <!-- Instantiate the compiled dictionary so its generated x:Bind
+                     connector is initialized on both Uno and native WinUI. -->
+                <local:IdentityCellResources />
             </ResourceDictionary.MergedDictionaries>
 
             <ResourceDictionary.ThemeDictionaries>
@@ -164,51 +167,6 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-
-            <DataTemplate x:Key="IdentityCell" x:DataType="models:MonitorRowBase">
-                <Grid RowSpacing="4">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-
-                    <Grid ColumnSpacing="8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-
-                        <TextBlock
-                            Foreground="{StaticResource PanelTextBrush}"
-                            FontSize="13"
-                            FontWeight="SemiBold"
-                            Style="{StaticResource SingleLineEllipsisTextStyle}"
-                            Text="{x:Bind Name, Mode=OneWay}" />
-                        <Border
-                            x:Name="IdentityBadge"
-                            Grid.Column="1"
-                            x:Load="{x:Bind HasBadge, Mode=OneWay}"
-                            Background="#22333D49"
-                            BorderBrush="#44667A8F"
-                            BorderThickness="1"
-                            CornerRadius="999"
-                            Padding="8,2">
-                            <TextBlock
-                                Foreground="{StaticResource PanelTextBrush}"
-                                FontSize="10"
-                                Style="{StaticResource SingleLineEllipsisTextStyle}"
-                                Text="{x:Bind BadgeText, Mode=OneWay}" />
-                        </Border>
-                    </Grid>
-
-                    <TextBlock
-                        Grid.Row="1"
-                        Foreground="{StaticResource PanelTextSubtleBrush}"
-                        FontSize="11"
-                        Style="{StaticResource SingleLineEllipsisTextStyle}"
-                        Text="{x:Bind SecondaryText, Mode=OneWay}" />
-                </Grid>
-            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
