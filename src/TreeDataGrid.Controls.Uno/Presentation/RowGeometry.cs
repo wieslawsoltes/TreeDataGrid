@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Uno.Controls.Presentation;
 
@@ -103,7 +102,12 @@ internal sealed class RowGeometry
         if (!double.IsFinite(nextCount * Estimate) || !double.IsFinite(TotalHeight + count * Estimate))
             throw new ArgumentOutOfRangeException(nameof(count), "The resulting row extent must be finite.");
         if (_heights.Count == 0) { Count = nextCount; return; }
-        _heights = _heights.ToDictionary(x => x.Key >= index ? x.Key + count : x.Key, x => x.Value);
+        // Do not capture index/count in LINQ: a captured-lambda display class
+        // would be allocated at method entry, before the uniform early return.
+        var replacement = new Dictionary<int, double>(_heights.Count);
+        foreach (var pair in _heights)
+            replacement.Add(pair.Key >= index ? pair.Key + count : pair.Key, pair.Value);
+        _heights = replacement;
         Count = nextCount;
         Rebuild();
     }
@@ -112,8 +116,12 @@ internal sealed class RowGeometry
         if (index < 0 || count < 0 || index > Count - count) throw new ArgumentOutOfRangeException(nameof(count));
         if (count == 0) return;
         if (_heights.Count == 0) { Count -= count; return; }
-        _heights = _heights.Where(x => x.Key < index || x.Key >= index + count)
-            .ToDictionary(x => x.Key >= index + count ? x.Key - count : x.Key, x => x.Value);
+        var replacement = new Dictionary<int, double>(_heights.Count);
+        var end = index + count;
+        foreach (var pair in _heights)
+            if (pair.Key < index || pair.Key >= end)
+                replacement.Add(pair.Key >= end ? pair.Key - count : pair.Key, pair.Value);
+        _heights = replacement;
         Count -= count;
         Rebuild();
     }
@@ -122,7 +130,10 @@ internal sealed class RowGeometry
         if (count < 0 || oldIndex < 0 || newIndex < 0 || oldIndex > Count - count || newIndex > Count - count)
             throw new ArgumentOutOfRangeException(nameof(count));
         if (count == 0 || oldIndex == newIndex || _heights.Count == 0) return;
-        _heights = _heights.ToDictionary(x => MapMove(x.Key, oldIndex, newIndex, count), x => x.Value);
+        var replacement = new Dictionary<int, double>(_heights.Count);
+        foreach (var pair in _heights)
+            replacement.Add(MapMove(pair.Key, oldIndex, newIndex, count), pair.Value);
+        _heights = replacement;
         Rebuild();
     }
     public static int MapMove(int index, int oldIndex, int newIndex, int count)
