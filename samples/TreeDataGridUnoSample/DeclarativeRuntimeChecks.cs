@@ -14,7 +14,7 @@ using Uno.Controls.Primitives;
 
 namespace TreeDataGridUnoSample;
 
-/// <summary>Deferred native gates for declarative XAML, ownership and nested binding lifetimes.</summary>
+/// <summary>Native gates for declarative XAML, ownership and nested binding lifetimes.</summary>
 internal static class DeclarativeRuntimeChecks
 {
     internal static async Task RunAsync(MainPage page)
@@ -84,8 +84,11 @@ internal static class DeclarativeRuntimeChecks
             await Task.Delay(50);
             Check(string.IsNullOrEmpty(CellText(1)), "A null intermediate owner kept stale cell text.");
             root.State = new State();
+            ReportHierarchy("owner-restored");
             root.State.Children.Add(new());
+            ReportHierarchy("child-added");
             root.State.Expanded = true;
+            ReportHierarchy("expanded");
             Check(source.Rows.Count == 2, "Nested bindings did not recover after a null intermediate owner.");
 
             // Model is borrowed; removing it restores, rather than disposes, the
@@ -101,6 +104,12 @@ internal static class DeclarativeRuntimeChecks
                 "Clearing ItemsSource did not release generated rows and native binding subscriptions.");
             Check(explicitSource.Rows.Count == 1, "A caller-owned Model was disposed by the declarative controller.");
             Console.WriteLine("UNO_RUNTIME_DECLARATIVE_PASSED: XAML People, Core hierarchy, nested text/checkbox/edit retry, expansion, collection/owner replacement, null recovery, Model precedence, subscription cleanup");
+
+            void ReportHierarchy(string step)
+            {
+                var row = (TreeDataGridCore.Models.IExpander)source.Rows[0];
+                Console.WriteLine($"UNO_DECLARATIVE_STATE: {step}; rows={source.Rows.Count}; modelExpanded={root.State.Expanded}; rowExpanded={row.IsExpanded}; showExpander={row.ShowExpander}; children={root.State.Children.Count}; rootSubscriptions={root.SubscriberCount}; ownerSubscriptions={root.State.SubscriberCount}");
+            }
         }
         finally
         {

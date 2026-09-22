@@ -15,13 +15,13 @@ using GridLength = Microsoft.UI.Xaml.GridLength;
 
 namespace TreeDataGridUnoSample;
 
-/// <summary>Authored native appearance/layout gates. Actual OS high contrast and pointer resizing are separate gates.</summary>
+/// <summary>Native appearance/layout gates. Actual OS high contrast and pointer resizing are separate gates.</summary>
 internal static class AppearanceRuntimeChecks
 {
     private static void ConfigureRightToLeft(FrameworkElement element)
     {
 #if __WASM__
-        throw new PlatformNotSupportedException("The DOM renderer does not implement the native FlowDirection contract; this RTL gate requires an implemented head.");
+        throw new PlatformNotSupportedException("The browser RTL gate has not been validated for this renderer.");
 #else
         element.FlowDirection = FlowDirection.RightToLeft;
 #endif
@@ -90,9 +90,11 @@ internal static class AppearanceRuntimeChecks
             grid.ClearValue(Control.ForegroundProperty);
             grid.RequestedTheme = ElementTheme.Light;
             await Task.Delay(50);
+            ReportTheme("light");
             var light = ((SolidColorBrush)text.Foreground).Color;
             grid.RequestedTheme = ElementTheme.Dark;
             await Task.Delay(50);
+            ReportTheme("dark");
             Check(((SolidColorBrush)text.Foreground).Color != light, "Retained text did not update its theme resource.");
 
             // Source-only header sorting must operate on the same actual Core
@@ -121,6 +123,11 @@ internal static class AppearanceRuntimeChecks
             grid.Source = null;
 
             Rect Bounds(FrameworkElement element) => element.TransformToVisual(page).TransformBounds(new(0, 0, element.ActualWidth, element.ActualHeight));
+            void ReportTheme(string step)
+            {
+                static string ColorOf(Brush brush) => brush is SolidColorBrush solid ? solid.Color.ToString() : brush?.GetType().Name ?? "null";
+                Console.WriteLine($"UNO_THEME_STATE: {step}; actual={grid.ActualTheme}/{row.ActualTheme}/{cell.ActualTheme}/{text.ActualTheme}; foreground={ColorOf(grid.Foreground)}/{ColorOf(row.Foreground)}/{ColorOf(cell.Foreground)}/{ColorOf(text.Foreground)}; localGrid={grid.ReadLocalValue(Control.ForegroundProperty)}; selected={row.IsSelected}/{cell.IsSelected}");
+            }
             void AssertHeaderAlignment()
             {
                 foreach (var currentHeader in grid.ColumnHeadersPresenter!.RealizedHeaders)

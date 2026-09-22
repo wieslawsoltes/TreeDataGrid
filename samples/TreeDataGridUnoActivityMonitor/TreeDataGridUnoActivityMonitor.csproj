@@ -11,6 +11,8 @@
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
     <ApplicationVersion>1</ApplicationVersion>
     <UnoFeatures>SkiaRenderer</UnoFeatures>
+    <!-- Preserve individual package-consumer linker diagnostics, not only IL2104. -->
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
   </PropertyGroup>
   <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
     <WindowsPackageType>None</WindowsPackageType>
