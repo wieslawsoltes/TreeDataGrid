@@ -1,14 +1,19 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+#if TREEDATAGRID_UNO_SAMPLE
+using SampleModelBase = TreeDataGridUnoShared.ObservableSampleModel;
+#else
 using ReactiveUI;
+using SampleModelBase = ReactiveUI.ReactiveObject;
+#endif
 
 namespace TreeDataGridDemo.Models
 {
-    public partial class FileTreeNodeModel : ReactiveObject, IEditableObject, IDisposable
+    public partial class FileTreeNodeModel : SampleModelBase, IEditableObject, IDisposable
     {
         private string _path;
         private string _name;
@@ -47,25 +52,25 @@ namespace TreeDataGridDemo.Models
             }
         }
 
-        public string Path 
+        public string Path
         {
             get => _path;
             private set => this.RaiseAndSetIfChanged(ref _path, value);
         }
 
-        public string Name 
+        public string Name
         {
             get => _name;
             private set => this.RaiseAndSetIfChanged(ref _name, value);
         }
 
-        public long? Size 
+        public long? Size
         {
             get => _size;
             private set => this.RaiseAndSetIfChanged(ref _size, value);
         }
 
-        public DateTimeOffset? Modified 
+        public DateTimeOffset? Modified
         {
             get => _modified;
             private set => this.RaiseAndSetIfChanged(ref _modified, value);

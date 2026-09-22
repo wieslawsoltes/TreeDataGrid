@@ -11,8 +11,8 @@
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
     <ApplicationVersion>1</ApplicationVersion>
     <UnoFeatures>SkiaRenderer</UnoFeatures>
-    <!-- Preserve individual package-consumer linker diagnostics, not only IL2104. -->
     <TrimmerSingleWarn>false</TrimmerSingleWarn>
+    <DefineConstants>$(DefineConstants);TREEDATAGRID_UNO_SAMPLE</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
     <WindowsPackageType>None</WindowsPackageType>
@@ -21,11 +21,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../TreeDataGridUnoShared/SampleRunContext.cs" Link="Infrastructure/SampleRunContext.cs" />
+    <Compile Include="../TreeDataGridUnoShared/ObservableSampleModel.cs" Link="Infrastructure/ObservableSampleModel.cs" />
     <ProjectReference Include="../../src/TreeDataGrid.Controls.Uno/TreeDataGrid.Controls.Uno.csproj" Condition="'$(TreeDataGridUnoPackageVersion)' == ''" />
     <PackageReference Include="TreeDataGrid.Controls.Uno" Version="$(TreeDataGridUnoPackageVersion)" Condition="'$(TreeDataGridUnoPackageVersion)' != ''" />
     <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />
     <PackageReference Include="SkiaSharp" Version="3.119.2" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'" />
-    <PackageReference Include="ReactiveUI" Version="19.4.1" />
     <PackageReference Include="Bogus" Version="34.0.2" />
     <Compile Include="../TreeDataGridDemo/Models/Country.cs" Link="Models/Country.cs" />
     <Compile Include="../TreeDataGridDemo/Models/Countries.cs" Link="Models/Countries.cs" />
@@ -40,7 +40,9 @@
     <Compile Include="../TreeDataGridDemo/ViewModels/PeopleXamlPageViewModel.cs" Link="Models/PeopleXamlPageViewModel.cs" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">
-    <!-- Override the Uno browser toolchain's vulnerable 10.0.2 dependency. -->
     <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.12" />
+    <!-- Native generated metadata and typed registrations replace only the
+         optional unbounded reflection fallback. Trimming remains enabled. -->
+    <RuntimeHostConfigurationOption Include="TreeDataGrid.Binding.ReflectionEnabled" Value="false" Trim="true" />
   </ItemGroup>
 </Project>
