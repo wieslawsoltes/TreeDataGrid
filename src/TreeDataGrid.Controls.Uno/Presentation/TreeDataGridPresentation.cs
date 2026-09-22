@@ -71,9 +71,11 @@ public sealed class TreeDataGridPresentation<TModel> : TreeDataGridPresentation,
     private readonly TreeDataGridPresentationOptions? _options;
     private readonly TreeDataGridPresentationOptions<TModel>? _typedOptions;
     private readonly Dictionary<IColumn, (CellColumn View, string? Key)> _views = new(ReferenceEqualityComparer.Instance);
-    // Observe definitions independently of successfully created views. A failed
-    // factory must still be retried when its definition is repaired.
-    private readonly HashSet<IColumn> _observed = new(ReferenceEqualityComparer.Instance);
+    // Bind one handler to each definition, not the event's sender. Expanders
+    // forward an inner definition's event without changing its sender. Different
+    // definitions may share that inner column, but each view is notified once.
+    // Observations also survive failed factories so a repaired definition retries.
+    private readonly Dictionary<IColumn, PropertyChangedEventHandler> _observed = new(ReferenceEqualityComparer.Instance);
     private readonly VisibleColumnList _visible = new();
     private readonly Dictionary<CellColumn, Stack<CellValue>> _pool = new(ReferenceEqualityComparer.Instance);
     private readonly TreeDataGridSelection<TModel> _selection;
@@ -173,7 +175,7 @@ public sealed class TreeDataGridPresentation<TModel> : TreeDataGridPresentation,
         if (_model.Columns is INotifyCollectionChanged columns) columns.CollectionChanged -= OnColumnsChanged;
         if (_rows is not null) _rows.CollectionChanged -= OnRowsChanged;
         _rows = null;
-        foreach (var column in _observed) column.PropertyChanged -= OnColumnChanged;
+        foreach (var observation in _observed) observation.Key.PropertyChanged -= observation.Value;
         foreach (var view in _views.Values) view.View.PropertyChanged -= OnViewChanged;
         ClearPool();
         RaisePropertyChanged(new(nameof(SelectionInteraction)));
@@ -186,7 +188,7 @@ public sealed class TreeDataGridPresentation<TModel> : TreeDataGridPresentation,
         SynchronizeColumns();
         _active = true;
         base.Resume();
-        foreach (var column in _observed) column.PropertyChanged += OnColumnChanged;
+        foreach (var observation in _observed) observation.Key.PropertyChanged += observation.Value;
         foreach (var view in _views.Values) view.View.PropertyChanged += OnViewChanged;
         _model.PropertyChanged += OnModelChanged;
         _model.Sorted += OnSorted;
@@ -266,13 +268,21 @@ public sealed class TreeDataGridPresentation<TModel> : TreeDataGridPresentation,
     private void SynchronizeColumns()
     {
         var desired = new HashSet<IColumn>(_model.Columns, ReferenceEqualityComparer.Instance);
-        foreach (var removed in _observed.Where(x => !desired.Contains(x)).ToArray())
+        foreach (var removed in _observed.Keys.Where(x => !desired.Contains(x)).ToArray())
         {
-            if (_active) removed.PropertyChanged -= OnColumnChanged;
+            // Retire identity before an application's remove accessor can call
+            // the old handler. No stale event may reconfigure current views.
+            var handler = _observed[removed];
             _observed.Remove(removed);
+            if (_active) removed.PropertyChanged -= handler;
         }
         foreach (var column in desired)
-            if (_observed.Add(column) && _active) column.PropertyChanged += OnColumnChanged;
+        {
+            if (_observed.ContainsKey(column)) continue;
+            PropertyChangedEventHandler handler = (_, args) => OnColumnChanged(column, args);
+            _observed.Add(column, handler);
+            if (_active) column.PropertyChanged += handler;
+        }
 
         var replacements = new Dictionary<IColumn, (CellColumn View, string? Key)>(ReferenceEqualityComparer.Instance);
         try
@@ -350,16 +360,23 @@ public sealed class TreeDataGridPresentation<TModel> : TreeDataGridPresentation,
         if (_active && !_disposed) RaiseSorted();
     }
     private void OnColumnsChanged(object? sender, NotifyCollectionChangedEventArgs e) => SynchronizeColumns();
-    private void OnColumnChanged(object? sender, PropertyChangedEventArgs e)
+    private void OnColumnChanged(IColumn column, PropertyChangedEventArgs e)
     {
-        if (string.IsNullOrEmpty(e.PropertyName) || e.PropertyName is nameof(IColumn.IsVisible) or nameof(IColumn.PresentationKey)) SynchronizeColumns();
-        else
+        if (!_active || _disposed || !_observed.ContainsKey(column)) return;
+        if (string.IsNullOrEmpty(e.PropertyName) || e.PropertyName is nameof(IColumn.IsVisible) or nameof(IColumn.PresentationKey))
         {
-            _notifyingModel = true;
-            try { foreach (var view in _views.Values) view.View.ModelChanged(e); }
-            finally { _notifyingModel = false; }
-            ColumnsChanged?.Invoke(this, EventArgs.Empty);
+            SynchronizeColumns();
+            return;
         }
+        if (!_views.TryGetValue(column, out var view)) return;
+        var wasNotifyingModel = _notifyingModel;
+        _notifyingModel = true;
+        try { view.View.ModelChanged(e); }
+        finally { _notifyingModel = wasNotifyingModel; }
+        // ModelChanged invokes user code. It may dispose this presentation,
+        // remove the definition or replace its view before returning.
+        if (_active && !_disposed && _views.TryGetValue(column, out var current) && ReferenceEquals(current.View, view.View))
+            ColumnsChanged?.Invoke(this, EventArgs.Empty);
     }
     private void OnViewChanged(object? sender, PropertyChangedEventArgs e)
     {
