@@ -1,5 +1,4 @@
 using Microsoft.UI.Xaml;
-using Windows.Foundation.Metadata;
 
 namespace Uno.Controls;
 
@@ -16,13 +15,13 @@ public partial class TreeDataGrid
         RegisterPropertyChangedCallback(FontStretchProperty, OnAppearanceMetricsChanged);
         // Some Uno heads expose these native Control properties as stubs.
         // Never evaluate a dependency-property getter which is not implemented.
-        if (ApiInformation.IsPropertyPresent("Microsoft.UI.Xaml.Controls.Control", "CharacterSpacingProperty"))
+        if (NativeTreeDataGridCapabilities.CharacterSpacing)
         {
 #pragma warning disable Uno0001 // Guarded by the platform's implemented-property metadata.
             RegisterPropertyChangedCallback(CharacterSpacingProperty, OnAppearanceMetricsChanged);
 #pragma warning restore Uno0001
         }
-        if (ApiInformation.IsPropertyPresent("Microsoft.UI.Xaml.Controls.Control", "IsTextScaleFactorEnabledProperty"))
+        if (NativeTreeDataGridCapabilities.TextScaleFactor)
         {
 #pragma warning disable Uno0001 // Guarded by the platform's implemented-property metadata.
             RegisterPropertyChangedCallback(IsTextScaleFactorEnabledProperty, OnAppearanceMetricsChanged);

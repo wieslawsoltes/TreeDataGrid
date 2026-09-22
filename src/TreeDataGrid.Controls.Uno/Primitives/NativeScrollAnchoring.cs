@@ -1,6 +1,5 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Windows.Foundation.Metadata;
 
 namespace Uno.Controls.Primitives;
 
@@ -9,9 +8,7 @@ namespace Uno.Controls.Primitives;
 // Cache metadata once, not for every realized row/cell.
 internal static class NativeScrollAnchoring
 {
-    internal static bool IsSupported { get; } =
-        ApiInformation.IsMethodPresent("Microsoft.UI.Xaml.Controls.IScrollAnchorProvider", "RegisterAnchorCandidate") &&
-        ApiInformation.IsMethodPresent("Microsoft.UI.Xaml.Controls.IScrollAnchorProvider", "UnregisterAnchorCandidate");
+    internal static bool IsSupported => NativeTreeDataGridCapabilities.ScrollAnchoring;
 
     internal static void Register(IScrollAnchorProvider? provider, UIElement element)
     {

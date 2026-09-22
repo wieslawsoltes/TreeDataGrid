@@ -4,7 +4,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Input;
 using TreeDataGridCore.Selection;
 using Uno.Controls.Presentation;
-using Windows.Foundation.Metadata;
 
 namespace Uno.Controls;
 
@@ -17,7 +16,7 @@ public partial class TreeDataGrid
     {
         // Capability detection rejects Uno's [NotImplemented] event stubs.
         // Keep composed text on supported heads, never substitute VirtualKey A-Z.
-        if (ApiInformation.IsEventPresent("Microsoft.UI.Xaml.UIElement", "CharacterReceived"))
+        if (NativeTreeDataGridCapabilities.CharacterReceived)
         {
 #pragma warning disable Uno0001 // The unsupported event is excluded by the capability check above.
             CharacterReceived += OnCharacterReceived;
