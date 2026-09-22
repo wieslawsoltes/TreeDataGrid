@@ -1,0 +1,102 @@
+name: Uno synchronous recycling experiment
+
+# Temporary, branch-scoped experiment. Never updates refs or publishes packages.
+on:
+  push:
+    branches: [codex/uno-core-port]
+    paths: [.github/workflows/uno-layout-candidate.yml, .github/uno-layout-candidate.py]
+permissions:
+  contents: write
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      TreeDataGridUnoSampleTargetFrameworks: net10.0-desktop
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.201
+      - name: Install matched native environment
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb fonts-dejavu-core libfontconfig1 libx11-6 libxrandr2 libxi6 libxcursor1 libgl1
+      - name: Measure unchanged sources
+        id: before
+        continue-on-error: true
+        run: python3 -u build/run-native-parity.py --pairs 2 --columns 64 --iterations 25 --max-ratio 1.10
+      - name: Apply exact candidate edits
+        run: |
+          mv artifacts/native-parity artifacts/native-parity-before
+          python3 .github/uno-layout-candidate.py
+          git diff --check
+          git diff > artifacts/layout-candidate/source.patch
+      - name: Execute complete regression gates
+        id: validation
+        continue-on-error: true
+        run: python3 -u build/validate-uno-linux.py
+      - name: Measure candidate on the same runner
+        id: after
+        continue-on-error: true
+        run: python3 -u build/run-native-parity.py --pairs 2 --columns 64 --iterations 25 --max-ratio 1.10
+      - name: Record reviewable candidate without modifying references
+        uses: actions/github-script@v7
+        env:
+          VALIDATION_RESULT: ${{ steps.validation.outcome }}
+        with:
+          script: |
+            const fs = require('fs');
+            const scope = {owner: context.repo.owner, repo: context.repo.repo};
+            const paths = JSON.parse(fs.readFileSync('artifacts/layout-candidate/files.json', 'utf8'));
+            const base = await github.rest.git.getCommit({...scope, commit_sha: context.sha});
+            const changes = [];
+            for (const path of paths) {
+              const blob = await github.rest.git.createBlob({...scope, encoding: 'utf-8', content: fs.readFileSync(path, 'utf8')});
+              changes.push({path, mode: '100644', type: 'blob', sha: blob.data.sha});
+            }
+            for (const path of ['.github/uno-layout-candidate.py', '.github/workflows/uno-layout-candidate.yml'])
+              changes.push({path, mode: '100644', type: 'blob', sha: null});
+            const tree = await github.rest.git.createTree({...scope, base_tree: base.data.tree.sha, tree: changes});
+            const commit = await github.rest.git.createCommit({...scope, tree: tree.data.sha, parents: [context.sha],
+              message: 'Defer reusable row visibility transitions within synchronous viewport layout'});
+            const before = JSON.parse(fs.readFileSync('artifacts/native-parity-before/summary.json', 'utf8'));
+            const after = JSON.parse(fs.readFileSync('artifacts/native-parity/summary.json', 'utf8'));
+            const report = {base: context.sha, commit: commit.data.sha, tree: tree.data.sha, changes,
+              validation: process.env.VALIDATION_RESULT, before, after,
+              note: 'This experiment requires correctness and complete paired measurements, NOT a passed parity budget. The permanent performance gate remains unchanged and enforces 1.10.'};
+            fs.writeFileSync('artifacts/layout-candidate/report.json', JSON.stringify(report, null, 2));
+            console.log('LAYOUT_CANDIDATE=' + JSON.stringify({commit: report.commit, tree: report.tree, validation: report.validation, changes}));
+            for (const current of after.comparisons) {
+              const previous = before.comparisons.find(item => item.operation === current.operation);
+              console.log('SAME_RUNNER_COMPARISON=' + JSON.stringify({operation: current.operation,
+                beforeMs: previous.SynchronousUiMilliseconds.median.Uno, afterMs: current.SynchronousUiMilliseconds.median.Uno,
+                beforeBytes: previous.SynchronousUiAllocatedBytes.median.Uno, afterBytes: current.SynchronousUiAllocatedBytes.median.Uno,
+                candidateUnoOverAvalonia: current.SynchronousUiMilliseconds.unoOverAvalonia}));
+            }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uno-layout-recycling-experiment
+          path: artifacts
+          if-no-files-found: error
+          retention-days: 7
+      - name: Require correctness and complete experiment data
+        env:
+          VALIDATION_RESULT: ${{ steps.validation.outcome }}
+        run: |
+          test "$VALIDATION_RESULT" = success
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          for folder in ['native-parity-before', 'native-parity']:
+              result = json.loads(Path('artifacts', folder, 'summary.json').read_text())
+              assert len(result['comparisons']) == 6
+              print(folder, 'parity budget met:', result['diagnosticBudgetMet'])
+          PY
