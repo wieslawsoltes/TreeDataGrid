@@ -42,6 +42,7 @@ public partial class App
             case "recycling": return RuntimeChecks.RunAsync(page.Grid, Template("RuntimeCellTemplate"));
             case "viewport-measurement": return ViewportMeasurementRuntimeChecks.RunAsync(page.Grid);
             case "cross-column-recycling": return CrossColumnRecyclingRuntimeChecks.RunAsync(page.Grid);
+            case "row-recycling-visibility": return RowRecyclingVisibilityRuntimeChecks.RunAsync(page.Grid);
             case "selection": return SelectionRuntimeChecks.RunAsync(page.Grid, ControlTemplate("AlternateGridTemplate"));
             case "selection-interaction": return SelectionInteractionRuntimeChecks.RunAsync(page);
             case "focus": return FocusRuntimeChecks.RunAsync(page);

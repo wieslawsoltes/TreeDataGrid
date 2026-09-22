@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using TreeDataGridCore;
+using GridLength = Microsoft.UI.Xaml.GridLength;
 using Uno.Controls;
 using Uno.Controls.Primitives;
 using UI = Uno.Controls.Models.TreeDataGrid;

@@ -46,6 +46,12 @@ public partial class TreeDataGridCellsPresenter : TreeDataGridColumnarPresenterB
     private TreeDataGridPresentation? Presentation => _row?.Presentation;
     protected override Orientation Orientation => Orientation.Horizontal;
     protected override bool OwnsRecyclingPool => true;
+    protected override bool PreserveRecycledElementVisibility(Control element) =>
+        // Row.Unrealize hides the whole parent synchronously after its cells
+        // retire. Retained cell content already belongs to a balanced rebind
+        // scope; EndRebind(false) collapses unused cells at finalization. Do not
+        // defer horizontal-only recycling in a row that stays visible.
+        _deferRowRebind && element is TreeDataGridCell cell && _deferred.Contains(cell);
     public ITreeDataGridRows? Rows { get => (ITreeDataGridRows?)GetValue(RowsProperty); set => SetValue(RowsProperty, value); }
     public int RowIndex { get; private set; } = -1;
     public IReadOnlyCollection<TreeDataGridCell> RealizedCells => _realized.Values;

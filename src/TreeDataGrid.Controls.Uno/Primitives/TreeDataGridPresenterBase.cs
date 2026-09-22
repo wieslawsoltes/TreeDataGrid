@@ -896,7 +896,7 @@ namespace Uno.Controls.Primitives
                 try
                 {
                     UnrealizeElement(element);
-                    element.Visibility = Visibility.Collapsed;
+                    if (!PreserveRecycledElementVisibility(element)) element.Visibility = Visibility.Collapsed;
                     DetachElement(element);
                     RecycleElementToFactory(element, factory);
                 }
@@ -920,7 +920,7 @@ namespace Uno.Controls.Primitives
             try
             {
                 UnrealizeElementOnItemRemoved(element);
-                element.Visibility = Visibility.Collapsed;
+                if (!PreserveRecycledElementVisibility(element)) element.Visibility = Visibility.Collapsed;
                 DetachElement(element);
                 RecycleElementToFactory(element, factory);
             }
@@ -939,6 +939,14 @@ namespace Uno.Controls.Primitives
 
         protected virtual void RecycleElementToFactory(Control element, TreeDataGridElementFactory? factory) => factory!.RecycleElement(element);
         protected virtual bool OwnsRecyclingPool => false;
+
+        /// <summary>
+        /// Allows a row-owned pool to avoid a redundant local visibility change
+        /// while the whole parent row is being retired. The owner must hide the
+        /// parent synchronously and finalize unused children before it is reused.
+        /// Other containers and standalone presenters keep normal recycling.
+        /// </summary>
+        protected virtual bool PreserveRecycledElementVisibility(Control element) => false;
         protected virtual void RemoveRecycledElement(Control element) => Children.Remove(element);
 
         protected virtual void TrimUnrealizedChildren()
