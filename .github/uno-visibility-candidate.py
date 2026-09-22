@@ -11,6 +11,10 @@ def replace(path, old, new, count=1):
     if path not in changed:
         changed.append(path)
 
+# Keep the fixture's native width distinct from the neutral Core GridLength.
+replace('samples/TreeDataGridUnoSample/RowRecyclingVisibilityRuntimeChecks.cs',
+        'using TreeDataGridCore;\n',
+        'using TreeDataGridCore;\nusing GridLength = Microsoft.UI.Xaml.GridLength;\n')
 base = 'src/TreeDataGrid.Controls.Uno/Primitives/TreeDataGridPresenterBase.cs'
 replace(base, '                    element.Visibility = Visibility.Collapsed;',
         '                    if (!PreserveRecycledElementVisibility(element)) element.Visibility = Visibility.Collapsed;')
