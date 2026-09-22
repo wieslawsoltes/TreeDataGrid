@@ -1,4 +1,4 @@
-<Project Sdk="Uno.Sdk/6.6.33">
+<Project Sdk="Uno.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net10.0-desktop</TargetFrameworks>
     <OutputType>Exe</OutputType>

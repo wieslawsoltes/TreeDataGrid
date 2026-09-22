@@ -1,4 +1,4 @@
-<Project Sdk="Uno.Sdk/6.6.33">
+<Project Sdk="Uno.Sdk">
   <PropertyGroup>
     <TreeDataGridUnoTargetFrameworks Condition="'$(TreeDataGridUnoTargetFrameworks)' == '' and '$(OS)' == 'Windows_NT'">net10.0;net10.0-desktop;net10.0-windows10.0.26100</TreeDataGridUnoTargetFrameworks>
     <TreeDataGridUnoTargetFrameworks Condition="'$(TreeDataGridUnoTargetFrameworks)' == ''">net10.0;net10.0-desktop</TreeDataGridUnoTargetFrameworks>
