@@ -6,6 +6,9 @@ namespace Uno.Controls.Primitives;
 
 public class TreeDataGridCheckBoxCell : TreeDataGridCell
 {
+    protected override Microsoft.UI.Xaml.Automation.Peers.AutomationPeer OnCreateAutomationPeer() =>
+        new global::Uno.Controls.Automation.Peers.TreeDataGridCheckBoxCellAutomationPeer(this);
+
     public static readonly DependencyProperty ValueProperty = DependencyProperty.Register(
         nameof(Value), typeof(bool?), typeof(TreeDataGridCheckBoxCell), new PropertyMetadata(null, ValueChanged));
     public static readonly DependencyProperty IsReadOnlyProperty = DependencyProperty.Register(

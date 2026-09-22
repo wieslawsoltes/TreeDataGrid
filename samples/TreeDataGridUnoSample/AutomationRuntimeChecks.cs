@@ -71,11 +71,24 @@ internal static class AutomationRuntimeChecks
             var text = RuntimeAssertions.Pattern<IValueProvider>(CellPeer(0), PatternInterface.Value);
             text.SetValue("Changed by automation");
             Check(root.Name == "Changed by automation" && text.Value == root.Name, "Text automation value did not use the live model.");
-            var checkbox = RuntimeAssertions.Pattern<IToggleProvider>(CellPeer(1), PatternInterface.Toggle);
+            var checkboxPeer = CellPeer(1) as TreeDataGridCheckBoxCellAutomationPeer
+                ?? throw new InvalidOperationException("A checkbox did not create its specialized public automation peer.");
+            Check(ReferenceEquals(checkboxPeer.Owner, grid.TryGetCell(1, 0)) &&
+                checkboxPeer.GetAutomationControlType() == AutomationControlType.CheckBox,
+                "Specialized checkbox peer lost its typed owner or native checkbox role.");
+            var checkbox = RuntimeAssertions.Pattern<IToggleProvider>(checkboxPeer, PatternInterface.Toggle);
+            Check(ReferenceEquals(checkbox, checkboxPeer), "The toggle pattern does not use the specialized peer.");
             checkbox.Toggle();
             Check(root.Checked == true && checkbox.ToggleState == ToggleState.On, "Checkbox automation did not write true.");
             checkbox.Toggle();
             Check(root.Checked is null && checkbox.ToggleState == ToggleState.Indeterminate, "Nullable checkbox lost its third state.");
+            checkboxPeer.Toggle();
+            Check(root.Checked == false && checkboxPeer.ToggleState == ToggleState.Off,
+                "The specialized public toggle did not complete the nullable cycle.");
+            checkboxPeer.Owner.IsReadOnly = true;
+            Throws<InvalidOperationException>(() => checkbox.Toggle(), "A read-only checkbox accepted an automation action.");
+            Check(root.Checked == false, "A rejected read-only toggle changed the model.");
+            checkboxPeer.Owner.IsReadOnly = false;
             grid.IsEnabled = false;
             Throws<ElementNotEnabledException>(() => rowPeer.Select(), "Disabled row accepted an automation action.");
             Throws<ElementNotEnabledException>(() => checkbox.Toggle(), "Disabled cell accepted an automation action.");
@@ -106,9 +119,12 @@ internal static class AutomationRuntimeChecks
                 "Retired row remained accessible.");
             Throws<InvalidOperationException>(() => rowPeer.Expand(), "Retired row provider accepted expansion.");
             Throws<InvalidOperationException>(() => text.SetValue("stale"), "Retired cell provider wrote its previous model.");
+            Check(checkboxPeer.GetPattern(PatternInterface.Toggle) is null && !checkboxPeer.IsControlElement(),
+                "Retired specialized checkbox peer remained accessible.");
+            Throws<InvalidOperationException>(() => checkboxPeer.Toggle(), "Retired checkbox peer accepted a public toggle.");
             Check(selection.GetSelection().Length == 0 && gridPeer.GetPattern(PatternInterface.Selection) is null,
                 "Grid peer retained the previous source selection.");
-            Console.WriteLine("UNO_RUNTIME_AUTOMATION_PASSED: roles, shared row selection, expansion, text/nullable checkbox values, disabled actions, ordered children, cell-selection exclusion, stale providers and reentrant replacement");
+            Console.WriteLine("UNO_RUNTIME_AUTOMATION_PASSED: roles, shared row selection, expansion, specialized checkbox peer/typed owner/nullable cycle/read-only, text values, disabled actions, ordered children, cell-selection exclusion, stale providers and reentrant replacement");
         }
         finally
         {
