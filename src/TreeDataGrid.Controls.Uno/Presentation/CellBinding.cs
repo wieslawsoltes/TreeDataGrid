@@ -25,6 +25,7 @@ internal sealed class CellBinding<TModel, TValue> : IDisposable where TModel : c
     private bool _disposed;
     private bool _refreshing;
     private bool _refreshAgain;
+    private int _revision;
 
     public CellBinding(ValueColumn<TModel, TValue> column, Action changed)
     {
@@ -48,6 +49,7 @@ internal sealed class CellBinding<TModel, TValue> : IDisposable where TModel : c
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(model);
         _model = model;
+        unchecked { ++_revision; }
         Refresh();
     }
 
@@ -73,10 +75,13 @@ internal sealed class CellBinding<TModel, TValue> : IDisposable where TModel : c
     public void Suspend()
     {
         _model = null;
+        unchecked { ++_revision; }
         Value = default;
         Error = null;
-        for (var i = 0; i < _owners.Length; ++i)
-            SetOwner(i, null);
+        // Event accessors can retire/retarget this binding while subscriptions
+        // are changing. Serialize cleanup with that in-flight operation so a
+        // returning add/remove accessor cannot overwrite newer bookkeeping.
+        Refresh();
     }
 
     public void Dispose()
@@ -99,37 +104,66 @@ internal sealed class CellBinding<TModel, TValue> : IDisposable where TModel : c
 
     private void Refresh()
     {
-        if (_disposed || _model is null) return;
         if (_refreshing)
         {
             _refreshAgain = true;
             return;
         }
         _refreshing = true;
+        Exception? failure = null;
         try
         {
             do
             {
                 _refreshAgain = false;
-                if (_disposed || _model is not { } model) break;
+                var revision = _revision;
+                if (_disposed || _model is not { } model)
+                {
+                    for (var i = 0; i < _owners.Length; ++i)
+                        SetOwner(i, null);
+                    continue;
+                }
                 for (var i = 0; i < _accessors.Length; ++i)
                 {
                     object? owner;
                     try { owner = _accessors[i](model); }
                     catch (Exception) { owner = null; }
+                    if (revision != _revision) break;
                     SetOwner(i, owner);
+                    if (revision != _revision) break;
                 }
-                var oldValue = Value;
-                var oldError = Error;
-                try { Value = _column.GetValue(model); Error = null; }
-                catch (Exception error) { Value = default; Error = error; }
-                if (!EqualityComparer<TValue?>.Default.Equals(oldValue, Value) ||
-                    oldError?.GetType() != Error?.GetType())
-                    _changed();
+                if (revision != _revision) continue;
+
+                // A selector, equality implementation or event accessor is
+                // application code. Never publish its result after Suspend,
+                // Dispose or Retarget (including retargeting to the same row).
+                TValue? value;
+                Exception? error;
+                try { value = _column.GetValue(model); error = null; }
+                catch (Exception caught) { value = default; error = caught; }
+                if (revision != _revision) continue;
+                var changed = !EqualityComparer<TValue?>.Default.Equals(Value, value) ||
+                    Error?.GetType() != error?.GetType();
+                if (revision != _revision) continue;
+                Value = value;
+                Error = error;
+                if (changed) _changed();
             }
             while (_refreshAgain);
         }
-        finally { _refreshing = false; }
+        catch (Exception error) { failure = error; throw; }
+        finally
+        {
+            _refreshing = false;
+            // A change/subscription callback may retire the binding and then
+            // throw. Complete the pending cleanup before propagating failure.
+            if (_refreshAgain)
+            {
+                try { Refresh(); }
+                catch (Exception cleanup) when (failure is not null)
+                { throw new AggregateException(failure, cleanup); }
+            }
+        }
     }
 
     private void SetOwner(int index, object? owner)
@@ -142,12 +176,13 @@ internal sealed class CellBinding<TModel, TValue> : IDisposable where TModel : c
             if (previous is INotifyPropertyChanged property) property.PropertyChanged -= _propertyChanged;
             if (previous is INotifyCollectionChanged collection) collection.CollectionChanged -= _collectionChanged;
         }
-        if (owner is not null && !Contains(owner))
+        var subscribe = owner is not null && !Contains(owner);
+        _owners[index] = owner;
+        if (subscribe)
         {
             if (owner is INotifyPropertyChanged property) property.PropertyChanged += _propertyChanged;
             if (owner is INotifyCollectionChanged collection) collection.CollectionChanged += _collectionChanged;
         }
-        _owners[index] = owner;
     }
 
     private bool Contains(object owner)
