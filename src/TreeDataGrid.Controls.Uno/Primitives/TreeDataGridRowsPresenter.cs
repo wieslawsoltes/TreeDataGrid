@@ -194,8 +194,14 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
         _viewportWidth = width;
         _viewportHeight = height;
         if (!needsMeasure) return;
-        // Uno can skip a child's measure when only the outer viewport changes.
-        foreach (var row in _realized.Values) row.CellsPresenter?.InvalidateMeasure();
+        // A vertical viewport change changes the realized row range, not the
+        // horizontal constraint of retained cells. Let native measure caching
+        // keep those rows valid. New/rebound rows invalidate themselves, and
+        // content/column/font changes have their own invalidation paths.
+        // Horizontal changes still require an explicit child measure: a row's
+        // full content extent is unchanged while its visible columns change.
+        if (columnsChanged)
+            foreach (var row in _realized.Values) row.CellsPresenter?.InvalidateMeasure();
         InvalidateMeasure();
     }
     protected override Rect GetMeasureViewport(Rect viewport)

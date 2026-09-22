@@ -5,7 +5,7 @@ using Uno.Controls.Presentation;
 
 namespace Uno.Controls.Models.TreeDataGrid;
 
-public class TextColumn<TModel, TValue> : ValueCellColumn<TModel, TValue?> where TModel : class
+public class TextColumn<TModel, TValue> : ValueCellColumn<TModel, TValue?>, ITextSearchableColumn<TModel> where TModel : class
 {
     public TextColumn(object? header, Expression<Func<TModel, TValue?>> getter,
         GridLength? width = null, TextColumnOptions<TModel>? options = null)
@@ -26,4 +26,6 @@ public class TextColumn<TModel, TValue> : ValueCellColumn<TModel, TValue?> where
         BeginEditGestures = Options.BeginEditGestures;
     }
     public TextColumnOptions<TModel> Options { get; }
+    string? ITextSearchableColumn<TModel>.SelectValue(TModel model) => GetSearchText(model);
+
 }

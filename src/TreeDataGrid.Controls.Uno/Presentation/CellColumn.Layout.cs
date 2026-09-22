@@ -5,7 +5,7 @@ using Uno.Controls.Models.TreeDataGrid;
 
 namespace Uno.Controls.Presentation;
 
-public abstract partial class CellColumn : IUpdateColumnLayout
+public abstract partial class CellColumn : IUpdateColumnLayout, IColumnMeasurementOptions
 {
     private double _actualWidth = double.NaN;
     private double _starWidth = double.NaN;

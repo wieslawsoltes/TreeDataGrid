@@ -60,9 +60,9 @@ namespace Uno.Controls.Primitives
             // Native Auto-valued bounds depend on the natural measurement. Do
             // not cap that first pass using their previous computed value (which
             // can be zero before the first cell/header is measured).
-            var width = column is CellColumn { RequiresUnconstrainedWidthMeasurement: true }
+            var width = column is IColumnMeasurementOptions { RequiresUnconstrainedWidthMeasurement: true }
                 ? double.PositiveInfinity
-                : column is CellColumn && double.IsFinite(column.ActualWidth)
+                : column is IColumnMeasurementOptions && double.IsFinite(column.ActualWidth)
                     ? column.ActualWidth : column.MaxActualWidth;
             return new Size(Math.Min(availableSize.Width, width), availableSize.Height);
         }

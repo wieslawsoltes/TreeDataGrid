@@ -40,6 +40,7 @@ public partial class App
             case "wikipedia": return WikipediaRuntimeChecks.RunAsync(page, CaptureAsync);
             case "files-find": return FilesAndFindRuntimeChecks.RunAsync(page, CaptureAsync);
             case "recycling": return RuntimeChecks.RunAsync(page.Grid, Template("RuntimeCellTemplate"));
+            case "viewport-measurement": return ViewportMeasurementRuntimeChecks.RunAsync(page.Grid);
             case "cross-column-recycling": return CrossColumnRecyclingRuntimeChecks.RunAsync(page.Grid);
             case "selection": return SelectionRuntimeChecks.RunAsync(page.Grid, ControlTemplate("AlternateGridTemplate"));
             case "selection-interaction": return SelectionInteractionRuntimeChecks.RunAsync(page);

@@ -7,7 +7,7 @@ using Uno.Controls.Presentation;
 
 namespace Uno.Controls.Models.TreeDataGrid;
 
-public class TemplateColumn<TModel> : ValueCellColumn<TModel, TModel> where TModel : class
+public class TemplateColumn<TModel> : ValueCellColumn<TModel, TModel>, ITextSearchableColumn<TModel> where TModel : class
 {
     private DataTemplate? _display;
     private DataTemplate? _editing;
@@ -67,4 +67,6 @@ public class TemplateColumn<TModel> : ValueCellColumn<TModel, TModel> where TMod
             return applicationResource as DataTemplate ?? throw new InvalidOperationException($"Resource '{key}' for column '{Header}' is not a DataTemplate.");
         throw new KeyNotFoundException($"No data template resource with key '{key}' was found for column '{Header}'.");
     }
+    string? ITextSearchableColumn<TModel>.SelectValue(TModel model) => GetSearchText(model);
+
 }

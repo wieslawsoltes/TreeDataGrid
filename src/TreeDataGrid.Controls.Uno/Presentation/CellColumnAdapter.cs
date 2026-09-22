@@ -26,10 +26,10 @@ internal sealed class CellColumnAdapter<TModel> : CellColumn where TModel : clas
     public override bool? CanUserResize => _inner.CanUserResize;
     public override double MinimumWidth => _inner.MinActualWidth;
     public override double MaximumWidth => _inner.MaxActualWidth;
-    // The public layout contract does not expose whether an Auto min/max
-    // constraint needs discovery, so custom implementations receive natural
-    // measurements even when their source width is fixed or star-sized.
-    public override bool RequiresUnconstrainedWidthMeasurement => true;
+    // Match Avalonia's opt-in measurement contract. Unannotated custom
+    // columns retain conservative natural measurement for Auto constraints.
+    public override bool RequiresUnconstrainedWidthMeasurement =>
+        (_inner as UI.IColumnMeasurementOptions)?.RequiresUnconstrainedWidthMeasurement ?? true;
     public override CellValue CreateCell(IRow row)
     {
         var cell = _inner.CreateCell((IRow<TModel>)row) ?? throw new InvalidOperationException("The column returned no cell.");

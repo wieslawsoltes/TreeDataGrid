@@ -268,7 +268,7 @@ internal sealed class ExpanderCellColumn<TModel> : CellColumn where TModel : cla
     }
 }
 
-public abstract class ExpanderCellValue : CellValue, Uno.Controls.Models.TreeDataGrid.IExpanderCellPresentation
+public abstract class ExpanderCellValue : CellValue, Uno.Controls.Models.TreeDataGrid.IExpanderCell
 {
     public abstract CellValue Inner { get; }
     internal virtual bool HasContent => true;
