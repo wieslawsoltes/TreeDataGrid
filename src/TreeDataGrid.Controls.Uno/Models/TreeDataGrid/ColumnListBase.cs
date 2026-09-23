@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.ComponentModel;
 using Microsoft.UI.Xaml;
@@ -35,6 +36,11 @@ namespace Uno.Controls.Models.TreeDataGrid
         private readonly List<double> _columnEnds = new();
         private bool _geometryDirty = true;
         private double _estimatedElementSize = -1;
+        // Every application-controlled callback must return to the same layout
+        // transaction before it can publish into aligned collection storage.
+        private int _layoutRevision;
+        private int _completedLayoutRevision = -1;
+        private int _geometryRevision;
 
         public event EventHandler? LayoutInvalidated;
 
@@ -47,18 +53,42 @@ namespace Uno.Controls.Models.TreeDataGrid
         public Size CellMeasured(int columnIndex, int rowIndex, Size size)
         {
             var column = (IUpdateColumnLayout)this[columnIndex];
-            _initialized = true;
-            var measuredWidth = column.CellMeasured(size.Width, rowIndex);
             var committed = _committedConstraints[columnIndex];
-
-            if (!WidthsEqual(measuredWidth, column.ActualWidth) ||
-                !WidthsEqual(committed.min, column.MinActualWidth) ||
-                !WidthsEqual(committed.max, column.MaxActualWidth))
+            var revision = unchecked(++_layoutRevision);
+            _initialized = true;
+            try
             {
-                _columnWidthsDirty = true;
-            }
+                var measuredWidth = column.CellMeasured(size.Width, rowIndex);
+                var result = new Size(measuredWidth, size.Height);
+                if (revision != _layoutRevision) return result;
+                var actual = column.ActualWidth;
+                if (revision != _layoutRevision) return result;
+                if (!WidthsEqual(measuredWidth, actual))
+                {
+                    _columnWidthsDirty = true;
+                    return result;
+                }
+                var minimum = column.MinActualWidth;
+                if (revision != _layoutRevision) return result;
+                if (!WidthsEqual(committed.min, minimum))
+                {
+                    _columnWidthsDirty = true;
+                    return result;
+                }
+                var maximum = column.MaxActualWidth;
+                if (revision != _layoutRevision) return result;
+                if (!WidthsEqual(committed.max, maximum))
+                    _columnWidthsDirty = true;
 
-            return new Size(measuredWidth, size.Height);
+                return result;
+            }
+            catch
+            {
+                // A throwing measurement may already have changed natural width.
+                // Do not poison the next commit or overwrite a newer nested one.
+                if (revision == _layoutRevision || _completedLayoutRevision != _layoutRevision) _columnWidthsDirty = true;
+                throw;
+            }
         }
 
         public (int index, double x) GetColumnAt(double x)
@@ -145,34 +175,58 @@ namespace Uno.Controls.Models.TreeDataGrid
 
         private void EnsureGeometry()
         {
-            if (!_geometryDirty)
-                return;
+            while (_geometryDirty) RebuildGeometry();
+        }
 
-            _columnEnds.Clear();
-            var end = 0.0;
-            var total = 0.0;
-            var measuredCount = 0;
-            var knownPrefix = true;
-            for (var i = 0; i < Count; ++i)
+        private void RebuildGeometry()
+        {
+            var revision = _geometryRevision;
+            var count = Count;
+            double[]? rented = null;
+            Span<double> ends = count <= 128 ? stackalloc double[count] :
+                (rented = ArrayPool<double>.Shared.Rent(count)).AsSpan(0, count);
+            try
             {
-                var width = this[i].ActualWidth;
-                // Positions beyond an unmeasured column are unknown. The average still
-                // includes measured columns beyond that point, as in the uncached estimator.
-                knownPrefix &= !double.IsNaN(width) && width >= 0;
-                if (knownPrefix)
+                var end = 0.0;
+                var total = 0.0;
+                var measuredCount = 0;
+                var prefixCount = 0;
+                var knownPrefix = true;
+                for (var i = 0; i < count; ++i)
                 {
-                    end += width;
-                    _columnEnds.Add(end);
+                    var width = this[i].ActualWidth;
+                    if (revision != _geometryRevision) return;
+                    // Measure first, publish later. An ActualWidth getter can
+                    // replace the collection and recursively query its geometry.
+                    knownPrefix &= !double.IsNaN(width) && width >= 0;
+                    if (knownPrefix)
+                    {
+                        end += width;
+                        ends[prefixCount++] = end;
+                    }
+                    if (!double.IsNaN(width) && width > 0)
+                    {
+                        total += width;
+                        ++measuredCount;
+                    }
                 }
-                if (!double.IsNaN(width) && width > 0)
-                {
-                    total += width;
-                    ++measuredCount;
-                }
+                // No application callbacks occur while publishing. Reserve
+                // storage before clearing so allocation failure keeps the old
+                // committed prefix intact and the dirty flag retryable.
+                if (_columnEnds.Capacity < prefixCount) _columnEnds.Capacity = prefixCount;
+                _columnEnds.Clear();
+                for (var i = 0; i < prefixCount; ++i) _columnEnds.Add(ends[i]);
+                _estimatedElementSize = measuredCount > 0 ? total / measuredCount : -1;
+                _geometryDirty = false;
+                unchecked { ++_geometryRevision; }
             }
+            finally { if (rented is not null) ArrayPool<double>.Shared.Return(rented); }
+        }
 
-            _estimatedElementSize = measuredCount > 0 ? total / measuredCount : -1;
-            _geometryDirty = false;
+        private void InvalidateGeometry()
+        {
+            unchecked { ++_geometryRevision; }
+            _geometryDirty = true;
         }
 
         // One weak owner per observed column, never a global subscription table.
@@ -221,7 +275,7 @@ namespace Uno.Controls.Models.TreeDataGrid
         private void OnColumnPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (string.IsNullOrEmpty(e.PropertyName) || e.PropertyName == nameof(IColumn.ActualWidth))
-                _geometryDirty = true;
+                InvalidateGeometry();
         }
 
         public double GetEstimatedWidth(double constraint)
@@ -276,34 +330,40 @@ namespace Uno.Controls.Models.TreeDataGrid
         // constraints rather than recomputing stars against an initial zero.
         internal void AcceptNativeWidths(double viewportWidth)
         {
+            var revision = unchecked(++_layoutRevision);
+            _columnWidthsDirty = true;
+            InvalidateGeometry();
+            // Capture custom getters before marking this transaction committed.
+            // A nested collection change/commit owns its replacement snapshots.
+            if (!CaptureConstraints(revision)) return;
             _viewportWidth = viewportWidth;
             _initialized = true;
             _columnWidthsDirty = false;
-            _geometryDirty = true;
-            for (var i = 0; i < Count; ++i)
-            {
-                var column = (IUpdateColumnLayout)this[i];
-                _committedConstraints[i] = (column.MinActualWidth, column.MaxActualWidth);
-            }
+            _completedLayoutRevision = revision;
         }
 
         public void SetColumnWidth(int columnIndex, GridLength width)
         {
             var column = this[columnIndex];
+            var revision = _layoutRevision;
+            var previous = column.Width;
+            if (revision != _layoutRevision || width == previous) return;
 
-            if (width != column.Width)
-            {
-                ((IUpdateColumnLayout)column).SetWidth(width);
-                _columnWidthsDirty = true;
-                LayoutInvalidated?.Invoke(this, EventArgs.Empty);
-                UpdateColumnSizes();
-            }
+            revision = unchecked(++_layoutRevision);
+            _columnWidthsDirty = true;
+            InvalidateGeometry();
+            ((IUpdateColumnLayout)column).SetWidth(width);
+            if (revision != _layoutRevision) return;
+            LayoutInvalidated?.Invoke(this, EventArgs.Empty);
+            if (revision != _layoutRevision) return;
+            UpdateColumnSizes();
         }
 
         public void ViewportChanged(Rect viewport)
         {
             if (!LayoutMath.AreClose(_viewportWidth, viewport.Width))
             {
+                unchecked { ++_layoutRevision; }
                 _viewportWidth = viewport.Width;
                 _columnWidthsDirty = true;
                 if (_initialized)
@@ -347,8 +407,9 @@ namespace Uno.Controls.Models.TreeDataGrid
         protected override void ClearItems()
         {
             CheckReentrancy();
+            unchecked { ++_layoutRevision; }
             _columnWidthsDirty = true;
-            _geometryDirty = true;
+            InvalidateGeometry();
             foreach (var column in this)
                 UnsubscribeColumn(column);
             _committedConstraints.Clear();
@@ -358,8 +419,9 @@ namespace Uno.Controls.Models.TreeDataGrid
         protected override void InsertItem(int index, TColumn item)
         {
             CheckReentrancy();
+            unchecked { ++_layoutRevision; }
             _columnWidthsDirty = true;
-            _geometryDirty = true;
+            InvalidateGeometry();
             SubscribeColumn(item);
             _committedConstraints.Insert(index, (double.NaN, double.NaN));
             base.InsertItem(index, item);
@@ -375,7 +437,8 @@ namespace Uno.Controls.Models.TreeDataGrid
             // Keep the constraint snapshots aligned before the collection-changed event is raised,
             // so synchronous listeners always observe a consistent column list.
             CheckReentrancy();
-            _geometryDirty = true;
+            unchecked { ++_layoutRevision; }
+            InvalidateGeometry();
             var constraints = _committedConstraints[oldIndex];
             _committedConstraints.RemoveAt(oldIndex);
             _committedConstraints.Insert(newIndex, constraints);
@@ -386,8 +449,9 @@ namespace Uno.Controls.Models.TreeDataGrid
         protected override void RemoveItem(int index)
         {
             CheckReentrancy();
+            unchecked { ++_layoutRevision; }
             _columnWidthsDirty = true;
-            _geometryDirty = true;
+            InvalidateGeometry();
             UnsubscribeColumn(this[index]);
             _committedConstraints.RemoveAt(index);
             base.RemoveItem(index);
@@ -396,8 +460,9 @@ namespace Uno.Controls.Models.TreeDataGrid
         protected override void SetItem(int index, TColumn item)
         {
             CheckReentrancy();
+            unchecked { ++_layoutRevision; }
             _columnWidthsDirty = true;
-            _geometryDirty = true;
+            InvalidateGeometry();
             UnsubscribeColumn(this[index]);
             SubscribeColumn(item);
             _committedConstraints[index] = (double.NaN, double.NaN);
@@ -406,115 +471,146 @@ namespace Uno.Controls.Models.TreeDataGrid
 
         private void UpdateColumnSizes()
         {
-            if (!_columnWidthsDirty)
-                return;
+            if (!_columnWidthsDirty) return;
 
+            var revision = unchecked(++_layoutRevision);
             _columnWidthsDirty = false;
-            // Custom columns may commit widths without raising PropertyChanged.
-            _geometryDirty = true;
+            InvalidateGeometry();
+            try
+            {
+                if (!UpdateColumnSizes(revision) && _completedLayoutRevision != _layoutRevision)
+                    _columnWidthsDirty = true;
+            }
+            catch
+            {
+                // Custom commits cannot be rolled back, but their failure must
+                // not mark a partially completed pass clean forever. Preserve
+                // any newer nested transaction rather than dirtying its result.
+                if (revision == _layoutRevision || _completedLayoutRevision != _layoutRevision) _columnWidthsDirty = true;
+                InvalidateGeometry();
+                throw;
+            }
+        }
+
+        private bool UpdateColumnSizes(int revision)
+        {
             var totalStars = 0.0;
             var availableSpace = _viewportWidth;
             var invalidated = false;
+            var count = Count;
 
-            // First commit the actual width for all non-star width columns and get a total of the
-            // number of stars for star width columns.
-            for (var i = 0; i < Count; ++i)
+            // Preserve the reference solver's operation order. Only the native
+            // callback boundaries change: never continue on a retired column or
+            // mix its contribution with a newer collection/viewport transaction.
+            for (var i = 0; i < count; ++i)
             {
                 var column = (IUpdateColumnLayout)this[i];
-
-                if (!column.Width.IsStar)
+                var width = column.Width;
+                if (revision != _layoutRevision) return false;
+                if (!width.IsStar)
                 {
                     invalidated |= column.CommitActualWidth();
-                    availableSpace -= NotNaN(column.ActualWidth);
+                    if (revision != _layoutRevision) return false;
+                    var actual = column.ActualWidth;
+                    if (revision != _layoutRevision) return false;
+                    availableSpace -= NotNaN(actual);
                 }
-                else
-                    totalStars += column.Width.Value;
+                else totalStars += width.Value;
             }
 
             if (totalStars > 0)
             {
-                // Size the star columns.
                 var starWidthWasConstrained = false;
-
                 availableSpace = Math.Max(0, availableSpace);
-
-                // Do a first pass to calculate star column widths.
-                for (var i = 0; i < Count; ++i)
+                for (var i = 0; i < count; ++i)
                 {
                     var column = (IUpdateColumnLayout)this[i];
-
-                    if (column.Width.IsStar)
+                    var width = column.Width;
+                    if (revision != _layoutRevision) return false;
+                    if (width.IsStar)
                     {
                         column.CalculateStarWidth(availableSpace, totalStars);
-                        starWidthWasConstrained |= column.StarWidthWasConstrained;
+                        if (revision != _layoutRevision) return false;
+                        var constrained = column.StarWidthWasConstrained;
+                        if (revision != _layoutRevision) return false;
+                        starWidthWasConstrained |= constrained;
                     }
                 }
 
-                // If the width of any star columns was constrained by their min/max size, and we
-                // actually had any space to distribute between star columns, then we need to update
-                // the star width for the non-constrained columns.
                 if (starWidthWasConstrained && LayoutMath.GreaterThan(availableSpace, 0))
                 {
                     var initialAvailableSpace = availableSpace;
                     var initialTotalStars = totalStars;
-
-                    for (var i = 0; i < Count; ++i)
+                    for (var i = 0; i < count; ++i)
                     {
                         var column = (IUpdateColumnLayout)this[i];
-
-                        if (column.StarWidthWasConstrained)
+                        var constrained = column.StarWidthWasConstrained;
+                        if (revision != _layoutRevision) return false;
+                        if (constrained)
                         {
-                            availableSpace -= GetConstrainedStarWidth(
-                                column,
-                                initialAvailableSpace,
-                                initialTotalStars);
-                            totalStars -= column.Width.Value;
+                            var width = column.Width;
+                            if (revision != _layoutRevision) return false;
+                            var minimum = column.MinActualWidth;
+                            if (revision != _layoutRevision) return false;
+                            var maximum = column.MaxActualWidth;
+                            if (revision != _layoutRevision) return false;
+                            var proposed = (initialAvailableSpace / initialTotalStars) * width.Value;
+                            availableSpace -= Math.Min(Math.Max(proposed, minimum), maximum);
+                            totalStars -= width.Value;
                         }
                     }
-
-                    for (var i = 0; i < Count; ++i)
+                    for (var i = 0; i < count; ++i)
                     {
                         var column = (IUpdateColumnLayout)this[i];
-                        if (column.Width.IsStar && !column.StarWidthWasConstrained)
+                        var width = column.Width;
+                        if (revision != _layoutRevision) return false;
+                        if (!width.IsStar) continue;
+                        var constrained = column.StarWidthWasConstrained;
+                        if (revision != _layoutRevision) return false;
+                        if (!constrained)
+                        {
                             column.CalculateStarWidth(availableSpace, totalStars);
+                            if (revision != _layoutRevision) return false;
+                        }
                     }
                 }
 
-                // Finally commit the star column widths.
-                for (var i = 0; i < Count; ++i)
+                for (var i = 0; i < count; ++i)
                 {
                     var column = (IUpdateColumnLayout)this[i];
-
-                    if (column.Width.IsStar)
+                    var width = column.Width;
+                    if (revision != _layoutRevision) return false;
+                    if (width.IsStar)
                     {
                         invalidated |= column.CommitActualWidth();
+                        if (revision != _layoutRevision) return false;
                     }
                 }
             }
 
-            for (var i = 0; i < Count; ++i)
+            if (!CaptureConstraints(revision)) return false;
+            InvalidateGeometry();
+            _completedLayoutRevision = revision;
+            if (invalidated) LayoutInvalidated?.Invoke(this, EventArgs.Empty);
+            return true;
+        }
+
+        private bool CaptureConstraints(int revision)
+        {
+            var count = Count;
+            for (var i = 0; i < count; ++i)
             {
                 var column = (IUpdateColumnLayout)this[i];
-                _committedConstraints[i] = (column.MinActualWidth, column.MaxActualWidth);
+                var minimum = column.MinActualWidth;
+                if (revision != _layoutRevision) return false;
+                var maximum = column.MaxActualWidth;
+                if (revision != _layoutRevision) return false;
+                _committedConstraints[i] = (minimum, maximum);
             }
-
-            _geometryDirty = true;
-            if (invalidated)
-            {
-                LayoutInvalidated?.Invoke(this, EventArgs.Empty);
-            }
+            return true;
         }
 
         private static double NotNaN(double v) => double.IsNaN(v) ? 0 : v;
-
-        private static double GetConstrainedStarWidth(
-            IUpdateColumnLayout column,
-            double availableSpace,
-            double totalStars)
-        {
-            var width = (availableSpace / totalStars) * column.Width.Value;
-            return Math.Min(Math.Max(width, column.MinActualWidth), column.MaxActualWidth);
-        }
 
         private static bool WidthsEqual(double x, double y) =>
             x.Equals(y) || LayoutMath.AreClose(x, y);
