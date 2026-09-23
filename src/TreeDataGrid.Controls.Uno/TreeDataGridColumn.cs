@@ -12,6 +12,20 @@ using Core = global::TreeDataGridCore.Models;
 public abstract class TreeDataGridColumn : ColumnCreateOptions
 {
     public object? Header { get; set; }
+
+    /// <summary>Creates the reference-compatible common options for a derived column.</summary>
+    /// <remarks>Scalar policies are captured; configured comparison callbacks retain the definition's live comparison policy.</remarks>
+    protected ColumnOptions<object> CreateCommonOptions() => new()
+    {
+        CanUserResizeColumn = CanUserResize,
+        CanUserSortColumn = CanUserSortColumn,
+        MinWidth = MinWidth,
+        MaxWidth = MaxWidth,
+        BeginEditGestures = BeginEditGestures,
+        CompareAscending = CompareAscending is null ? null : (a, b) => CompareAscending(a, b),
+        CompareDescending = CompareDescending is null ? null : (a, b) => CompareDescending(a, b),
+    };
+
     internal virtual bool IsHierarchical => false;
     internal abstract Core.IColumn<TModel> CreateCoreColumn<TModel>(object? header = null, ColumnCreateOptions? common = null,
         DeclarativeSourceContext? context = null)
