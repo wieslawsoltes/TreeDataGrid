@@ -1,0 +1,38 @@
+name: Uno evidence inspection
+on:
+  push:
+    branches: [codex/uno-parity-evidence]
+    paths: [.github/workflows/uno-evidence-inspection.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: uno-materialized-contract-evidence
+          run-id: 35926977970
+          github-token: ${{ github.token }}
+          path: evidence
+      - name: Print exact unresolved metadata and its affected owners
+        run: |
+          python3 - <<'PY'
+          import json, pathlib
+          root = pathlib.Path('evidence')
+          for path in sorted(root.rglob('summary.json')):
+              data = json.loads(path.read_text())
+              keys = ('unresolvedBaselineTypes', 'unresolvedTargetTypes')
+              if any(data.get(key) for key in keys):
+                  print('UNO_UNRESOLVED_METADATA=' + json.dumps({'path': str(path), **{key: data.get(key) for key in keys}}))
+          for path in sorted(root.rglob('*.json')):
+              if path.name not in ('avalonia.json', 'uno.json') or 'supplemental-metadata' not in str(path):
+                  continue
+              rows = json.loads(path.read_text())
+              for row in rows:
+                  raw = row.get('Raw', '')
+                  if '<missing>' in raw or '<error>' in raw:
+                      print('UNO_UNRESOLVED_ENTRY=' + json.dumps({'path': str(path), 'entry': row}))
+          PY
