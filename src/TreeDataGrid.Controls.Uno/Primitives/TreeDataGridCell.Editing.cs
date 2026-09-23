@@ -32,59 +32,7 @@ public partial class TreeDataGridCell
             _editor.Text = value;
         }
     }
-    public virtual bool BeginEdit()
-    {
-        if (IsEditing) return true;
-        if (_value is null || (!_value.CanEdit && _editingTemplate is null)) return false;
-        ApplyTemplate();
-        if (_editingTemplate is null)
-        {
-            if (_kind != CellKind.Text || (_editor is null && _editorHost is null)) return false;
-            if (_editor is null)
-            {
-                _editor = new TextBox { MinWidth = 0, MinHeight = 0, Padding = new(6, 2, 6, 2) };
-                _editor.KeyDown += OnEditorKeyDown;
-                _editorHost!.Children.Add(_editor);
-            }
-            // The display format may contain units/currency that cannot be
-            // written back. Edit the raw value using the column's culture.
-            _editor.Text = Convert.ToString(_value.Value, _value.TextOptions?.Culture ?? Column?.TextOptions?.Culture ?? System.Globalization.CultureInfo.CurrentCulture) ?? string.Empty;
-        }
-        else if (_editContent is null) return false;
-        var value = _value;
-        var model = RowModel;
-        var edit = new CellEditSession(value, value.EditTarget ?? model, writeValue: _editingTemplate is null);
-        // User BeginEdit can synchronously replace the source or this row before
-        // the session has been attached to its control.
-        if (!ReferenceEquals(_value, value) || !ReferenceEquals(RowModel, model))
-        {
-            edit.Cancel();
-            return false;
-        }
-        _edit = edit;
-        IsEditing = true;
-        HasValidationError = false;
-        if (!ReferenceEquals(_edit, edit) || !ReferenceEquals(_value, value)) return false;
-        UpdateContentKind();
-        if (!ReferenceEquals(_edit, edit) || !ReferenceEquals(_value, value)) return false;
-        if (_editingTemplate is null)
-        {
-            UpdateLayout();
-            if (!ReferenceEquals(_edit, edit) || !ReferenceEquals(_value, value)) return false;
-            _editor!.Focus(FocusState.Programmatic);
-            _editor.SelectAll();
-        }
-        else if (_editContent is not null)
-        {
-            _editContent.ContentTemplate = _editingTemplate;
-            _editContent.Content = _kind == CellKind.Template ? _value.Value : RowModel;
-            UpdateLayout();
-            if (!ReferenceEquals(_edit, edit) || !ReferenceEquals(_value, value)) return false;
-            if (FocusManager.FindFirstFocusableElement(_editContent) is Control control)
-                control.Focus(FocusState.Programmatic);
-        }
-        return true;
-    }
+    public virtual bool BeginEdit() => BeginEditForCurrentRealization();
     protected override void OnLostFocus(RoutedEventArgs e)
     {
         base.OnLostFocus(e);
