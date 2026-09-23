@@ -1,19 +1,15 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using TreeDataGridCore.Models;
-using TreeDataGridCore.Utils;
 
-#nullable enable
-
-namespace TreeDataGridCore.Selection
+namespace Avalonia.Controls.Selection
 {
     /// <summary>
     /// Base class for selection models.
     /// </summary>
     /// <typeparam name="T">The type of the element being selected.</typeparam>
-    public abstract class SelectionNodeBase<T> : ICollectionChangedListener
+    public abstract class SelectionNodeBase<T>
     {
         private IEnumerable? _source;
         private bool _rangesEnabled;
@@ -27,20 +23,36 @@ namespace TreeDataGridCore.Selection
             get => _source;
             set
             {
+                void OnPreChanged(object? sender, NotifyCollectionChangedEventArgs e) => OnSourceCollectionChangeStarted();
+                void OnChanged(object? sender, NotifyCollectionChangedEventArgs e) => OnSourceCollectionChanged(e);
+                void OnPostChanged(object? sender, NotifyCollectionChangedEventArgs e) => OnSourceCollectionChangeFinished();
+
                 if (_source != value)
                 {
-                    ItemsView?.RemoveListener(this);
+                    if (ItemsView is not null)
+                    {
+                        ItemsView.PreCollectionChanged -= OnPreChanged;
+                        ItemsView.CollectionChanged -= OnChanged;
+                        ItemsView.PostCollectionChanged -= OnPostChanged;
+                    }
+
                     _source = value;
-                    ItemsView = value is object ? TreeDataGridItemsSourceView<T>.GetOrCreate(value) : null;
-                    ItemsView?.AddListener(this);
+                    ItemsView = value is not null ? ItemsSourceView.GetOrCreate<T>(value) : null;
+
+                    if (ItemsView is not null)
+                    {
+                        ItemsView.PreCollectionChanged += OnPreChanged;
+                        ItemsView.CollectionChanged += OnChanged;
+                        ItemsView.PostCollectionChanged += OnPostChanged;
+                    }
                 }
             }
         }
 
         /// <summary>
-        /// Gets a <see cref="TreeDataGridItemsSourceView{T}"/> of the <see cref="Source"/>.
+        /// Gets an <see cref="ItemsSourceView{T}"/> of the <see cref="Source"/>.
         /// </summary>
-        protected internal TreeDataGridItemsSourceView<T>? ItemsView { get; set; }
+        protected internal ItemsSourceView<T>? ItemsView { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether range selection is currently enabled for
@@ -63,7 +75,6 @@ namespace TreeDataGridCore.Selection
             }
         }
 
-        // TODO: Work out a way to expose this without exposing IndexRange.
         internal IReadOnlyList<IndexRange> Ranges
         {
             get
@@ -75,21 +86,6 @@ namespace TreeDataGridCore.Selection
 
                 return _ranges ??= new List<IndexRange>();
             }
-        }
-
-        void ICollectionChangedListener.PreChanged(INotifyCollectionChanged sender, NotifyCollectionChangedEventArgs e)
-        {
-            OnSourceCollectionChangeStarted();
-        }
-
-        void ICollectionChangedListener.Changed(INotifyCollectionChanged sender, NotifyCollectionChangedEventArgs e)
-        {
-            OnSourceCollectionChanged(e);
-        }
-
-        void ICollectionChangedListener.PostChanged(INotifyCollectionChanged sender, NotifyCollectionChangedEventArgs e)
-        {
-            OnSourceCollectionChangeFinished();
         }
 
         /// <summary>
@@ -110,21 +106,20 @@ namespace TreeDataGridCore.Selection
         /// It then calls <see cref="OnIndexesChanged(int, int)"/> and
         /// <see cref="OnSelectionRemoved(int, int, IReadOnlyList{T})"/> if necessary, according
         /// to the <see cref="CollectionChangeState"/> returned by those methods.
-        ///
+        /// 
         /// Override this method and <see cref="OnSourceCollectionChangeFinished"/> to provide
         /// custom handling of source collection changes.
         /// </remarks>
         protected virtual void OnSourceCollectionChanged(NotifyCollectionChangedEventArgs e)
         {
-            if (!e.HasKnownIndexes())
-            {
-                OnSourceReset();
-                return;
-            }
-
             var shiftDelta = 0;
             var shiftIndex = -1;
-            List<T?>? removed = null;
+            List<T>? removed = null;
+
+            if (!IsValidCollectionChange(e))
+            {
+                return;
+            }
 
             switch (e.Action)
             {
@@ -145,13 +140,18 @@ namespace TreeDataGridCore.Selection
                     }
                 case NotifyCollectionChangedAction.Replace:
                     {
+                        if (e.OldStartingIndex < 0)
+                        {
+                            goto case NotifyCollectionChangedAction.Reset;
+                        }
+
                         var removeChange = OnItemsRemoved(e.OldStartingIndex, e.OldItems!);
                         var addChange = OnItemsAdded(e.NewStartingIndex, e.NewItems!);
                         shiftIndex = removeChange.ShiftIndex;
                         shiftDelta = removeChange.ShiftDelta + addChange.ShiftDelta;
                         removed = removeChange.RemovedItems;
+                        break;
                     }
-                    break;
                 case NotifyCollectionChangedAction.Move:
                     {
                         if (e.OldStartingIndex < 0)
@@ -162,41 +162,15 @@ namespace TreeDataGridCore.Selection
                         var removeChange = OnItemsRemoved(e.OldStartingIndex, e.OldItems!);
                         var insertIndex = e.NewStartingIndex;
 
+                        if (e.NewStartingIndex > e.OldStartingIndex)
+                        {
+                            insertIndex -= e.OldItems!.Count - 1;
+                        }
+
                         var addChange = OnItemsAdded(insertIndex, e.NewItems!);
                         shiftIndex = removeChange.ShiftIndex;
                         shiftDelta = removeChange.ShiftDelta + addChange.ShiftDelta;
                         removed = removeChange.RemovedItems;
-
-                        if (removeChange.DeselectedRanges is { Count: > 0 } deselectedRanges)
-                        {
-                            var movedRanges = new List<IndexRange>(deselectedRanges.Count);
-
-                            foreach (var range in deselectedRanges)
-                            {
-                                var relativeBegin = range.Begin - e.OldStartingIndex;
-                                var begin = insertIndex + relativeBegin;
-                                var end = begin + (range.End - range.Begin);
-                                movedRanges.Add(new IndexRange(begin, end));
-
-                                if (RangesEnabled)
-                                {
-                                    CommitSelect(begin, end);
-                                }
-                            }
-
-                            var movedItems = removeChange.RemovedItems is { Count: > 0 } items
-                                ? (IReadOnlyList<T?>)items
-                                : Array.Empty<T?>();
-
-                            OnSelectionMoved(
-                                e.OldStartingIndex,
-                                insertIndex,
-                                deselectedRanges,
-                                movedRanges,
-                                movedItems);
-
-                            removed = null;
-                        }
                     }
                     break;
                 case NotifyCollectionChangedAction.Reset:
@@ -246,25 +220,7 @@ namespace TreeDataGridCore.Selection
         /// Called by <see cref="OnSourceCollectionChanged(NotifyCollectionChangedEventArgs)"/>,
         /// detailing the items removed by a collection change.
         /// </summary>
-        protected virtual void OnSelectionRemoved(int index, int count, IReadOnlyList<T?> deselectedItems)
-        {
-        }
-
-        /// <summary>
-        /// Called by <see cref="OnSourceCollectionChanged(NotifyCollectionChangedEventArgs)"/>,
-        /// detailing selection that moved within the source collection.
-        /// </summary>
-        /// <param name="oldStartIndex">The starting index of the move before the change.</param>
-        /// <param name="newStartIndex">The starting index of the move after the change.</param>
-        /// <param name="oldSelectedRanges">Ranges representing selected indexes before the move.</param>
-        /// <param name="newSelectedRanges">Ranges representing selected indexes after the move.</param>
-        /// <param name="movedItems">The selected items affected by the move.</param>
-        private protected virtual void OnSelectionMoved(
-            int oldStartIndex,
-            int newStartIndex,
-            IReadOnlyList<IndexRange> oldSelectedRanges,
-            IReadOnlyList<IndexRange> newSelectedRanges,
-            IReadOnlyList<T?> movedItems)
+        protected virtual void OnSelectionRemoved(int index, int count, IReadOnlyList<T> deselectedItems)
         {
         }
 
@@ -311,11 +267,11 @@ namespace TreeDataGridCore.Selection
         /// selection.
         /// </returns>
         /// <remarks>
-        /// The implementation in <see cref="SelectionNodeBase{T}"/> adjusts the selected ranges,
+        /// The implementation in <see cref="SelectionNodeBase{T}"/> adjusts the selected ranges, 
         /// assigning new indexes. Override this method to carry out additional computation when
         /// items are added.
         /// </remarks>
-        private protected virtual CollectionChangeState OnItemsAdded(int index, IList items)
+        protected virtual CollectionChangeState OnItemsAdded(int index, IList items)
         {
             var count = items.Count;
             var shifted = false;
@@ -373,7 +329,7 @@ namespace TreeDataGridCore.Selection
         /// selection.
         /// </returns>
         /// <remarks>
-        /// The implementation in <see cref="SelectionNodeBase{T}"/> adjusts the selected ranges,
+        /// The implementation in <see cref="SelectionNodeBase{T}"/> adjusts the selected ranges, 
         /// assigning new indexes. Override this method to carry out additional computation when
         /// items are removed.
         /// </remarks>
@@ -382,22 +338,21 @@ namespace TreeDataGridCore.Selection
             var count = items.Count;
             var removedRange = new IndexRange(index, index + count - 1);
             var shifted = false;
-            List<T?>? removed = null;
-            List<IndexRange>? deselected = null;
+            List<T>? removed = null;
 
             if (_ranges is not null)
             {
-                deselected = new List<IndexRange>();
+                var deselected = new List<IndexRange>();
 
                 if (IndexRange.Remove(_ranges, removedRange, deselected) > 0)
                 {
-                    removed = new List<T?>();
+                    removed = new List<T>();
 
                     foreach (var range in deselected)
                     {
                         for (var i = range.Begin; i <= range.End; ++i)
                         {
-                            removed.Add((T?)items[i - index]);
+                            removed.Add((T)items[i - index]!);
                         }
                     }
                 }
@@ -419,62 +374,41 @@ namespace TreeDataGridCore.Selection
                 ShiftIndex = index,
                 ShiftDelta = shifted ? -count : 0,
                 RemovedItems = removed,
-                DeselectedRanges = deselected is { Count: > 0 } ? deselected : null,
             };
         }
 
-        private protected IReadOnlyList<CollectionChangeState> OnItemsMoved(
-            int oldIndex,
-            int newIndex,
-            int count)
+        private protected virtual bool IsValidCollectionChange(NotifyCollectionChangedEventArgs e)
         {
-            var selectedItemsMoved = false;
-            var unselectedItemsMoved = false;
-
-            if (_ranges is not null)
+            // If the selection is modified in a CollectionChanged handler before the selection
+            // model's CollectionChanged handler has had chance to run then we can end up with
+            // a selected index that refers to the *new* state of the Source intermixed with
+            // indexes that reference an old state of the source.
+            //
+            // There's not much we can do in this situation, so detect whether shifting the
+            // current selected indexes would result in an invalid index in the source, and if
+            // so bail.
+            //
+            // See unit test Handles_Selection_Made_In_CollectionChanged for more details.
+            if (ItemsView is not null &&
+                RangesEnabled &&
+                Ranges.Count > 0 &&
+                e.Action == NotifyCollectionChangedAction.Add)
             {
-                var removedRange = new IndexRange(oldIndex, oldIndex + count - 1);
-                var movedRanges = new List<IndexRange>();
+                var lastIndex = Ranges[Ranges.Count - 1].End;
 
-                if (IndexRange.Remove(_ranges, removedRange, movedRanges) > 0)
+                if (e.NewStartingIndex <= lastIndex)
                 {
-                    foreach (var range in movedRanges)
-                    {
-                        var insertRange = new IndexRange(
-                            range.Begin + (newIndex - oldIndex),
-                            range.End + (newIndex - oldIndex));
-                        IndexRange.Add(_ranges, insertRange);
-                        selectedItemsMoved = true;
-                    }
-                }
-
-                for (var i = 0; i < Ranges!.Count; ++i)
-                {
-                    var existing = Ranges[i];
-
-                    if (existing.Begin >= oldIndex && existing.End < newIndex)
-                    {
-                        _ranges[i] = new IndexRange(existing.Begin - count, existing.End - count);
-                        unselectedItemsMoved = true;
-                    }
+                    return lastIndex + e.NewItems!.Count < ItemsView.Count;
                 }
             }
 
-            if (selectedItemsMoved || unselectedItemsMoved)
-            {
-                var changes = new List<CollectionChangeState>();
-                return changes;
-            }
-            else
-            {
-                return [];
-            }
+            return true;
         }
 
         /// <summary>
         /// Details the results of a collection change on the current selection;
         /// </summary>
-        private protected class CollectionChangeState
+        protected class CollectionChangeState
         {
             /// <summary>
             /// Gets or sets the first index that was shifted as a result of the collection
@@ -491,12 +425,7 @@ namespace TreeDataGridCore.Selection
             /// <summary>
             /// Gets or sets the items removed by the collection change, if any.
             /// </summary>
-            public List<T?>? RemovedItems { get; set; }
-
-            /// <summary>
-            /// Gets or sets the ranges deselected by the collection change, if any.
-            /// </summary>
-            internal IReadOnlyList<IndexRange>? DeselectedRanges { get; set; }
+            public List<T>? RemovedItems { get; set; }
         }
     }
 }
