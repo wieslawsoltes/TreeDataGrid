@@ -18,13 +18,19 @@ namespace TreeDataGridUnoSample;
 /// <summary>Native appearance/layout gates. Actual OS high contrast and pointer resizing are separate gates.</summary>
 internal static class AppearanceRuntimeChecks
 {
-    private static void ConfigureRightToLeft(FrameworkElement element)
+    private static void ConfigureFlowDirection(FrameworkElement element, FlowDirection direction)
     {
-#if __WASM__
-        throw new PlatformNotSupportedException("The browser RTL gate has not been validated for this renderer.");
-#else
-        element.FlowDirection = FlowDirection.RightToLeft;
-#endif
+        // The neutral browser reference assembly also describes the DOM head,
+        // whose RTL support differs from the SkiaRenderer used by this sample.
+        // Query the actual loaded implementation, then test its geometry below;
+        // an unsupported head is a failure, never a skipped acceptance check.
+        if (!Windows.Foundation.Metadata.ApiInformation.IsPropertyPresent(
+                "Microsoft.UI.Xaml.FrameworkElement", nameof(FrameworkElement.FlowDirection)))
+            throw new PlatformNotSupportedException("The loaded renderer does not implement native FlowDirection.");
+#pragma warning disable Uno0001 // Actual runtime capability checked above; this sample publishes with SkiaRenderer.
+        element.FlowDirection = direction;
+        Check(element.FlowDirection == direction, "The native FlowDirection value was not applied.");
+#pragma warning restore Uno0001
     }
 
     internal static async Task RunAsync(MainPage page)
@@ -108,7 +114,7 @@ internal static class AppearanceRuntimeChecks
             using var wide = new FlatTreeDataGridSource<Item>([new("RTL text")]);
             for (var i = 0; i < 3; ++i) wide.WithTextColumn(x => x.Name, options => options.Width = new(250));
             grid.Source = wide;
-            ConfigureRightToLeft(grid);
+            ConfigureFlowDirection(grid, FlowDirection.RightToLeft);
             grid.Scroll!.ChangeView(0, 0, null, true);
             await Task.Delay(100);
             var first = Bounds(grid.TryGetCell(0, 0)!);
@@ -118,8 +124,19 @@ internal static class AppearanceRuntimeChecks
             grid.BringCellIntoView(0, 2);
             await Task.Delay(100);
             Check(grid.TryGetCell(2, 0) is not null, "RTL horizontal bring-into-view did not realize the target column.");
+            AssertTargetVisible(2);
             AssertHeaderAlignment();
-            Console.WriteLine("UNO_RUNTIME_APPEARANCE_PASSED: font growth/shrink, parent retention, border layout, header trimming, inherited foreground, live Light/Dark, Source header sorting, RTL order/header alignment and horizontal virtualization");
+            ConfigureFlowDirection(grid, FlowDirection.LeftToRight);
+            grid.Scroll.ChangeView(0, 0, null, true);
+            await Task.Delay(100);
+            Check(Bounds(grid.TryGetCell(0, 0)!).X < Bounds(grid.TryGetCell(1, 0)!).X,
+                "Returning from RTL left stale mirrored column geometry.");
+            AssertHeaderAlignment();
+            grid.BringCellIntoView(0, 2);
+            await Task.Delay(100);
+            AssertTargetVisible(2);
+            AssertHeaderAlignment();
+            Console.WriteLine("UNO_RUNTIME_APPEARANCE_PASSED: font growth/shrink, parent retention, border layout, header trimming, inherited foreground, live Light/Dark, Source header sorting, native RTL/LTR round trip, header alignment and visible horizontal targets");
             grid.Source = null;
 
             Rect Bounds(FrameworkElement element) => element.TransformToVisual(page).TransformBounds(new(0, 0, element.ActualWidth, element.ActualHeight));
@@ -127,6 +144,15 @@ internal static class AppearanceRuntimeChecks
             {
                 static string ColorOf(Brush brush) => brush is SolidColorBrush solid ? solid.Color.ToString() : brush?.GetType().Name ?? "null";
                 Console.WriteLine($"UNO_THEME_STATE: {step}; actual={grid.ActualTheme}/{row.ActualTheme}/{cell.ActualTheme}/{text.ActualTheme}; foreground={ColorOf(grid.Foreground)}/{ColorOf(row.Foreground)}/{ColorOf(cell.Foreground)}/{ColorOf(text.Foreground)}; localGrid={grid.ReadLocalValue(Control.ForegroundProperty)}; selected={row.IsSelected}/{cell.IsSelected}");
+            }
+            void AssertTargetVisible(int index)
+            {
+                var target = grid.TryGetCell(index, 0);
+                Check(target is not null, "Horizontal bring-into-view did not retain its target.");
+                var targetBounds = Bounds(target!);
+                var viewport = Bounds(grid.Scroll!);
+                Check(targetBounds.Width > 0 && targetBounds.X < viewport.Right && targetBounds.Right > viewport.X,
+                    "Horizontal bring-into-view realized a target outside the native scroll viewport.");
             }
             void AssertHeaderAlignment()
             {
