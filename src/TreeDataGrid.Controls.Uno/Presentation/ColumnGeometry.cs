@@ -16,20 +16,44 @@ internal sealed class ColumnGeometry
 
     public bool Commit(IReadOnlyList<double> widths)
     {
+        ArgumentNullException.ThrowIfNull(widths);
         var total = 0d;
-        // Validate before mutating the committed geometry.
-        foreach (var width in widths)
+        // Indexed access avoids the boxed/interface enumerator on every layout.
+        // Validate the entire extent before replacing committed state.
+        for (var i = 0; i < widths.Count; ++i)
         {
-            if (!double.IsFinite(width) || width < 0)
-                throw new ArgumentOutOfRangeException(nameof(widths));
+            var width = widths[i];
+            if (!double.IsFinite(width) || width < 0) throw new ArgumentOutOfRangeException(nameof(widths));
             total += width;
-            if (!double.IsFinite(total))
-                throw new ArgumentOutOfRangeException(nameof(widths));
+            if (!double.IsFinite(total)) throw new ArgumentOutOfRangeException(nameof(widths));
         }
         var changed = _ends.Length != widths.Count;
-        if (changed) _ends = new double[widths.Count];
+        if (changed) _ends = widths.Count == 0 ? Array.Empty<double>() : new double[widths.Count];
         total = 0;
         for (var i = 0; i < widths.Count; ++i)
+        {
+            total += widths[i];
+            changed |= _ends[i] != total;
+            _ends[i] = total;
+        }
+        return changed;
+    }
+
+    // A distinct name keeps existing Commit([]) calls unambiguous. Caller-owned
+    // or rented width buffers cannot escape into the retained geometry.
+    public bool CommitSpan(ReadOnlySpan<double> widths)
+    {
+        var total = 0d;
+        foreach (var width in widths)
+        {
+            if (!double.IsFinite(width) || width < 0) throw new ArgumentOutOfRangeException(nameof(widths));
+            total += width;
+            if (!double.IsFinite(total)) throw new ArgumentOutOfRangeException(nameof(widths));
+        }
+        var changed = _ends.Length != widths.Length;
+        if (changed) _ends = widths.IsEmpty ? Array.Empty<double>() : new double[widths.Length];
+        total = 0;
+        for (var i = 0; i < widths.Length; ++i)
         {
             total += widths[i];
             changed |= _ends[i] != total;
@@ -57,8 +81,7 @@ internal sealed class ColumnGeometry
 
     public (int Start, int End) VisibleRange(double offset, double viewportWidth)
     {
-        if (!double.IsFinite(offset) || !double.IsFinite(viewportWidth) || viewportWidth <= 0)
-            return (0, 0);
+        if (!double.IsFinite(offset) || !double.IsFinite(viewportWidth) || viewportWidth <= 0) return (0, 0);
         var start = ColumnAt(Math.Max(0, offset));
         var right = offset + viewportWidth;
         if (start < 0 || right <= 0) return (0, 0);
@@ -70,9 +93,7 @@ internal sealed class ColumnGeometry
     {
         var min = minimum.IsAuto ? measured : minimum.Value;
         var max = maximum is { } limit ? limit.IsAuto ? measured : limit.Value : double.PositiveInfinity;
-        if (minimum.IsStar || maximum?.IsStar == true)
-            throw new ArgumentException("Column minimum and maximum widths must use pixels or Auto.");
-        // Avalonia applies minimum first, then maximum (maximum wins conflicts).
+        if (minimum.IsStar || maximum?.IsStar == true) throw new ArgumentException("Column minimum and maximum widths must use pixels or Auto.");
         return Math.Min(max, Math.Max(min, width));
     }
 }

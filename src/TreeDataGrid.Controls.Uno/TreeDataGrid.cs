@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -238,16 +239,37 @@ public partial class TreeDataGrid : Control
     }
     private bool UpdateColumns(bool measurementsOnly = false)
     {
-        if (_presentation is null) { var cleared = _geometry.Commit([]); UpdateViewport(); return cleared; }
+        if (_presentation is not { } presentation) { var cleared = _geometry.Commit([]); UpdateViewport(); return cleared; }
+        var revision = _presentationRevision;
+        var structure = _textSearchStructureRevision;
+        var columns = presentation.NativeColumns;
+        var count = columns.Count;
         var available = _scroll?.ViewportWidth > 0 ? _scroll.ViewportWidth : Math.Max(0, ActualWidth - BorderThickness.Left - BorderThickness.Right);
-        var widths = ColumnWidths.Calculate(_presentation.NativeColumns, available);
-        var changed = _geometry.Commit(widths);
-        for (var i = 0; i < widths.Length; ++i) _presentation.NativeColumns[i].SetActualWidth(widths[i]);
-        if (_presentation.Columns is Models.TreeDataGrid.ColumnListBase<CellColumn> columns) columns.AcceptNativeWidths(available);
-        if (changed) _presenter?.InvalidateRowMeasurements();
-        if (measurementsOnly && !changed) return false;
-        UpdateViewport();
-        return changed;
+        var buffer = ArrayPool<double>.Shared.Rent(count);
+        try
+        {
+            // Every nested update owns its own rental. No cached mutable buffer
+            // can be overwritten by user code reentering layout or another grid.
+            var widths = buffer.AsSpan(0, count);
+            ColumnWidths.Calculate(columns, available, widths);
+            if (!IsCurrent()) return false;
+            var changed = _geometry.CommitSpan(widths);
+            for (var i = 0; i < count; ++i)
+            {
+                columns[i].SetActualWidth(widths[i]);
+                if (!IsCurrent()) return changed;
+            }
+            if (presentation.Columns is Models.TreeDataGrid.ColumnListBase<CellColumn> layout) layout.AcceptNativeWidths(available);
+            if (!IsCurrent()) return changed;
+            if (changed) _presenter?.InvalidateRowMeasurements();
+            if (measurementsOnly && !changed) return false;
+            UpdateViewport();
+            return changed;
+        }
+        finally { ArrayPool<double>.Shared.Return(buffer); }
+
+        bool IsCurrent() => revision == _presentationRevision && structure == _textSearchStructureRevision &&
+            ReferenceEquals(presentation, _presentation) && columns.Count == count;
     }
     internal bool CommitColumnMeasurements() => UpdateColumns(measurementsOnly: true);
     private void OnViewChanged(object? sender, ScrollViewerViewChangedEventArgs e)
