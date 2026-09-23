@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
@@ -15,6 +16,15 @@ namespace TreeDataGridUnoSample;
 /// <summary>Authored source API/reentrancy/ownership gates; run after implementation is complete.</summary>
 internal static class SourceCompatibilityRuntimeChecks
 {
+    static SourceCompatibilityRuntimeChecks()
+    {
+        // These programmatic fixtures have no generated XAML metadata. Describe
+        // the generated-source accessor explicitly, just as a trimmed consumer
+        // must, without reopening the library's arbitrary reflection fallback.
+        TreeDataGridBindingRegistry.RegisterProperty<Item, string>(nameof(Item.Name), static item => item.Name);
+        TreeDataGridBindingRegistry.RegisterCollection<ObservableCollection<Item>, Item>();
+    }
+
     internal static async Task RunAsync(Uno.Controls.TreeDataGrid grid)
     {
         var unapplied = new Uno.Controls.TreeDataGrid();
@@ -72,10 +82,17 @@ internal static class SourceCompatibilityRuntimeChecks
             var holder = new SourceHolder { Current = second };
             grid.SetBinding(Uno.Controls.TreeDataGrid.SourceProperty,
                 new Binding { Source = holder, Path = new PropertyPath(nameof(holder.Current)), Mode = BindingMode.OneWay });
-            Check(ReferenceEquals(grid.Source, second), "A native Source binding did not activate its value.");
+            Check(ReferenceEquals(grid.Source, second) && ReferenceEquals(grid.Presentation?.Model, second),
+                "A native Source binding did not activate its value.");
             holder.Current = first;
             Check(ReferenceEquals(grid.Source, first), "Publishing Source removed the native binding.");
+            holder.Current = null;
+            Check(grid.Source is null && grid.Presentation is null, "A null native Source binding kept its old presentation.");
+            holder.Current = second;
+            Check(ReferenceEquals(grid.Source, second), "A native Source binding failed to recover after null.");
             grid.ClearValue(Uno.Controls.TreeDataGrid.SourceProperty);
+            holder.Current = first;
+            Check(grid.Source is null && grid.Presentation is null, "A retired Source binding reactivated the grid.");
 
             var item = new Item("generated one");
             grid.ItemsSource = new ObservableCollection<Item> { item };
@@ -151,7 +168,7 @@ internal static class SourceCompatibilityRuntimeChecks
             grid.Model = null;
             Check(first.Disposals == 0 && second.Disposals == 0 && newest.Disposals == 0 && invalid.Disposals == 0,
                 "The grid disposed a caller-owned Core source.");
-            Console.WriteLine("UNO_RUNTIME_SOURCE_COMPATIBILITY_PASSED: Source/Model switching, presentation dependency properties, selection aliases, native binding, generated-source publication/promotion/retirement, factory rollback, reentrant publication/layout, throwing cleanup, borrowed ownership");
+            Console.WriteLine("UNO_RUNTIME_SOURCE_COMPATIBILITY_PASSED: Source/Model switching, presentation dependency properties, selection aliases, native binding/null recovery/detachment, generated-source publication/promotion/retirement, factory rollback, reentrant publication/layout, throwing cleanup, borrowed ownership");
         }
         finally
         {
@@ -193,6 +210,10 @@ internal static class SourceCompatibilityRuntimeChecks
     }
     private sealed class SourceHolder : INotifyPropertyChanged
     {
+        // Native SetBinding resolves this property by name; no XAML references
+        // this private fixture. Preserve this one endpoint, not all sample types.
+        [DynamicDependency(nameof(Current))]
+        public SourceHolder() { }
         private ITreeDataGridSource? _current;
         public ITreeDataGridSource? Current { get => _current; set { _current = value; PropertyChanged?.Invoke(this, new(nameof(Current))); } }
         public event PropertyChangedEventHandler? PropertyChanged;
