@@ -1,0 +1,124 @@
+name: Uno viewport candidate
+
+# Temporary branch-local experiment. Creates reviewable unreferenced objects;
+# it never advances a branch, merges a PR or publishes packages.
+on:
+  push:
+    branches: [codex/uno-core-port]
+    paths: [.github/uno-viewport-candidate.py, .github/workflows/uno-viewport-candidate.yml]
+permissions:
+  contents: write
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      TreeDataGridUnoSampleTargetFrameworks: net10.0-desktop
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.201
+      - name: Install matched native environment
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb fonts-dejavu-core libfontconfig1 libx11-6 libxrandr2 libxi6 libxcursor1 libgl1
+      - name: Run independent baseline, regression and candidate gates
+        run: |
+          python3 -u - <<'PY'
+          import json, os, shutil, subprocess
+          from pathlib import Path
+          output = Path('artifacts/viewport-candidate')
+          output.mkdir(parents=True, exist_ok=True)
+          results = {}
+          def run(name, command, timeout=600):
+              print('START ' + name, flush=True)
+              with (output / (name + '.log')).open('w') as log:
+                  try:
+                      results[name] = subprocess.run(command, stdout=log, stderr=subprocess.STDOUT, timeout=timeout).returncode
+                  except subprocess.TimeoutExpired:
+                      results[name] = 124
+              print('RESULT ' + name + '=' + str(results[name]), flush=True)
+              lines = (output / (name + '.log')).read_text(errors='replace').splitlines()
+              print('\n'.join(lines[-25:]), flush=True)
+              (output / 'outcomes.json').write_text(json.dumps(results, indent=2))
+          parity = ['python3','-u','build/run-native-parity.py','--pairs','2','--columns','64','--iterations','25','--max-ratio','1.10']
+          run('before-performance', parity)
+          if Path('artifacts/native-parity').exists():
+              shutil.copytree('artifacts/native-parity', output / 'before-performance', dirs_exist_ok=True)
+          subprocess.run(['python3','.github/uno-viewport-candidate.py','tests'], check=True)
+          # Preserve the sequential fixture's caller-owned resize policy.
+          test = Path('samples/TreeDataGridUnoSample/ViewportMeasurementRuntimeChecks.cs')
+          text = test.read_text()
+          old = '        var previousRowHeight = grid.RowHeight;'
+          assert text.count(old) == 1
+          text = text.replace(old, old + '\n        var previousResize = grid.CanUserResizeColumns;')
+          old = '            grid.RowHeight = previousRowHeight;'
+          assert text.count(old) == 1
+          text = text.replace(old, old + '\n            grid.CanUserResizeColumns = previousResize;')
+          test.write_text(text)
+          project = 'samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj'
+          run('regression-build', ['dotnet','build',project,'-c','Release','-f','net10.0-desktop'])
+          if results['regression-build'] == 0:
+              run('before-regression', ['xvfb-run','-a','dotnet','run','--project',project,'--no-build','-c','Release','-f','net10.0-desktop','--','--smoke','--suite','viewport-measurement'], 120)
+          subprocess.run(['python3','.github/uno-viewport-candidate.py','product'], check=True)
+          subprocess.run(['git','diff','--check'], check=True)
+          run('candidate-validation', ['python3','-u','build/validate-uno-linux.py'])
+          run('after-performance', parity)
+          if Path('artifacts/native-parity').exists():
+              shutil.copytree('artifacts/native-parity', output / 'after-performance', dirs_exist_ok=True)
+          (output / 'outcomes.json').write_text(json.dumps(results, indent=2))
+          PY
+      - name: Record exact candidate without updating references
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const directory = 'artifacts/viewport-candidate/';
+            const paths = JSON.parse(fs.readFileSync(directory + 'files.json', 'utf8'));
+            const outcomes = JSON.parse(fs.readFileSync(directory + 'outcomes.json', 'utf8'));
+            const scope = {owner: context.repo.owner, repo: context.repo.repo};
+            const base = await github.rest.git.getCommit({...scope, commit_sha: context.sha});
+            const tree = [];
+            for (const path of paths) {
+              if (!path.startsWith('src/TreeDataGrid.Controls.Uno/') && !path.startsWith('samples/TreeDataGridUnoSample/')) throw new Error('Unexpected candidate path: ' + path);
+              const blob = await github.rest.git.createBlob({...scope, content: fs.readFileSync(path, 'utf8'), encoding: 'utf-8'});
+              tree.push({path, mode: '100644', type: 'blob', sha: blob.data.sha});
+            }
+            const result = await github.rest.git.createTree({...scope, base_tree: base.data.tree.sha, tree});
+            const candidate = await github.rest.git.createCommit({...scope, message: 'Avoid redundant viewport invalidation for stable realized column ranges', tree: result.data.sha, parents: [context.sha]});
+            const report = {base: context.sha, commit: candidate.data.sha, tree: result.data.sha, outcomes, files: tree};
+            fs.writeFileSync(directory + 'report.json', JSON.stringify(report, null, 2));
+            console.log('UNO_VIEWPORT_CANDIDATE=' + JSON.stringify(report));
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uno-viewport-candidate
+          path: artifacts
+          retention-days: 7
+          if-no-files-found: error
+      - name: Require actual functional success and baseline regression reproduction
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path('artifacts/viewport-candidate')
+          outcomes = json.loads((root / 'outcomes.json').read_text())
+          print(outcomes)
+          assert outcomes.get('regression-build') == 0, outcomes
+          assert outcomes.get('before-regression') not in (None, 0, 124), outcomes
+          assert 'Covered horizontal scrolling repeated' in (root / 'before-regression.log').read_text(), 'Baseline failed for an unrelated reason'
+          assert outcomes.get('candidate-validation') == 0, outcomes
+          # Paired budget failures remain failures in raw evidence and the
+          # permanent performance workflow; do not mislabel them as parity.
+          for name in ('before-performance', 'after-performance'):
+              data = json.loads((root / name / 'summary.json').read_text())
+              assert len(data.get('comparisons', [])) == 6, name
+          PY
