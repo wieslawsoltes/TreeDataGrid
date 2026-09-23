@@ -78,13 +78,24 @@ public class TreeDataGridRow : Control
         if (_unrealizing) throw new InvalidOperationException("Row unrealization is in progress.");
         if (RowIndex >= 0) throw new InvalidOperationException("Row is already realized.");
         if (_realizingStandalone) throw new InvalidOperationException("Row realization is already in progress.");
+        // Even Count is application code. Reserve realization before consulting
+        // it so a nested call cannot publish a row which this call overwrites.
+        _realizingStandalone = true;
+        try { RealizeCoreUnderGuard(presenter, presentation, elementFactory, selection, columns, rows, rowIndex); }
+        finally { _realizingStandalone = false; }
+    }
+
+    private void RealizeCoreUnderGuard(TreeDataGridRowsPresenter? presenter, TreeDataGridPresentation? presentation,
+        TreeDataGridElementFactory? elementFactory, ITreeDataGridSelectionInteraction? selection,
+        IColumns? columns, ITreeDataGridRows? rows, int rowIndex)
+    {
+        var revision = presenter?.Revision;
         if (rowIndex < 0 || (rows is not null && rowIndex >= rows.Count)) throw new ArgumentOutOfRangeException(nameof(rowIndex));
+        if (revision != presenter?.Revision) return;
         IsRecyclingVisibilityDeferred = false;
         var realization = ++RealizationVersion;
-        var revision = presenter?.Revision;
         Presenter = presenter;
         Presentation = presentation;
-        _realizingStandalone = true;
         RowIndex = rowIndex;
         try
         {
@@ -120,7 +131,6 @@ public class TreeDataGridRow : Control
             catch (Exception cleanup) { throw new AggregateException(error, cleanup); }
             throw;
         }
-        finally { _realizingStandalone = false; }
         bool Current() => realization == RealizationVersion && revision == presenter?.Revision &&
             ReferenceEquals(Presenter, presenter) && ReferenceEquals(Presentation, presentation);
     }

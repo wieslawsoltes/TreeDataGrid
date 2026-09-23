@@ -77,6 +77,9 @@ public partial class App
             case "row-lifetime":
                 RowLifetimeRuntimeChecks.Run();
                 return Task.CompletedTask;
+            case "row-construction":
+                RowConstructionRuntimeChecks.Run();
+                return Task.CompletedTask;
             case "generic-presenter": return ReviewRuntimeDiagnostics.RunGenericPresenterAsync(page);
             case "bring-into-view": return BringIntoViewRuntimeChecks.RunAsync(page);
             case "native-layout-recovery":
