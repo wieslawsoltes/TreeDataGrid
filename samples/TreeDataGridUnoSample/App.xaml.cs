@@ -63,6 +63,11 @@ public partial class App : Application
             await ElementFactoryRuntimeChecks.RunAsync(page.Grid);
             StandaloneCellRuntimeChecks.Run((DataTemplate)page.Resources["RuntimeCellTemplate"]);
             await StandaloneRowRuntimeChecks.RunAsync(page);
+            // Validate retirement/creation callbacks in real published consumers
+            // as well as fresh isolated native processes. Do not skip failures
+            // in the browser or replace these checks with build-only coverage.
+            RowLifetimeRuntimeChecks.Run();
+            RowConstructionRuntimeChecks.Run();
             await PublicExpanderRuntimeChecks.RunAsync(page);
             await GenericPresenterRuntimeChecks.RunAsync(page);
             await SpecializedCellRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"],
