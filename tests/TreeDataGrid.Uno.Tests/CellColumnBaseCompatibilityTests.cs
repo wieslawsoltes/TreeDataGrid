@@ -188,7 +188,7 @@ public sealed class CellColumnBaseCompatibilityTests
     private sealed class FactoryReachedException : Exception;
     private sealed class Probe : View.CellColumnBase<Item>
     {
-        public Probe(object? header = "Name", GridLength? width = null, View.CellColumnOptions? options = null)
+        public Probe(object? header = null, GridLength? width = null, View.CellColumnOptions? options = null)
             : base(header, width, options ?? new()) { }
         public TreeDataGridCore.Models.IRow<Item>? LastRow { get; private set; }
         public override UI.ICell CreateCell(TreeDataGridCore.Models.IRow<Item> row)
