@@ -22,7 +22,7 @@ public partial class TreeDataGrid
 {
     public static readonly DependencyProperty AutoDragDropRowsProperty = DependencyProperty.Register(
         nameof(AutoDragDropRows), typeof(bool), typeof(TreeDataGrid), new PropertyMetadata(false, AutoDragDropRowsChanged));
-    private const string RowDragFormat = "TreeDataGrid.Controls.Uno.RowDrag";
+    private static readonly string RowDragFormat = Models.TreeDataGrid.DragInfo.DataFormat;
     // Tokens cross the native data-package boundary; the registry must never
     // keep a source/model alive after the owning operation has gone away.
     private static readonly Dictionary<string, WeakReference<RowDragSession>> RowDrags = new();
@@ -344,18 +344,8 @@ public partial class TreeDataGrid
     }
     private readonly record struct RowDragCandidate(ITreeDataGridSource Source, IndexPath Index, object Model, Point Point, uint PointerId);
     private sealed class RowDragSession(ITreeDataGridSource source, IndexPath[] indexes, object[] models)
+        : Presentation.RowDragState(source, indexes, models)
     {
-        public string Token { get; } = Guid.NewGuid().ToString("N");
-        public ITreeDataGridSource? Source { get; private set; } = source;
-        public IReadOnlyList<IndexPath> Indexes { get; private set; } = Array.AsReadOnly(indexes);
-        public IReadOnlyList<object> Models { get; private set; } = Array.AsReadOnly(models);
-        public bool IsCurrent()
-        {
-            if (Source is null || Indexes.Count == 0) return false;
-            for (var i = 0; i < Indexes.Count; ++i)
-                if (!ReferenceEquals(GetModelAt(Source, Indexes[i]), Models[i])) return false;
-            return true;
-        }
-        public void Release() { Source = null; Indexes = Array.Empty<IndexPath>(); Models = Array.Empty<object>(); }
+        public bool IsCurrent() => base.IsCurrent(GetModelAt);
     }
 }
