@@ -1,121 +1,109 @@
 # Current Uno completion checklist
 
-Updated 2026-09-23 UTC. Tested checkpoint **3664bf02**.
-**Full API, all-feature and performance parity are not yet certified.**
+Updated 2026-09-23 UTC. Tested product **c6f3936c**.
+**Full API, all-feature and performance parity remain unproven.**
 
-[Latest implementation, measurements and evidence](uno-extent-drag-validation-2026-09-23.md) ·
-[Machine-readable completed checkpoint](uno-ci-checkpoint-3664bf02.json) ·
-[Previous checklist, preserved unchanged](archive/uno-current-work-before-3664bf02.md)
+[Implementation and executed evidence](uno-row-lifetime-formatting-2026-09-23.md) ·
+[Completed machine-readable checkpoint](uno-ci-checkpoint-c6f3936c.json) ·
+[Previous checklist, preserved unchanged](archive/uno-current-work-before-c6f3936c.md)
 
-## Architecture and ownership
+## Architecture and exact revision
 
 PR #26 remains draft on `codex/uno-core-port`, based on master `3ca47316`.
 The actual `TreeDataGrid.Core` assembly is shared with Avalonia. Sources, rows,
-hierarchy, selection and ownership are not copied into a second model layer.
-No merge, ready transition or public package release was performed.
+hierarchy and selection are not copied into a new view-owned model layer.
+No merge, public release, dependency change or relaxed acceptance gate occurred.
 
-The tested source is `3664bf02eef78355f662161bb2b0683ac6b3260c`, tree
-`7c81a692a19b2624dedd0b34e689ca5407bb7ec1`, validated as merge
-`c0222f3d08a253247c0b06f6fab56842975cc249`. Documentation-only commits do
-not change this implementation. This continuation started at `49b02656` and
-preserved its already-completed width, expander, binding and browser fixes.
+Tested product: `c6f3936c33f3d840f850f7908ee05844cc1e8f61`.
+Tested tree: `193ca45f48dae266ed43edc7c99037be54865cc0`.
+Tested merge: `79bb0a2685b3de87fad14b48508c7d32c0402192`.
+Documentation-only commits do not change the tested implementation. This work
+starts at `0116268d`; its preexisting column-layout correction is preserved.
 
-All changes authored in this continuation were pushed directly through GitHub.
-Local shell/Python execution was unavailable; unknown local working-tree files
-could not be enumerated or certified. CI ran the unchanged committed sources.
+All changes authored here are pushed directly through GitHub. Local shell/Python
+returned ClientError, so unknown local working-tree files could not be enumerated
+or certified. The executed CI checkouts remained unchanged.
 
-## Completed functional and platform checkpoint
+## Completed functional and platform validation
 
-[Functional run 35863339084](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/35863339084),
-job `107188668656`, artifact `10751253656`:
+[Run 35886616210](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/35886616210),
+job `107268673539`, artifact `10762967481`, is successful:
 
 | Gate | Result |
 | --- | --- |
-| Core / Uno / Avalonia / sample-state tests | 210 / 408 / 536 / 36 |
-| Total unit cases | **1,190 passed, zero failed/skipped** |
-| Registered native suites | **43/43 passed** |
-| Sequential native showcase and native recovery | Passed |
-| Both desktop samples | Zero warnings/errors |
+| Core / Uno / Avalonia / sample-state units | 210 / 450 / 536 / 36 |
+| Total unit cases | **1,232 passed, zero failed/skipped** |
+| Registered native suites | **45/45 passed** |
+| Sequential showcase | Passed, including 17 new row-lifecycle scenarios |
+| Native measurement recovery | Passed |
+| Both desktop sample builds | Zero warnings/errors |
 | Activity Monitor | Five sections and lifetime checks passed |
-| API metadata resolution / strict self-comparison | Fully resolved / zero self-differences |
+| Compiled metadata / strict self-comparison | Fully resolved / zero self-differences |
 
-[Platform run 35863339064](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/35863339064)
-is now **fully successful**. It passes the three desktop jobs, Linux native/package
-consumers, Windows App SDK sample/package consumers, browser builds and packages,
-trimmed consumer publication, and **execution of both published browser consumers**.
-The browser job is `107188956919`; its actual execution step completed successfully.
-The run's final success was verified after its 13:04:03 UTC update. This supersedes
-the initial pending-browser observation recorded while preparing the detailed report.
-Repository Build and the independent published trimmed-binding contract also pass.
+[Platform run 35886616151](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/35886616151)
+is fully successful. All three desktop jobs, Linux native/package consumers,
+Windows App SDK samples/package consumers, browser builds, package creation,
+trimmed publication and **execution of both published browser consumers** pass.
+Browser job `107268830807` completed its actual runtime step; the overall success
+was verified after the run's 16:21:40 UTC update. The sequential browser showcase
+includes both new row suites, rather than omitting their callback assertions.
+Repository Build and the independent published/executed trimmed-binding contract
+also pass. This is pinned Chromium coverage, not every browser or OS input stack.
 
-This executes the pinned Chromium consumers, not every browser, OS input stack,
-DPI configuration or accessibility provider. The new drag-info isolated suite is
-native data-package validation, not a successful physical-drag acceptance claim.
+## Implemented in this continuation
 
-## New implementation in this continuation
+- The pending row-lifetime correction is now applied and tested: invalid index
+  rejection, recursive teardown idempotence, guards against reindex/realization
+  during retirement and independent cleanup attempts after throwing callbacks.
+  A single error preserves identity/dispatch; multiple errors preserve order.
+- Realization is reserved before invoking a custom Count getter. Reentrant Count
+  cannot publish a row that the outer call overwrites. Validation/lookup failures
+  and cancellation release guards, and obsolete reindex work cannot overwrite a
+  callback's newer realization. Public native fixtures exercise all boundaries.
+- Both row suites run in isolated native processes and the sequential showcase
+  used by native and published browser consumers. They contain 11+6 scenarios.
+- Exact identity formatting for strings/null avoids unnecessary copies with
+  ordinary cultures. Derived CultureInfo custom formatters, non-string formatting,
+  escaping, alignment and exception contracts retain the runtime path.
+- Bound cells reuse immutable Value/Error notification arguments while preserving
+  notification order. Warmed configured formatting and observed retarget loops
+  allocate zero managed bytes in the new tests; no model/value/culture cache is added.
 
-- Hosted cell extents reuse the parent's already committed width, instead of
-  scanning every column for an estimate that would immediately be discarded.
-  Column identity/cardinality guards preserve the public standalone/custom
-  estimator fallback. A native 2/1,024-column regression verifies no estimator
-  calls on the hosted path, geometry updates, mismatch fallback and zero warmed
-  query allocation through public package-consumer APIs.
-- Public `Models.TreeDataGrid.DragInfo` exposes borrowed shared Core source/path
-  data and native DataPackageView lookup through the existing weak token registry.
-  Native data-transfer types are deliberately adapted, not declared ABI-identical
-  to Avalonia. A public snapshot never registers a live drag automatically.
-- Native drag validation now captures ownership before source lookups and rejects
-  retirement after each application-controlled indexer/child selector. Cancellation
-  cannot read cleared model lists or shorten a live-list loop into false success.
-  Nine unit cases cover reentrancy, identity, exceptions, disposal, collectability,
-  lazy snapshots and allocation-free warm validation.
-- The `drag-info` native suite verifies real native package handling for unrelated,
-  malformed, empty, unknown and copied tokens without inventing a live operation.
-  Physical drag/input and positive OS operation interaction remain separate gates.
-- A read-only same-runner investigation records before/after measurements and
-  separate managed traces. It establishes diagnostic evidence, not a parity pass.
+This continuation adds **20 unit cases and two native suites** over its 1,212-unit,
+43-suite starting branch. The starting commit's separate 22-case column fix is
+not counted again. CI caught and then verified the correction of an initial test
+factory namespace error; no diagnostics were suppressed.
 
-This adds **nine unit cases and two registered native suites**. The initial
-extent fixture's access-to-internals compile failure was corrected using public
-APIs; no friend access or relaxed checks were introduced.
+## Still-failing performance and API acceptance
 
-## Performance remains failed
+[Paired run 35886616240](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/35886616240),
+artifact `10763500194`, completed both hosts and all AB/BA processes but failed
+the unchanged **1.10 median time/allocation budget**. Latest synchronous time
+ratios are 9.62x horizontal, 3.11x vertical, 5.41x diagonal, 1.67x row replacement,
+1.23x column resize and 2.00x sorting. Sorting allocates less but remains slower.
+These measurements are not GPU completion/frame-rate data or controlled revision
+speedups across different hosted machines. No whole-grid improvement is claimed.
 
-The same-runner extent experiment is mixed: vertical and row-replacement medians
-improved modestly, while horizontal, diagonal, resize and sort medians increased.
-It does **not establish an overall grid speedup**. The redundant estimator work
-is demonstrably removed, but that is not substituted for timing acceptance.
+The focused allocation tests and full-grid timing gate measure different paths.
+The current fixed-text benchmark does not explicitly configure composite text
+options; do not treat its timings as the measured effect of the formatting helper.
 
-[Paired run 35863339075](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/35863339075),
-artifact `10751073587`, completes both builds and all AB/BA host measurements but
-fails the unchanged **1.10 median time/allocation budget**. Latest time ratios:
-6.41x horizontal, 2.70x vertical, 3.94x diagonal, 1.20x row replacement, 1.13x resize
-and 2.18x sort. See raw medians/p95, revision-order limitations and separate
-profiling scope in the detailed report. Profiled timings are not acceptance data.
-
-Profiles identify composition damage/drawing, resource finalization, row-reset
-visibility, measurement and text shaping as further investigation paths. They
-include waits and non-UI threads, so their percentages are not exclusive CPU cost.
-No global native rendering switches or horizontal visibility assertions changed.
-
-## Remaining API and cross-platform acceptance
-
-The compiled inventory has 1,748 baseline and 1,599 target declarations, 865 exact
-normalized matches and 883 missing-or-different baseline shapes, with zero
+The compiled inventory remains 1,748 baseline/1,599 target declarations, 865 exact
+normalized matches and 883 missing-or-different baseline entries, with zero
 unresolved types. These are not feature-completion percentages. Core relocations,
-native types, inherited contracts, generated exports and true omissions require
-explicit, tested equivalence decisions. `completeApiParityProven` remains false.
+native types, inheritance, generated exports and true omissions require explicit,
+tested compatibility decisions; completeApiParityProven remains false.
 
-Required before ready: complete genuine public-contract work; meet the unchanged
-native budget with broader variable-height/mixed-mutation workloads; extend real
-browser and physical keyboard/pointer, Unicode/IME, drag/drop, screen-reader and
-DPI coverage; and establish repeated multi-head lifecycle/render reliability.
+Remaining work: genuine API completion; measured native scrolling/rebinding/layout
+performance; broader variable-height/mixed-mutation benchmarks; positive physical
+input/drag, Unicode/IME, screen-reader and DPI verification; and repeated multi-head
+runtime reliability beyond the currently executed browser configuration.
 
 ```sh
 TreeDataGridUnoSampleTargetFrameworks=net10.0-desktop python3 build/validate-uno-linux.py
-python3 build/run-uno-native-suites.py --suite committed-extent --suite drag-info
+python3 build/run-uno-native-suites.py --suite row-lifetime --suite row-construction
 python3 build/run-native-parity.py --pairs 2 --columns 64 --iterations 25 --max-ratio 1.10
 ```
 
-No test assertion, trimming diagnostic or performance threshold was weakened.
-Later completed artifacts supersede this dated checkpoint; pending jobs are not passes.
+No assertion, trimming diagnostic or performance threshold was weakened. Later
+completed artifacts supersede this checkpoint; pending runs are not passes.
