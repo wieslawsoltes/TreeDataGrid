@@ -1,119 +1,163 @@
 # Current Uno completion checklist
 
-Updated 2026-09-23 UTC. Tested product **9a57ca17**.
-**Complete API, all-feature and performance parity remain unproven.**
+Updated 2026-09-23 UTC. Tested product **90d5df7a**.
+**Full API, all-feature behavior and performance parity are not established.**
 
-[Hierarchy and typed-column implementation](uno-hierarchy-columnlist-2026-09-23.md) ·
-[Exact execution checkpoint](uno-ci-checkpoint-9a57ca17.json) ·
-[Previous checklist preserved unchanged](archive/uno-current-work-before-9a57ca17.md)
+[Detailed audit and implementation report](uno-parity-review-2026-09-23.md) ·
+[Completed execution checkpoint](uno-ci-checkpoint-90d5df7a.json) ·
+[Previous checklist preserved unchanged](archive/uno-current-work-before-90d5df7a.md)
 
-## Architecture and revision
+## Architecture and exact evidence
 
 PR #26 remains draft on `codex/uno-core-port`, based on master `3ca47316`.
-The actual TreeDataGrid.Core assembly remains shared with Avalonia. Sources,
-rows, hierarchy and selection are not copied into a second model layer.
-No dependency upgrade, global rendering change, public release or merge occurred.
+Both frameworks consume the actual shared TreeDataGrid.Core assembly. This
+continuation does not modify Core or Avalonia product sources; it corrects native
+contracts and adds independent audit/differential/runtime validation.
 
-Starting commit: `0ccd3c9e4192a9febc109d3f8ba6adb633cdf69c`.
-Tested product: `9a57ca17a34d10f86234625709b6dba9065fc2b6`.
-Tested tree: `dc6d77269bd7644db5d16aaf679ec3a0a83df8dc`.
-Tested merge: `dbc30daef6d53914d1ddbf8152480dc319bda4ab`.
-Later documentation-only changes do not modify this tested implementation.
+Starting head: `6f12ba1df4291665013ce90dee708e2dde8298cd`.
+Tested product: `90d5df7a505af3dfadeb7883cbc346a6024cb597`.
+Product tree: `34cf203865564290d84472ff3bbca90f914b4c97`.
+Tested merge input: `c07b6d1b7f9bf1420bd9fd88af0ea0d20da773ff`.
+The compiled comparison uses both actual framework libraries and Core built from
+this tested checkout. Later documentation-only commits do not alter that product.
 
-## Completed functional execution
+## Completed functional and platform validation
 
-[Functional run 35911127297](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/35911127297),
-job `107351123303`, artifact `10773337333`, completed successfully against an
-unchanged checkout. All results below belong to this final product, not a union
-of earlier runs:
+[Functional run 35918998366](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/35918998366),
+job `107377806542`, artifact `10776212933`, completed with all fifteen required
+stages successful and the checkout unchanged:
 
-| Gate | Result |
-| --- | --- |
-| Core / Uno / Avalonia / sample-state units | 210 / 507 / 536 / 36 passed |
-| Total units | **1,289 passed; zero failed/skipped** |
-| Registered native suites | **50/50 passed** |
-| Sequential showcase / measurement recovery | Passed |
-| Both native sample builds | Zero warnings/errors |
-| Activity Monitor | Five sections and lifetime checks passed |
-| API dependency resolution / strict self-diff | Fully resolved / no self-differences |
+| Gate | Passed |
+| --- | ---: |
+| Shared Core | 210 |
+| Uno presentation | 527 |
+| Avalonia control | 536 |
+| Sample state | 36 |
+| Direct framework contract comparisons | 14 |
+| **Total .NET test cases** | **1,323; zero failed/skipped** |
+| Separate Python audit tests | 12 |
+| Registered native suites | **52/52** |
 
-[Platform run 35911127119](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/35911127119)
-separately runs Windows/Linux/macOS desktop jobs, Linux native package consumers,
-Windows App SDK consumers and published trimmed browser consumers. Its exact
-completion state is recorded in the machine-readable checkpoint; pending browser
-publication/execution is not counted as a pass. Pinned Chromium coverage is not
-universal browser, physical-input, screen-reader or DPI acceptance.
+Sequential showcase, measurement recovery, both native sample builds, and all five
+Activity Monitor sections/lifetime checks pass. Native sample builds have zero
+warnings/errors. The complete raw audit, source fingerprints, TRX files, native
+logs and stage outcomes are preserved in that artifact.
 
-## New implementation
+[Platform run 35918998361](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/35918998361)
+is **fully successful**, verified after its `2026-09-23T21:03:54Z` final update.
+Windows/Linux/macOS desktop jobs, Linux native/package consumers, Windows App SDK
+samples/package consumers, browser builds, packaging, trimmed publication and
+**actual execution of both published browser consumers** all pass. Browser job
+`107377806297` completed its execution step successfully. Documentation was not
+pushed until this product run finished, avoiding cancellation of that acceptance.
+Repository Build and the separately published/executed trimmed-binding contract
+also pass. Browser scope is pinned Chromium, not every browser, OS input stack,
+screen reader or DPI configuration.
 
-Expander subscriptions now retain the original observed model and retire state
-before callbacks. Every owned cleanup stage is attempted independently, including
-inner-cell disposal after failed event removal. Initialization and child-source
-transactions finish application event accessors before physically unsubscribing;
-late adds cannot silently reattach disposed values. Revision checks reject older
-child sources after nested updates or disposal, while explicit HasChildren stays
-lazy. Permission and visibility getters recheck retirement after application code.
-Factory/configuration failures preserve both primary and cleanup errors and release
-the inner exactly once. Arbitrary external accessors that never actually remove
-a handler still report a failure; they are not falsely guaranteed to unsubscribe.
+## Audit findings and fixes
 
-HasChildren descriptors are now shared per hierarchical column through weak keys,
-removing repeated per-cell descriptor creation and Core getter compilation. Each
-row still owns its own binding and observers. Cached notification arguments avoid
-per-event allocation. Focused warm descriptor, notification and permission-query
-loops pass zero-allocation tests; whole-grid timing is a separate failed gate.
+- Exhaustive accounting covers **all 1,748 compiled baseline declaration shapes**.
+  Every raw difference and extra target declaration is retained. Same-name Core
+  candidates are review leads, never automatically accepted equivalences. Twelve
+  accounting tests fail on lost/invented/duplicate differences or inconsistent
+  inputs. Tracked-source SHA-256/line inventories and explicit boundary scans are
+  included; these are not a line-by-line semantic verification claim.
+- Native text facade cells now consume mutable format, culture, alignment,
+  wrapping, trimming, search and editing metadata. Immutable render snapshots are
+  reused while options are unchanged. Current culture also reaches actual native
+  editor conversion inside the existing binding lifetime transaction. Options are
+  read on normal refresh/query, not through an invented automatic-change event.
+- Text-column search now matches the reference raw ValueSelector result rather
+  than display prefixes/numeric formats. Explicit search selectors still win;
+  nulls remain null and display formatter callbacks are not invoked for raw search.
+  The old contradictory test was corrected against Avalonia and keeps its exact
+  display-format assertion independently; no test was removed or skipped.
+- Missing protected custom presentation row/cell-selection hooks are implemented
+  and connected to the real native grid event. Lazy snapshots, original Core model
+  identity, observer removal, retirement and nested updates are tested. Built-in
+  Core events are not duplicated, and cell deltas do not invent row selections.
+- Row automation exposes the reference ShowsMenu=false contract, tested for
+  realized, expanded and retired rows alongside existing native provider checks.
 
-Public `Uno.Controls.Models.TreeDataGrid.ColumnList<TModel>` reuses native
-`ColumnListBase<ICellColumn<TModel>>`. Built-in/custom columns, precise collection
-notifications, actual Core row identity, Pixel/Auto/Star sizing and caller ownership
-are covered. The change from Avalonia's combined IColumn<T> to ICellColumn<T> is
-an explicit shared-Core interface mapping, not a literal ABI-equivalence claim.
+New coverage: **20 Uno unit cases, 14 direct two-framework cases, 12 Python audit
+cases and two native suites**. The native suites also run in published sequential
+consumers. Direct comparison executes actual Avalonia/Uno libraries over the same
+Core rows, including defaults, null/Unicode/formatted text, three cultures, mutable
+styles, binding/writeback/reuse and Pixel/Auto/Star geometry. It does not pretend
+that fourteen cases certify every UI behavior.
 
-This continuation adds **30 unit cases and one native suite with seven public
-consumer scenarios**. The latter also runs in the sequential consumer path.
-Two intermediate compile mistakes were corrected; no assertions or diagnostics
-were relaxed to turn those failures into passes. See the implementation report.
+Focused 4,096-iteration warmed allocation checks pass for unchanged option/text
+queries, raw string search and unobserved cell hooks. These are not a whole-grid
+performance result. Initial fixture type/internal-access compilation mistakes
+were corrected with public APIs; no new friend access or reflection bypass exists.
 
-## Still-open API and performance acceptance
+## Complete declaration accounting, not a feature-completion percentage
 
-The compiled inventory is 1,748 baseline / 1,601 target declarations, 866 exact
-normalized matches and 882 missing-or-different baseline entries; no dependencies
-are unresolved. These are not feature-completion percentages. Core relocations,
-native signatures, inherited members, generated exports and remaining actual
-omissions still require explicit compatibility decisions and compilation tests.
+| Classification | Baseline declaration shapes |
+| --- | ---: |
+| Exact normalized declared shapes | 869 |
+| Shared-Core candidate review | 364 |
+| Changed declarations at the same identity | 206 |
+| Members not declared on matched types | 112 |
+| Overload/parameter identity differences | 133 |
+| Missing exported owner review | 56 |
+| Framework-generated export review | 8 |
+| **Total accounted** | **1,748** |
 
-[Paired run 35911127341](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/35911127341),
-artifact `10772732869`, built both hosts and completed all AB/BA processes with
-valid frames, but failed the unchanged **1.10 median timing/allocation budget**.
+There are 1,609 target declarations and **879 raw missing-or-different baseline
+entries**, with 740 additional-or-different target entries and no unresolved
+metadata. Strict self-comparison passes. Candidate classification does not reduce
+that raw count. Inherited external-framework members and custom attributes still
+need fuller comparison; matching shape alone does not prove behavior.
+
+Eight remaining owner families have no same-name Core candidate: the expression
+chain visitor, lightweight observable, typed binding expression, both typed binding
+classes, value-column base, column-selection interface and column-selection model.
+These include Avalonia-specific extension APIs requiring explicit native/Core
+compatibility decisions or implementation. Other differences include legitimate
+Core relocations, native signatures, inherited APIs and generated exports. The
+complete review names each declaration and preserves its original candidates.
+
+## Performance acceptance still fails
+
+[Paired run 35918998528](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/35918998528),
+job `107377807746`, artifact `10775689408`, completed both builds and all four
+AB/BA host processes with valid frames. The unchanged **1.10 median time/allocation
+ratio budget remains failed**:
 
 | Workload | Avalonia median ms | Uno median ms | Uno/Avalonia |
 | --- | ---: | ---: | ---: |
-| Horizontal scroll | 0.47460 | 2.58465 | 5.446 |
-| Vertical scroll | 1.03645 | 2.68325 | 2.589 |
-| Distant diagonal scroll | 2.52325 | 10.13375 | 4.016 |
-| Replace visible row | 1.99035 | 3.39730 | 1.707 |
-| Resize visible column | 3.68910 | 4.53460 | 1.229 |
-| Sort | 40.89315 | 56.89695 | 1.391 |
+| Horizontal scroll | 0.48505 | 2.39870 | 4.945 |
+| Vertical scroll | 1.02345 | 2.63000 | 2.570 |
+| Distant diagonal scroll | 2.48950 | 11.12760 | 4.470 |
+| Replace visible row | 2.51660 | 3.73135 | 1.483 |
+| Resize visible column | 4.53075 | 6.28195 | 1.387 |
+| Sort | 38.51140 | 71.31240 | 1.852 |
 
-Raw p95/allocations/settlement data remain in the artifact. These are same-runner
-framework measurements, not controlled revision comparisons against earlier jobs.
-They measure synchronous UI work and settlement, not GPU completion or frame rate.
-The standard flat-grid workload does not directly measure HasChildren descriptor
-construction. No overall-grid speedup or performance parity is claimed.
+These are synchronous UI and verified layout-settlement measurements, not GPU
+completion or frame rate. Sorting allocates less but remains slower. Comparing
+separate hosted jobs is not a controlled revision experiment. No whole-grid
+speedup is claimed for this audit continuation.
 
-Required before ready: genuine API completion, unchanged native timing/allocation
-budgets, broader hierarchy/variable-height/mixed-mutation benchmarks, repeated
-multi-head runtime validation, positive physical keyboard/pointer/drag, Unicode/IME,
-screen-reader and DPI coverage. The current passing fixtures do not close these.
+## Required before ready
 
-All authored implementation changes are pushed. Local execution returned
-ClientError, so unknown unrelated local files could not be inspected or certified
-as pushed. No test assertion, Core ownership rule or performance threshold changed.
+Complete genuine public-contract implementations and tested Core/native mappings;
+finish inherited/attribute and broader lifecycle review; meet unchanged native
+performance budgets with hierarchy/variable-height/mixed-mutation workloads;
+extend positive hardware keyboard/pointer/drag, Unicode/IME, screen-reader, DPI
+and repeated multi-head runtime acceptance. Passing current fixtures is not closure
+of these remaining gates. No release, merge or ready transition was performed.
 
 ```sh
-dotnet test tests/TreeDataGrid.Uno.Tests/TreeDataGrid.Uno.Tests.csproj \
-  -c Release -p:TreeDataGridUnoTargetFrameworks=net10.0
 TreeDataGridUnoSampleTargetFrameworks=net10.0-desktop python3 build/validate-uno-linux.py
-python3 build/run-uno-native-suites.py --suite hierarchy-ownership
+python3 build/audit-uno-parity.py
+python3 build/run-uno-native-suites.py --suite mutable-text-options --suite presentation-selection-hooks
+dotnet test tests/TreeDataGrid.Parity.Tests/TreeDataGrid.Parity.Tests.csproj \
+  -c Release -p:TreeDataGridUnoTargetFrameworks=net10.0
 python3 build/run-native-parity.py --pairs 2 --columns 64 --iterations 25 --max-ratio 1.10
 ```
+
+All authored implementation is pushed. Local execution returned ClientError;
+unknown unrelated local working-tree files could not be inspected. Performance
+thresholds, trimming diagnostics, global rendering settings and Core ownership
+rules remain unchanged. Later completed evidence supersedes this dated report.
