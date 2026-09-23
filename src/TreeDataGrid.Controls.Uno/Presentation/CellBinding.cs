@@ -15,8 +15,13 @@ namespace Uno.Controls.Presentation;
 internal sealed partial class CellBinding<TModel, TValue> : IDisposable where TModel : class
 {
     private static readonly ConditionalWeakTable<Expression<Func<TModel, TValue>>, Accessors> s_accessors = new();
+    private static readonly Func<TModel, object?>[] s_rootAccessors = [static model => model];
     private readonly ValueColumn<TModel, TValue> _column;
     private readonly Func<TModel, object?>[] _accessors;
+    // Keep the always-present root inline. Flat cells need neither a per-cell
+    // singleton owner array nor a per-cell singleton delegate-accessor array.
+    // Only additional nested owners require storage; no model enters a static cache.
+    private object? _rootOwner;
     private readonly object?[] _owners;
     private readonly PropertyChangedEventHandler _propertyChanged;
     private readonly NotifyCollectionChangedEventHandler _collectionChanged;
@@ -33,8 +38,8 @@ internal sealed partial class CellBinding<TModel, TValue> : IDisposable where TM
         _changed = changed ?? throw new ArgumentNullException(nameof(changed));
         _accessors = column.GetterExpression is { } expression
             ? s_accessors.GetValue(expression, static x => Accessors.Create(x)).Owners
-            : [static model => model];
-        _owners = new object?[_accessors.Length];
+            : s_rootAccessors;
+        _owners = _accessors.Length == 1 ? Array.Empty<object?>() : new object?[_accessors.Length - 1];
         _propertyChanged = OnPropertyChanged;
         _collectionChanged = OnCollectionChanged;
     }
@@ -128,7 +133,7 @@ internal sealed partial class CellBinding<TModel, TValue> : IDisposable where TM
                 var revision = _revision;
                 if (_disposed || _model is not { } model)
                 {
-                    for (var i = 0; i < _owners.Length; ++i)
+                    for (var i = 0; i < _accessors.Length; ++i)
                         SetOwner(i, null);
                     continue;
                 }
@@ -180,16 +185,18 @@ internal sealed partial class CellBinding<TModel, TValue> : IDisposable where TM
 
     private void SetOwner(int index, object? owner)
     {
-        if (ReferenceEquals(_owners[index], owner)) return;
-        var previous = _owners[index];
-        _owners[index] = null;
+        var previous = index == 0 ? _rootOwner : _owners[index - 1];
+        if (ReferenceEquals(previous, owner)) return;
+        if (index == 0) _rootOwner = null;
+        else _owners[index - 1] = null;
         if (previous is not null && !Contains(previous))
         {
             if (previous is INotifyPropertyChanged property) property.PropertyChanged -= _propertyChanged;
             if (previous is INotifyCollectionChanged collection) collection.CollectionChanged -= _collectionChanged;
         }
         var subscribe = owner is not null && !Contains(owner);
-        _owners[index] = owner;
+        if (index == 0) _rootOwner = owner;
+        else _owners[index - 1] = owner;
         if (subscribe)
         {
             if (owner is INotifyPropertyChanged property) property.PropertyChanged += _propertyChanged;
@@ -199,6 +206,7 @@ internal sealed partial class CellBinding<TModel, TValue> : IDisposable where TM
 
     private bool Contains(object owner)
     {
+        if (ReferenceEquals(_rootOwner, owner)) return true;
         foreach (var value in _owners)
             if (ReferenceEquals(value, owner)) return true;
         return false;
@@ -207,14 +215,14 @@ internal sealed partial class CellBinding<TModel, TValue> : IDisposable where TM
     private sealed class Accessors : ExpressionVisitor
     {
         private readonly ParameterExpression _parameter;
-        private readonly List<Func<TModel, object?>> _owners = [static model => model];
+        private readonly List<Func<TModel, object?>> _owners = [s_rootAccessors[0]];
         private Accessors(ParameterExpression parameter) => _parameter = parameter;
         public Func<TModel, object?>[] Owners { get; private set; } = [];
         public static Accessors Create(Expression<Func<TModel, TValue>> expression)
         {
             var result = new Accessors(expression.Parameters[0]);
             result.Visit(expression.Body);
-            result.Owners = result._owners.ToArray();
+            result.Owners = result._owners.Count == 1 ? s_rootAccessors : result._owners.ToArray();
             return result;
         }
         protected override Expression VisitMember(MemberExpression node)
