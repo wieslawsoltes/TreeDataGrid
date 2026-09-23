@@ -68,6 +68,9 @@ public partial class App
             case "binding-write-contract":
                 BindingWriteContractRuntimeChecks.Run();
                 return Task.CompletedTask;
+            case "hierarchy-ownership":
+                HierarchyOwnershipRuntimeChecks.Run();
+                return Task.CompletedTask;
             case "presentation-options": return PresentationOptionsRuntimeChecks.RunAsync(page.Grid);
             case "custom-column-base": return CellColumnBaseRuntimeChecks.RunAsync(page.Grid);
             case "column-compatibility": return ColumnCompatibilityRuntimeChecks.RunAsync(page.Grid, Template("RuntimeCellTemplate"), Template("RuntimeEditingTemplate"));
