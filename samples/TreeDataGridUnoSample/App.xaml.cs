@@ -44,6 +44,8 @@ public partial class App : Application
             await ViewportMeasurementRuntimeChecks.RunAsync(page.Grid);
             await SelectionRuntimeChecks.RunAsync(page.Grid, (Microsoft.UI.Xaml.Controls.ControlTemplate)page.Resources["AlternateGridTemplate"]);
             await SelectionInteractionRuntimeChecks.RunAsync(page);
+            await ParityContractRuntimeChecks.RunSelectionHooksAsync(page);
+            await ParityContractRuntimeChecks.RunTextOptionsAsync(page);
             await FocusRuntimeChecks.RunAsync(page);
             await EditingRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"], (DataTemplate)page.Resources["RuntimeEditingTemplate"]);
             // Exercise the same ownership boundaries in the sequential native
