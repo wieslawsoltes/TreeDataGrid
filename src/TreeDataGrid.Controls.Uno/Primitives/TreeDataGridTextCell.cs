@@ -18,6 +18,7 @@ public class TreeDataGridTextCell : TreeDataGridCell
         nameof(TextTrimming), typeof(TextTrimming), typeof(TreeDataGridTextCell), new PropertyMetadata(TextTrimming.CharacterEllipsis, AppearanceChanged));
     private int _synchronizing;
     private int _valueRefreshVersion;
+    private int _valueWriteVersion;
     public TreeDataGridTextCell() => DefaultStyleKey = typeof(TreeDataGridTextCell);
     public new string? Value { get => (string?)GetValue(ValueProperty); set => SetValue(ValueProperty, value); }
     public TextAlignment TextAlignment { get => (TextAlignment)GetValue(TextAlignmentProperty); set => SetValue(TextAlignmentProperty, value); }
@@ -87,28 +88,43 @@ public class TreeDataGridTextCell : TreeDataGridCell
     private static void ValueChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
     {
         var cell = (TreeDataGridTextCell)sender;
-        if (cell._synchronizing != 0) return;
-        if (cell.IsEditing)
+        if (cell._synchronizing != 0 || cell.IsUnrealizing) return;
+        var realization = cell.RealizationVersion;
+        var write = unchecked(++cell._valueWriteVersion);
+        var model = cell.ViewModel;
+        var editing = cell.IsEditing;
+        if (!Current()) return;
+        if (editing)
         {
             // Also support changing Value programmatically with the lazy native
             // editor, whose Text is not necessarily template-bound to Value.
-            if (cell.UsesTextEditor && cell.EditingText != (string?)e.NewValue)
-                cell.EditingText = (string?)e.NewValue ?? string.Empty;
+            if (cell.UsesTextEditor)
+            {
+                var text = (string?)e.NewValue ?? string.Empty;
+                var previous = cell.EditingText;
+                if (Current() && previous != text) cell.EditingText = text;
+            }
             return;
         }
-        if (cell.ViewModel is { } model)
+        if (model is not null)
         {
             try
             {
-                if (model.CanEdit)
-                {
-                    if (model is ITextCell text) text.Text = (string?)e.NewValue;
-                    else model.Write(e.NewValue);
-                }
+                var canEdit = model.CanEdit;
+                if (!Current() || !canEdit) return;
+                // A permission getter can start an edit without replacing the
+                // model. Do not bypass that newly opened edit transaction.
+                var nowEditing = cell.IsEditing;
+                if (!Current() || nowEditing) return;
+                if (model is ITextCell text) text.Text = (string?)e.NewValue;
+                else model.Write(e.NewValue);
             }
-            finally { cell.UpdateValue(); }
+            finally { if (Current()) cell.UpdateValue(); }
         }
         else cell.RefreshCellPresentation();
+
+        bool Current() => !cell.IsUnrealizing && realization == cell.RealizationVersion &&
+            write == cell._valueWriteVersion && ReferenceEquals(cell.ViewModel, model);
     }
     private static void AppearanceChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
     {

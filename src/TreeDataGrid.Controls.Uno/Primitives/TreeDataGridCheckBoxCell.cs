@@ -16,6 +16,8 @@ public class TreeDataGridCheckBoxCell : TreeDataGridCell
     public static readonly DependencyProperty IsThreeStateProperty = DependencyProperty.Register(
         nameof(IsThreeState), typeof(bool), typeof(TreeDataGridCheckBoxCell), new PropertyMetadata(false, AppearanceChanged));
     private int _synchronizing;
+    private int _valueRefreshVersion;
+    private int _valueWriteVersion;
     public TreeDataGridCheckBoxCell() : base(CellKind.CheckBox) => DefaultStyleKey = typeof(TreeDataGridCheckBoxCell);
     public new bool? Value { get => (bool?)GetValue(ValueProperty); set => SetValue(ValueProperty, value); }
     public bool IsReadOnly { get => (bool)GetValue(IsReadOnlyProperty); set => SetValue(IsReadOnlyProperty, value); }
@@ -28,10 +30,12 @@ public class TreeDataGridCheckBoxCell : TreeDataGridCell
     public override void Realize(CellColumn column, CellValue value, IRow row, int columnIndex, int rowIndex,
         DataTemplate? template, DataTemplate? editingTemplate = null)
     {
+        if (IsUnrealizing) throw new System.InvalidOperationException("Cell unrealization is in progress.");
         ++_synchronizing;
         try
         {
-            if (IsReadOnly == value.CanWrite) IsReadOnly = !value.CanWrite;
+            var canWrite = value.CanWrite;
+            if (IsReadOnly == canWrite) IsReadOnly = !canWrite;
             var threeState = value.IsThreeState ?? column.IsThreeState;
             if (IsThreeState != threeState) IsThreeState = threeState;
         }
@@ -40,13 +44,19 @@ public class TreeDataGridCheckBoxCell : TreeDataGridCell
     }
     protected override void UpdateValue()
     {
+        if (IsUnrealizing) return;
+        var realization = RealizationVersion;
+        var refresh = unchecked(++_valueRefreshVersion);
         var model = ViewModel;
         var value = model?.Value as bool?;
-        if (!ReferenceEquals(ViewModel, model)) return;
+        if (!Current()) return;
         ++_synchronizing;
         try { if (Value != value) Value = value; }
         finally { --_synchronizing; }
-        if (ReferenceEquals(ViewModel, model)) base.UpdateValue();
+        if (Current()) base.UpdateValue();
+
+        bool Current() => !IsUnrealizing && realization == RealizationVersion &&
+            refresh == _valueRefreshVersion && ReferenceEquals(ViewModel, model);
     }
     protected override void ClearContent()
     {
@@ -58,13 +68,25 @@ public class TreeDataGridCheckBoxCell : TreeDataGridCell
     private static void ValueChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
     {
         var cell = (TreeDataGridCheckBoxCell)sender;
-        if (cell._synchronizing != 0) return;
-        if (cell.ViewModel is { } model)
+        if (cell._synchronizing != 0 || cell.IsUnrealizing) return;
+        var realization = cell.RealizationVersion;
+        var write = unchecked(++cell._valueWriteVersion);
+        var model = cell.ViewModel;
+        if (model is not null)
         {
-            try { if (!cell.IsReadOnly && model.CanWrite) model.Write(e.NewValue); }
-            finally { cell.UpdateValue(); }
+            try
+            {
+                var canWrite = !cell.IsReadOnly && model.CanWrite;
+                // CanWrite can replace this realization or assign a newer Value
+                // to the same one. Neither obsolete permission may commit a write.
+                if (canWrite && Current() && !cell.IsReadOnly) model.Write(e.NewValue);
+            }
+            finally { if (Current()) cell.UpdateValue(); }
         }
         else cell.RefreshCellPresentation();
+
+        bool Current() => !cell.IsUnrealizing && realization == cell.RealizationVersion &&
+            write == cell._valueWriteVersion && ReferenceEquals(cell.ViewModel, model);
     }
     private static void AppearanceChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
     {

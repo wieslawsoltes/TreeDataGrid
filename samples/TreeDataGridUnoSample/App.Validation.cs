@@ -62,6 +62,9 @@ public partial class App
                 CellRetirementRuntimeChecks.Run();
                 return Task.CompletedTask;
             case "cell-rendering": return CellRenderingRuntimeChecks.RunAsync(page);
+            case "cell-scalar-reentrancy":
+                CellScalarReentrancyRuntimeChecks.Run();
+                return Task.CompletedTask;
             case "presentation-options": return PresentationOptionsRuntimeChecks.RunAsync(page.Grid);
             case "custom-column-base": return CellColumnBaseRuntimeChecks.RunAsync(page.Grid);
             case "column-compatibility": return ColumnCompatibilityRuntimeChecks.RunAsync(page.Grid, Template("RuntimeCellTemplate"), Template("RuntimeEditingTemplate"));
