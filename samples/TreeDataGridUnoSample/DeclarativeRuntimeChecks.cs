@@ -17,6 +17,29 @@ namespace TreeDataGridUnoSample;
 /// <summary>Native gates for declarative XAML, ownership and nested binding lifetimes.</summary>
 internal static class DeclarativeRuntimeChecks
 {
+    static DeclarativeRuntimeChecks()
+    {
+        // These private, programmatically-bound fixtures are not part of XAML's
+        // generated metadata. Keep the same explicit endpoint contract as a
+        // trimmed application rather than depending on reflection-only fallback.
+        TreeDataGridBindingRegistry.RegisterProperty<Node, State>(nameof(Node.State), static model => model.State,
+            static (model, value) => model.State = value);
+        TreeDataGridBindingRegistry.RegisterProperty<State, string>(nameof(State.Name), static model => model.Name,
+            static (model, value) => model.Name = value);
+        TreeDataGridBindingRegistry.RegisterProperty<State, bool>(nameof(State.Expanded), static model => model.Expanded,
+            static (model, value) => model.Expanded = value);
+        TreeDataGridBindingRegistry.RegisterProperty<State, bool?>(nameof(State.Checked), static model => model.Checked,
+            static (model, value) => model.Checked = value);
+        TreeDataGridBindingRegistry.RegisterProperty<State, decimal>(nameof(State.Amount), static model => model.Amount,
+            static (model, value) => model.Amount = value);
+        TreeDataGridBindingRegistry.RegisterProperty<State, ObservableCollection<Node>>(nameof(State.Children), static model => model.Children,
+            static (model, value) => model.Children = value);
+        TreeDataGridBindingRegistry.RegisterProperty<State, List<int>>(nameof(State.Numbers), static model => model.Numbers);
+        TreeDataGridBindingRegistry.RegisterIndexer<List<int>, int, int>(static (model, key) => model[key],
+            static (model, key, value) => model[key] = value);
+        TreeDataGridBindingRegistry.RegisterCollection<ObservableCollection<Node>, Node>();
+    }
+
     internal static async Task RunAsync(MainPage page)
     {
         var grid = page.Grid;
@@ -59,8 +82,10 @@ internal static class DeclarativeRuntimeChecks
             Check(CellText(1) == "Nested update", "Nested INPC did not refresh the native cell binding.");
             Check(grid.BeginEdit(0, 1), "Two-way declarative text did not enter editing.");
             grid.EditingCell!.EditingText = "invalid";
-            Check(!grid.CommitEdit() && grid.EditingCell!.HasValidationError, "A declarative setter failure did not preserve the edit for retry.");
-            grid.EditingCell.EditingText = "Edited";
+            Check(!grid.CommitEdit() && grid.EditingCell!.HasValidationError &&
+                grid.EditingCell.EditError is ArgumentException { Message: "Rejected name." },
+                $"The declarative setter's actual rejection was not preserved: {grid.EditingCell?.EditError}.");
+            grid.EditingCell!.EditingText = "Edited";
             Check(grid.CommitEdit() && root.State.Name == "Edited", "Declarative text retry did not write back.");
             var check = (TreeDataGridCell)grid.TryGetCell(2, 0)!;
             Check(check.Column!.IsThreeState, "Nullable boolean type inference was lost through a nested path.");

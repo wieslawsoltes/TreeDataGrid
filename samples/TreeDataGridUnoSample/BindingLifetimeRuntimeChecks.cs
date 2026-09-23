@@ -13,6 +13,17 @@ namespace TreeDataGridUnoSample;
 /// <summary>Native binding callback/retirement checks, deferred until implementation is complete.</summary>
 internal static class BindingLifetimeRuntimeChecks
 {
+    static BindingLifetimeRuntimeChecks()
+    {
+        TreeDataGridBindingRegistry.RegisterProperty<Item, string>(nameof(Item.Name), static model => model.Name,
+            static (model, value) => model.Name = value);
+        TreeDataGridBindingRegistry.RegisterProperty<Owner, Item>(nameof(Owner.Child), static model => model.Child,
+            static (model, value) => model.Child = value);
+        TreeDataGridBindingRegistry.RegisterProperty<PlainItem, string>(nameof(PlainItem.Name), static model => model.Name,
+            static (model, value) => model.Name = value);
+        TreeDataGridBindingRegistry.RegisterCollection<ObservableCollection<Item>, Item>();
+    }
+
     public static async Task RunAsync(TreeDataGrid grid, DataTemplate template)
     {
         grid.Model = null;
