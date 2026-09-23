@@ -25,8 +25,12 @@ internal class BoundCell<TModel, TValue> : CellValue where TModel : class
     public override Exception? Error => _binding.Error;
     public override bool CanEdit => Kind != CellKind.CheckBox && _binding.CanWrite;
     public override bool CanWrite => _binding.CanWrite;
+    // Native TextColumn options are mutable. Only the internal facade cell
+    // overrides this scalar read; conversion still runs inside CellBinding's
+    // lifetime/write transaction, never before its retirement checks.
+    protected virtual CultureInfo? ConversionCulture => _culture;
     internal bool UsesColumn(ValueColumn<TModel, TValue> column) => _binding.UsesColumn(column);
-    public override void Write(object? value) => _binding.WriteConverted(value, _culture ?? CultureInfo.CurrentCulture);
+    public override void Write(object? value) => _binding.WriteConverted(value, ConversionCulture ?? CultureInfo.CurrentCulture);
     public override void Dispose() => _binding.Dispose();
     internal override bool TryRetarget(IRow row)
     {
