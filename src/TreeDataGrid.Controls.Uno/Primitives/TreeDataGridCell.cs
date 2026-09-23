@@ -250,8 +250,11 @@ public partial class TreeDataGridCell : Control
         var realization = RealizationVersion;
         Presenter?.InvalidateRowHeight(RowIndex);
         UpdateValue();
+        if (_unrealizing || realization != RealizationVersion || !ReferenceEquals(sender, Model)) return;
         NotifyAutomationValueChanged();
+        if (_unrealizing || realization != RealizationVersion) return;
         OwningCell?.NotifyAutomationValueChanged();
+        if (_unrealizing || realization != RealizationVersion) return;
         Presenter?.Owner?.TryGetRow(RowIndex)?.NotifyAutomationStateChanged();
         if (realization == RealizationVersion && ReferenceEquals(sender, Model) &&
             (string.IsNullOrEmpty(e.PropertyName) || e.PropertyName == nameof(CellValue.Value)))
@@ -286,36 +289,14 @@ public partial class TreeDataGridCell : Control
         }
     }
     protected virtual void UpdateValue() => RenderValue();
-    private void RenderValue()
-    {
-        _updating = true;
-        try
-        {
-            if (!UsesInnerCellControl && _text is not null && _kind == CellKind.Text) _text.Text = DisplayText ?? string.Empty;
-            if (!UsesInnerCellControl && _check is not null && _kind == CellKind.CheckBox)
-            {
-                _check.IsChecked = DisplayCheckBoxValue;
-                _check.IsEnabled = !DisplayCheckBoxIsReadOnly;
-            }
-            if (!UsesInnerCellControl && _content is not null && _kind == CellKind.Template) _content.Content = _value?.Value;
-            if (_expander is not null && _expanderValue is { } expanded)
-            {
-                // The button's retained template owns the glyph. No replacement
-                // text/content child is created when expansion changes.
-                if (_expander is TreeDataGridExpanderButton button) button.IsExpanded = expanded.IsExpanded;
-                else VisualStateManager.GoToState(_expander, expanded.IsExpanded ? "Expanded" : "Collapsed", false);
-                _expander.Opacity = expanded.ShowExpander ? 1 : 0;
-                _expander.IsHitTestVisible = expanded.ShowExpander;
-            }
-        }
-        finally { _updating = false; }
-    }
+    private void RenderValue() => RenderCurrentValue();
     private void OnCheckChanged(object sender, RoutedEventArgs e)
     {
-        if (!_updating && !DisplayCheckBoxIsReadOnly && _check is not null) OnCheckBoxValueChanged(_check.IsChecked);
+        if (_updating || _unrealizing || _check is not { } check) return;
+        var realization = RealizationVersion;
+        var readOnly = DisplayCheckBoxIsReadOnly;
+        if (!readOnly && !_updating && !_unrealizing && realization == RealizationVersion && ReferenceEquals(_check, check))
+            OnCheckBoxValueChanged(check.IsChecked);
     }
-    protected virtual void OnCheckBoxValueChanged(bool? value)
-    {
-        if (_value?.CanWrite == true) _value.Write(value);
-    }
+    protected virtual void OnCheckBoxValueChanged(bool? value) => WriteCurrentCheckBoxValue(value);
 }

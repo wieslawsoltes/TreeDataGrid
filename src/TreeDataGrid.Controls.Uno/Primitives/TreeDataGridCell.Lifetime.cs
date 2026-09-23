@@ -8,6 +8,8 @@ namespace Uno.Controls.Primitives;
 public partial class TreeDataGridCell
 {
     private bool _unrealizing;
+    internal bool IsUnrealizing => _unrealizing;
+    internal virtual void ClearRetiredModelContext() { }
 
     private void UnrealizeCore()
     {
@@ -80,6 +82,8 @@ public partial class TreeDataGridCell
             try { NotifyAutomationValueChanged(); }
             catch (Exception error) { (errors ??= new()).Add(error); }
             try { adapter?.Dispose(); }
+            catch (Exception error) { (errors ??= new()).Add(error); }
+            try { ClearRetiredModelContext(); }
             catch (Exception error) { (errors ??= new()).Add(error); }
         }
         finally { _unrealizing = false; }

@@ -13,6 +13,7 @@ public class TreeDataGridTemplateCell : TreeDataGridCell
     public static readonly DependencyProperty EditingTemplateProperty = DependencyProperty.Register(
         nameof(EditingTemplate), typeof(DataTemplate), typeof(TreeDataGridTemplateCell), new PropertyMetadata(null, TemplatesChanged));
     private int _synchronizing;
+    private int _valueRefreshVersion;
     private DataTemplate? _sourceContentTemplate;
     public TreeDataGridTemplateCell() : base(CellKind.Template) => DefaultStyleKey = typeof(TreeDataGridTemplateCell);
     public object? Content { get => GetValue(ContentProperty); private set => SetValue(ContentProperty, value); }
@@ -21,6 +22,7 @@ public class TreeDataGridTemplateCell : TreeDataGridCell
     public override void Realize(CellColumn column, CellValue value, IRow row, int columnIndex, int rowIndex,
         DataTemplate? template, DataTemplate? editingTemplate = null)
     {
+        if (IsUnrealizing) throw new System.InvalidOperationException("Cell unrealization is in progress.");
         ++_synchronizing;
         try
         {
@@ -37,18 +39,23 @@ public class TreeDataGridTemplateCell : TreeDataGridCell
         DataContext = value.PresentationModel;
         base.Realize(column, value, row, columnIndex, rowIndex, ContentTemplate, EditingTemplate);
     }
-    public override void Unrealize()
-    {
-        try { base.Unrealize(); }
-        finally { DataContext = null; }
-    }
+    public override void Unrealize() => base.Unrealize();
+    // DataContext is part of the same retirement transaction as base-owned
+    // fields. Its callbacks must not adopt a new model after the guard expires.
+    internal override void ClearRetiredModelContext() => DataContext = null;
     protected override void UpdateValue()
     {
+        if (IsUnrealizing) return;
+        var realization = RealizationVersion;
+        var refresh = unchecked(++_valueRefreshVersion);
         var model = ViewModel;
         var content = model?.Value;
-        if (!ReferenceEquals(ViewModel, model)) return;
+        if (!Current()) return;
         if (!ReferenceEquals(Content, content)) Content = content;
-        if (ReferenceEquals(ViewModel, model)) base.UpdateValue();
+        if (Current()) base.UpdateValue();
+
+        bool Current() => !IsUnrealizing && realization == RealizationVersion &&
+            refresh == _valueRefreshVersion && ReferenceEquals(ViewModel, model);
     }
     protected override void ClearContent()
     {

@@ -51,6 +51,8 @@ public partial class App : Application
             await EditStartReentrancyRuntimeChecks.RunAsync(page);
             await EditCompletionReentrancyRuntimeChecks.RunAsync(page);
             await CellLifecycleRuntimeChecks.RunAsync(page.Grid);
+            CellRetirementRuntimeChecks.Run();
+            await CellRenderingRuntimeChecks.RunAsync(page);
             await PresentationOptionsRuntimeChecks.RunAsync(page.Grid);
             await ColumnCompatibilityRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"], (DataTemplate)page.Resources["RuntimeEditingTemplate"]);
             await SourceExtensionsRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"], (DataTemplate)page.Resources["RuntimeEditingTemplate"]);

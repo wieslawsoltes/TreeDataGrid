@@ -17,6 +17,7 @@ public class TreeDataGridTextCell : TreeDataGridCell
     public static readonly DependencyProperty TextTrimmingProperty = DependencyProperty.Register(
         nameof(TextTrimming), typeof(TextTrimming), typeof(TreeDataGridTextCell), new PropertyMetadata(TextTrimming.CharacterEllipsis, AppearanceChanged));
     private int _synchronizing;
+    private int _valueRefreshVersion;
     public TreeDataGridTextCell() => DefaultStyleKey = typeof(TreeDataGridTextCell);
     public new string? Value { get => (string?)GetValue(ValueProperty); set => SetValue(ValueProperty, value); }
     public TextAlignment TextAlignment { get => (TextAlignment)GetValue(TextAlignmentProperty); set => SetValue(TextAlignmentProperty, value); }
@@ -44,6 +45,7 @@ public class TreeDataGridTextCell : TreeDataGridCell
     public override void Realize(CellColumn column, CellValue value, IRow row, int columnIndex, int rowIndex,
         DataTemplate? template, DataTemplate? editingTemplate = null)
     {
+        if (IsUnrealizing) throw new System.InvalidOperationException("Cell unrealization is in progress.");
         var text = value as ITextCell;
         var options = value.TextOptions ?? column.TextOptions;
         ++_synchronizing;
@@ -61,14 +63,19 @@ public class TreeDataGridTextCell : TreeDataGridCell
     }
     protected override void UpdateValue()
     {
-        if (IsEditing) return;
+        var realization = RealizationVersion;
+        var refresh = unchecked(++_valueRefreshVersion);
+        if (IsEditing || IsUnrealizing) return;
         var model = ViewModel;
         var value = model is ITextCell text ? text.Text : model?.DisplayText ?? Column?.FormatValue(model?.Value);
-        if (!ReferenceEquals(ViewModel, model)) return;
+        if (!Current()) return;
         ++_synchronizing;
         try { if (Value != value) Value = value; }
         finally { --_synchronizing; }
-        if (ReferenceEquals(ViewModel, model)) base.UpdateValue();
+        if (Current()) base.UpdateValue();
+
+        bool Current() => !IsUnrealizing && realization == RealizationVersion &&
+            refresh == _valueRefreshVersion && ReferenceEquals(ViewModel, model);
     }
     protected override void ClearContent()
     {
