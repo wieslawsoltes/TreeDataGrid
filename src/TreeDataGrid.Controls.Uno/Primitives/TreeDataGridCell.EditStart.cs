@@ -16,7 +16,9 @@ public partial class TreeDataGridCell
     private bool BeginEditForCurrentRealization()
     {
         var realization = RealizationVersion;
-        if (IsEditing) return realization == RealizationVersion;
+        // During visual cleanup IsEditing can still be true although its session
+        // is already retired. Do not report that transition as an active edit.
+        if (IsEditing) return realization == RealizationVersion && _edit?.IsActive == true;
         if (_startingEdit && _startingEditRealization == realization) return false;
         if (_value is not { } value) return false;
         var model = RowModel;
@@ -132,8 +134,7 @@ public partial class TreeDataGridCell
                     {
                         try
                         {
-                            EndEditingVisuals();
-                            if (IsSameRealization() && _edit is null) UpdateValue();
+                            if (EndEditingVisuals() && IsSameRealization() && _edit is null) UpdateValue();
                         }
                         catch (Exception error)
                         { cleanup = cleanup is null ? error : new AggregateException(cleanup, error); }

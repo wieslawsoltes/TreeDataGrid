@@ -52,6 +52,7 @@ public partial class App
             case "focus": return FocusRuntimeChecks.RunAsync(page);
             case "editing": return EditingRuntimeChecks.RunAsync(page.Grid, Template("RuntimeCellTemplate"), Template("RuntimeEditingTemplate"));
             case "edit-start-reentrancy": return EditStartReentrancyRuntimeChecks.RunAsync(page);
+            case "edit-completion-reentrancy": return EditCompletionReentrancyRuntimeChecks.RunAsync(page);
             case "cell-lifecycle": return CellLifecycleRuntimeChecks.RunAsync(page.Grid);
             case "presentation-options": return PresentationOptionsRuntimeChecks.RunAsync(page.Grid);
             case "custom-column-base": return CellColumnBaseRuntimeChecks.RunAsync(page.Grid);

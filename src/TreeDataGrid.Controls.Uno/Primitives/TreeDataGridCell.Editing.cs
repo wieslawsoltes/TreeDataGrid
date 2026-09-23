@@ -48,17 +48,21 @@ public partial class TreeDataGridCell
         if (edit.IsCommitting) return false;
         var realization = RealizationVersion;
         var result = edit.Commit(_editor?.Text);
-        if (!ReferenceEquals(_edit, edit)) return result;
+        if (!ReferenceEquals(_edit, edit) || realization != RealizationVersion) return result;
         if (!result)
         {
             HasValidationError = true;
-            ToolTipService.SetToolTip(this, edit.Error?.Message);
+            if (!ReferenceEquals(_edit, edit) || realization != RealizationVersion) return false;
+            // Exception.Message can be overridden by application code too.
+            var message = edit.Error?.Message;
+            if (ReferenceEquals(_edit, edit) && realization == RealizationVersion)
+                ToolTipService.SetToolTip(this, message);
             return false;
         }
         _edit = null;
-        EndEditingVisuals();
+        if (!EndEditingVisuals() || realization != RealizationVersion) return true;
         UpdateValue();
-        if (realization == RealizationVersion) (OwningCell ?? this).RaiseCellValueChanged();
+        if (realization == RealizationVersion && _edit is null) (OwningCell ?? this).RaiseCellValueChanged();
         return true;
     }
     /// <summary>Reference-compatible edit completion for derived cell controls.</summary>
@@ -66,20 +70,47 @@ public partial class TreeDataGridCell
     public virtual void CancelEdit()
     {
         if (_edit is not { } edit) return;
+        var realization = RealizationVersion;
         _edit = null;
+        Exception? failure = null;
         try { edit.Cancel(); }
-        finally { EndEditingVisuals(); UpdateValue(); }
+        catch (Exception error) { failure = error; throw; }
+        finally
+        {
+            try
+            {
+                // CancelEdit on the model can replace this cell and start a
+                // new transaction before returning (or throwing). Only retire
+                // the visual state that still belongs to our old realization.
+                if (realization == RealizationVersion && _edit is null && EndEditingVisuals() &&
+                    realization == RealizationVersion && _edit is null)
+                    UpdateValue();
+            }
+            catch (Exception cleanup) when (failure is not null)
+            { throw new AggregateException(failure, cleanup); }
+        }
     }
-    private void EndEditingVisuals()
+    private bool EndEditingVisuals()
     {
+        var realization = RealizationVersion;
+        if (_edit is not null) return false;
         // Clear a template-bound editor while still editing: the text cell's
-        // Value facade must not write this cleanup value to the model.
+        // Value facade must not write this cleanup value to the model. Each
+        // native setter is a reentrancy boundary, not an atomic block.
         if (_editor is not null) _editor.Text = string.Empty;
+        if (!IsCurrent()) return false;
         if (_editContent is not null) _editContent.Content = null;
+        if (!IsCurrent()) return false;
         IsEditing = false;
+        if (!IsCurrent()) return false;
         HasValidationError = false;
+        if (!IsCurrent()) return false;
         ToolTipService.SetToolTip(this, null);
+        if (!IsCurrent()) return false;
         UpdateContentKind();
+        return IsCurrent();
+
+        bool IsCurrent() => realization == RealizationVersion && _edit is null;
     }
     private void OnEditorKeyDown(object sender, KeyRoutedEventArgs e)
     {
