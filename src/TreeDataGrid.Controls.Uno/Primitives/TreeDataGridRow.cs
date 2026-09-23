@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Automation.Peers;
@@ -36,6 +37,7 @@ public class TreeDataGridRow : Control
     internal bool IsRecyclingVisibilityDeferred { get; set; }
     internal ITreeDataGridSelectionInteraction? StandaloneSelection { get; private set; }
     private bool _realizingStandalone;
+    private bool _unrealizing;
     public TreeDataGridRow() => DefaultStyleKey = typeof(TreeDataGridRow);
     private TreeDataGridRowAutomationPeer? _automationPeer;
     protected override AutomationPeer OnCreateAutomationPeer() => _automationPeer = new TreeDataGridRowAutomationPeer(this);
@@ -73,6 +75,7 @@ public class TreeDataGridRow : Control
         TreeDataGridElementFactory? elementFactory, ITreeDataGridSelectionInteraction? selection,
         IColumns? columns, ITreeDataGridRows? rows, int rowIndex)
     {
+        if (_unrealizing) throw new InvalidOperationException("Row unrealization is in progress.");
         if (RowIndex >= 0) throw new InvalidOperationException("Row is already realized.");
         if (_realizingStandalone) throw new InvalidOperationException("Row realization is already in progress.");
         if (rowIndex < 0 || (rows is not null && rowIndex >= rows.Count)) throw new ArgumentOutOfRangeException(nameof(rowIndex));
@@ -123,35 +126,62 @@ public class TreeDataGridRow : Control
     }
     public void UpdateIndex(int rowIndex)
     {
+        if (_unrealizing) throw new InvalidOperationException("Row unrealization is in progress.");
         if (RowIndex < 0) throw new InvalidOperationException("Row is not realized.");
+        var realization = RealizationVersion;
+        var rows = Rows;
+        if (rowIndex < 0 || (rows is not null && rowIndex >= rows.Count))
+            throw new ArgumentOutOfRangeException(nameof(rowIndex));
+        // A custom Count accessor can retire or replace this realization.
+        if (realization != RealizationVersion || !ReferenceEquals(Rows, rows)) return;
         var previous = RowIndex;
         RowIndex = rowIndex;
         CellsPresenter?.UpdateRowIndex(rowIndex);
+        if (realization != RealizationVersion || RowIndex != rowIndex) return;
         OnRowIndexChanged(previous, rowIndex);
-        NotifyAutomationStateChanged();
+        if (realization == RealizationVersion && RowIndex == rowIndex) NotifyAutomationStateChanged();
     }
     internal void Unrealize(TreeDataGridRowUnrealizeReason reason)
     {
-        if (RowIndex < 0) return;
+        // Preserve the old identity during clearing callbacks, but only the
+        // outermost call owns teardown and its lifecycle notifications.
+        if (_unrealizing || RowIndex < 0) return;
+        _unrealizing = true;
+        var rowIndex = RowIndex;
         ++RealizationVersion;
+        List<Exception>? errors = null;
         try
         {
-            Presenter?.Owner?.RaiseRowClearing(this, RowIndex);
-            OnUnrealizing(RowIndex, reason);
-        }
-        finally
-        {
-            try { CellsPresenter?.Unrealize(); }
-            finally
+            try
             {
-                RowIndex = -1;
-                DataContext = null;
-                IsSelected = false;
-                StandaloneSelection = null;
-                if (!IsRecyclingVisibilityDeferred) Visibility = Visibility.Collapsed;
-                NotifyAutomationStateChanged();
+                Presenter?.Owner?.RaiseRowClearing(this, rowIndex);
+                OnUnrealizing(rowIndex, reason);
             }
+            catch (Exception error) { (errors ??= new()).Add(error); }
+            try { CellsPresenter?.Unrealize(); }
+            catch (Exception error) { (errors ??= new()).Add(error); }
+
+            // Clear non-callback state first; keep RealizeCore guarded until
+            // all DP/automation cleanup attempts have completed. A throwing
+            // application callback must not skip the other retirement stages.
+            RowIndex = -1;
+            StandaloneSelection = null;
+            try { DataContext = null; }
+            catch (Exception error) { (errors ??= new()).Add(error); }
+            try { IsSelected = false; }
+            catch (Exception error) { (errors ??= new()).Add(error); }
+            if (!IsRecyclingVisibilityDeferred)
+            {
+                try { Visibility = Visibility.Collapsed; }
+                catch (Exception error) { (errors ??= new()).Add(error); }
+            }
+            try { NotifyAutomationStateChanged(); }
+            catch (Exception error) { (errors ??= new()).Add(error); }
         }
+        finally { _unrealizing = false; }
+        // The normal recycling path allocates no error collection or closure.
+        if (errors is { Count: 1 }) System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(errors[0]).Throw();
+        if (errors is not null) throw new AggregateException("Row unrealization failed.", errors);
     }
     internal void Release()
     {
@@ -179,6 +209,7 @@ public class TreeDataGridRow : Control
     }
     internal void UpdateSelection()
     {
+        if (_unrealizing) return;
         var realization = RealizationVersion;
         var selection = Presentation is { } presentation ? presentation.SelectionInteraction : StandaloneSelection;
         var selected = RowIndex >= 0 && selection?.IsRowSelected(RowIndex) == true;
@@ -202,7 +233,7 @@ public class TreeDataGridRow : Control
         CellsPresenter?.Reset();
         base.OnApplyTemplate();
         CellsPresenter = GetTemplateChild("PART_CellsPresenter") as TreeDataGridCellsPresenter;
-        CellsPresenter?.Attach(this);
+        if (!_unrealizing) CellsPresenter?.Attach(this);
         UpdateState();
     }
     private static void OnSelectionChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
@@ -214,7 +245,7 @@ public class TreeDataGridRow : Control
     private static void OnElementFactoryChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
     {
         var row = (TreeDataGridRow)sender;
-        if (row.RowIndex >= 0 && !row._realizingStandalone)
+        if (row.RowIndex >= 0 && !row._realizingStandalone && !row._unrealizing)
         {
             if (row.Presenter is { } presenter) presenter.ResetRowCells(row);
             else row.CellsPresenter?.Attach(row);
