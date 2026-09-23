@@ -50,12 +50,16 @@ public class TextColumn<TModel, TValue> : ValueCellColumn<TModel, TValue?>, ITex
         }
     }
     public override bool IsTextSearchEnabled => TextSearchValueSelector is not null || Options.IsTextSearchEnabled;
+    public override string? GetSearchText(object? model) => TextSearchValueSelector is { } select
+        ? select(model) : model is TModel typed ? _definition.GetValue(typed)?.ToString() : null;
     public override string FormatValue(object? value) => Options.StringFormat is { } format
         ? CellTextFormatting.Format(Options.Culture, format, value) : value?.ToString() ?? string.Empty;
     public override CellValue CreateCell(TreeDataGridCore.Models.IRow row) => new LiveTextCell(this, row)
     {
         Kind = CellKind.Text,
     };
+    // Match the reference's raw selector contract. Display prefixes, alignment,
+    // numeric formats and display-culture callbacks do not participate in search.
     string? ITextSearchableColumn<TModel>.SelectValue(TModel model) => GetSearchText(model);
 
     private sealed class LiveTextCell(TextColumn<TModel, TValue> column, TreeDataGridCore.Models.IRow row)

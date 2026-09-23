@@ -39,8 +39,7 @@ public sealed class ColumnContractParityTests
     [InlineData("Zażółć 日本語 😀")]
     public void Text_and_null_format_behavior_match(string? value)
     {
-        var model = new Model { Text = value };
-        using var fixture = new Pair<string?>(model, row => row.Text);
+        using var fixture = new Pair<string?>(new() { Text = value }, row => row.Text);
         Assert.Equal(fixture.AvaloniaText.Text, fixture.UnoText.Text);
         fixture.AvaloniaOptions.StringFormat = "[{0}]";
         fixture.UnoOptions.StringFormat = "[{0}]";
@@ -54,7 +53,7 @@ public sealed class ColumnContractParityTests
     [InlineData("en-US")]
     [InlineData("fr-FR")]
     [InlineData("pl-PL")]
-    public void Formatting_and_search_are_distinct_reference_contracts(string cultureName)
+    public void Formatting_and_raw_value_selection_are_distinct_contracts(string cultureName)
     {
         var model = new Model { Number = 12.5m };
         using var fixture = new Pair<decimal>(model, row => row.Number);
@@ -64,10 +63,12 @@ public sealed class ColumnContractParityTests
         fixture.AvaloniaOptions.Culture = culture;
         fixture.UnoOptions.Culture = culture;
         Assert.Equal(fixture.AvaloniaText.Text, fixture.UnoText.Text);
-        var a = ((A.ITextSearchableColumn<Model>)fixture.AvaloniaColumn).SelectValue(model);
-        var u = ((U.ITextSearchableColumn<Model>)fixture.UnoColumn).SelectValue(model);
-        Assert.Equal(model.Number.ToString(), a);
-        Assert.Equal(a, u);
+        // Avalonia's internal search selector is ValueSelector(model)?.ToString().
+        // Use that actual PUBLIC selector here, with no friend/reflection bypass.
+        // The native runtime suite separately exercises committed-text searching.
+        var selected = fixture.AvaloniaColumn.ValueSelector(model);
+        Assert.Equal(selected.ToString(), fixture.UnoColumn.GetSearchText(model));
+        Assert.Equal(model.Number.ToString(), fixture.UnoColumn.GetSearchText(model));
     }
 
     [Fact]
@@ -203,8 +204,7 @@ public sealed class ColumnContractParityTests
         private string? _text;
         private decimal _number;
         public string? Text { get => _text; set { _text = value; PropertyChanged?.Invoke(this, new(nameof(Text))); } }
-        public decimal Number { get => _number; set { _number = value; PropertyChangedChangedNumber(); } }
-        private void PropertyChangedChangedNumber() => PropertyChanged?.Invoke(this, new(nameof(Number)));
+        public decimal Number { get => _number; set { _number = value; PropertyChanged?.Invoke(this, new(nameof(Number))); } }
         public event PropertyChangedEventHandler? PropertyChanged;
     }
 }

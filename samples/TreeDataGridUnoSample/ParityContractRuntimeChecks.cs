@@ -35,7 +35,7 @@ internal static class ParityContractRuntimeChecks
         var factories = new TreeDataGridPresentationOptions<NumberRow>();
         factories.Columns["LiveOptions"] = definition => new Native.TextColumn<NumberRow, decimal>(
             (ValueColumn<NumberRow, decimal>)definition, options);
-        var grid = new NativeGrid { Width = 420, Height = 180, PresentationOptions = factories, Model = source };
+        var grid = new TextInputGrid { Width = 420, Height = 180, PresentationOptions = factories, Model = source };
         try
         {
             page.Content = grid;
@@ -63,10 +63,14 @@ internal static class ParityContractRuntimeChecks
             await Settle(grid);
             Check(ReferenceEquals(cell, grid.TryGetCell(0, 0)) && RenderedText(cell) == "V=21,50",
                 "Committed text did not retain the cell or current formatting.");
+            Check(grid.Focus(FocusState.Programmatic), "The search fixture could not leave the native editor.");
+            grid.Input("4");
+            Check(source.RowSelection!.SelectedIndex == new IndexPath(1),
+                "Incremental search matched display formatting rather than the reference raw value.");
             grid.Model = null;
             Check(model.Subscribers == 0 && source.Rows.Count == 2,
                 "Retiring the grid retained a model binding or disposed the borrowed Core source.");
-            Console.WriteLine("UNO_RUNTIME_MUTABLE_TEXT_OPTIONS_PASSED: retained native text refresh, current format/culture, live alignment/search metadata, native editor parsing, identity and subscription cleanup");
+            Console.WriteLine("UNO_RUNTIME_MUTABLE_TEXT_OPTIONS_PASSED: retained text, live format/culture/alignment/search, native editor parsing, raw-value committed-text search, identity and cleanup");
         }
         finally { grid.Model = null; page.Content = previous; }
     }
@@ -103,7 +107,6 @@ internal static class ParityContractRuntimeChecks
             Check(observed.Count == 3 && observed[2].SelectedCellIndexes.Single() == new CellIndex(0, new(0)) &&
                 observed[2].SelectedItems.Count == 0 && observed[2].SelectedIndexes.Count == 0,
                 "The protected cell hook was disconnected or fabricated row deltas.");
-
             grid.SelectionChanged -= listener;
             presentation.PublishCells(UnexpectedEnumeration(), UnexpectedEnumeration());
             Check(observed.Count == 3, "An unsubscribed hook still reached the native listener.");
@@ -117,21 +120,19 @@ internal static class ParityContractRuntimeChecks
             presentation.PublishCells(UnexpectedEnumeration(), UnexpectedEnumeration());
             Check(observed.Count == 4 && source.Rows.Count == 2,
                 "A retired presentation published into its old grid or disposed the source.");
-            Console.WriteLine("UNO_RUNTIME_PRESENTATION_SELECTION_HOOKS_PASSED: actual custom presentation, single Core event, protected row/cell hooks, native sender and model identity, lazy unsubscription, suspension/resume and retired-source isolation");
+            Console.WriteLine("UNO_RUNTIME_PRESENTATION_SELECTION_HOOKS_PASSED: custom presentation, single Core event, protected row/cell hooks, native sender/identity, lazy unsubscription, suspension/resume and retired-source isolation");
         }
         finally { grid.SelectionChanged -= listener; grid.Model = null; page.Content = previous; }
     }
 
-    private static IEnumerable<CellIndex> UnexpectedEnumeration()
-    {
-        yield return RejectEnumeration();
-    }
+    private static IEnumerable<CellIndex> UnexpectedEnumeration() { yield return RejectEnumeration(); }
     private static CellIndex RejectEnumeration() =>
         throw new InvalidOperationException("An inactive/unobserved hook evaluated its arguments.");
     private static string? RenderedText(FrameworkElement cell) => ShowcaseRuntimeChecks.Descendants(cell)
         .OfType<TextBlock>().FirstOrDefault(text => text.Visibility == Visibility.Visible)?.Text;
     private static async Task Settle(NativeGrid grid) { await Task.Delay(100); grid.UpdateLayout(); }
     private static void Check(bool condition, string message) { if (!condition) throw new InvalidOperationException(message); }
+    private sealed partial class TextInputGrid : NativeGrid { internal void Input(string text) => OnTextInput(text); }
 
     private sealed class NumberRow : INotifyPropertyChanged
     {
