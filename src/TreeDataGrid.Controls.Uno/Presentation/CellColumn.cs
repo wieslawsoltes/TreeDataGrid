@@ -68,7 +68,7 @@ public abstract partial class CellColumn : NotifyingBase, IDisposable
     public virtual bool IsTextSearchEnabled => TextSearchValueSelector is not null;
     public virtual string? GetSearchText(object? model) => TextSearchValueSelector?.Invoke(model);
     public virtual string FormatValue(object? value) => TextOptions is { } options
-        ? string.Format(options.Culture, options.StringFormat, value) : value?.ToString() ?? string.Empty;
+        ? CellTextFormatting.Format(options.Culture, options.StringFormat, value) : value?.ToString() ?? string.Empty;
     public virtual TextCellOptions? TextOptions => null;
     public virtual DataTemplate? GetCellTemplate(Microsoft.UI.Xaml.Controls.Control anchor) => null;
     public virtual DataTemplate? GetCellEditingTemplate(Microsoft.UI.Xaml.Controls.Control anchor) => null;
@@ -156,9 +156,11 @@ public class ValueCellColumn<TModel, TValue> : CellColumn, ICellColumn<TModel> w
     public bool TryReuseCell(ICell cell, IRow<TModel> row) => cell is BoundCell<TModel, TValue> bound &&
         bound.UsesColumn(_column) && bound.TryRetarget(row);
 }
-
 internal class BoundCell<TModel, TValue> : CellValue where TModel : class
 {
+    // Immutable notification payloads; names and publication order are unchanged.
+    private static readonly PropertyChangedEventArgs ValueChanged = new(nameof(Value));
+    private static readonly PropertyChangedEventArgs ErrorChanged = new(nameof(Error));
     private readonly CellBinding<TModel, TValue> _binding;
     private readonly bool _canPool;
     private readonly CultureInfo? _culture;
@@ -197,8 +199,8 @@ internal class BoundCell<TModel, TValue> : CellValue where TModel : class
     }
     private void Changed()
     {
-        RaisePropertyChanged(nameof(Value));
-        RaisePropertyChanged(nameof(Error));
+        RaisePropertyChanged(ValueChanged);
+        RaisePropertyChanged(ErrorChanged);
     }
 }
 
@@ -210,7 +212,7 @@ internal sealed class TextBoundCell<TModel, TValue> : BoundCell<TModel, TValue>,
         : base(column, row, canPool: true, options?.Culture) => _options = options;
     public string? Text
     {
-        get => _options is { } options ? string.Format(options.Culture, options.StringFormat, Value) : Value?.ToString();
+        get => _options is { } options ? CellTextFormatting.Format(options.Culture, options.StringFormat, Value) : Value?.ToString();
         set => Write(value);
     }
     public TextTrimming TextTrimming => _options?.TextTrimming ?? TextTrimming.CharacterEllipsis;
