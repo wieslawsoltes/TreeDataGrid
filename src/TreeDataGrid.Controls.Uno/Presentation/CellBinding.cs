@@ -56,19 +56,26 @@ internal sealed class CellBinding<TModel, TValue> : IDisposable where TModel : c
     public void Write(TValue value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        if (_model is null)
-            throw new InvalidOperationException("A suspended cell cannot write a value.");
-        if (_column.Setter is null)
-            throw new InvalidOperationException("The column is read-only.");
+        var model = _model ?? throw new InvalidOperationException("A suspended cell cannot write a value.");
+        var setter = _column.Setter ?? throw new InvalidOperationException("The column is read-only.");
+        Exception? writeFailure = null;
         try
         {
-            _column.Setter(_model, value);
+            setter(model, value);
+        }
+        catch (Exception error)
+        {
+            writeFailure = error;
+            throw;
         }
         finally
         {
             // Delegated setters need not raise notifications, and failed setters may
-            // have changed part of a model. Re-read in either case.
-            Refresh();
+            // have changed part of a model. Re-read in either case, but never hide
+            // the original write failure behind a second observer/refresh failure.
+            try { Refresh(); }
+            catch (Exception refreshFailure) when (writeFailure is not null)
+            { throw new AggregateException(writeFailure, refreshFailure); }
         }
     }
 
@@ -142,8 +149,11 @@ internal sealed class CellBinding<TModel, TValue> : IDisposable where TModel : c
                 try { value = _column.GetValue(model); error = null; }
                 catch (Exception caught) { value = default; error = caught; }
                 if (revision != _revision) continue;
+                // Distinct exceptions are distinct diagnostics even when the
+                // type is unchanged. Avoid application-defined equality/message
+                // access; reobserving the exact same exception stays quiet.
                 var changed = !EqualityComparer<TValue?>.Default.Equals(Value, value) ||
-                    Error?.GetType() != error?.GetType();
+                    !ReferenceEquals(Error, error);
                 if (revision != _revision) continue;
                 Value = value;
                 Error = error;
