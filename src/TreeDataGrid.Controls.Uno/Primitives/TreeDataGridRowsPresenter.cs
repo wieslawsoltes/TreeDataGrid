@@ -186,9 +186,22 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
     }
     internal void UpdateViewport(double horizontal, double vertical, double width, double height)
     {
-        var columnsChanged = horizontal != _horizontalOffset || width != _viewportWidth;
+        var widthChanged = width != _viewportWidth;
+        var columnsChanged = horizontal != _horizontalOffset || widthChanged;
+        var contentWidth = Math.Min(width, Math.Max(0, Geometry.TotalWidth - horizontal));
+        var cellsNeedMeasure = widthChanged;
+        if (columnsChanged && !cellsNeedMeasure)
+            foreach (var row in _realized.Values)
+                if (row.CellsPresenter is { } cells && !cells.CoversHorizontalViewport(horizontal, contentWidth))
+                {
+                    cellsNeedMeasure = true;
+                    break;
+                }
         var viewport = new Rect(horizontal, vertical, width, height);
-        var needsMeasure = columnsChanged || _measureViewport is not { } measured ||
+        // Keep coordinated two-axis realization identical: a diagonal move
+        // may expose a partial row even when every column is already covered.
+        var needsMeasure = cellsNeedMeasure || (columnsChanged && vertical != _verticalOffset) ||
+            _measureViewport is not { } measured ||
             height != _measureViewportHeight || NeedsMeasureForViewportChange(measured, viewport);
         _horizontalOffset = horizontal;
         _verticalOffset = vertical;
@@ -199,10 +212,15 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
         // horizontal constraint of retained cells. Let native measure caching
         // keep those rows valid. New/rebound rows invalidate themselves, and
         // content/column/font changes have their own invalidation paths.
-        // Horizontal changes still require an explicit child measure: a row's
-        // full content extent is unchanged while its visible columns change.
+        // Native scrolling already translates/clips existing children. A move
+        // inside their stable realized range does not change their constraints.
+        // New columns still need explicit child measure because the row's full
+        // content extent is unchanged. Width/content/font invalidation is separate.
         if (columnsChanged)
-            foreach (var row in _realized.Values) row.CellsPresenter?.InvalidateMeasure();
+            foreach (var row in _realized.Values)
+                if (row.CellsPresenter is { } cells &&
+                    (widthChanged || !cells.CoversHorizontalViewport(horizontal, contentWidth)))
+                    cells.InvalidateMeasure();
         InvalidateMeasure();
     }
     protected override Rect GetMeasureViewport(Rect viewport)

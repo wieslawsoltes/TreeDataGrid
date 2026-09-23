@@ -17,6 +17,10 @@ public partial class TreeDataGridColumnHeadersPresenter : TreeDataGridColumnarPr
     private double _offset;
     private double _viewport;
     private int _revision;
+    private int _geometryVersion = -1;
+    private TreeDataGrid? _configuredOwner;
+    private Style? _configuredStyle;
+    private bool _configuredResize;
     private readonly HashSet<TreeDataGridColumnHeader> _headers = new();
     internal TreeDataGrid? Owner { get; set; }
 
@@ -35,29 +39,50 @@ public partial class TreeDataGridColumnHeadersPresenter : TreeDataGridColumnarPr
 
     internal void Update(TreeDataGridPresentation? presentation, ColumnGeometry geometry, double offset, double viewport)
     {
+        var owner = Owner;
+        var factory = owner?.ElementFactory;
+        var style = owner?.ColumnHeaderStyle;
+        var canResize = owner?.CanUserResizeColumns == true;
+        var columns = presentation?.Columns;
+        var configurationChanged = !ReferenceEquals(_presentation, presentation) ||
+            !ReferenceEquals(_configuredOwner, owner) || !ReferenceEquals(_configuredStyle, style) ||
+            _configuredResize != canResize || !ReferenceEquals(ElementFactory, factory) ||
+            !ReferenceEquals(Items, columns);
+        var geometryChanged = !ReferenceEquals(_geometry, geometry) || _geometryVersion != geometry.Version;
+        var contentWidth = Math.Min(viewport, Math.Max(0, geometry.TotalWidth - offset));
+        var needsMeasure = configurationChanged || geometryChanged || viewport != _viewport ||
+            (offset != _offset && !CoversHorizontalViewport(offset, contentWidth));
         var revision = ++_revision;
         _presentation = presentation;
         _geometry = geometry;
+        _geometryVersion = geometry.Version;
         _offset = offset;
         _viewport = viewport;
-        ElementFactory = Owner?.ElementFactory;
+        if (!ReferenceEquals(ElementFactory, factory)) ElementFactory = factory;
         if (revision != _revision) return;
-        Items = presentation?.Columns;
+        if (!ReferenceEquals(Items, columns)) Items = columns;
         if (revision != _revision) return;
-        var generation = PresenterGeneration;
-        foreach (var header in RealizedHeaders)
+        if (configurationChanged)
         {
-            header.SetOwner(Owner);
-            if (revision != _revision || generation != PresenterGeneration) return;
-            if (Owner is { } owner && !ReferenceEquals(header.Style, owner.ColumnHeaderStyle))
-                header.Style = owner.ColumnHeaderStyle;
-            if (revision != _revision || generation != PresenterGeneration) return;
+            var generation = PresenterGeneration;
+            foreach (var header in RealizedHeaders)
+            {
+                header.SetOwner(owner);
+                if (revision != _revision || generation != PresenterGeneration) return;
+                if (owner is not null && !ReferenceEquals(header.Style, style)) header.Style = style;
+                if (revision != _revision || generation != PresenterGeneration) return;
+            }
+            _configuredOwner = owner;
+            _configuredStyle = style;
+            _configuredResize = canResize;
         }
-        InvalidateMeasure();
+        // Native model/theme/column events retain their own invalidation paths.
+        // Do not dirty every header on vertical-only or covered horizontal moves.
+        if (needsMeasure) InvalidateMeasure();
     }
 
     protected override Rect? GetParentPresenterViewPort() => Owner is null
-        ? base.GetParentPresenterViewPort() : new Rect(_offset, 0, _viewport, Math.Max(32, ActualHeight));
+        ? base.GetParentPresenterViewPort() : new Rect(_offset, 0, _viewport, (ActualHeight > 0 ? ActualHeight : 32));
 
     protected override Rect GetMeasureViewport(Rect viewport) => Owner is null
         ? base.GetMeasureViewport(viewport) : new Rect(_offset, 0, _viewport, viewport.Height);

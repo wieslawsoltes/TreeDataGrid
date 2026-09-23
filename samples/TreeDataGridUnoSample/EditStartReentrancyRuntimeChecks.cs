@@ -80,7 +80,7 @@ internal static class EditStartReentrancyRuntimeChecks
                 Check(old.Begins == 1 && old.Cancels == 1 && next.Begins == 1 && next.Cancels == 0,
                     "Retired/unadopted edit ownership did not balance cancellation.");
             });
-            Exercise("native editor callback", (cell, old) =>
+            Exercise("synchronous native editor callback", (cell, old) =>
             {
                 Check(cell.BeginEdit(), "Could not prime the native editor.");
                 cell.CancelEdit();
@@ -89,21 +89,24 @@ internal static class EditStartReentrancyRuntimeChecks
                 var armed = true;
                 var nested = false;
                 var next = new Probe("new");
-                TextChangedEventHandler callback = (_, _) =>
+                // TextChanged is dispatched asynchronously by native TextBox.
+                // Observe the dependency-property setter itself to reproduce
+                // reentrancy inside the outer edit initialization deterministically.
+                var token = editor.RegisterPropertyChangedCallback(TextBox.TextProperty, (_, _) =>
                 {
                     if (!armed) return;
                     armed = false;
                     Replace(cell, next);
                     nested = cell.BeginEdit();
-                };
-                editor.TextChanged += callback;
+                });
                 try
                 {
-                    Check(!cell.BeginEdit() && !armed && nested && cell.IsEditing && cell.EditingText == "new",
-                        "An old native editor initialization overwrote its replacement's buffer.");
+                    var outer = cell.BeginEdit();
+                    Check(!outer && !armed && nested && cell.IsEditing && cell.EditingText == "new",
+                        $"An old native editor initialization overwrote its replacement's buffer: outer={outer}, armed={armed}, nested={nested}, editing={cell.IsEditing}, text={cell.EditingText}, oldBegin={old.Begins}, newBegin={next.Begins}.");
                     Check(old.Begins == 0 && next.Begins == 1 && next.Cancels == 0, "Native text initialization crossed realizations.");
                 }
-                finally { editor.TextChanged -= callback; }
+                finally { editor.UnregisterPropertyChangedCallback(TextBox.TextProperty, token); }
             });
             Exercise("editing state callback", (cell, old) =>
             {
@@ -155,7 +158,7 @@ internal static class EditStartReentrancyRuntimeChecks
                     "A throwing model BeginEdit was not cancelled once with its original failure.");
                 Check(cell.BeginEdit(), "A throwing model BeginEdit prevented retry.");
             });
-            Console.WriteLine($"UNO_RUNTIME_EDIT_START_REENTRANCY_PASSED: cases={cases}; permission/value/options/format/target boundaries, same-model generations, recursive starts, newer edit preservation, native editor/state callbacks, exception cleanup and retry");
+            Console.WriteLine($"UNO_RUNTIME_EDIT_START_REENTRANCY_PASSED: cases={cases}; permission/value/options/format/target boundaries, same-model generations, recursive starts, newer edit preservation, synchronous native editor/state callbacks, exception cleanup and retry");
         }
         finally { host.Child = null; page.Content = previous; }
 

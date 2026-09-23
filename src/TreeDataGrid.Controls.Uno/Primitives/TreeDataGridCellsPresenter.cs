@@ -488,6 +488,15 @@ public partial class TreeDataGridCellsPresenter : TreeDataGridColumnarPresenterB
 
     private void OnStandaloneRowsChanged(object? sender, NotifyCollectionChangedEventArgs e) => RetireLayout();
 
+    protected override bool NeedsMeasureForViewportChange(Rect oldViewport, Rect newViewport) =>
+        // In a grid-owned row, vertical effective-viewport dimensions
+        // describe clipping, not the row's measurement constraint. A
+        // partially visible row must not remeasure its cells for every
+        // horizontal scroll. Actual row size/content changes still
+        // invalidate through native layout and row measurements.
+        Presenter is not null ? !IsViewportCoveredByRealizedElements(newViewport) :
+            base.NeedsMeasureForViewportChange(oldViewport, newViewport);
+
     protected override Rect? GetParentPresenterViewPort() => Presenter?.CellViewport ?? base.GetParentPresenterViewPort();
     protected override Rect GetMeasureViewport(Rect viewport) => Presenter?.CellViewport ?? base.GetMeasureViewport(viewport);
 

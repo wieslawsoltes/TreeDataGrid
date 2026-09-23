@@ -13,6 +13,7 @@ internal sealed class ColumnGeometry
 {
     private double[] _ends = [];
     public int Count => _ends.Length;
+    internal int Version { get; private set; }
     public double TotalWidth => _ends.Length == 0 ? 0 : _ends[^1];
 
     public bool Commit(IReadOnlyList<double> widths)
@@ -58,6 +59,7 @@ internal sealed class ColumnGeometry
             changed |= _ends[i] != total;
             _ends[i] = total;
         }
+        if (changed) unchecked { ++Version; }
         return changed;
     }
 

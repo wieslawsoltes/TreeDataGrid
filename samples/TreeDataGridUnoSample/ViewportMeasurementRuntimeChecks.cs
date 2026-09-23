@@ -26,6 +26,7 @@ internal static class ViewportMeasurementRuntimeChecks
         var previousWidth = grid.Width;
         var previousHeight = grid.Height;
         var previousRowHeight = grid.RowHeight;
+        var previousResize = grid.CanUserResizeColumns;
         var factory = new CountingFactory();
         var columnMeasurements = new Dictionary<int, int>();
         var presentationOptions = new TreeDataGridPresentationOptions();
@@ -70,6 +71,37 @@ internal static class ViewportMeasurementRuntimeChecks
                 $"Vertical-only scrolling repeated {unnecessaryColumnMeasures} unchanged column measurement callbacks.");
             VerifyValues();
 
+            // Move inside the already-realized first/last column boundaries.
+            // Counting column callbacks detects redundant presenter passes even
+            // when native Measure correctly caches each child constraint.
+            grid.Scroll.ChangeView(7, null, null, true);
+            await Settle();
+            var horizontalMeasurements = new Dictionary<int, int>(columnMeasurements);
+            var horizontalCells = grid.RowsPresenter.RealizedCells.ToArray();
+            var horizontalHeaders = grid.ColumnHeadersPresenter!.RealizedHeaders.ToArray();
+            grid.Scroll.ChangeView(9, null, null, true);
+            await Settle();
+            Check(Math.Abs(grid.Scroll.HorizontalOffset - 9) < 0.1, "The covered horizontal move did not execute.");
+            var repeatedHorizontal = columnMeasurements.Sum(entry =>
+                entry.Value - horizontalMeasurements.GetValueOrDefault(entry.Key));
+            Check(repeatedHorizontal == 0,
+                $"Covered horizontal scrolling repeated {repeatedHorizontal} cell/header column measurement callbacks.");
+            Check(horizontalCells.All(cell => ReferenceEquals(cell, grid.TryGetCell(cell.ColumnIndex, cell.RowIndex))),
+                "Covered horizontal scrolling replaced a retained cell.");
+            Check(horizontalHeaders.All(header => ReferenceEquals(header, grid.ColumnHeadersPresenter.TryGetElement(header.ColumnIndex))),
+                "Covered horizontal scrolling replaced a retained header.");
+            VerifyValues();
+
+            // Owner policies must still refresh without geometry changes.
+            grid.CanUserResizeColumns = false;
+            await Settle();
+            Check(grid.ColumnHeadersPresenter.RealizedHeaders.All(header => !header.CanUserResize),
+                "Disabling header resize was lost by viewport update coalescing.");
+            grid.CanUserResizeColumns = true;
+            await Settle();
+            Check(grid.ColumnHeadersPresenter.RealizedHeaders.All(header => header.CanUserResize),
+                "Enabling header resize was lost by viewport update coalescing.");
+
             // No-change viewport updates must not hide genuine content invalidation.
             var live = unchanged.First(cell => cell.ColumnIndex == 0);
             var before = live.Measures;
@@ -91,7 +123,7 @@ internal static class ViewportMeasurementRuntimeChecks
                 "Horizontal scrolling failed to realize the new column range.");
             Check(grid.RowsPresenter.RealizedCells.Count < 180,
                 "Viewport optimization disabled bounded two-axis realization.");
-            Console.WriteLine($"UNO_RUNTIME_VIEWPORT_MEASUREMENT_PASSED: retained={unchanged.Length}; verticalOnlyMeasures={unnecessary}; columnMeasurements={unnecessaryColumnMeasures}; live content/width/horizontal changes preserved");
+            Console.WriteLine($"UNO_RUNTIME_VIEWPORT_MEASUREMENT_PASSED: retained={unchanged.Length}; verticalOnlyMeasures={unnecessary}; columnMeasurements={unnecessaryColumnMeasures}; coveredHorizontalCallbacks={repeatedHorizontal}; retained headers/cells, resize-policy, live content/width/horizontal changes preserved");
         }
         finally
         {
@@ -99,6 +131,7 @@ internal static class ViewportMeasurementRuntimeChecks
             grid.ElementFactory = previousFactory;
             grid.PresentationOptions = previousOptions;
             grid.RowHeight = previousRowHeight;
+            grid.CanUserResizeColumns = previousResize;
             grid.Width = previousWidth;
             grid.Height = previousHeight;
         }
