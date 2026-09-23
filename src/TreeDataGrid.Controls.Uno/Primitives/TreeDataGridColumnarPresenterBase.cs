@@ -54,6 +54,11 @@ namespace Uno.Controls.Primitives
 
         protected IColumns? Columns => Items as IColumns;
 
+        // Only built-in hosted cells can substitute geometry already committed
+        // by their rows presenter. Public/custom standalone presenters retain
+        // the reference estimator and its constraint-dependent behavior.
+        internal virtual double? CommittedExtentWidth => null;
+
         protected sealed override Size GetInitialConstraint(Control element, int index, Size availableSize)
         {
             var column = (IUpdateColumnLayout)Columns![index];
@@ -181,7 +186,7 @@ namespace Uno.Controls.Primitives
 
         protected sealed override double CalculateSizeU(Size availableSize)
         {
-            return Columns?.GetEstimatedWidth(availableSize.Width) ?? 0;
+            return CommittedExtentWidth ?? Columns?.GetEstimatedWidth(availableSize.Width) ?? 0;
         }
     }
 }
