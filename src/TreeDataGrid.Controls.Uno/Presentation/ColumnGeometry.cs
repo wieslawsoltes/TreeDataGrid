@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using TreeDataGridCore;
 
@@ -17,26 +18,24 @@ internal sealed class ColumnGeometry
     public bool Commit(IReadOnlyList<double> widths)
     {
         ArgumentNullException.ThrowIfNull(widths);
-        var total = 0d;
-        // Indexed access avoids the boxed/interface enumerator on every layout.
-        // Validate the entire extent before replacing committed state.
-        for (var i = 0; i < widths.Count; ++i)
+        // Preserve the array hot path. Arbitrary interface indexers, unlike an
+        // array/span read, can change values or throw between validation and use.
+        if (widths is double[] array) return CommitSpan(array);
+        var count = widths.Count;
+        ArgumentOutOfRangeException.ThrowIfNegative(count);
+        if (count == 0) return CommitSpan(ReadOnlySpan<double>.Empty);
+        double[]? rented = null;
+        Span<double> snapshot = count <= 128 ? stackalloc double[count] :
+            (rented = ArrayPool<double>.Shared.Rent(count)).AsSpan(0, count);
+        try
         {
-            var width = widths[i];
-            if (!double.IsFinite(width) || width < 0) throw new ArgumentOutOfRangeException(nameof(widths));
-            total += width;
-            if (!double.IsFinite(total)) throw new ArgumentOutOfRangeException(nameof(widths));
+            // Each invocation owns its storage, including nested invocations.
+            // No committed state is modified while calling user indexers, and
+            // every index is evaluated once. CommitSpan validates this snapshot.
+            for (var i = 0; i < count; ++i) snapshot[i] = widths[i];
+            return CommitSpan(snapshot);
         }
-        var changed = _ends.Length != widths.Count;
-        if (changed) _ends = widths.Count == 0 ? Array.Empty<double>() : new double[widths.Count];
-        total = 0;
-        for (var i = 0; i < widths.Count; ++i)
-        {
-            total += widths[i];
-            changed |= _ends[i] != total;
-            _ends[i] = total;
-        }
-        return changed;
+        finally { if (rented is not null) ArrayPool<double>.Shared.Return(rented); }
     }
 
     // A distinct name keeps existing Commit([]) calls unambiguous. Caller-owned
