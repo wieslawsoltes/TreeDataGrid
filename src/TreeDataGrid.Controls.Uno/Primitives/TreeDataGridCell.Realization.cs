@@ -22,6 +22,7 @@ public partial class TreeDataGridCell
     internal void RealizeNativeInRow(CellColumn column, CellValue value, IRow row, object? rowModel,
         int columnIndex, int rowIndex, DataTemplate? template, DataTemplate? editingTemplate)
     {
+        if (_unrealizing) throw new InvalidOperationException("Cell unrealization is in progress.");
         if (_nativeRow is not null) throw new InvalidOperationException("Cell realization is already in progress.");
         _nativeRow = (row, rowModel);
         try { Realize(column, value, row, columnIndex, rowIndex, template, editingTemplate); }
@@ -31,6 +32,7 @@ public partial class TreeDataGridCell
     internal void RealizeInRow(TreeDataGridElementFactory factory, ITreeDataGridSelectionInteraction? selection,
         UICell model, int columnIndex, int rowIndex, IRow row, object? rowModel, CellColumn? column)
     {
+        if (_unrealizing) throw new InvalidOperationException("Cell unrealization is in progress.");
         if (_standaloneRow is not null) throw new InvalidOperationException("Cell realization is already in progress.");
         _standaloneRow = (row, rowModel, column);
         try { Realize(factory, selection, model, columnIndex, rowIndex); }
@@ -44,6 +46,7 @@ public partial class TreeDataGridCell
     public virtual void Realize(TreeDataGridElementFactory factory, ITreeDataGridSelectionInteraction? selection,
         UICell model, int columnIndex, int rowIndex)
     {
+        if (_unrealizing) throw new InvalidOperationException("Cell unrealization is in progress.");
         ArgumentNullException.ThrowIfNull(factory);
         ArgumentNullException.ThrowIfNull(model);
         if (ColumnIndex >= 0 || RowIndex >= 0) throw new InvalidOperationException("Cell is already realized.");

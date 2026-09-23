@@ -58,6 +58,9 @@ public partial class App
             case "edit-start-reentrancy": return EditStartReentrancyRuntimeChecks.RunAsync(page);
             case "edit-completion-reentrancy": return EditCompletionReentrancyRuntimeChecks.RunAsync(page);
             case "cell-lifecycle": return CellLifecycleRuntimeChecks.RunAsync(page.Grid);
+            case "cell-retirement":
+                CellRetirementRuntimeChecks.Run();
+                return Task.CompletedTask;
             case "presentation-options": return PresentationOptionsRuntimeChecks.RunAsync(page.Grid);
             case "custom-column-base": return CellColumnBaseRuntimeChecks.RunAsync(page.Grid);
             case "column-compatibility": return ColumnCompatibilityRuntimeChecks.RunAsync(page.Grid, Template("RuntimeCellTemplate"), Template("RuntimeEditingTemplate"));

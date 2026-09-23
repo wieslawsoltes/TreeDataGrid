@@ -32,7 +32,7 @@ public partial class TreeDataGridCell
             _editor.Text = value;
         }
     }
-    public virtual bool BeginEdit() => BeginEditForCurrentRealization();
+    public virtual bool BeginEdit() => !_unrealizing && BeginEditForCurrentRealization();
     protected override void OnLostFocus(RoutedEventArgs e)
     {
         base.OnLostFocus(e);
@@ -92,7 +92,7 @@ public partial class TreeDataGridCell
                 // new transaction before returning (or throwing). Only retire
                 // the visual state that still belongs to our old realization.
                 if (realization == RealizationVersion && _edit is null && EndEditingVisuals() &&
-                    realization == RealizationVersion && _edit is null)
+                    realization == RealizationVersion && _edit is null && !_unrealizing)
                     UpdateValue();
             }
             catch (Exception cleanup) when (failure is not null)

@@ -126,6 +126,7 @@ public partial class TreeDataGridCell : Control
 
     public virtual void Realize(CellColumn column, CellValue value, IRow row, int columnIndex, int rowIndex, DataTemplate? template, DataTemplate? editingTemplate = null)
     {
+        if (_unrealizing) throw new InvalidOperationException("Cell unrealization is in progress.");
         if (_directRealization)
         {
             RealizeCore(column, value, row, _standaloneRow is { } standalone ? standalone.Model : row.Model, columnIndex, rowIndex, template, editingTemplate);
@@ -144,6 +145,7 @@ public partial class TreeDataGridCell : Control
     private void RealizeCore(CellColumn column, CellValue value, IRow row, object? rowModel, int columnIndex, int rowIndex,
         DataTemplate? template, DataTemplate? editingTemplate)
     {
+        if (_unrealizing) throw new InvalidOperationException("Cell unrealization is in progress.");
         if (RowIndex >= 0 || ColumnIndex >= 0) throw new InvalidOperationException("Cell is already realized.");
         if (rowIndex < 0) throw new ArgumentOutOfRangeException(nameof(rowIndex));
         if (columnIndex < 0) throw new ArgumentOutOfRangeException(nameof(columnIndex));
@@ -172,61 +174,22 @@ public partial class TreeDataGridCell : Control
         if (!_rebinding) UpdateValue();
     }
 
-    public virtual void Unrealize()
-    {
-        var adapter = _standaloneAdapter;
-        _standaloneAdapter = null;
-        try
-        {
-            if (_prepared)
-            {
-                _prepared = false;
-                Presenter?.Owner?.RaiseCellClearing(this, ColumnIndex, RowIndex);
-            }
-        }
-        finally
-        {
-            try { CancelEdit(); }
-            finally
-            {
-                try
-                {
-                    UnsubscribeFromModelChanges();
-                    _value = null;
-                    _expanderValue = null;
-                    Row = null;
-                    RowModel = null;
-                    OwningRow = null;
-                    RowIndex = ColumnIndex = -1;
-                    Column = null;
-                    ContainerFactory = null;
-                    IsSelected = IsCurrent = false;
-                    IsRowSelected = false;
-                    if (!_rebinding) ClearContent();
-                    NotifyAutomationValueChanged();
-                }
-                finally { adapter?.Dispose(); }
-            }
-        }
-    }
+    public virtual void Unrealize() => UnrealizeCore();
+
     internal void NotifyPrepared()
     {
-        if (_prepared || RowIndex < 0 || ColumnIndex < 0) return;
+        if (_prepared || _unrealizing || RowIndex < 0 || ColumnIndex < 0) return;
         _prepared = true;
         NotifyAutomationValueChanged();
         Presenter?.Owner?.RaiseCellPrepared(this, ColumnIndex, RowIndex);
     }
     protected void RaiseCellValueChanged()
     {
-        if (_prepared && !IsEditing && !_rebinding && RowIndex >= 0 && ColumnIndex >= 0)
+        if (_prepared && !_unrealizing && !IsEditing && !_rebinding && RowIndex >= 0 && ColumnIndex >= 0)
             Presenter?.Owner?.RaiseCellValueChanged(this, ColumnIndex, RowIndex);
     }
-    protected virtual void ClearContent()
-    {
-        if (_content is not null) _content.Content = null;
-        if (_text is not null) _text.Text = string.Empty;
-        Visibility = Visibility.Collapsed;
-    }
+    protected virtual void ClearContent() => ClearBaseContent();
+
     private void UpdateContentKind()
     {
         if (_expander is not null)
@@ -261,13 +224,13 @@ public partial class TreeDataGridCell : Control
     }
     private void OnValueChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (_rebinding || !ReferenceEquals(sender, _value)) return;
+        if (_unrealizing || _rebinding || !ReferenceEquals(sender, _value)) return;
         OnModelPropertyChanged(Model, e);
     }
     /// <summary>Observe the current model once; repeated calls by derived cells are safe.</summary>
     protected void SubscribeToModelChanges()
     {
-        if (ReferenceEquals(_subscribedValue, _value)) return;
+        if (_unrealizing || ReferenceEquals(_subscribedValue, _value)) return;
         UnsubscribeFromModelChanges();
         if (_value is { } value)
         {
@@ -305,7 +268,7 @@ public partial class TreeDataGridCell : Control
     protected bool IsRebinding => _rebinding;
     protected void RefreshCellPresentation()
     {
-        if (_rebinding) return;
+        if (_rebinding || _unrealizing) return;
         Presenter?.InvalidateRowHeight(RowIndex);
         UpdateContentKind();
         RenderValue();
