@@ -46,6 +46,10 @@ public partial class App : Application
             await SelectionInteractionRuntimeChecks.RunAsync(page);
             await FocusRuntimeChecks.RunAsync(page);
             await EditingRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"], (DataTemplate)page.Resources["RuntimeEditingTemplate"]);
+            // Exercise the same ownership boundaries in the sequential native
+            // and published trimmed browser consumers, not only isolated hosts.
+            await EditStartReentrancyRuntimeChecks.RunAsync(page);
+            await EditCompletionReentrancyRuntimeChecks.RunAsync(page);
             await CellLifecycleRuntimeChecks.RunAsync(page.Grid);
             await PresentationOptionsRuntimeChecks.RunAsync(page.Grid);
             await ColumnCompatibilityRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"], (DataTemplate)page.Resources["RuntimeEditingTemplate"]);

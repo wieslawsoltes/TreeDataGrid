@@ -69,7 +69,16 @@ public partial class TreeDataGridCell
     protected internal void EndEdit() => CommitEdit();
     public virtual void CancelEdit()
     {
-        if (_edit is not { } edit) return;
+        if (_edit is not { } edit)
+        {
+            // A model cancellation can reenter Unrealize after its session was
+            // detached but before its native IsEditing flag was cleared. Retire
+            // that visual transition before the control is realized again.
+            var generation = RealizationVersion;
+            var editing = IsEditing;
+            if (editing && generation == RealizationVersion && _edit is null) EndEditingVisuals();
+            return;
+        }
         var realization = RealizationVersion;
         _edit = null;
         Exception? failure = null;
