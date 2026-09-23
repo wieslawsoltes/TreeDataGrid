@@ -32,13 +32,13 @@ public partial class TreeDataGrid
             var subscribe = _selectionChanged is null && value is not null;
             _selectionChanged += value;
             if (subscribe && _presentation is not null)
-                _presentation.Selection.SelectionChanged += OnDetailedSelectionChanged;
+                ObserveDetailedSelection(_presentation, true);
         }
         remove
         {
             _selectionChanged -= value;
             if (_selectionChanged is null && _presentation is not null)
-                _presentation.Selection.SelectionChanged -= OnDetailedSelectionChanged;
+                ObserveDetailedSelection(_presentation, false);
         }
     }
     public event CancelEventHandler? SelectionChanging;
@@ -86,8 +86,10 @@ public partial class TreeDataGrid
     private void OnDetailedSelectionChanged(object? sender, TreeDataGridSelectionChangedEventArgs e)
     {
         if (!_loaded || !ReferenceEquals(sender, _presentation?.Selection)) return;
+        var revision = _presentationRevision;
         _presenter?.RefreshSelection();
-        _selectionChanged?.Invoke(this, e);
+        if (_loaded && revision == _presentationRevision && ReferenceEquals(sender, _presentation?.Selection))
+            _selectionChanged?.Invoke(this, e);
     }
     public bool BringCellIntoView(int row, int column)
     {

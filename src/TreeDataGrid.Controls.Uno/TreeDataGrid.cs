@@ -166,7 +166,7 @@ public partial class TreeDataGrid : Control
                     previous.Columns.LayoutInvalidated -= OnColumnLayoutInvalidated;
                     previous.RowsChanged -= OnRowsChanged;
                     previous.PropertyChanged -= OnPresentationPropertyChanged;
-                    previous.Selection.SelectionChanged -= OnDetailedSelectionChanged;
+                    ObserveDetailedSelection(previous, false);
                 }
                 if (revision != _presentationRevision) return;
                 _presentation = next;
@@ -178,7 +178,7 @@ public partial class TreeDataGrid : Control
                     _presentation.RowsChanged += OnRowsChanged;
                     _presentation.PropertyChanged += OnPresentationPropertyChanged;
                     if (_selectionChanged is not null)
-                        _presentation.Selection.SelectionChanged += OnDetailedSelectionChanged;
+                        ObserveDetailedSelection(_presentation, true);
                 }
                 if (!PublishPresentationProperties(revision)) return;
                 UpdateSelectionInteraction();
