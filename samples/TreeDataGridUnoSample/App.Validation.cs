@@ -68,6 +68,7 @@ public partial class App
             case "standalone-cell":
                 StandaloneCellRuntimeChecks.Run(Template("RuntimeCellTemplate"));
                 return Task.CompletedTask;
+            case "public-expander": return PublicExpanderRuntimeChecks.RunAsync(page);
             case "standalone-row": return StandaloneRowRuntimeChecks.RunAsync(page);
             case "generic-presenter": return ReviewRuntimeDiagnostics.RunGenericPresenterAsync(page);
             case "bring-into-view": return BringIntoViewRuntimeChecks.RunAsync(page);

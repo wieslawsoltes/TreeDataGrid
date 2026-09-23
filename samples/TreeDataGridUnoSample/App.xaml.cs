@@ -63,6 +63,7 @@ public partial class App : Application
             await ElementFactoryRuntimeChecks.RunAsync(page.Grid);
             StandaloneCellRuntimeChecks.Run((DataTemplate)page.Resources["RuntimeCellTemplate"]);
             await StandaloneRowRuntimeChecks.RunAsync(page);
+            await PublicExpanderRuntimeChecks.RunAsync(page);
             await GenericPresenterRuntimeChecks.RunAsync(page);
             await SpecializedCellRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"],
                 (DataTemplate)page.Resources["RuntimeEditingTemplate"], (Microsoft.UI.Xaml.Controls.ControlTemplate)page.Resources["CompatibleTextCellTemplate"],
