@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using TreeDataGridCore;
 using Uno.Controls.Models.TreeDataGrid;
 using Uno.Controls.Presentation;
@@ -9,49 +11,57 @@ using Windows.Foundation;
 
 namespace TreeDataGridUnoSample;
 
-/// <summary>Verifies the hosted extent path without timing-dependent assertions.</summary>
+/// <summary>Verifies hosted extents through the public, package-consumer presenter contracts.</summary>
 internal static class CommittedExtentRuntimeChecks
 {
-    internal static void Run()
+    internal static async Task RunAsync(MainPage page)
     {
-        Run(2);
-        Run(1024);
+        await RunAsync(page, 2);
+        await RunAsync(page, 1024);
         Console.WriteLine("UNO_RUNTIME_COMMITTED_EXTENT_PASSED: 2/1024 columns, zero estimator calls for hosted geometry, changed commits, cardinality/identity guards, standalone fallback and allocation-free warm queries");
     }
 
-    private static void Run(int count)
+    private static async Task RunAsync(MainPage page, int count)
     {
+        var previous = page.Content;
         using var source = new FlatTreeDataGridSource<Item>([new()]);
         for (var index = 0; index < count; ++index)
             source.Columns.Add(new TreeDataGridCore.Models.TextColumn<Item, string>("Name", item => item.Name, width: new(60)));
         using var presentation = TreeDataGridPresentation.Create(source);
         var columns = new CountingColumns();
-        columns.AddRange(presentation.NativeColumns);
-        var widths = Enumerable.Repeat(60d, count).ToArray();
-        var parent = new TreeDataGridRowsPresenter { Columns = columns };
-        var row = new TreeDataGridRow();
-        var cells = new ExtentProbe();
+        columns.AddRange(presentation.Columns.Cast<CellColumn>());
+        var template = (ControlTemplate)new CommittedExtentResources()["ExtentRowTemplate"];
+        var parent = new TreeDataGridRowsPresenter
+        {
+            Columns = columns, Items = presentation.Rows, ElementFactory = new Factory(template),
+        };
+        var scroll = new ScrollViewer
+        {
+            Width = 240, Height = 120, Content = parent,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+        };
+        var standalone = new CommittedExtentProbe { Items = columns };
         try
         {
-            // A standalone public presenter must still invoke the caller's
-            // estimator. Its result is deliberately distinct from real widths.
-            cells.Items = columns;
-            Check(cells.Extent(321) == CountingColumns.Sentinel && columns.Estimates == 1,
+            Check(standalone.Extent(321) == CountingColumns.Sentinel && columns.Estimates == 1,
                 "Standalone extent calculation bypassed the public estimator.");
-            cells.Reset();
-
-            parent.Geometry.CommitSpan(widths);
-            row.Realize(parent, new(), null, columns, presentation.Rows, 0);
-            cells.Attach(row);
+            standalone.Items = null;
+            page.Content = scroll;
+            await Settle();
+            var row = parent.TryGetElement(0) ?? throw new InvalidOperationException("The public presenter did not realize its first row.");
+            var cells = row.CellsPresenter as CommittedExtentProbe ??
+                throw new InvalidOperationException("The compiled row template did not supply the extent probe.");
             var calls = columns.Estimates;
             Check(cells.Extent(double.PositiveInfinity) == count * 60d && columns.Estimates == calls,
                 "A hosted cell presenter rescanned its columns instead of using committed geometry.");
-            widths[^1] = 97;
-            parent.Geometry.CommitSpan(widths);
+            columns.SetColumnWidth(count - 1, new Microsoft.UI.Xaml.GridLength(97));
+            await Settle();
+            Check(ReferenceEquals(parent.TryGetElement(0), row), "A width update replaced its native row.");
+            calls = columns.Estimates;
             Check(cells.Extent(19) == count * 60d + 37 && columns.Estimates == calls,
                 "A hosted extent query retained an obsolete width or used the clipping constraint.");
 
-            // Warm the exact production query before measuring thread allocation.
             for (var index = 0; index < 1024; ++index) cells.Extent(19);
             var sum = 0d;
             var before = GC.GetAllocatedBytesForCurrentThread();
@@ -60,33 +70,40 @@ internal static class CommittedExtentRuntimeChecks
             Check(allocated == 0 && columns.Estimates == calls && sum == 4096 * (count * 60d + 37),
                 $"Hosted extent queries allocated {allocated} bytes or evaluated an estimator.");
 
-            parent.Geometry.CommitSpan(widths.AsSpan(0, count - 1));
-            Check(cells.Extent(99) == CountingColumns.Sentinel && columns.Estimates == ++calls,
+            // Collection notifications precede the next native measure/geometry
+            // commit. The public query must not return that older cardinality.
+            columns.Add((CellColumn)presentation.Columns[0]);
+            calls = columns.Estimates;
+            Check(cells.Extent(99) == CountingColumns.Sentinel && columns.Estimates == calls + 1,
                 "A column-count mismatch reused old committed geometry.");
-            parent.Geometry.CommitSpan(widths);
+            columns.RemoveAt(count);
+            await Settle();
             var different = new CountingColumns();
-            different.AddRange(presentation.NativeColumns);
+            different.AddRange(presentation.Columns.Cast<CellColumn>());
             try
             {
                 cells.Items = different;
                 Check(cells.Extent(99) == CountingColumns.Sentinel && different.Estimates == 1,
                     "An unrelated column collection borrowed the parent's extent.");
                 cells.Items = columns;
+                calls = columns.Estimates;
                 Check(cells.Extent(99) == count * 60d + 37 && columns.Estimates == calls,
                     "Restoring the matching collection did not restore committed extent lookup.");
             }
             finally { different.Clear(); }
-            cells.Reset();
-            Check(cells.Extent(99) == 0, "A retired presenter retained its old extent.");
+            cells.Items = null;
+            Check(cells.Extent(99) == 0, "An unconfigured presenter retained its old extent.");
         }
         finally
         {
-            cells.Reset();
-            row.Unrealize();
-            row.Release();
-            parent.Reset();
+            standalone.Items = null;
+            parent.Items = null;
+            parent.Columns = null;
+            scroll.Content = null;
             columns.Clear();
+            page.Content = previous;
         }
+        async Task Settle() { await Task.Delay(100); scroll.UpdateLayout(); }
     }
 
     private static void Check(bool condition, string message)
@@ -95,9 +112,10 @@ internal static class CommittedExtentRuntimeChecks
     }
 
     private sealed class Item { public string Name => "Item"; }
-    private sealed class ExtentProbe : TreeDataGridCellsPresenter
+    private sealed class Factory(ControlTemplate template) : TreeDataGridElementFactory
     {
-        internal double Extent(double constraint) => CalculateSizeU(new Size(constraint, 40));
+        protected override Control CreateElement(object? data) => data is TreeDataGridCore.Models.IRow
+            ? new TreeDataGridRow { Template = template } : base.CreateElement(data);
     }
     private sealed class CountingColumns : ColumnListBase<CellColumn>, IColumns
     {
@@ -105,4 +123,10 @@ internal static class CommittedExtentRuntimeChecks
         internal int Estimates;
         double IColumns.GetEstimatedWidth(double constraint) { ++Estimates; return Sentinel; }
     }
+}
+
+/// <summary>Public only for compiled sample XAML; exercises the protected presenter contract.</summary>
+public sealed partial class CommittedExtentProbe : TreeDataGridCellsPresenter
+{
+    internal double Extent(double constraint) => CalculateSizeU(new Size(constraint, 40));
 }
