@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.CollectionsSpecialized;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
