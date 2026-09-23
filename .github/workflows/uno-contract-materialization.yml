@@ -1,79 +1,66 @@
-name: Uno contract materialization
+name: Uno contract reproducibility
 on:
   push:
-    branches: [codex/uno-core-port]
+    branches: [master, codex/uno-core-port]
     paths:
       - build/materialize-uno-parity-contracts.py
-      - build/uno-parity-inputs/*.cs.txt
+      - build/uno-parity-inputs/**
+      - src/TreeDataGrid.Core/**
+      - src/TreeDataGrid.Controls.Uno/**
+      - src/Avalonia.Controls.TreeDataGrid/**
+      - tests/TreeDataGrid.Parity.Tests/**
+      - tools/TreeDataGrid.ApiAudit/**
+      - .github/workflows/uno-contract-materialization.yml
+  pull_request:
+    paths:
+      - build/materialize-uno-parity-contracts.py
+      - build/uno-parity-inputs/**
+      - src/TreeDataGrid.Core/**
+      - src/TreeDataGrid.Controls.Uno/**
+      - src/Avalonia.Controls.TreeDataGrid/**
+      - tests/TreeDataGrid.Parity.Tests/**
+      - tools/TreeDataGrid.ApiAudit/**
       - .github/workflows/uno-contract-materialization.yml
 permissions:
   contents: read
 concurrency:
-  group: uno-contract-materialization-${{ github.ref }}
-  cancel-in-progress: false
+  group: uno-contract-reproducibility-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  materialize-and-validate:
-    if: github.repository == 'wieslawsoltes/TreeDataGrid' && github.ref == 'refs/heads/codex/uno-core-port'
+  verify-committed-contracts:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
-    permissions:
-      contents: write
+    timeout-minutes: 15
     env:
       DOTNET_NOLOGO: true
       DOTNET_CLI_TELEMETRY_OPTOUT: true
-      TreeDataGridUnoSampleTargetFrameworks: net10.0-desktop
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          persist-credentials: false
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
             8.0.x
             10.0.201
-      - name: Materialize hash-pinned contract sources
-        run: python3 build/materialize-uno-parity-contracts.py
-      - name: Compile and compare the actual framework contracts
-        run: dotnet test tests/TreeDataGrid.Parity.Tests/TreeDataGrid.Parity.Tests.csproj -c Release -p:TreeDataGridUnoTargetFrameworks=net10.0 --logger trx --results-directory artifacts/materialized-contract-tests
-      - name: Require reproducible materialization
+      - name: Verify hash-pinned inputs and exact generated sources offline
         run: python3 build/materialize-uno-parity-contracts.py --check
-      - name: Commit only the reviewed generated file allowlist
-        env:
-          EXPECTED_HEAD: ${{ github.sha }}
-        run: |
-          python3 - <<'PY'
-          import json, os, pathlib, subprocess
-          paths = json.loads(pathlib.Path('artifacts/uno-contract-outputs.json').read_text())
-          allowed = ('src/TreeDataGrid.Core/Selection/', 'src/TreeDataGrid.Controls.Uno/Selection/',
-                     'src/TreeDataGrid.Controls.Uno/Experimental/', 'tests/TreeDataGrid.Parity.Tests/',
-                     'build/uno-parity-inputs/upstream/', 'docs/uno-contract-materialization.json')
-          if any(not p.startswith(allowed) or '..' in pathlib.PurePosixPath(p).parts for p in paths):
-              raise SystemExit('Unexpected generated output path')
-          branch = 'refs/heads/codex/uno-core-port'
-          remote = subprocess.check_output(['git', 'ls-remote', 'origin', branch], text=True).split()[0]
-          if remote != os.environ['EXPECTED_HEAD']:
-              raise SystemExit('Branch advanced during validation; refusing to overwrite it')
-          subprocess.run(['git', 'add', '--', *paths], check=True)
-          staged = set(subprocess.check_output(['git', 'diff', '--cached', '--name-only'], text=True).splitlines())
-          if not staged.issubset(set(paths)):
-              raise SystemExit('Unexpected staged paths')
-          if staged:
-              subprocess.run(['git', '-c', 'user.name=github-actions[bot]', '-c', 'user.email=41898282+github-actions[bot]@users.noreply.github.com',
-                              'commit', '-m', 'Implement shared Core flat selection and native missing extension contracts'], check=True)
-              subprocess.run(['git', 'push', 'origin', 'HEAD:' + branch], check=True)
-          print('UNO_MATERIALIZED_COMMIT=' + subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip())
-          PY
-      - name: Install native validation dependencies
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq xvfb libfontconfig1 libx11-6 libxrandr2 libxi6 libxcursor1 libgl1
-      - name: Validate the exact committed product
-        run: python3 -u build/validate-uno-linux.py
+      - name: Compile and compare the actual framework contracts
+        run: dotnet test tests/TreeDataGrid.Parity.Tests/TreeDataGrid.Parity.Tests.csproj -c Release -p:TreeDataGridUnoTargetFrameworks=net10.0 --logger trx --results-directory artifacts/contract-reproducibility-tests
+      - name: Exercise the compiled metadata reader including nonfinite constants
+        run: dotnet run --project tools/TreeDataGrid.ApiAudit -c Release -- --self-test
       - name: Require unchanged product sources
         if: always()
         run: git diff --exit-code && git diff --cached --exit-code
+      - name: Record exact validation input
+        if: always()
+        run: |
+          mkdir -p artifacts
+          git rev-parse HEAD > artifacts/validated-revision.txt
+          git rev-parse HEAD^{tree} > artifacts/validated-tree.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: uno-materialized-contract-evidence
+          name: uno-contract-reproducibility
           path: artifacts
           if-no-files-found: error
           retention-days: 14
