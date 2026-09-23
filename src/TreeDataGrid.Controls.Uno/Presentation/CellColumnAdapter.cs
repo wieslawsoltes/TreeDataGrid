@@ -24,8 +24,21 @@ internal sealed class CellColumnAdapter<TModel> : CellColumn where TModel : clas
     }
     public override object? Header { get => _inner.Header; set => throw new NotSupportedException("The custom column owns its header."); }
     public override bool? CanUserResize => _inner.CanUserResize;
-    public override double MinimumWidth => _inner.MinActualWidth;
-    public override double MaximumWidth => _inner.MaxActualWidth;
+    public override double MinimumWidth => GetConstraint(maximum: false);
+    public override double MaximumWidth => GetConstraint(maximum: true);
+    private double GetConstraint(bool maximum)
+    {
+        var value = maximum ? _inner.MaxActualWidth : _inner.MinActualWidth;
+        if (!double.IsNaN(value) || HasWidthMeasurement || _inner is not CellColumnBase<TModel> column)
+            return value;
+        // The reference custom-column base reports NaN for unmeasured Auto
+        // constraints. Give native layout a discovery interval, without faking
+        // a measurement or changing that public contract. Only this known base
+        // receives the bridge; invalid arbitrary custom constraints still fail.
+        var minimum = column.Options.MinWidth.IsAuto ? 0 : column.Options.MinWidth.Value;
+        var limit = column.Options.MaxWidth is { IsAuto: false } bound ? bound.Value : double.PositiveInfinity;
+        return Math.Min(limit, Math.Max(minimum, maximum ? double.PositiveInfinity : 0));
+    }
     // Match Avalonia's opt-in measurement contract. Unannotated custom
     // columns retain conservative natural measurement for Auto constraints.
     public override bool RequiresUnconstrainedWidthMeasurement =>

@@ -53,6 +53,7 @@ public partial class App
             case "editing": return EditingRuntimeChecks.RunAsync(page.Grid, Template("RuntimeCellTemplate"), Template("RuntimeEditingTemplate"));
             case "cell-lifecycle": return CellLifecycleRuntimeChecks.RunAsync(page.Grid);
             case "presentation-options": return PresentationOptionsRuntimeChecks.RunAsync(page.Grid);
+            case "custom-column-base": return CellColumnBaseRuntimeChecks.RunAsync(page.Grid);
             case "column-compatibility": return ColumnCompatibilityRuntimeChecks.RunAsync(page.Grid, Template("RuntimeCellTemplate"), Template("RuntimeEditingTemplate"));
             case "source-extensions": return SourceExtensionsRuntimeChecks.RunAsync(page.Grid, Template("RuntimeCellTemplate"), Template("RuntimeEditingTemplate"));
             case "declarative": return DeclarativeRuntimeChecks.RunAsync(page);
