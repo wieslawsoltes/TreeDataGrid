@@ -22,7 +22,10 @@ jobs:
           dotnet-version: 10.0.201
       - name: Restore the current native validation projects
         run: |
+          dotnet restore tests/TreeDataGrid.Core.Tests/TreeDataGrid.Core.Tests.csproj
+          dotnet restore samples/TreeDataGridUnoSample.Tests/TreeDataGridUnoSample.Tests.csproj
           dotnet restore samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj
+          dotnet restore samples/TreeDataGridUnoActivityMonitor/TreeDataGridUnoActivityMonitor.csproj
           dotnet restore tests/TreeDataGrid.Uno.Tests/TreeDataGrid.Uno.Tests.csproj -p:TreeDataGridUnoTargetFrameworks=net10.0
           dotnet restore tests/Avalonia.Controls.TreeDataGrid.Tests/Avalonia.Controls.TreeDataGrid.Tests.csproj
           dotnet restore benchmarks/TreeDataGrid.Parity.Avalonia/TreeDataGrid.Parity.Avalonia.csproj

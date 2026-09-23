@@ -382,7 +382,10 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="primitives:TreeDataGridTextCell">
-          <Border x:Name="CellBorder" Background="{TemplateBinding Background}"
+          <!-- The scalar text template uses only TemplateBindings. Isolate its
+               private visual/state graph from row DataContext churn while the
+               public row and cell retain their ordinary inherited contexts. -->
+          <Border x:Name="CellBorder" DataContext="{x:Null}" Background="{TemplateBinding Background}"
                   BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
                   CornerRadius="{TemplateBinding CornerRadius}">
             <Grid>

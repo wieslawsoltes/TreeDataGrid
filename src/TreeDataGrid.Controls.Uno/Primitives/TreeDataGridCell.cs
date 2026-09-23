@@ -53,8 +53,8 @@ public partial class TreeDataGridCell : Control
         _kind = kind;
         DefaultStyleKey = typeof(TreeDataGridCell);
     }
-    public bool IsSelected { get => (bool)GetValue(IsSelectedProperty); set => SetValue(IsSelectedProperty, value); }
-    public bool IsCurrent { get => (bool)GetValue(IsCurrentProperty); set => SetValue(IsCurrentProperty, value); }
+    public bool IsSelected { get => (bool)GetValue(IsSelectedProperty); set => SetValue(IsSelectedProperty, BooleanBoxes.Box(value)); }
+    public bool IsCurrent { get => (bool)GetValue(IsCurrentProperty); set => SetValue(IsCurrentProperty, BooleanBoxes.Box(value)); }
     private static void OnStateChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e) => ((TreeDataGridCell)sender).UpdateState();
     protected virtual void UpdateState()
     {

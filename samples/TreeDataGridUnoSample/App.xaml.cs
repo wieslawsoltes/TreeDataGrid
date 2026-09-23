@@ -71,9 +71,7 @@ public partial class App : Application
             Console.WriteLine("UNO_CORE_SAMPLE_SMOKE_PASSED");
             SampleRunContext.ReportResult(true);
 
-#if !__WASM__
-            Exit();
-#endif
+            CompleteNativeValidation();
         }
         catch (Exception error)
         {
@@ -82,6 +80,20 @@ public partial class App : Application
             if (!OperatingSystem.IsBrowser()) Environment.Exit(1);
         }
     }
+    private void CompleteNativeValidation()
+    {
+        if (OperatingSystem.IsBrowser()) return;
+#if TREEDATAGRID_SKIA
+        // Application.Exit requests immediate host termination; on X11 that can
+        // race its render thread. Closing the last native window instead lets
+        // the host stop and join the render loop before terminating normally.
+        DispatcherShutdownMode = DispatcherShutdownMode.OnLastWindowClose;
+        _window?.Close();
+#else
+        Exit();
+#endif
+    }
+
     private static async Task CaptureAsync(UIElement element, string name)
     {
         var args = SampleRunContext.Arguments;

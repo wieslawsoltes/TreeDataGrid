@@ -22,6 +22,7 @@ public partial class TreeDataGridCellsPresenter : TreeDataGridColumnarPresenterB
     private readonly Dictionary<TreeDataGridCell, CellLease> _owned = new();
     private readonly Dictionary<IColumn, Stack<TreeDataGridCell>> _pool = new(ReferenceEqualityComparer.Instance);
     private readonly Dictionary<TreeDataGridCell, PoolEntry> _pooled = new();
+    private EmptyStackPool<TreeDataGridCell> _emptyPoolStacks;
     private readonly Dictionary<TreeDataGridCell, PoolEntry> _recycling = new();
     private readonly HashSet<TreeDataGridCell> _deferred = new();
     private readonly Dictionary<TreeDataGridCell, CellLease> _retainedModels = new();
@@ -123,6 +124,7 @@ public partial class TreeDataGridCellsPresenter : TreeDataGridColumnarPresenterB
         Run(() => Rows = null);
         Run(() => ElementFactory = null);
         _row = null;
+        _emptyPoolStacks.Clear();
         ObserveRows();
         _resettingCells = false;
         ThrowErrors(errors);
@@ -190,7 +192,11 @@ public partial class TreeDataGridCellsPresenter : TreeDataGridColumnarPresenterB
             var legacy = nativePresenter?.Owner is { HasCustomCellFactory: true } owner && ReferenceEquals(factory, owner.ElementFactory);
             while (_pool.TryGetValue(column, out var pool) && pool.TryPop(out var candidate))
             {
-                if (pool.Count == 0) _pool.Remove(column);
+                if (pool.Count == 0)
+                {
+                    _pool.Remove(column);
+                    _emptyPoolStacks.ReturnEmpty(pool);
+                }
                 ReleaseReservation(candidate);
                 var reusable = false;
                 try
@@ -260,7 +266,11 @@ public partial class TreeDataGridCellsPresenter : TreeDataGridColumnarPresenterB
         if (candidate is null) return null;
         var stack = _pool[previousColumn!];
         stack.Pop();
-        if (stack.Count == 0) _pool.Remove(previousColumn!);
+        if (stack.Count == 0)
+        {
+            _pool.Remove(previousColumn!);
+            _emptyPoolStacks.ReturnEmpty(stack);
+        }
         ReleaseReservation(candidate);
         var transferred = false;
         try
@@ -354,7 +364,7 @@ public partial class TreeDataGridCellsPresenter : TreeDataGridColumnarPresenterB
         var reserved = entry.BudgetOwner is { } owner ? owner.ReservePooledCell() : _pooled.Count < 64;
         if (!reserved) { RemoveRecycledElement(cell); return; }
         _pooled.Add(cell, entry);
-        if (!_pool.TryGetValue(entry.Column, out var pool)) _pool[entry.Column] = pool = new();
+        if (!_pool.TryGetValue(entry.Column, out var pool)) _pool[entry.Column] = pool = _emptyPoolStacks.Rent();
         pool.Push(cell);
     }
 
@@ -368,8 +378,14 @@ public partial class TreeDataGridCellsPresenter : TreeDataGridColumnarPresenterB
             if (_pool.TryGetValue(entry.Column, out var pool))
             {
                 var remaining = pool.Where(candidate => !ReferenceEquals(candidate, cell)).Reverse().ToArray();
-                if (remaining.Length == 0) _pool.Remove(entry.Column);
-                else _pool[entry.Column] = new(remaining);
+                pool.Clear();
+                if (remaining.Length == 0)
+                {
+                    _pool.Remove(entry.Column);
+                    _emptyPoolStacks.ReturnEmpty(pool);
+                }
+                else
+                    foreach (var retained in remaining) pool.Push(retained);
             }
         }
         try { FinalizeRecycledElement(cell); }

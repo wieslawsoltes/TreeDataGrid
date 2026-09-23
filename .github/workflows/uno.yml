@@ -158,10 +158,19 @@ jobs:
         run: |
           dotnet publish samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj -c Release -f net10.0-browserwasm -p:TreeDataGridUnoPackageVersion=12.0.0.7-ci.${{ github.run_id }} -p:RestoreAdditionalProjectSources="$GITHUB_WORKSPACE/artifacts/uno-pack" -o artifacts/browser/showcase
           dotnet publish samples/TreeDataGridUnoActivityMonitor/TreeDataGridUnoActivityMonitor.csproj -c Release -f net10.0-browserwasm -p:TreeDataGridUnoPackageVersion=12.0.0.7-ci.${{ github.run_id }} -p:RestoreAdditionalProjectSources="$GITHUB_WORKSPACE/artifacts/uno-pack" -o artifacts/browser/monitor
+      - name: Install pinned browser validation tools
+        run: |
+          python3 -m pip install playwright==1.57.0
+          python3 -m playwright install --with-deps chromium
+      - name: Execute published browser package consumers
+        run: python3 build/run-uno-browser.py --showcase artifacts/browser/showcase --monitor artifacts/browser/monitor
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: uno-browser-samples
-          path: artifacts/browser
+          path: |
+            artifacts/browser
+            artifacts/browser-runtime
           if-no-files-found: error
 
   windows-app-sdk-build:

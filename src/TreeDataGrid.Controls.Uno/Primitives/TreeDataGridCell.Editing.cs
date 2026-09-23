@@ -20,8 +20,8 @@ public partial class TreeDataGridCell
     private ContentPresenter? _editContent;
     private DataTemplate? _editingTemplate;
     protected bool UsesTextEditor => _editingTemplate is null;
-    public virtual bool IsEditing { get => (bool)GetValue(IsEditingProperty); protected set => SetValue(IsEditingProperty, value); }
-    public virtual bool HasValidationError { get => (bool)GetValue(HasValidationErrorProperty); protected set => SetValue(HasValidationErrorProperty, value); }
+    public virtual bool IsEditing { get => (bool)GetValue(IsEditingProperty); protected set => SetValue(IsEditingProperty, BooleanBoxes.Box(value)); }
+    public virtual bool HasValidationError { get => (bool)GetValue(HasValidationErrorProperty); protected set => SetValue(HasValidationErrorProperty, BooleanBoxes.Box(value)); }
     public virtual Exception? EditError => _edit?.Error;
     public virtual string EditingText
     {

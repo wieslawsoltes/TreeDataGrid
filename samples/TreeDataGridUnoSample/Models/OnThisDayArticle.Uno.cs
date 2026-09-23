@@ -54,11 +54,13 @@ internal partial class OnThisDayArticle
             ImageBrush? decodeConsumer = null;
             void Opened(object sender, RoutedEventArgs args) => decoded.TrySetResult(null);
             void Failed(object sender, ExceptionRoutedEventArgs args) => decoded.TrySetResult(args.ErrorMessage);
+#if !TREEDATAGRID_SKIA
             image.ImageOpened += Opened;
             image.ImageFailed += Failed;
+#endif
             try
             {
-#if __SKIA__
+#if TREEDATAGRID_SKIA
                 // Uno's ForceLoad subscribes (which may start a decode), then
                 // invalidates immediately (starting another and cancelling the
                 // first). A cancelled decode can overwrite successful dimensions.
@@ -66,7 +68,13 @@ internal partial class OnThisDayArticle
                 // until decoding finishes. Existing template consumers reuse the
                 // same operation; a recycled-away bitmap still decodes exactly once.
                 image.SetSource(randomAccess);
-                decodeConsumer = new ImageBrush { ImageSource = image };
+                decodeConsumer = new ImageBrush();
+                // BitmapImage.ImageOpened precedes publication to ImageSource
+                // consumers. Await the consumer notification so clearing the
+                // subscription or disposing a fixture cannot race publication.
+                decodeConsumer.ImageOpened += Opened;
+                decodeConsumer.ImageFailed += Failed;
+                decodeConsumer.ImageSource = image;
 #else
                 await image.SetSourceAsync(randomAccess);
 #endif
@@ -78,9 +86,16 @@ internal partial class OnThisDayArticle
             }
             finally
             {
-                decodeConsumer?.ClearValue(ImageBrush.ImageSourceProperty);
+                if (decodeConsumer is not null)
+                {
+                    decodeConsumer.ClearValue(ImageBrush.ImageSourceProperty);
+                    decodeConsumer.ImageOpened -= Opened;
+                    decodeConsumer.ImageFailed -= Failed;
+                }
+#if !TREEDATAGRID_SKIA
                 image.ImageOpened -= Opened;
                 image.ImageFailed -= Failed;
+#endif
             }
         }
         catch (Exception error) { ImageLoadError = error.ToString(); }

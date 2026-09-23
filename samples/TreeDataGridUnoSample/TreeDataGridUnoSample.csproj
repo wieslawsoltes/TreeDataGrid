@@ -14,6 +14,11 @@
     <TrimmerSingleWarn>false</TrimmerSingleWarn>
     <DefineConstants>$(DefineConstants);TREEDATAGRID_UNO_SAMPLE</DefineConstants>
   </PropertyGroup>
+  <!-- Application projects do not inherit Uno.UI's private __SKIA__ symbol.
+       Select the decoder path from this project's actual desktop target. -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-desktop'">
+    <DefineConstants>$(DefineConstants);TREEDATAGRID_SKIA</DefineConstants>
+  </PropertyGroup>
   <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
     <WindowsPackageType>None</WindowsPackageType>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>

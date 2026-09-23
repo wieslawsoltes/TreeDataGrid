@@ -40,7 +40,7 @@ public class TreeDataGridRow : Control
     private TreeDataGridRowAutomationPeer? _automationPeer;
     protected override AutomationPeer OnCreateAutomationPeer() => _automationPeer = new TreeDataGridRowAutomationPeer(this);
     internal void NotifyAutomationStateChanged() => _automationPeer?.NotifyStateChanged();
-    public bool IsSelected { get => (bool)GetValue(IsSelectedProperty); private set => SetValue(IsSelectedProperty, value); }
+    public bool IsSelected { get => (bool)GetValue(IsSelectedProperty); private set => SetValue(IsSelectedProperty, BooleanBoxes.Box(value)); }
     public object? Model => DataContext;
     public ITreeDataGridRows? Rows { get => (ITreeDataGridRows?)GetValue(RowsProperty); private set => SetValue(RowsProperty, value); }
     public IColumns? Columns { get => (IColumns?)GetValue(ColumnsProperty); private set => SetValue(ColumnsProperty, value); }
