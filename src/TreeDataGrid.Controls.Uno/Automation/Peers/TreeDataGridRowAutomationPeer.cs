@@ -29,6 +29,8 @@ public class TreeDataGridRowAutomationPeer : FrameworkElementAutomationPeer,
     private IExpander? Expander => IsRealized(Owner) && Owner.Rows is { } rows && Owner.RowIndex < rows.Count &&
         rows[Owner.RowIndex] is IExpander { ShowExpander: true } expander ? expander : null;
     public bool IsReadOnly => true;
+    /// <summary>Like the reference provider, row expansion exposes hierarchy, not a menu.</summary>
+    public bool ShowsMenu => false;
     public string Value => IsRealized(Owner) ? Owner.Model?.ToString() ?? string.Empty : string.Empty;
     public bool IsSelected => Selection is { } selection &&
         selection.IsSelected(Owner.Rows!.RowIndexToModelIndex(Owner.RowIndex));

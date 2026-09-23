@@ -8,7 +8,7 @@ namespace TreeDataGrid.Uno.Tests;
 public class TextSearchContractTests
 {
     [Fact]
-    public void Text_Column_Uses_The_Presentation_Format_And_Culture()
+    public void Text_Column_Separates_Reference_Search_From_Presentation_Format_And_Culture()
     {
         using var column = new TextColumn<Item, decimal>("Value", x => x.Value,
             options: new TextColumnOptions<Item>
@@ -19,7 +19,12 @@ public class TextSearchContractTests
             });
         var contract = Assert.IsAssignableFrom<ITextSearchableColumn<Item>>(column);
         Assert.True(contract.IsTextSearchEnabled);
-        Assert.Equal("Amount 12,50", contract.SelectValue(new(12.5m)));
+        var model = new Item(12.5m);
+        // Avalonia TextColumn's selector uses ValueSelector(model)?.ToString(),
+        // not display formatting. The direct framework contract project executes
+        // that public selector; retain the display assertion independently.
+        Assert.Equal(model.Value.ToString(), contract.SelectValue(model));
+        Assert.Equal("Amount 12,50", column.FormatValue(model.Value));
     }
 
     [Fact]

@@ -45,7 +45,8 @@ internal static class AutomationRuntimeChecks
             var selection = RuntimeAssertions.Pattern<ISelectionProvider>(gridPeer, PatternInterface.Selection);
             Check(selection.CanSelectMultiple && !selection.IsSelectionRequired, "Row selection capabilities are incorrect.");
             var rowPeer = RowPeer(0);
-            Check(rowPeer.GetAutomationControlType() == AutomationControlType.TreeItem && rowPeer.IsReadOnly, "Row automation contract is incorrect.");
+            Check(rowPeer.GetAutomationControlType() == AutomationControlType.TreeItem && rowPeer.IsReadOnly && !rowPeer.ShowsMenu,
+                "Row automation must expose the reference read-only hierarchy, not a menu.");
             rowPeer.Select();
             Check(source.RowSelection!.SelectedIndex == new IndexPath(0) && rowPeer.IsSelected && selection.GetSelection().Length == 1,
                 "Automation selection did not update actual Core row selection.");
@@ -56,8 +57,8 @@ internal static class AutomationRuntimeChecks
             rowPeer.Expand();
             await Task.Delay(100);
             rowPeer = RowPeer(0);
-            Check(source.Rows.Count == 3 && rowPeer.ExpandCollapseState == ExpandCollapseState.Expanded && rowPeer.ToggleState == ToggleState.On,
-                "Row expansion did not update shared Core rows.");
+            Check(source.Rows.Count == 3 && rowPeer.ExpandCollapseState == ExpandCollapseState.Expanded && rowPeer.ToggleState == ToggleState.On && !rowPeer.ShowsMenu,
+                "Row expansion did not update shared Core rows or exposed a menu.");
             Check(RowPeer(1).GetPattern(PatternInterface.ExpandCollapse) is null, "Leaf rows expose an expansion pattern.");
             Check(grid.TryGetCell(0, 0) is global::Uno.Controls.Primitives.TreeDataGridExpanderCell { IsExpanded: true } &&
                 grid.TryGetCell(0, 1) is global::Uno.Controls.Primitives.TreeDataGridExpanderCell { Indent: 1, ShowExpander: false },
@@ -115,8 +116,8 @@ internal static class AutomationRuntimeChecks
             try { rowPeer.Select(); }
             finally { grid.SelectionChanging -= Replace; }
             Check(source.RowSelection.Count == 0 && grid.Presentation is null, "A stale row provider mutated selection after source replacement.");
-            Check(!rowPeer.IsControlElement() && rowPeer.GetChildren() is null && rowPeer.GetPattern(PatternInterface.Value) is null,
-                "Retired row remained accessible.");
+            Check(!rowPeer.IsControlElement() && rowPeer.GetChildren() is null && rowPeer.GetPattern(PatternInterface.Value) is null && !rowPeer.ShowsMenu,
+                "Retired row remained accessible or exposed a menu.");
             Throws<InvalidOperationException>(() => rowPeer.Expand(), "Retired row provider accepted expansion.");
             Throws<InvalidOperationException>(() => text.SetValue("stale"), "Retired cell provider wrote its previous model.");
             Check(checkboxPeer.GetPattern(PatternInterface.Toggle) is null && !checkboxPeer.IsControlElement(),
@@ -124,7 +125,7 @@ internal static class AutomationRuntimeChecks
             Throws<InvalidOperationException>(() => checkboxPeer.Toggle(), "Retired checkbox peer accepted a public toggle.");
             Check(selection.GetSelection().Length == 0 && gridPeer.GetPattern(PatternInterface.Selection) is null,
                 "Grid peer retained the previous source selection.");
-            Console.WriteLine("UNO_RUNTIME_AUTOMATION_PASSED: roles, shared row selection, expansion, specialized checkbox peer/typed owner/nullable cycle/read-only, text values, disabled actions, ordered children, cell-selection exclusion, stale providers and reentrant replacement");
+            Console.WriteLine("UNO_RUNTIME_AUTOMATION_PASSED: roles, non-menu row expansion, shared selection, specialized checkbox/typed owner/nullable cycle/read-only, text values, disabled actions, ordered children, cell-selection exclusion, stale providers and reentrant replacement");
         }
         finally
         {
