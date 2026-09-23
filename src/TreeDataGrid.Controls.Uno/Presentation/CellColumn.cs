@@ -209,11 +209,24 @@ internal sealed class ExpanderCellColumn<TModel> : CellColumn where TModel : cla
     internal override void ModelChanged(PropertyChangedEventArgs e) { _inner.ModelChanged(e); base.ModelChanged(e); }
     public override CellValue CreateCell(IRow row)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         var expanderRow = (IExpanderRow<TModel>)row;
         var inner = _inner.CreateCell(row);
-        _inner.ConfigureCell(inner);
-        try { return new ExpanderCellValue<TModel>(_model, inner, expanderRow); }
-        catch { inner.Dispose(); throw; }
+        try
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            _inner.ConfigureCell(inner);
+            ObjectDisposedException.ThrowIf(_disposed, this);
+        }
+        catch (Exception error)
+        {
+            try { inner.Dispose(); }
+            catch (Exception cleanup) { throw new AggregateException(error, cleanup); }
+            throw;
+        }
+        // Ownership transfers at construction. The expander releases the inner
+        // value even if installing a subscription or reading metadata fails.
+        return new ExpanderCellValue<TModel>(_model, inner, expanderRow);
     }
     public override void Dispose()
     {
@@ -235,87 +248,4 @@ public abstract class ExpanderCellValue : CellValue, Uno.Controls.Models.TreeDat
     public override object? EditTarget => Inner.EditTarget;
     public abstract bool IsExpanded { get; set; }
     public abstract bool ShowExpander { get; }
-}
-
-internal sealed class ExpanderCellValue<TModel> : ExpanderCellValue where TModel : class
-{
-    private readonly HierarchicalExpanderColumn<TModel> _column;
-    private readonly IExpanderRow<TModel> _row;
-    private readonly CellBinding<TModel, bool>? _hasChildren;
-    private readonly IDisposable? _nativeHasChildren;
-    private INotifyCollectionChanged? _children;
-    private bool _disposed;
-    public ExpanderCellValue(HierarchicalExpanderColumn<TModel> column, CellValue inner, IExpanderRow<TModel> row)
-    {
-        _column = column;
-        _row = row;
-        Inner = inner;
-        Kind = CellKind.Expander;
-        EditGestures = inner.EditGestures;
-        try
-        {
-            if (column.HasChildrenSelector is { } selector)
-            {
-                _hasChildren = new(new ValueColumn<TModel, bool>("Has children", selector), Changed);
-                _hasChildren.Retarget(row.Model);
-            }
-            if (column is INativeExpanderBindings<TModel> native)
-                _nativeHasChildren = native.SubscribeToHasChildren(row.Model, () =>
-                {
-                    if (_disposed) return;
-                    _row.UpdateShowExpander(_column.HasChildren(_row.Model));
-                    Changed();
-                });
-            _row.PropertyChanged += OnRowChanged;
-            if (row.Model is INotifyPropertyChanged model) model.PropertyChanged += OnModelChanged;
-            Inner.PropertyChanged += OnInnerChanged;
-            SubscribeChildren();
-        }
-        catch { ReleaseSubscriptions(); throw; }
-    }
-    public override CellValue Inner { get; }
-    public override IRow Row => _row;
-    public override object? Value => Inner.Value;
-    public override string? DisplayText => Inner.DisplayText;
-    public override TextCellOptions? TextOptions => Inner.TextOptions;
-    public override bool CanEdit => Inner.CanEdit;
-    public override Exception? Error => Inner.Error;
-    public override void Write(object? value) => Inner.Write(value);
-    public override bool IsExpanded { get => _row.IsExpanded; set => _row.IsExpanded = value; }
-    public override bool ShowExpander => _row.ShowExpander &&
-        (_hasChildren is null || (_hasChildren.Error is null && _hasChildren.Value));
-    public override void Dispose()
-    {
-        if (_disposed) return;
-        _disposed = true;
-        ReleaseSubscriptions();
-        Inner.Dispose();
-    }
-    private void ReleaseSubscriptions()
-    {
-        _hasChildren?.Dispose();
-        _nativeHasChildren?.Dispose();
-        _row.PropertyChanged -= OnRowChanged;
-        if (_row.Model is INotifyPropertyChanged model) model.PropertyChanged -= OnModelChanged;
-        Inner.PropertyChanged -= OnInnerChanged;
-        if (_children is not null) _children.CollectionChanged -= OnChildrenChanged;
-        _children = null;
-    }
-    private void OnInnerChanged(object? sender, PropertyChangedEventArgs e) => RaisePropertyChanged(e);
-    private void OnRowChanged(object? sender, PropertyChangedEventArgs e) => RaisePropertyChanged(e);
-    private void OnModelChanged(object? sender, PropertyChangedEventArgs e) { SubscribeChildren(); Changed(); }
-    private void OnChildrenChanged(object? sender, NotifyCollectionChangedEventArgs e) => Changed();
-    private void Changed() => RaisePropertyChanged(nameof(ShowExpander));
-    private void SubscribeChildren()
-    {
-        // An explicit HasChildren binding is the model's lazy-expansion contract.
-        // Do not invoke a potentially expensive/unsupported child getter merely
-        // to render an expander; its binding already tracks its dependencies.
-        var next = _hasChildren is null && _column is not INativeExpanderBindings<TModel> { HasChildrenBinding: true }
-            ? _column.GetChildModels(_row.Model) as INotifyCollectionChanged : null;
-        if (ReferenceEquals(next, _children)) return;
-        if (_children is not null) _children.CollectionChanged -= OnChildrenChanged;
-        _children = next;
-        if (_children is not null) _children.CollectionChanged += OnChildrenChanged;
-    }
 }
