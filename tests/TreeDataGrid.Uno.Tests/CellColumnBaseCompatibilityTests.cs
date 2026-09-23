@@ -102,7 +102,9 @@ public sealed class CellColumnBaseCompatibilityTests
         var options = new View.CellColumnOptions
         {
             MinWidth = minAuto ? GridLength.Auto : new(30),
-            MaxWidth = maxAuto ? GridLength.Auto : null,
+            // Uno also converts string to GridLength. Without an explicit
+            // nullable operand the null arm can bind to that conversion.
+            MaxWidth = maxAuto ? (GridLength?)GridLength.Auto : null,
         };
         var column = new Probe(options: options);
         var layout = (UI.IUpdateColumnLayout)column;
