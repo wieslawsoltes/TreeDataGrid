@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
@@ -11,6 +12,9 @@ namespace TreeDataGridUnoSample;
 
 internal static class RowSizingRuntimeChecks
 {
+    // WrappingTemplate resolves this private runtime-only endpoint by name.
+    // Preserve the getter without rooting the sample assembly or disabling trimming.
+    [DynamicDependency(nameof(Item.Text), typeof(Item))]
     public static async Task RunAsync(Uno.Controls.TreeDataGrid grid, DataTemplate wrapping)
     {
         var items = new ObservableCollection<Item>(Enumerable.Range(0, 150).Select(i => new Item($"Row {i:000}",
