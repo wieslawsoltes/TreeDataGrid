@@ -32,7 +32,7 @@ jobs:
       - name: Run independent baseline, regression and candidate gates
         run: |
           python3 -u - <<'PY'
-          import json, os, shutil, subprocess
+          import json, shutil, subprocess
           from pathlib import Path
           output = Path('artifacts/viewport-candidate')
           output.mkdir(parents=True, exist_ok=True)
@@ -48,28 +48,45 @@ jobs:
               lines = (output / (name + '.log')).read_text(errors='replace').splitlines()
               print('\n'.join(lines[-25:]), flush=True)
               (output / 'outcomes.json').write_text(json.dumps(results, indent=2))
+          def replace(path, old, new):
+              path = Path(path)
+              text = path.read_text()
+              assert text.count(old) == 1, (path, old)
+              path.write_text(text.replace(old, new))
           parity = ['python3','-u','build/run-native-parity.py','--pairs','2','--columns','64','--iterations','25','--max-ratio','1.10']
           run('before-performance', parity)
           if Path('artifacts/native-parity').exists():
               shutil.copytree('artifacts/native-parity', output / 'before-performance', dirs_exist_ok=True)
           subprocess.run(['python3','.github/uno-viewport-candidate.py','tests'], check=True)
-          # Preserve the sequential fixture's caller-owned resize policy.
-          test = Path('samples/TreeDataGridUnoSample/ViewportMeasurementRuntimeChecks.cs')
-          text = test.read_text()
-          old = '        var previousRowHeight = grid.RowHeight;'
-          assert text.count(old) == 1
-          text = text.replace(old, old + '\n        var previousResize = grid.CanUserResizeColumns;')
-          old = '            grid.RowHeight = previousRowHeight;'
-          assert text.count(old) == 1
-          text = text.replace(old, old + '\n            grid.CanUserResizeColumns = previousResize;')
-          test.write_text(text)
+          test = 'samples/TreeDataGridUnoSample/ViewportMeasurementRuntimeChecks.cs'
+          replace(test, '        var previousRowHeight = grid.RowHeight;',
+              '        var previousRowHeight = grid.RowHeight;\n        var previousResize = grid.CanUserResizeColumns;')
+          replace(test, '            grid.RowHeight = previousRowHeight;',
+              '            grid.RowHeight = previousRowHeight;\n            grid.CanUserResizeColumns = previousResize;')
           project = 'samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj'
           run('regression-build', ['dotnet','build',project,'-c','Release','-f','net10.0-desktop'])
           if results['regression-build'] == 0:
               run('before-regression', ['xvfb-run','-a','dotnet','run','--project',project,'--no-build','-c','Release','-f','net10.0-desktop','--','--smoke','--suite','viewport-measurement'], 120)
           subprocess.run(['python3','.github/uno-viewport-candidate.py','product'], check=True)
+          replace('src/TreeDataGrid.Controls.Uno/Primitives/TreeDataGridColumnHeadersPresenter.cs',
+              'Math.Max(32, ActualHeight)', '(ActualHeight > 0 ? ActualHeight : 32)')
+          replace('src/TreeDataGrid.Controls.Uno/Primitives/TreeDataGridRowsPresenter.cs',
+              '        var needsMeasure = cellsNeedMeasure || _measureViewport is not { } measured ||',
+              '''        // Keep coordinated two-axis realization identical: a diagonal move
+                  // may expose a partial row even when every column is already covered.
+                  var needsMeasure = cellsNeedMeasure || (columnsChanged && vertical != _verticalOffset) ||
+                      _measureViewport is not { } measured ||''')
           subprocess.run(['git','diff','--check'], check=True)
           run('candidate-validation', ['python3','-u','build/validate-uno-linux.py'])
+          summary = Path('artifacts/uno-native-suites/summary.json')
+          if summary.exists():
+              for result in json.loads(summary.read_text())['results']:
+                  if not result['passed']:
+                      print('CANDIDATE_NATIVE_FAILURE', result['suite'], flush=True)
+                      print((summary.parent / result['log']).read_text(errors='replace')[:12000], flush=True)
+          sequential = Path('artifacts/logs/native-smoke.log')
+          if sequential.exists():
+              print('SEQUENTIAL_TAIL\n' + '\n'.join(sequential.read_text(errors='replace').splitlines()[-15:]), flush=True)
           run('after-performance', parity)
           if Path('artifacts/native-parity').exists():
               shutil.copytree('artifacts/native-parity', output / 'after-performance', dirs_exist_ok=True)
