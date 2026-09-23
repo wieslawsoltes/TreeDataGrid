@@ -63,9 +63,11 @@ def main() -> int:
     os.environ['TREEDATAGRID_API_BASELINE_REFERENCES'] = os.environ['TREEDATAGRID_API_TARGET_REFERENCES']
     run('api-self-check', ['dotnet', 'run', '--project', 'tools/TreeDataGrid.ApiAudit', '--no-build', '-c', 'Release', '--',
         target, target, core, 'artifacts/api-self-check', '--strict'], prerequisite='api-audit')
+    run('parity-review-tests', ['python3', 'build/test-uno-parity-audit.py'])
+    run('parity-review', ['python3', 'build/audit-uno-parity.py'], prerequisite='api-audit')
     Path('artifacts/validation-outcomes.json').write_text(json.dumps(outcomes, indent=2) + '\n')
     print('UNO_VALIDATION_OUTCOMES=' + json.dumps(outcomes), flush=True)
-    return 0 if len(outcomes) == 12 and all(value == 0 for value in outcomes.values()) else 1
+    return 0 if len(outcomes) == 14 and all(value == 0 for value in outcomes.values()) else 1
 
 
 if __name__ == '__main__':
