@@ -12,7 +12,7 @@ namespace Uno.Controls.Presentation;
 /// Per-cell subscriptions over a Core value column. Compiled owner accessors are
 /// shared, while subscriptions and row references belong only to the presentation.
 /// </summary>
-internal sealed class CellBinding<TModel, TValue> : IDisposable where TModel : class
+internal sealed partial class CellBinding<TModel, TValue> : IDisposable where TModel : class
 {
     private static readonly ConditionalWeakTable<Expression<Func<TModel, TValue>>, Accessors> s_accessors = new();
     private readonly ValueColumn<TModel, TValue> _column;
@@ -58,6 +58,8 @@ internal sealed class CellBinding<TModel, TValue> : IDisposable where TModel : c
         ObjectDisposedException.ThrowIf(_disposed, this);
         var model = _model ?? throw new InvalidOperationException("A suspended cell cannot write a value.");
         var setter = _column.Setter ?? throw new InvalidOperationException("The column is read-only.");
+        // A typed assignment also supersedes an older in-flight conversion.
+        unchecked { ++_writeRevision; }
         Exception? writeFailure = null;
         try
         {

@@ -156,53 +156,6 @@ public class ValueCellColumn<TModel, TValue> : CellColumn, ICellColumn<TModel> w
     public bool TryReuseCell(ICell cell, IRow<TModel> row) => cell is BoundCell<TModel, TValue> bound &&
         bound.UsesColumn(_column) && bound.TryRetarget(row);
 }
-internal class BoundCell<TModel, TValue> : CellValue where TModel : class
-{
-    // Immutable notification payloads; names and publication order are unchanged.
-    private static readonly PropertyChangedEventArgs ValueChanged = new(nameof(Value));
-    private static readonly PropertyChangedEventArgs ErrorChanged = new(nameof(Error));
-    private readonly CellBinding<TModel, TValue> _binding;
-    private readonly bool _canPool;
-    private readonly CultureInfo? _culture;
-    public BoundCell(ValueColumn<TModel, TValue> column, IRow row, bool canPool, CultureInfo? culture = null)
-    {
-        _canPool = canPool;
-        _culture = culture;
-        _binding = new(column, Changed);
-        try { _binding.Retarget((TModel)row.Model!); }
-        catch { _binding.Dispose(); throw; }
-    }
-    public override object? Value => _binding.Value;
-    public override Exception? Error => _binding.Error;
-    public override bool CanEdit => Kind != CellKind.CheckBox && _binding.CanWrite;
-    public override bool CanWrite => _binding.CanWrite;
-    internal bool UsesColumn(ValueColumn<TModel, TValue> column) => _binding.UsesColumn(column);
-    public override void Write(object? value)
-    {
-        var type = Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue);
-        var converted = value is null || value is TValue ? value :
-            type.IsEnum ? Enum.Parse(type, value.ToString()!) : Convert.ChangeType(value, type, _culture ?? CultureInfo.CurrentCulture);
-        _binding.Write((TValue)converted!);
-    }
-    public override void Dispose() => _binding.Dispose();
-    internal override bool TryRetarget(IRow row)
-    {
-        if (!_canPool || row.Model is not TModel model) return false;
-        _binding.Retarget(model);
-        return true;
-    }
-    internal override bool TrySuspend()
-    {
-        if (!_canPool) return false;
-        _binding.Suspend();
-        return true;
-    }
-    private void Changed()
-    {
-        RaisePropertyChanged(ValueChanged);
-        RaisePropertyChanged(ErrorChanged);
-    }
-}
 
 internal sealed class TextBoundCell<TModel, TValue> : BoundCell<TModel, TValue>, Uno.Controls.Models.TreeDataGrid.ITextCell where TModel : class
 {
