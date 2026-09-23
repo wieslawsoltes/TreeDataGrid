@@ -34,8 +34,9 @@ def main() -> int:
         Path('artifacts/validation-outcomes.json').write_text(json.dumps(outcomes, indent=2) + '\n')
 
     for name, project in [('core', 'tests/TreeDataGrid.Core.Tests'), ('uno', 'tests/TreeDataGrid.Uno.Tests'),
-                          ('avalonia', 'tests/Avalonia.Controls.TreeDataGrid.Tests'), ('sample-state', 'samples/TreeDataGridUnoSample.Tests')]:
-        extra = ['-p:TreeDataGridUnoTargetFrameworks=net10.0'] if name == 'uno' else []
+                          ('avalonia', 'tests/Avalonia.Controls.TreeDataGrid.Tests'), ('sample-state', 'samples/TreeDataGridUnoSample.Tests'),
+                          ('contract-parity', 'tests/TreeDataGrid.Parity.Tests')]:
+        extra = ['-p:TreeDataGridUnoTargetFrameworks=net10.0'] if name in ('uno', 'contract-parity') else []
         run(name, ['dotnet', 'test', project, '-c', 'Release', '--logger', 'trx', '--results-directory', f'artifacts/{name}-tests', *extra])
     for name, project in [('native', 'TreeDataGridUnoSample'), ('activity', 'TreeDataGridUnoActivityMonitor')]:
         path = f'samples/{project}/{project}.csproj'
@@ -67,7 +68,7 @@ def main() -> int:
     run('parity-review', ['python3', 'build/audit-uno-parity.py'], prerequisite='api-audit')
     Path('artifacts/validation-outcomes.json').write_text(json.dumps(outcomes, indent=2) + '\n')
     print('UNO_VALIDATION_OUTCOMES=' + json.dumps(outcomes), flush=True)
-    return 0 if len(outcomes) == 14 and all(value == 0 for value in outcomes.values()) else 1
+    return 0 if len(outcomes) == 15 and all(value == 0 for value in outcomes.values()) else 1
 
 
 if __name__ == '__main__':

@@ -13,6 +13,7 @@ using TreeDataGridCore.Selection;
 using Uno.Controls.Presentation;
 using Native = Uno.Controls.Models.TreeDataGrid;
 using NativeGrid = Uno.Controls.TreeDataGrid;
+using IndexPath = TreeDataGridCore.IndexPath;
 using SelectionArgs = Uno.Controls.TreeDataGridSelectionChangedEventArgs;
 
 namespace TreeDataGridUnoSample;
@@ -39,7 +40,8 @@ internal static class ParityContractRuntimeChecks
         {
             page.Content = grid;
             await Settle(grid);
-            var cell = grid.TryGetCell(0, 0) ?? throw new InvalidOperationException("Live-options cell was not realized.");
+            var cell = grid.TryGetCell(0, 0) as Uno.Controls.Primitives.TreeDataGridCell ??
+                throw new InvalidOperationException("Live-options cell was not realized.");
             Check(RenderedText(cell) == "N=12.5", "Initial text options did not render.");
             options.StringFormat = "V={0:F2}";
             options.Culture = CultureInfo.GetCultureInfo("fr-FR");
@@ -122,11 +124,10 @@ internal static class ParityContractRuntimeChecks
 
     private static IEnumerable<CellIndex> UnexpectedEnumeration()
     {
-        throw new InvalidOperationException("An inactive/unobserved hook evaluated its arguments.");
-#pragma warning disable CS0162
-        yield break;
-#pragma warning restore CS0162
+        yield return RejectEnumeration();
     }
+    private static CellIndex RejectEnumeration() =>
+        throw new InvalidOperationException("An inactive/unobserved hook evaluated its arguments.");
     private static string? RenderedText(FrameworkElement cell) => ShowcaseRuntimeChecks.Descendants(cell)
         .OfType<TextBlock>().FirstOrDefault(text => text.Visibility == Visibility.Visible)?.Text;
     private static async Task Settle(NativeGrid grid) { await Task.Delay(100); grid.UpdateLayout(); }
