@@ -23,16 +23,20 @@
   },
   "platform": {
     "runId": 35863339064,
+    "conclusion": "success",
+    "runUpdatedAtUtc": "2026-09-23T13:04:03Z",
     "desktopWindows": "success",
     "desktopLinux": "success",
     "desktopMacOS": "success",
     "linuxNativeConsumers": "success",
     "windowsAppSdkConsumers": "success",
-    "browserJob": "in_progress",
+    "browserJobId": 107188956919,
+    "browserJob": "success",
     "browserBuilds": "success",
     "browserPackageCreation": "success",
-    "browserPublication": "in_progress",
-    "browserRuntime": "not_completed_at_checkpoint"
+    "browserPublication": "success",
+    "browserRuntime": "success",
+    "browserScope": "Execution of both published package consumers in the pinned Chromium runtime; not all-browser or physical-input parity"
   },
   "api": {
     "baselineShapes": 1748,

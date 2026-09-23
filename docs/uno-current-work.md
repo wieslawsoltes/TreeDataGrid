@@ -4,7 +4,7 @@ Updated 2026-09-23 UTC. Tested checkpoint **3664bf02**.
 **Full API, all-feature and performance parity are not yet certified.**
 
 [Latest implementation, measurements and evidence](uno-extent-drag-validation-2026-09-23.md) ·
-[Machine-readable checkpoint](uno-ci-checkpoint-3664bf02.json) ·
+[Machine-readable completed checkpoint](uno-ci-checkpoint-3664bf02.json) ·
 [Previous checklist, preserved unchanged](archive/uno-current-work-before-3664bf02.md)
 
 ## Architecture and ownership
@@ -24,7 +24,7 @@ All changes authored in this continuation were pushed directly through GitHub.
 Local shell/Python execution was unavailable; unknown local working-tree files
 could not be enumerated or certified. CI ran the unchanged committed sources.
 
-## Completed functional checkpoint
+## Completed functional and platform checkpoint
 
 [Functional run 35863339084](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/35863339084),
 job `107188668656`, artifact `10751253656`:
@@ -40,11 +40,17 @@ job `107188668656`, artifact `10751253656`:
 | API metadata resolution / strict self-comparison | Fully resolved / zero self-differences |
 
 [Platform run 35863339064](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/35863339064)
-has passed the three desktop jobs, Linux native/package consumers and Windows
-App SDK sample/package consumers. Browser builds and package creation pass; the
-final browser publication/runtime job was still in progress when recorded.
-Do not infer its completion from an earlier revision's successful browser run.
-Repository Build and the independent published trimmed-binding contract pass.
+is now **fully successful**. It passes the three desktop jobs, Linux native/package
+consumers, Windows App SDK sample/package consumers, browser builds and packages,
+trimmed consumer publication, and **execution of both published browser consumers**.
+The browser job is `107188956919`; its actual execution step completed successfully.
+The run's final success was verified after its 13:04:03 UTC update. This supersedes
+the initial pending-browser observation recorded while preparing the detailed report.
+Repository Build and the independent published trimmed-binding contract also pass.
+
+This executes the pinned Chromium consumers, not every browser, OS input stack,
+DPI configuration or accessibility provider. The new drag-info isolated suite is
+native data-package validation, not a successful physical-drag acceptance claim.
 
 ## New implementation in this continuation
 
