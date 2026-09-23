@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
+using System.CollectionsSpecialized;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
@@ -96,8 +96,16 @@ internal sealed class ExpanderCellValue<TModel> : ExpanderCellValue where TModel
     public override object? Value => Inner.Value;
     public override string? DisplayText => Inner.DisplayText;
     public override TextCellOptions? TextOptions => Inner.TextOptions;
-    public override bool CanEdit => !_disposed && Inner.CanEdit;
-    public override bool CanWrite => !_disposed && Inner.CanWrite;
+    public override bool CanEdit => ReadPermission(write: false);
+    public override bool CanWrite => ReadPermission(write: true);
+    private bool ReadPermission(bool write)
+    {
+        if (_disposed) return false;
+        var allowed = write ? Inner.CanWrite : Inner.CanEdit;
+        // Permission getters are application code too. A returning true must
+        // not make a retired cell appear writable or editable.
+        return !_disposed && allowed;
+    }
     public override Exception? Error => Inner.Error;
     public override void Write(object? value)
     {
@@ -109,8 +117,16 @@ internal sealed class ExpanderCellValue<TModel> : ExpanderCellValue where TModel
         get => _row.IsExpanded;
         set { ObjectDisposedException.ThrowIf(_disposed, this); _row.IsExpanded = value; }
     }
-    public override bool ShowExpander => !_disposed && _row.ShowExpander &&
-        (_hasChildren is null || (_hasChildren.Error is null && _hasChildren.Value));
+    public override bool ShowExpander
+    {
+        get
+        {
+            if (_disposed) return false;
+            var visible = _row.ShowExpander;
+            if (_disposed || !visible) return false;
+            return _hasChildren is null || (_hasChildren.Error is null && _hasChildren.Value);
+        }
+    }
 
     public override void Dispose()
     {
