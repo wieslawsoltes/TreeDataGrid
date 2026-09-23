@@ -76,6 +76,22 @@ jobs:
                   // may expose a partial row even when every column is already covered.
                   var needsMeasure = cellsNeedMeasure || (columnsChanged && vertical != _verticalOffset) ||
                       _measureViewport is not { } measured ||''')
+          cells = 'src/TreeDataGrid.Controls.Uno/Primitives/TreeDataGridCellsPresenter.cs'
+          replace(cells, '    protected override Rect? GetParentPresenterViewPort() => Presenter?.CellViewport ?? base.GetParentPresenterViewPort();',
+              '''    protected override bool NeedsMeasureForViewportChange(Rect oldViewport, Rect newViewport) =>
+                  // In a grid-owned row, vertical effective-viewport dimensions
+                  // describe clipping, not the row's measurement constraint. A
+                  // partially visible row must not remeasure its cells for every
+                  // horizontal scroll. Actual row size/content changes still
+                  // invalidate through native layout and row measurements.
+                  Presenter is not null ? !IsViewportCoveredByRealizedElements(newViewport) :
+                      base.NeedsMeasureForViewportChange(oldViewport, newViewport);
+
+              protected override Rect? GetParentPresenterViewPort() => Presenter?.CellViewport ?? base.GetParentPresenterViewPort();''')
+          manifest = output / 'files.json'
+          paths = json.loads(manifest.read_text())
+          paths.append(cells)
+          manifest.write_text(json.dumps(paths, indent=2))
           subprocess.run(['git','diff','--check'], check=True)
           run('candidate-validation', ['python3','-u','build/validate-uno-linux.py'])
           summary = Path('artifacts/uno-native-suites/summary.json')
