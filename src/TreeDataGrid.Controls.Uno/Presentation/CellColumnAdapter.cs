@@ -221,7 +221,7 @@ internal sealed class CellColumnAdapter<TModel> : CellColumn where TModel : clas
         public override bool CanEdit => _model.CanEdit;
         public override string? DisplayText => _content.DisplayText;
         public override TextCellOptions? TextOptions => _content.TextOptions;
-        public override Exception? Error => _content.Error;
+        public override Exception? Error => (_model as UI.IBoundCellState)?.Error ?? _content.Error;
         public override bool IsExpanded { get => _model.IsExpanded; set => _model.IsExpanded = value; }
         public override bool ShowExpander => _model.ShowExpander;
         public override void Write(object? value) => _content.Write(value);
