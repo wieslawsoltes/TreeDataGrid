@@ -225,7 +225,11 @@ internal sealed class CellBinding<TModel, TValue> : IDisposable where TModel : c
         {
             if (expression is null || expression == _parameter || expression.Type.IsValueType) return;
             var body = Expression.Convert(expression, typeof(object));
-            _owners.Add(Expression.Lambda<Func<TModel, object?>>(body, _parameter).Compile(preferInterpretation: true));
+            // Compile shared owner accessors on JIT hosts instead of allocating an
+            // interpreter frame on every nested-cell retarget. Browser/AOT hosts
+            // keep the interpreter; no dynamic-code dependency is introduced there.
+            _owners.Add(Expression.Lambda<Func<TModel, object?>>(body, _parameter)
+                .Compile(preferInterpretation: !RuntimeFeature.IsDynamicCodeCompiled));
         }
     }
 }
