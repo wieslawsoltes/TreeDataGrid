@@ -165,7 +165,7 @@ internal static class RowLifetimeRuntimeChecks
 
     private sealed class Fixture : IDisposable
     {
-        private readonly global::Uno.Controls.TreeDataGridElementFactory _factory = new();
+        private readonly TreeDataGridElementFactory _factory = new();
         private readonly SelectedInteraction _selection = new();
         private readonly List<(DependencyProperty Property, long Token)> _callbacks = new();
         internal Item[] Models { get; } = [new("First"), new("Second")];
