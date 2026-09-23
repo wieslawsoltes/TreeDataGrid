@@ -82,7 +82,10 @@ public partial class App : Application
     }
     private void CompleteNativeValidation()
     {
-        if (OperatingSystem.IsBrowser()) return;
+#if !__WASM__
+        // Browser results are delivered through SampleRunContext. Native-only
+        // APIs must also be absent from its compilation, not merely unreachable
+        // behind a runtime check: Uno validates API availability at build time.
 #if TREEDATAGRID_SKIA
         // Application.Exit requests immediate host termination; on X11 that can
         // race its render thread. Closing the last native window instead lets
@@ -91,6 +94,7 @@ public partial class App : Application
         _window?.Close();
 #else
         Exit();
+#endif
 #endif
     }
 
