@@ -3,6 +3,7 @@ using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using TreeDataGrid.Tools.ApiAudit;
@@ -10,15 +11,19 @@ using TreeDataGrid.Tools.ApiAudit;
 // Read compiled metadata; never load/execute application assemblies or access
 // static properties. Namespace normalization is explicit and recorded. This
 // inventory is deliberately not a behavioral, ABI or performance-parity claim.
-if (args.Length is < 4 or > 5)
+if (!(args.Length == 1 && args[0] == "--self-test") && args.Length is < 4 or > 5)
 {
-    Console.Error.WriteLine("Usage: TreeDataGrid.ApiAudit <Avalonia.dll> <Uno.dll> <Core.dll> <output-directory> [--strict]");
+    Console.Error.WriteLine("Usage: TreeDataGrid.ApiAudit <Avalonia.dll> <Uno.dll> <Core.dll> <output-directory> [--strict], or --self-test");
     return 2;
 }
 try
 {
     CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
     CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
+    // The actual metadata reader is regression-tested before either normal
+    // comparison or strict self-comparison can produce a successful report.
+    var semanticChecks = ApiSemanticChecks.Run();
+    if (args.Length == 1) return 0;
     var baselinePath = Path.GetFullPath(args[0]);
     var targetPath = Path.GetFullPath(args[1]);
     var corePath = Path.GetFullPath(args[2]);
@@ -46,9 +51,10 @@ try
     File.WriteAllLines(Path.Combine(output, "additional-or-different.txt"), additional);
     File.WriteAllText(Path.Combine(output, "classified-differences.json"), JsonSerializer.Serialize(classified, jsonOptions) + "\n");
     File.WriteAllLines(Path.Combine(output, "absent-exported-types.txt"), absentTypes);
+    var semantics = ApiSemantics.WriteComparison(baseline.SemanticEntries, target.SemanticEntries, output, jsonOptions);
     var report = new
     {
-        schemaVersion = 2,
+        schemaVersion = 3,
         mode = "declared-public-and-protected-metadata-shapes",
         namespaceMappings = Surface.NamespaceMappings,
         baselineShapes = left.Count,
@@ -60,13 +66,16 @@ try
         absentExportedTypeIdentities = absentTypes,
         unresolvedBaselineTypes = baseline.UnresolvedTypes,
         unresolvedTargetTypes = target.UnresolvedTypes,
+        supplementalMetadata = semantics,
+        supplementalMetadataChecks = semanticChecks,
         completeApiParityProven = false,
         limitations = new[]
         {
             "Native framework types, relocated Core APIs and inheritance require explicit compatibility review.",
             "Documentation identities classify differences; candidate matches do not establish equivalence or remove raw differences.",
             "Matching declarations do not validate method bodies, event ordering, native input or timing.",
-            "Inherited external framework members and custom attributes are not included in this declared-member inventory.",
+            "Inherited candidates and declared custom attributes are recorded separately; C# lookup applicability and AttributeUsage inheritance are not automatically inferred.",
+            "Assembly/module attributes, custom modifiers and native dependency-property defaults still require separate review.",
             "Unresolved metadata dependencies are reported; they are never silently treated as matching contracts."
         }
     };
@@ -79,9 +88,11 @@ try
         unresolvedTargetTypes = target.UnresolvedTypes.Length,
         report.completeApiParityProven,
     }));
+    Console.WriteLine("UNO_API_SUPPLEMENTAL_METADATA=" + JsonSerializer.Serialize(semantics));
     Console.WriteLine("UNO_API_DIFFERENCE_CATEGORIES=" + JsonSerializer.Serialize(categories));
     Console.WriteLine("UNO_API_ABSENT_EXPORTED_TYPES=" + JsonSerializer.Serialize(absentTypes));
-    return strict && (missing.Length > 0 || baseline.UnresolvedTypes.Length > 0 || target.UnresolvedTypes.Length > 0) ? 1 : 0;
+    return strict && (missing.Length > 0 || semantics.MissingOrDifferent > 0 ||
+        baseline.UnresolvedTypes.Length > 0 || target.UnresolvedTypes.Length > 0) ? 1 : 0;
 }
 catch (Exception error)
 {
@@ -92,6 +103,10 @@ catch (Exception error)
 internal sealed record InputAssembly(string Name, string Sha256);
 internal sealed record Surface(InputAssembly[] Inputs, ApiEntry[] Entries, string[] UnresolvedTypes)
 {
+    // Keep the established declared inventories lean and unchanged in shape.
+    // Supplemental rows have their own complete, independently diffable files.
+    [JsonIgnore]
+    public ApiSemanticEntry[] SemanticEntries { get; init; } = [];
     public static IReadOnlyDictionary<string, string> NamespaceMappings { get; } = new SortedDictionary<string, string>(StringComparer.Ordinal)
     {
         ["Avalonia.Controls"] = "UI.Controls",
@@ -131,6 +146,7 @@ internal sealed record Surface(InputAssembly[] Inputs, ApiEntry[] Entries, strin
         var compilation = CSharpCompilation.Create("TreeDataGrid_Metadata_Audit", references: references.Values,
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, metadataImportOptions: MetadataImportOptions.All));
         var entries = new List<ApiEntry>();
+        var semanticEntries = new List<ApiSemanticEntry>();
         var unresolved = new SortedSet<string>(StringComparer.Ordinal);
         var fingerprints = new List<InputAssembly>();
         foreach (var input in inputs)
@@ -141,7 +157,8 @@ internal sealed record Surface(InputAssembly[] Inputs, ApiEntry[] Entries, strin
             VisitNamespace(symbol.GlobalNamespace, symbol.Identity.Name);
         }
         return new(fingerprints.OrderBy(value => value.Name, StringComparer.Ordinal).ToArray(),
-            entries.OrderBy(value => value.Assembly, StringComparer.Ordinal).ThenBy(value => value.Raw, StringComparer.Ordinal).ToArray(), unresolved.ToArray());
+            entries.OrderBy(value => value.Assembly, StringComparer.Ordinal).ThenBy(value => value.Raw, StringComparer.Ordinal).ToArray(), unresolved.ToArray())
+        { SemanticEntries = ApiSemantics.Order(semanticEntries) };
 
         void AddReference(string file)
         {
@@ -158,6 +175,7 @@ internal sealed record Surface(InputAssembly[] Inputs, ApiEntry[] Entries, strin
         void VisitType(INamedTypeSymbol type, string assembly)
         {
             if (!Visible(type)) return;
+            semanticEntries.AddRange(ApiSemantics.Read(type, Normalize, CheckType, value => unresolved.Add("metadata: " + value)));
             Add(type, assembly);
             CheckType(type.BaseType);
             foreach (var contract in type.Interfaces) CheckType(contract);
@@ -214,6 +232,11 @@ internal sealed record Surface(InputAssembly[] Inputs, ApiEntry[] Entries, strin
                 foreach (var argument in named.TypeArguments) CheckType(argument);
             if (type is IArrayTypeSymbol array) CheckType(array.ElementType);
             if (type is IPointerTypeSymbol pointer) CheckType(pointer.PointedAtType);
+            if (type is IFunctionPointerTypeSymbol function)
+            {
+                CheckType(function.Signature.ReturnType);
+                foreach (var parameter in function.Signature.Parameters) CheckType(parameter.Type);
+            }
         }
     }
 

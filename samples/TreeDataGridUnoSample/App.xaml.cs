@@ -45,6 +45,7 @@ public partial class App : Application
             await SelectionRuntimeChecks.RunAsync(page.Grid, (Microsoft.UI.Xaml.Controls.ControlTemplate)page.Resources["AlternateGridTemplate"]);
             await SelectionInteractionRuntimeChecks.RunAsync(page);
             await ParityContractRuntimeChecks.RunSelectionHooksAsync(page);
+            await ColumnSelectionRuntimeChecks.RunAsync(page);
             await ParityContractRuntimeChecks.RunTextOptionsAsync(page);
             await FocusRuntimeChecks.RunAsync(page);
             await EditingRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"], (DataTemplate)page.Resources["RuntimeEditingTemplate"]);

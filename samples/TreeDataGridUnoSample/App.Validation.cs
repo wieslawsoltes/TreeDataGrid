@@ -54,6 +54,7 @@ public partial class App
             case "selection": return SelectionRuntimeChecks.RunAsync(page.Grid, ControlTemplate("AlternateGridTemplate"));
             case "selection-interaction": return SelectionInteractionRuntimeChecks.RunAsync(page);
             case "presentation-selection-hooks": return ParityContractRuntimeChecks.RunSelectionHooksAsync(page);
+            case "column-selection": return ColumnSelectionRuntimeChecks.RunAsync(page);
             case "mutable-text-options": return ParityContractRuntimeChecks.RunTextOptionsAsync(page);
             case "focus": return FocusRuntimeChecks.RunAsync(page);
             case "editing": return EditingRuntimeChecks.RunAsync(page.Grid, Template("RuntimeCellTemplate"), Template("RuntimeEditingTemplate"));
