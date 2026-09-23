@@ -20,14 +20,12 @@ internal static class AppearanceRuntimeChecks
 {
     private static void ConfigureFlowDirection(FrameworkElement element, FlowDirection direction)
     {
-        // The neutral browser reference assembly also describes the DOM head,
-        // whose RTL support differs from the SkiaRenderer used by this sample.
-        // Query the actual loaded implementation, then test its geometry below;
-        // an unsupported head is a failure, never a skipped acceptance check.
-        if (!Windows.Foundation.Metadata.ApiInformation.IsPropertyPresent(
-                "Microsoft.UI.Xaml.FrameworkElement", nameof(FrameworkElement.FlowDirection)))
-            throw new PlatformNotSupportedException("The loaded renderer does not implement native FlowDirection.");
-#pragma warning disable Uno0001 // Actual runtime capability checked above; this sample publishes with SkiaRenderer.
+        // The browser reference assembly also describes the DOM head. This
+        // sample explicitly selects SkiaRenderer, whose runtime implements RTL.
+        // Exercise the property and actual column geometry rather than using a
+        // reflection-based capability lookup that itself needs trim metadata.
+        // An unsupported implementation still fails the assertions below.
+#pragma warning disable Uno0001 // SkiaRenderer implementation is verified by native geometry assertions in this test.
         element.FlowDirection = direction;
         Check(element.FlowDirection == direction, "The native FlowDirection value was not applied.");
 #pragma warning restore Uno0001
