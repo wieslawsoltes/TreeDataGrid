@@ -17,6 +17,12 @@ internal static class ApiSemanticChecks
                 public MarkerAttribute(string name, Type type, int[] values) { }
                 public string? Note { get; set; }
             }
+            [AttributeUsage(AttributeTargets.All, AllowMultiple=true)]
+            public sealed class FloatingAttribute : Attribute
+            {
+                public FloatingAttribute(double number, double[] values) { }
+                public float Single { get; set; }
+            }
             public interface IContract<T> { T Convert(T value); }
             public class Parent<T>
             {
@@ -29,11 +35,14 @@ internal static class ApiSemanticChecks
                 private void Hidden() { }
             }
             [Marker("root", typeof(string), new[]{1,2}, Note="named")]
+            [Floating(double.PositiveInfinity, new[]{double.NegativeInfinity, double.NaN}, Single=float.PositiveInfinity)]
             public class Child : Parent<string>, IContract<int>
             {
                 public required string Required { get; init; }
                 public string? Optional { get; private set; }
                 public const int Number = 17;
+                public const double NotANumber = double.NaN;
+                public const float NegativeZero = -0.0f;
                 // Metadata inspection MUST NOT execute this initializer.
                 static Child() => throw new InvalidOperationException("DO NOT EXECUTE");
                 int IContract<int>.Convert(int value) => value;
@@ -41,6 +50,7 @@ internal static class ApiSemanticChecks
                 public string? Read([Marker("argument", typeof(int), new[]{4})] int value = 7) => null;
                 public void Generic<[Marker("type", typeof(object), new[]{5})] T>(T value) where T : class, IDisposable, new() { }
                 public new void Overload(int value) { }
+                public void NonFinite(double number=double.NegativeInfinity, float value=float.NaN) { }
             }
             """;
         var references = ((string?)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") ?? "")
@@ -79,6 +89,19 @@ internal static class ApiSemanticChecks
         Check(entries.Any(x => x.Raw.Contains("return-nullability=Annotated", StringComparison.Ordinal)), "return nullability");
         var repeated = ApiSemantics.Read(type, static value => value, CheckType, unresolved.Add);
         Check(entries.SequenceEqual(repeated), "deterministic repeated inventory");
+        Check(entries.Any(x => x.Raw.Contains("attribute:declaration=FloatingAttribute", StringComparison.Ordinal) &&
+            x.Raw.Contains("System.Double:0x7ff0000000000000", StringComparison.Ordinal)), "positive infinity attribute argument retained");
+        Check(entries.Any(x => x.Raw.Contains("attribute:declaration=FloatingAttribute", StringComparison.Ordinal) &&
+            x.Raw.Contains("System.Double:0xfff0000000000000", StringComparison.Ordinal)), "negative infinity in attribute array retained");
+        Check(entries.Any(x => x.Raw.Contains("Single=System.Single:ieee754:System.Single:0x7f800000", StringComparison.Ordinal)), "single precision named attribute retained");
+        Check(entries.Any(x => x.Declaration.EndsWith(".NotANumber", StringComparison.Ordinal) &&
+            x.Raw.Contains("constant=ieee754:System.Double:0x", StringComparison.Ordinal)), "NaN field metadata retained");
+        Check(entries.Any(x => x.Declaration.Contains(".NonFinite(", StringComparison.Ordinal) &&
+            x.Raw.Contains("parameter:0:default=ieee754:System.Double:0xfff0000000000000", StringComparison.Ordinal) &&
+            x.Raw.Contains("parameter:1:default=ieee754:System.Single:0x", StringComparison.Ordinal)), "nonfinite optional defaults retained");
+        Check(ApiSemantics.ScalarText(-0.0d) == "ieee754:System.Double:0x8000000000000000" &&
+            ApiSemantics.ScalarText(-0.0f) == "ieee754:System.Single:0x80000000" &&
+            ApiSemantics.ScalarText(0.0d) != ApiSemantics.ScalarText(-0.0d), "floating point negative zero is not collapsed");
         Console.WriteLine($"UNO_API_SEMANTIC_CHECKS_PASSED={checks}; compiled metadata only; no fixture execution");
         return checks;
 

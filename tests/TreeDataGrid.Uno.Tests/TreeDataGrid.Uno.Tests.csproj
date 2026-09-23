@@ -9,5 +9,6 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" PrivateAssets="all" />
     <ProjectReference Include="../../src/TreeDataGrid.Controls.Uno/TreeDataGrid.Controls.Uno.csproj" />
     <Compile Include="../../tools/TreeDataGrid.ApiAudit/ApiDifferences.cs" Link="ApiAudit/ApiDifferences.cs" />
+    <Compile Include="../../samples/TreeDataGridUnoSample/BindingSubscriptionLifetimeChecks.cs" Link="Runtime/BindingSubscriptionLifetimeChecks.cs" />
   </ItemGroup>
 </Project>

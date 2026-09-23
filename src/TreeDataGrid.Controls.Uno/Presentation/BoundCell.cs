@@ -19,7 +19,12 @@ internal class BoundCell<TModel, TValue> : CellValue where TModel : class
         _culture = culture;
         _binding = new(column, Changed);
         try { _binding.Retarget((TModel)row.Model!); }
-        catch { _binding.Dispose(); throw; }
+        catch (Exception error)
+        {
+            try { _binding.Dispose(); }
+            catch (Exception cleanup) { throw new AggregateException(error, cleanup); }
+            throw;
+        }
     }
     public override object? Value => _binding.Value;
     public override Exception? Error => _binding.Error;

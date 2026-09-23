@@ -109,7 +109,7 @@ internal static class ApiSemantics
                 case IFieldSymbol field:
                     checkType(field.Type);
                     details.Add($"required={field.IsRequired};volatile={field.IsVolatile};readonly={field.IsReadOnly};nullability={field.NullableAnnotation}");
-                    if (field.HasConstantValue) details.Add("constant=" + JsonSerializer.Serialize(field.ConstantValue));
+                    if (field.HasConstantValue) details.Add("constant=" + ScalarText(field.ConstantValue));
                     break;
                 case IEventSymbol evt:
                     checkType(evt.Type);
@@ -140,7 +140,7 @@ internal static class ApiSemantics
                 checkType(parameter.Type);
                 var site = prefix + "parameter:" + parameter.Ordinal.ToString(CultureInfo.InvariantCulture);
                 details.Add($"{site}:ref={parameter.RefKind};nullable={parameter.NullableAnnotation};params={parameter.IsParams};optional={parameter.IsOptional}");
-                if (parameter.HasExplicitDefaultValue) details.Add(site + ":default=" + JsonSerializer.Serialize(parameter.ExplicitDefaultValue));
+                if (parameter.HasExplicitDefaultValue) details.Add(site + ":default=" + ScalarText(parameter.ExplicitDefaultValue));
                 Attributes(parameter.GetAttributes(), site, details);
             }
         }
@@ -205,6 +205,7 @@ internal static class ApiSemantics
             metadataOnly = true,
             rawDeclaredDifferencesRemoved = 0,
             inheritedMembersAreLookupCandidatesNotBindingProof = true,
+            nonFiniteAndNegativeZeroConstants = "Type-tagged IEEE bits, never discarded or coerced to null",
             limitations = new[]
             {
                 "No method body or native framework code is executed.",
@@ -214,6 +215,26 @@ internal static class ApiSemantics
             }
         }, options) + "\n");
         return result;
+    }
+
+    internal static string ScalarText(object? value)
+    {
+        // JSON numbers cannot encode infinities/NaN. Preserve the actual metadata
+        // bits, including signed zero, rather than omit an attribute or conflate
+        // a floating-point sentinel with an ordinary string or null constant.
+        if (value is double d)
+        {
+            var bits = BitConverter.DoubleToInt64Bits(d);
+            if (!double.IsFinite(d) || d == 0 && bits < 0)
+                return "ieee754:System.Double:0x" + unchecked((ulong)bits).ToString("x16", CultureInfo.InvariantCulture);
+        }
+        if (value is float f)
+        {
+            var bits = BitConverter.SingleToInt32Bits(f);
+            if (!float.IsFinite(f) || f == 0 && bits < 0)
+                return "ieee754:System.Single:0x" + unchecked((uint)bits).ToString("x8", CultureInfo.InvariantCulture);
+        }
+        return JsonSerializer.Serialize(value);
     }
 
     private static bool Visible(ISymbol symbol) => symbol.DeclaredAccessibility is
@@ -232,7 +253,7 @@ internal static class ApiSemantics
             TypedConstantKind.Array => type + ":[" + string.Join(",", value.Values.Select(ConstantText)) + "]",
             TypedConstantKind.Type => type + ":typeof(" + ((ITypeSymbol)value.Value!).ToDisplayString(TypeDisplay) + ")",
             TypedConstantKind.Error => type + ":<error>",
-            _ => type + ":" + JsonSerializer.Serialize(value.Value),
+            _ => type + ":" + ScalarText(value.Value),
         };
     }
 }

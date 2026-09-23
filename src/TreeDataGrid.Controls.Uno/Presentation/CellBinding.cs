@@ -133,8 +133,7 @@ internal sealed partial class CellBinding<TModel, TValue> : IDisposable where TM
                 var revision = _revision;
                 if (_disposed || _model is not { } model)
                 {
-                    for (var i = 0; i < _accessors.Length; ++i)
-                        SetOwner(i, null);
+                    ClearOwners();
                     continue;
                 }
                 for (var i = 0; i < _accessors.Length; ++i)
@@ -180,27 +179,6 @@ internal sealed partial class CellBinding<TModel, TValue> : IDisposable where TM
                 catch (Exception cleanup) when (failure is not null)
                 { throw new AggregateException(failure, cleanup); }
             }
-        }
-    }
-
-    private void SetOwner(int index, object? owner)
-    {
-        var previous = index == 0 ? _rootOwner : _owners[index - 1];
-        if (ReferenceEquals(previous, owner)) return;
-        if (index == 0) _rootOwner = null;
-        else _owners[index - 1] = null;
-        if (previous is not null && !Contains(previous))
-        {
-            if (previous is INotifyPropertyChanged property) property.PropertyChanged -= _propertyChanged;
-            if (previous is INotifyCollectionChanged collection) collection.CollectionChanged -= _collectionChanged;
-        }
-        var subscribe = owner is not null && !Contains(owner);
-        if (index == 0) _rootOwner = owner;
-        else _owners[index - 1] = owner;
-        if (subscribe)
-        {
-            if (owner is INotifyPropertyChanged property) property.PropertyChanged += _propertyChanged;
-            if (owner is INotifyCollectionChanged collection) collection.CollectionChanged += _collectionChanged;
         }
     }
 

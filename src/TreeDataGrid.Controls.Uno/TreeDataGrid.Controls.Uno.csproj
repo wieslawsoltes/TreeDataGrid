@@ -13,5 +13,6 @@
   <ItemGroup>
     <ProjectReference Include="../TreeDataGrid.Core/TreeDataGrid.Core.csproj" />
     <InternalsVisibleTo Include="TreeDataGrid.Uno.Tests" />
+    <None Include="../../THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="" />
   </ItemGroup>
 </Project>

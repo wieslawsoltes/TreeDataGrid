@@ -25,7 +25,7 @@ INPUTS = {
     'SelectionModelSelectionChangedEventArgs.cs': '8f6d2568471f676cffc37db91d24adeb935f4f78',
     'SelectionNodeBase.cs': 'c50f77830f1db5dd2663afe0ffc91d26baa539ce',
 }
-HEADER = '// Adapted from Avalonia 12.0.0 (MIT). Copyright (c) .NET Foundation and Contributors.\n// See build/uno-parity-inputs/upstream and docs/uno-contract-materialization.json.\n'
+HEADER = '// Adapted from Avalonia 12.0.0 (MIT). Copyright (c) AvaloniaUI OÜ. All Rights Reserved.\n// See THIRD-PARTY-NOTICES.md, build/uno-parity-inputs/upstream and docs/uno-contract-materialization.json.\n'
 outputs: list[str] = []
 check = False
 

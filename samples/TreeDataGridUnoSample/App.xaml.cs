@@ -58,6 +58,7 @@ public partial class App : Application
             await CellRenderingRuntimeChecks.RunAsync(page);
             CellScalarReentrancyRuntimeChecks.Run();
             BindingWriteContractRuntimeChecks.Run();
+            BindingSubscriptionLifetimeChecks.RunAll();
             HierarchyOwnershipRuntimeChecks.Run();
             await PresentationOptionsRuntimeChecks.RunAsync(page.Grid);
             await ColumnCompatibilityRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"], (DataTemplate)page.Resources["RuntimeEditingTemplate"]);
@@ -88,7 +89,6 @@ public partial class App : Application
             await ViewportCacheRuntimeChecks.RunAsync(page.Grid);
             Console.WriteLine("UNO_CORE_SAMPLE_SMOKE_PASSED");
             SampleRunContext.ReportResult(true);
-
             CompleteNativeValidation();
         }
         catch (Exception error)

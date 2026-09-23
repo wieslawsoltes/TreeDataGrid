@@ -23,7 +23,6 @@ public partial class App
         await RunSelectedSuiteAsync(page, name);
         Console.WriteLine($"UNO_SUITE_PASSED: {name}; elapsedMs={stopwatch.Elapsed.TotalMilliseconds:F3}");
         SampleRunContext.ReportResult(true);
-
         CompleteNativeValidation();
         return true;
     }
@@ -70,6 +69,9 @@ public partial class App
                 return Task.CompletedTask;
             case "binding-write-contract":
                 BindingWriteContractRuntimeChecks.Run();
+                return Task.CompletedTask;
+            case "binding-subscription-lifetime":
+                BindingSubscriptionLifetimeChecks.RunAll();
                 return Task.CompletedTask;
             case "hierarchy-ownership":
                 HierarchyOwnershipRuntimeChecks.Run();
