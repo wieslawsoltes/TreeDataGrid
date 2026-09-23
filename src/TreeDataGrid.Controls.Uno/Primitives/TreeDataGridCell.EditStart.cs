@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Runtime.ExceptionServices;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Uno.Controls.Presentation;
 
 namespace Uno.Controls.Primitives;
@@ -124,14 +125,15 @@ public partial class TreeDataGridCell
                     Exception? cleanup = null;
                     try { session.Cancel(); }
                     catch (Exception error) { cleanup = error; }
-                    // Cancellation itself can reenter. Never clear the visuals,
-                    // buffer or flags of a newly installed edit/realization.
-                    if (owned && IsCurrent() && _edit is null)
+                    // A template change aborts adoption but does not create a
+                    // new realization. Clean up our state in that case too.
+                    // Cancellation itself may install a newer edit/realization.
+                    if (owned && IsSameRealization() && _edit is null)
                     {
                         try
                         {
                             EndEditingVisuals();
-                            if (IsCurrent() && _edit is null) UpdateValue();
+                            if (IsSameRealization() && _edit is null) UpdateValue();
                         }
                         catch (Exception error)
                         { cleanup = cleanup is null ? error : new AggregateException(cleanup, error); }
@@ -150,8 +152,9 @@ public partial class TreeDataGridCell
             }
         }
 
-        bool IsCurrent() => realization == RealizationVersion && ReferenceEquals(_value, value) &&
-            ReferenceEquals(RowModel, model) && ReferenceEquals(_editingTemplate, template);
+        bool IsSameRealization() => realization == RealizationVersion && ReferenceEquals(_value, value) &&
+            ReferenceEquals(RowModel, model);
+        bool IsCurrent() => IsSameRealization() && ReferenceEquals(_editingTemplate, template);
         bool IsCurrentEdit() => IsCurrent() && ReferenceEquals(_edit, session);
     }
 }
