@@ -1,23 +1,27 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
 using Xunit;
+using Xunit.Abstractions;
 using A = Avalonia.Controls.Selection;
 using C = TreeDataGridCore.Selection;
-using AC = Avalonia.Controls.Models.TreeDataGrid;
 using UC = Uno.Controls.Models.TreeDataGrid;
 
 namespace TreeDataGrid.Parity.Tests;
 
-public sealed class FlatSelectionParityTests
+public sealed class FlatSelectionParityTests(ITestOutputHelper output)
 {
     [Theory]
     [InlineData(1)] [InlineData(2)] [InlineData(7)] [InlineData(19)] [InlineData(97)]
     [InlineData(101)] [InlineData(127)] [InlineData(257)] [InlineData(1024)] [InlineData(65537)]
-    public void Randomized_operations_match_reference_state_events_and_exceptions(int seed)
+    public void Randomized_operations_match_reference_state_events_and_exceptions(int seed) => RunSequence(seed, validOnly: false);
+
+    [Theory]
+    [InlineData(1)] [InlineData(19)] [InlineData(101)] [InlineData(257)] [InlineData(65537)]
+    public void Valid_input_sequences_keep_both_selected_item_views_readable(int seed) => RunSequence(seed, validOnly: true);
+
+    private void RunSequence(int seed, bool validOnly)
     {
         var left = new ObservableCollection<string>(Enumerable.Range(0, 12).Select(x => "Item " + x));
         var right = new ObservableCollection<string>(left);
@@ -32,6 +36,7 @@ public sealed class FlatSelectionParityTests
         a.SourceReset += (_, _) => aEvents.Add("reset");
         c.SourceReset += (_, _) => cEvents.Add("reset");
         var random = new Random(seed);
+        var referenceReadFailures = 0;
         try
         {
             for (var step = 0; step < 200; ++step)
@@ -39,19 +44,40 @@ public sealed class FlatSelectionParityTests
                 var operation = random.Next(13);
                 var first = random.Next(-2, left.Count + 3);
                 var last = random.Next(-2, left.Count + 3);
+                if (validOnly)
+                {
+                    first = Math.Clamp(first, 0, Math.Max(0, left.Count - 1));
+                    last = Math.Clamp(last, first, Math.Max(first, left.Count - 1));
+                    if (left.Count == 0) operation = 9;
+                    if (a.SingleSelect && operation is 5 or 8) operation = 0;
+                }
                 var item = "New " + step;
+                output.WriteLine($"seed={seed}; step={step}; valid={validOnly}; op={operation}; first={first}; last={last}; count={left.Count}; single={a.SingleSelect}");
                 aEvents.Clear(); cEvents.Clear();
                 Exception? leftError = null, rightError = null;
                 try { Apply(a, left); } catch (Exception error) { leftError = error; }
                 try { ApplyCore(c, right); } catch (Exception error) { rightError = error; }
-                Assert.Equal(leftError?.GetType().FullName, rightError?.GetType().FullName);
+                Assert.Equal(Failure(leftError), Failure(rightError));
+                if (validOnly) { Assert.Null(leftError); Assert.Null(rightError); }
                 Assert.Equal(a.SingleSelect, c.SingleSelect);
                 Assert.Equal(a.SelectedIndex, c.SelectedIndex);
                 Assert.Equal(a.AnchorIndex, c.AnchorIndex);
                 Assert.Equal(a.Count, c.Count);
                 Assert.Equal(a.SelectedItem, c.SelectedItem);
                 Assert.Equal(a.SelectedIndexes.ToArray(), c.SelectedIndexes.ToArray());
-                Assert.Equal(a.SelectedItems.ToArray(), c.SelectedItems.ToArray());
+                // A differential oracle can itself reject a read after invalid
+                // commands. Evaluate BOTH sides before asserting; never omit the
+                // target read or turn every exception into a successful value.
+                var aItems = ReadItems(() => a.SelectedItems.ToArray());
+                var cItems = ReadItems(() => c.SelectedItems.ToArray());
+                Assert.Equal(aItems.Failure, cItems.Failure);
+                Assert.Equal(aItems.Items, cItems.Items);
+                if (validOnly) { Assert.Null(aItems.Failure); Assert.Null(cItems.Failure); }
+                if (aItems.Failure is not null)
+                {
+                    ++referenceReadFailures;
+                    output.WriteLine("REFERENCE_READ_FAILURE_MATCHED=" + aItems.Failure);
+                }
                 Assert.Equal(aEvents, cEvents);
                 void Apply(A.SelectionModel<string> model, ObservableCollection<string> items)
                 {
@@ -92,8 +118,16 @@ public sealed class FlatSelectionParityTests
                     }
                 }
             }
+            output.WriteLine($"REFERENCE_READ_FAILURE_TOTAL={referenceReadFailures}; commands=200");
         }
         finally { a.Source = null; c.Source = null; }
+    }
+    private static string? Failure(Exception? error) => error is null ? null :
+        error.GetType().FullName + (error is ArgumentException argument ? ":" + argument.ParamName : "");
+    private static (string?[]? Items, string? Failure) ReadItems(Func<string?[]> read)
+    {
+        try { return (read(), null); }
+        catch (Exception error) { return (null, Failure(error)); }
     }
 
     [Theory]
