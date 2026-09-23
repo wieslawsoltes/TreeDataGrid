@@ -1,160 +1,101 @@
 # Current Uno completion checklist
 
-Updated 2026-09-22 UTC. Supersedes the 5ed67958 / 1,047-test checkpoint.
-**Full API, all-feature behavior and performance parity are not yet certified.**
+Updated 2026-09-23 UTC. Product checkpoint **9e03ce28**.
+**Full API, all-feature and performance parity are not yet certified.**
 
-Latest [implementation and evidence report](uno-recycling-routing-validation-2026-09-22.md)
-and [machine-readable CI checkpoint](uno-ci-checkpoint-1755f41b.json).
-Earlier reports and the archived parity ledger remain historical evidence.
+[Detailed implementation and evidence](uno-width-expander-validation-2026-09-23.md) ·
+[Machine-readable checkpoint](uno-ci-checkpoint-9e03ce28.json) ·
+[Previous checklist, preserved unchanged](archive/uno-current-work-before-9e03ce28.md)
 
-## Architecture and tested revision
+## Architecture and source ownership
 
-PR #26 stays draft on `codex/uno-core-port`, based on master `3ca47316`.
-The actual `TreeDataGrid.Core` assembly remains shared with Avalonia; source,
-hierarchy, row and selection state is not copied into the Uno presentation.
+PR #26 remains draft on `codex/uno-core-port`, based on master `3ca47316`.
+The actual `TreeDataGrid.Core` assembly is shared with Avalonia. Sources, rows,
+hierarchy, selection and ownership are not copied to another model layer.
 No merge or public package release was performed.
 
-Tested product: **1755f41b6c861ccba0d042e63f3aee0e47195393**.
-Tested merge: **cd8e03f519fc9370caa93206bf92c50af2f0a0b6**.
-Subsequent documentation-only changes do not alter the tested implementation.
-Known pending geometry and recycling work is now pushed. Local shell/Python
-execution was unavailable, so unrelated local files could not be enumerated;
-this checkpoint does not claim inspection or publication of unknown local files.
+Tested product: `9e03ce28f082580bab71df633046622844d0ce58`.
+Tested merge: `ca0c590f1756c3e022d992d180e00f3857cd36b0`.
+Product tree: `ed5d18b28986fe2a1ef4ad5a57dad42e4ebbac72`.
+The local staged source tree was verified equal to that GitHub tree. All identified
+workspace code changes are pushed; SDK/package caches and diagnostic artifacts are
+not repository source. Subsequent documentation-only commits do not change the tests.
 
-## Completed functional evidence
+## Completed acceptance at this revision
 
-[Run 35793101423](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/35793101423),
-job 106966176418, artifact 10722234140, validates unchanged committed sources:
+[Functional run 35854319565](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/35854319565),
+artifact `10747056977`, records zero failed/skipped unit cases:
 
 | Gate | Result |
 | --- | --- |
-| Shared Core | 210 passed |
-| Uno | 308 passed |
-| Avalonia | 520 passed |
-| Sample state | 36 passed |
-| Total unit cases | **1,074 passed; zero failed/skipped** |
-| Both native sample builds | Passed; zero warnings/errors |
-| Sequential showcase | Passed |
-| Isolated native suites | **35/35 passed** |
-| Bare native measurement recovery | Passed |
+| Core / Uno / Avalonia / sample-state tests | 210 / 399 / 536 / 36 |
+| Total unit cases | **1,181 passed** |
+| Registered native suites | **41/41 passed** |
+| Sequential native showcase and measurement recovery | Passed |
+| Both desktop samples | Zero warnings/errors |
 | Activity Monitor | Five sections and lifetime checks passed |
-| API dependencies | Zero unresolved types on both sides |
-| Strict identical-assembly API self-comparison | Passed |
+| Compiled API dependencies / strict self-comparison | Fully resolved / passed |
 
-All twelve functional validation exit codes are zero. Independent platform
-workflow 35793101453 has passed desktop builds/tests on Windows, Linux and macOS,
-Linux native runtime/package consumers and Windows App SDK build/package consumers.
-Browser build/pack has passed; final browser publication/aggregate status is in the
-machine-readable checkpoint. Trimmed binding run 35793101431 and repository Build
-35793101403 pass. Builds/publication are not browser or Windows physical-input tests.
+[Platform run 35854319634](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/35854319634)
+is fully successful: three-OS desktop builds/tests; Linux native package consumers;
+Windows App SDK samples/package consumers; browser sample builds, trimmed publication,
+and **execution of both published consumers in Chromium**. This is more than a publish
+check, but it is not all-browser/physical-input/accessibility parity. The independent
+published trimmed-binding contract and repository Build also pass.
 
-## Implemented in this continuation
+## Latest implementation
 
-### Correct sparse geometry
+- Width calculation captures each column/constraint once, solves on numeric-only
+  stack or pooled storage and commits caller output only after success. Sixteen
+  regressions include reentrancy and failure atomicity; eleven failed before the fix.
+- Public `ExpanderCell<TModel>` uses a borrowed real Core row, observable expansion
+  and visibility, owned content/subscriptions, error propagation and complete cleanup.
+  Eight unit tests and a native/browser runtime suite cover controller writeback,
+  editing, retained identity and disposal. Framework binding types are explicitly
+  adapted to the established observable contract, not declared signature-identical.
+- Cached nested binding owner expressions compile on JIT-capable hosts; interpreter
+  fallback is retained for browser/AOT. Two tests reduce warmed nested property/indexer
+  retarget allocations from 152/312 bytes per call to zero on the validated JIT host.
+- The private wrapping-test `Text` endpoint is precisely preserved for trimming.
+  The browser now passes the unchanged variable-height and sequential assertions.
+- A read-only reference-pack snapshot supports reproducing the actual net8 Core
+  offline. No source feeds, SDK targets, trimming policies or thresholds were changed.
 
-Sparse inverse lookup now respects the exact representable Start coordinates used
-by layout. Ordinary descent and adjacent-row correction are O(log Count); a bounded
-O(log-squared Count) fallback handles larger discrepancies. The uniform O(1) path
-is retained. Partial invalidation removes near-estimate measurements exactly rather
-than applying measurement-update tolerance. Ten tests cover adjacent doubles,
-mutations, both invalidation paths and warmed zero-allocation lookup.
+This continuation adds **26 unit cases and one native suite** to the starting branch.
+The previously proposed `ColumnGeometry.Commit` snapshot fix was already present at
+that starting head; it was preserved rather than overwritten or counted as new work.
 
-### Faster synchronous row recycling
+## Performance and API boundaries
 
-Rows reused during one synchronous layout pass avoid redundant native visibility
-transitions. Surplus rows collapse in finally; direct/standalone retirement still
-collapses immediately. DataContext/model/index/selection retirement stays synchronous.
-The new layout-recycling fixture verifies identity, current bindings, multiple scroll
-patterns, viewport shrink and cleanup. No timer or stale model retention is used.
+The isolated same-process width-solver experiment shows constrained layouts at about
+**5x faster**, with zero warmed allocations. Nested-binding retarget allocation also
+improves. These are focused measurements, not overall native-grid acceptance.
 
-A controlled same-runner before/after experiment reduced diagonal median time from
-35.47765ms to 12.69305ms (about 64.2%) and vertical from 4.26950ms to 2.89630ms
-(about 32.2%). Other workloads were mixed; some increased. That experiment did NOT
-pass the overall performance budget. See the complete table in the detailed report.
+[Paired native run 35854319556](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/35854319556),
+artifact `10746788587`, completed both hosts and four AB/BA processes but **failed the
+unchanged 1.10 median time/allocation budget**. Latest time ratios are 4.95x horizontal,
+2.39x vertical, 3.97x distant diagonal, 1.39x row replacement, 1.79x column resizing,
+and 1.56x sorting. See raw metrics and qualifications in the detailed report.
 
-### Targeted column events and lifetime safety
+The compiled inventory has 1,748 baseline and 1,592 target declarations, 864 exact
+normalized matches and 884 missing-or-different baseline shapes. These are not
+feature-completion percentages. Core relocations, native types, inherited contracts,
+generated Avalonia exports and real omissions still require explicit classification.
 
-Ordinary Core property notifications route only to the owning view, not every cached
-column. Definition-bound handlers correctly handle expander events forwarded with an
-inner sender. Handler identity rejects already-captured events after remove/readd;
-nested notification scopes restore correctly; retired views cannot publish afterward.
-Twelve tests cover wide grids, forwarding, hidden columns, callback-time changes,
-throwing observers, suspend/resume, collectability and zero-allocation warmed dispatch.
-Global layout/synchronization is not claimed to be constant-time.
+## Required before ready
 
-### Additional public contracts
-
-TreeDataGridDiagnostics.EnableTracing controls the real presenter diagnostic state.
-TreeDataGridRowModel and TreeDataGridRowModelEventArgs preserve derivability, borrowed
-model identity and the actual shared Core IndexPath. They are snapshot contracts, not
-replacements for Core source event types. Five unit cases verify them.
-
-### Native image completion
-
-The sample's Skia stream-loading path avoids Uno ForceLoad's redundant subscription/
-invalidation decode, which can let a cancelled completion overwrite valid dimensions.
-A temporary public non-visual ImageBrush holds one decode consumer until completion;
-other heads retain SetSourceAsync. Streams and event/consumer subscriptions have
-explicit lifetime handling and corrupt images report errors. Sixteen concurrent
-unconsumed bitmaps, immediate post-task pixels, stable identities, invalid bytes and
-owned native resource cleanup are checked without sleeps by image-completion.
-The original delayed-recycling assertions remain unchanged.
-
-An earlier post-assertion native exit 139 and later zero-dimension failure were both
-recorded as failures, not successful aggregates. Final functional and independent
-Linux native/package jobs pass; this does not certify all graphics shutdown behavior.
-
-The continuation adds 27 unit cases and two registered native suites relative to the
-preceding checkpoint. The inherited temporary recycling workflow was removed after
-manual promotion of its tested source blobs.
-
-## Current API acceptance
-
-Compiled inventory: 1,748 baseline / 1,554 target shapes; 837 exact normalized
-matches; 911 missing-or-different and 717 additional-or-different entries.
-Categories: changed-same-identity 194; absent exported identities 60; missing member
-on matching type 107; member of absent identity 422; overload/parameter difference 128.
-
-These are declaration counts, not feature-completion percentages. Relocated Core,
-inherited/native signatures, generated Avalonia artifacts and genuine missing contracts
-still need explicit review and compatibility tests. Three absent exported identities
-were implemented here. completeApiParityProven remains false.
-
-## Current performance acceptance
-
-[Run 35793101409](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/35793101409),
-job 106966064993, artifact 10722619485, tested product 1755f41b in two AB/BA pairs,
-64 columns and 25 iterations. Both hosts and four measurement processes succeeded,
-but the unchanged **1.10 median timing/allocation budget FAILED**.
-
-| Workload | Avalonia median ms | Uno median ms | Uno / Avalonia |
-| --- | ---: | ---: | ---: |
-| Horizontal scroll | 0.31075 | 2.51330 | 8.09 |
-| Vertical scroll | 1.19795 | 2.62505 | 2.19 |
-| Distant diagonal scroll | 2.17180 | 10.77000 | 4.96 |
-| Replace visible row | 1.75220 | 3.61445 | 2.06 |
-| Resize visible column | 3.79860 | 4.57600 | 1.20 |
-| Sort | 39.30620 | 55.96730 | 1.42 |
-
-Sorting allocates less than Avalonia but remains slower. Only the dedicated
-before/after experiment compares revisions on one runner; other hosted runs are
-not controlled speedup comparisons. Scope is synchronous UI work and verified
-settlement, not GPU completion, frame rate, physical input or all-feature performance.
-
-## Remaining work and reproduction
-
-Complete actual public contracts and tested Core/native equivalence decisions;
-close horizontal scrolling/rebinding/layout/allocation gaps; execute browser runtime
-and physical pointer/keyboard/Unicode/IME/drag-drop/screen-reader/DPI acceptance;
-expand variable-height mixed-mutation performance and repeated multi-head reliability.
-No test, trimming diagnostic or performance threshold was weakened.
+- Complete genuine public-contract omissions and tested Core/native equivalence.
+- Meet the unchanged native timing/allocation budget; expand variable-height and
+  mixed-mutation workloads. Do not substitute profiled timings for acceptance.
+- Extend runtime coverage beyond the current Chromium consumers, including physical
+  keyboard/pointer, Unicode/IME, drag/drop, screen readers and DPI across heads.
+- Establish repeated multi-head lifecycle/render reliability before marking ready.
 
 ```sh
 TreeDataGridUnoSampleTargetFrameworks=net10.0-desktop python3 build/validate-uno-linux.py
-python3 build/run-uno-native-suites.py --suite layout-recycling --suite image-completion --suite wikipedia
+python3 build/run-uno-native-suites.py --suite public-expander --suite row-sizing
 python3 build/run-native-parity.py --pairs 2 --columns 64 --iterations 25 --max-ratio 1.10
 ```
 
-Permanent workflows preserve unchanged inputs, source hashes, TRX, native logs,
-screenshots and raw timing/allocation measurements, including failures. Later
-completed artifacts supersede this checkpoint; pending jobs do not count as passes.
+No assertion, trimming diagnostic or performance threshold was weakened. Later
+completed artifacts supersede this dated checkpoint; pending jobs are not passes.
