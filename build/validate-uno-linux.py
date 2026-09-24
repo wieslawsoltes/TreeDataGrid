@@ -64,6 +64,18 @@ def main() -> int:
     os.environ['TREEDATAGRID_API_BASELINE_REFERENCES'] = os.environ['TREEDATAGRID_API_TARGET_REFERENCES']
     run('api-self-check', ['dotnet', 'run', '--project', 'tools/TreeDataGrid.ApiAudit', '--no-build', '-c', 'Release', '--',
         target, target, core, 'artifacts/api-self-check', '--strict'], prerequisite='api-audit')
+    # Supplemental inherited/attribute metadata can reveal dependencies absent
+    # from ordinary declarations. Preserve their exact identities in job logs,
+    # not just counts in a downloadable artifact. No unresolved entry is waived.
+    for stage in ('api-audit', 'api-self-check'):
+        path = Path('artifacts') / stage / 'summary.json'
+        if path.exists():
+            metadata = json.loads(path.read_text())
+            print('UNO_API_UNRESOLVED=' + json.dumps({
+                'stage': stage,
+                'baseline': metadata['unresolvedBaselineTypes'],
+                'target': metadata['unresolvedTargetTypes'],
+            }), flush=True)
     run('parity-review-tests', ['python3', 'build/test-uno-parity-audit.py'])
     run('parity-review', ['python3', 'build/audit-uno-parity.py'], prerequisite='api-audit')
     Path('artifacts/validation-outcomes.json').write_text(json.dumps(outcomes, indent=2) + '\n')
