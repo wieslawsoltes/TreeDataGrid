@@ -87,6 +87,7 @@ public partial class App
             case "custom-column-base": return CellColumnBaseRuntimeChecks.RunAsync(page.Grid);
             case "value-column-base": return ValueColumnBaseRuntimeChecks.RunAsync(page.Grid);
             case "custom-cell-options": return CustomCellOptionsRuntimeChecks.RunAsync(page.Grid);
+            case "custom-write-lifetime": return CustomCellWriteLifetimeRuntimeChecks.RunAsync(page.Grid);
             case "builtin-column-comparison": return BuiltInColumnComparisonRuntimeChecks.RunAsync(page.Grid);
             case "builtin-binding": return BuiltInBindingRuntimeChecks.RunAsync(page.Grid);
             case "column-compatibility": return ColumnCompatibilityRuntimeChecks.RunAsync(page.Grid, Template("RuntimeCellTemplate"), Template("RuntimeEditingTemplate"));
