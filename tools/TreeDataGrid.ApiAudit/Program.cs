@@ -23,6 +23,7 @@ try
     // The actual metadata reader is regression-tested before either normal
     // comparison or strict self-comparison can produce a successful report.
     var semanticChecks = ApiSemanticChecks.Run();
+    var normalizationChecks = ApiNameNormalizer.RunChecks();
     if (args.Length == 1) return 0;
     var baselinePath = Path.GetFullPath(args[0]);
     var targetPath = Path.GetFullPath(args[1]);
@@ -54,9 +55,11 @@ try
     var semantics = ApiSemantics.WriteComparison(baseline.SemanticEntries, target.SemanticEntries, output, jsonOptions);
     var report = new
     {
-        schemaVersion = 3,
+        schemaVersion = 4,
         mode = "declared-public-and-protected-metadata-shapes",
         namespaceMappings = Surface.NamespaceMappings,
+        namespaceNormalization = "Explicit qualified-name roots only; quoted constants/defaults/attribute values are preserved; Core mappings are not inferred",
+        namespaceNormalizationChecks = normalizationChecks,
         baselineShapes = left.Count,
         targetShapes = right.Count,
         exactNormalizedMatches = matched,
@@ -107,11 +110,7 @@ internal sealed record Surface(InputAssembly[] Inputs, ApiEntry[] Entries, strin
     // Supplemental rows have their own complete, independently diffable files.
     [JsonIgnore]
     public ApiSemanticEntry[] SemanticEntries { get; init; } = [];
-    public static IReadOnlyDictionary<string, string> NamespaceMappings { get; } = new SortedDictionary<string, string>(StringComparer.Ordinal)
-    {
-        ["Avalonia.Controls"] = "UI.Controls",
-        ["Uno.Controls"] = "UI.Controls",
-    };
+    public static IReadOnlyDictionary<string, string> NamespaceMappings => ApiNameNormalizer.Mappings;
     private static readonly SymbolDisplayFormat Format = new(
         globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
         typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
@@ -219,11 +218,7 @@ internal sealed record Surface(InputAssembly[] Inputs, ApiEntry[] Entries, strin
             entries.Add(new(assembly, symbol.Kind.ToString(), text, Normalize(text),
                 Normalize(identity), Normalize(owner), symbol.MetadataName));
         }
-        static string Normalize(string value)
-        {
-            foreach (var map in NamespaceMappings) value = value.Replace(map.Key + ".", map.Value + ".", StringComparison.Ordinal);
-            return value;
-        }
+        static string Normalize(string value) => ApiNameNormalizer.Normalize(value);
         void CheckType(ITypeSymbol? type)
         {
             if (type is null) return;
