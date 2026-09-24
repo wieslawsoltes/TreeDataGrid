@@ -73,6 +73,7 @@ public partial class App
             case "binding-subscription-lifetime":
                 BindingSubscriptionLifetimeChecks.RunAll();
                 return Task.CompletedTask;
+            case "typed-binding": return TypedBindingRuntimeChecks.RunAsync(page);
             case "hierarchy-ownership":
                 HierarchyOwnershipRuntimeChecks.Run();
                 return Task.CompletedTask;
