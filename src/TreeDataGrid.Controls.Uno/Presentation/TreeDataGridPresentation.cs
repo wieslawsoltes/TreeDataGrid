@@ -63,7 +63,7 @@ public abstract partial class TreeDataGridPresentation : INotifyPropertyChanged,
     }
 }
 
-public sealed class TreeDataGridPresentation<TModel> : TreeDataGridPresentation, IColumnVisitor<TModel, CellColumn> where TModel : class
+public sealed partial class TreeDataGridPresentation<TModel> : TreeDataGridPresentation, IColumnVisitor<TModel, CellColumn> where TModel : class
 {
     private const int PoolCapacity = 256;
     private const int ColumnPoolCapacity = 32;
@@ -109,64 +109,10 @@ public sealed class TreeDataGridPresentation<TModel> : TreeDataGridPresentation,
         foreach (var view in _views.Values) view.View.ResetWidthMeasurement();
     }
 
-    public override CellValue RealizeCell(int columnIndex, int rowIndex)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        if (!_active) throw new InvalidOperationException("The presentation is suspended.");
-        var column = _visible[columnIndex];
-        var row = Rows[rowIndex];
-        if (_pool.TryGetValue(column, out var values))
-        {
-            while (values.TryPop(out var value))
-            {
-                --_pooled;
-                try
-                {
-                    if (column.TryReuseCell(value, row)) { column.ConfigureCell(value); return value; }
-                }
-                catch { value.Dispose(); throw; }
-                value.Dispose();
-            }
-        }
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        if (!_active || !_visible.Contains(column)) throw new InvalidOperationException("The presentation changed while realizing a cell.");
-        var created = column.CreateCell(row);
-        column.ConfigureCell(created);
-        return created;
-    }
-
-    internal override bool TryReuseCell(int columnIndex, int rowIndex, CellValue value)
-    {
-        if (_disposed || !_active || (uint)columnIndex >= (uint)_visible.Count || (uint)rowIndex >= (uint)Rows.Count) return false;
-        var column = _visible[columnIndex];
-        if (!column.TryReuseCell(value, Rows[rowIndex]) || _disposed || !_active ||
-            (uint)columnIndex >= (uint)_visible.Count || !ReferenceEquals(column, _visible[columnIndex])) return false;
-        column.ConfigureCell(value);
-        return true;
-    }
-
-    public override void RecycleCell(CellColumn column, CellValue cell)
-    {
-        var pooled = false;
-        try
-        {
-            if (_active && _pooled < PoolCapacity && _visible.Contains(column) &&
-                (_pool.ContainsKey(column) || _pool.Count < ColumnPoolCapacity) && cell.TrySuspend() &&
-                _active && !_disposed && _visible.Contains(column) && _pooled < PoolCapacity &&
-                (_pool.ContainsKey(column) || _pool.Count < ColumnPoolCapacity))
-            {
-                if (!_pool.TryGetValue(column, out var values)) _pool[column] = values = new();
-                values.Push(cell);
-                ++_pooled;
-                pooled = true;
-            }
-        }
-        finally { if (!pooled) cell.Dispose(); }
-    }
-
     public override void Suspend()
     {
         if (!_active) return;
+        unchecked { ++_cellOperationVersion; }
         _active = false;
         base.Suspend();
         _selection.Suspend();
@@ -251,6 +197,7 @@ public sealed class TreeDataGridPresentation<TModel> : TreeDataGridPresentation,
         var pools = _pool.Values.ToArray();
         _pool.Clear();
         _pooled = 0;
+        _emptyCellStacks.Clear();
         List<Exception>? errors = null;
         foreach (var pool in pools)
             while (pool.TryPop(out var value))
@@ -267,6 +214,7 @@ public sealed class TreeDataGridPresentation<TModel> : TreeDataGridPresentation,
 
     private void SynchronizeColumns()
     {
+        unchecked { ++_cellOperationVersion; }
         var desired = new HashSet<IColumn>(_model.Columns, ReferenceEqualityComparer.Instance);
         foreach (var removed in _observed.Keys.Where(x => !desired.Contains(x)).ToArray())
         {
@@ -353,21 +301,32 @@ public sealed class TreeDataGridPresentation<TModel> : TreeDataGridPresentation,
     {
         var rows = _model.Rows;
         if (ReferenceEquals(rows, _rows)) return;
+        unchecked { ++_cellOperationVersion; }
         ClearPool();
         if (_rows is not null) _rows.CollectionChanged -= OnRowsChanged;
         _rows = rows;
         _rows.CollectionChanged += OnRowsChanged;
         RowsChanged?.Invoke(this, new(NotifyCollectionChangedAction.Reset));
     }
-    private void OnRowsChanged(object? sender, NotifyCollectionChangedEventArgs e) => RowsChanged?.Invoke(this, e);
+    private void OnRowsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (!_active || _disposed) return;
+        unchecked { ++_cellOperationVersion; }
+        RowsChanged?.Invoke(this, e);
+    }
     // Flat Core rows intentionally reuse one anonymous row object and publish
     // sort completion on the source, without a collection Reset notification.
     private void OnSorted()
     {
+        if (!_active || _disposed) return;
+        unchecked { ++_cellOperationVersion; }
         RowsChanged?.Invoke(this, new(NotifyCollectionChangedAction.Reset));
         if (_active && !_disposed) RaiseSorted();
     }
-    private void OnColumnsChanged(object? sender, NotifyCollectionChangedEventArgs e) => SynchronizeColumns();
+    private void OnColumnsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (_active && !_disposed) SynchronizeColumns();
+    }
     private void OnColumnChanged(IColumn column, PropertyChangedEventArgs e)
     {
         if (!_active || _disposed || !_observed.ContainsKey(column)) return;
