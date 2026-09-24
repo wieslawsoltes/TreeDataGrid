@@ -6,7 +6,7 @@ using Uno.Controls.Presentation;
 namespace Uno.Controls.Models.TreeDataGrid;
 
 /// <summary>UI options extending, rather than duplicating, Core column policy.</summary>
-public class ColumnOptions<TModel> : TreeDataGridCore.Models.ColumnOptions<TModel>, ICellOptions
+public class ColumnOptions<TModel> : TreeDataGridCore.Models.ColumnOptions<TModel>, ICellOptions, ICellColumnLayoutOptions
 {
     public new GridLength MinWidth
     {
