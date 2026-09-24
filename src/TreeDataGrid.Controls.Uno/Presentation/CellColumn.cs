@@ -109,7 +109,7 @@ public abstract class CellValue : NotifyingBase, ICell, IDisposable
     internal virtual bool TrySuspend() => false;
 }
 
-public class ValueCellColumn<TModel, TValue> : CellColumn, ICellColumn<TModel> where TModel : class
+public partial class ValueCellColumn<TModel, TValue> : CellColumn, ICellColumn<TModel> where TModel : class
 {
     private readonly ValueColumn<TModel, TValue> _column;
     private readonly ColumnOptions<TModel> _options;
@@ -123,6 +123,11 @@ public class ValueCellColumn<TModel, TValue> : CellColumn, ICellColumn<TModel> w
         _column = column;
         _kind = kind;
         TextOptions = textOptions;
+        // Public view comparison follows the reference's construction-time
+        // policy. Actual source sorting remains owned by the Core definition.
+        _allowPublicSort = _options.CanUserSortColumn != false;
+        _publicAscending = _options.CompareAscending;
+        _publicDescending = _options.CompareDescending;
     }
     public override TextCellOptions? TextOptions { get; }
     public override CellKind Kind => _kind;

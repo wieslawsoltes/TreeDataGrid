@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -53,6 +54,15 @@ public class TemplateColumn<TModel> : ValueCellColumn<TModel, TModel>, ITextSear
         BeginEditGestures = options.BeginEditGestures;
     }
     public TemplateColumnOptions<TModel> Options { get; }
+    // Unlike value-column comparers, the reference template contract returns
+    // the current explicit delegate, even when CanUserSortColumn is false.
+    // That flag remains a separate source/UI policy, not an implicit comparator.
+    public override Comparison<TModel?>? GetComparison(ListSortDirection direction) => direction switch
+    {
+        ListSortDirection.Ascending => Options.CompareAscending,
+        ListSortDirection.Descending => Options.CompareDescending,
+        _ => null,
+    };
     public override bool IsTextSearchEnabled => Options.IsTextSearchEnabled;
     public override string? GetSearchText(object? model) => model is TModel typed ? Options.TextSearchValueSelector?.Invoke(typed) : null;
     public override DataTemplate GetCellTemplate(Control anchor) => _display ??= FindTemplate(anchor, _displayKey!);
