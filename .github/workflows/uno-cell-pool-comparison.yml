@@ -1,0 +1,98 @@
+name: Uno cell pool comparison
+
+# Diagnostic comparison of exact unmodified revisions. The independent native
+# parity workflow retains its unchanged 1.10 acceptance gate.
+on:
+  push:
+    branches: [codex/uno-core-port]
+    paths: [.github/workflows/uno-cell-pool-comparison.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.201
+      - name: Install matched native environment
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb fonts-dejavu-core libfontconfig1 libx11-6 libxrandr2 libxi6 libxcursor1 libgl1
+      - name: Compare baseline and cell ownership changes on one runner
+        run: |
+          python3 -u - <<'PY'
+          import json, os, shutil, signal, subprocess
+          from pathlib import Path
+          output = Path('artifacts/cell-pool-comparison').resolve()
+          output.mkdir(parents=True, exist_ok=True)
+          revisions = {
+              'baseline': '3eb3470aa96337fa31af45bb8d85fa35ca9a0366',
+              'candidate': 'c0ab40c188cc00a8b596e635211a7225ef0e78f4',
+          }
+          results = {}
+          for label, revision in revisions.items():
+              tree = Path(os.environ['RUNNER_TEMP']) / ('cell-pool-' + label)
+              subprocess.run(['git', 'worktree', 'add', '--detach', str(tree), revision], check=True)
+              with (output / (label + '.log')).open('w') as log:
+                  process = subprocess.Popen(['python3', '-u', 'build/run-native-parity.py', '--pairs', '2', '--columns', '64', '--iterations', '25', '--max-ratio', '1.10'], cwd=tree, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
+                  try:
+                      code = process.wait(timeout=480)
+                  except subprocess.TimeoutExpired:
+                      os.killpg(process.pid, signal.SIGKILL)
+                      process.wait()
+                      code = 124
+              folder = tree / 'artifacts/native-parity'
+              if folder.exists(): shutil.copytree(folder, output / label)
+              report = json.loads((folder / 'summary.json').read_text()) if (folder / 'summary.json').exists() else None
+              outcomes = json.loads((folder / 'outcomes.json').read_text()) if (folder / 'outcomes.json').exists() else {}
+              results[label] = {'revision': revision, 'exitCode': code, 'hostOutcomes': outcomes, 'report': report}
+              (output / 'results.json').write_text(json.dumps(results, indent=2) + '\n')
+              assert report and report['revision'] == revision and len(outcomes) == 6 and all(value == 0 for value in outcomes.values()), results[label]
+              assert code == (0 if report['diagnosticBudgetMet'] else 1), results[label]
+              subprocess.run(['git', 'diff', '--exit-code'], cwd=tree, check=True)
+              subprocess.run(['git', 'diff', '--cached', '--exit-code'], cwd=tree, check=True)
+          old = {entry['operation']: entry for entry in results['baseline']['report']['comparisons']}
+          compared = []
+          for entry in results['candidate']['report']['comparisons']:
+              operation = entry['operation']
+              comparison = {'operation': operation}
+              for metric in ('SynchronousUiMilliseconds', 'SynchronousUiAllocatedBytes', 'SettledMilliseconds'):
+                  before = old[operation][metric]['median']['Uno']
+                  after = entry[metric]['median']['Uno']
+                  comparison[metric] = {'before': before, 'after': after, 'afterOverBefore': after / before if before else None}
+              compared.append(comparison)
+          assert len(compared) == 6
+          summary = {
+              'scope': 'Same runner, exact baseline then candidate. Each revision uses two AB/BA framework pairs. Revision-order and machine-state effects remain possible; no instrumentation or source rewriting.',
+              'collectionSucceeded': True,
+              'completePerformanceParityProven': False,
+              'baseline': revisions['baseline'], 'candidate': revisions['candidate'],
+              'comparisons': compared,
+          }
+          (output / 'before-after.json').write_text(json.dumps(summary, indent=2) + '\n')
+          print('UNO_CELL_POOL_COMPARISON=' + json.dumps(summary), flush=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uno-cell-pool-comparison
+          path: artifacts/cell-pool-comparison
+          retention-days: 14
+          if-no-files-found: error
+      - name: Require unchanged checkout
+        if: always()
+        run: git diff --exit-code && git diff --cached --exit-code

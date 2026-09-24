@@ -53,6 +53,7 @@ public partial class App : Application
             await FilesAndFindRuntimeChecks.RunAsync(page, CaptureAsync);
             await RuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"]);
             await ViewportMeasurementRuntimeChecks.RunAsync(page.Grid);
+            await PresentationPoolRuntimeChecks.RunAsync(page.Grid);
             await SelectionRuntimeChecks.RunAsync(page.Grid, (Microsoft.UI.Xaml.Controls.ControlTemplate)page.Resources["AlternateGridTemplate"]);
             await SelectionInteractionRuntimeChecks.RunAsync(page);
             await ParityContractRuntimeChecks.RunSelectionHooksAsync(page);

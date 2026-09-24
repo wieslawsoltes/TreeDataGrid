@@ -46,6 +46,7 @@ public partial class App
             case "cross-column-recycling": return CrossColumnRecyclingRuntimeChecks.RunAsync(page.Grid);
             case "row-recycling-visibility": return RowRecyclingVisibilityRuntimeChecks.RunAsync(page.Grid);
             case "layout-recycling": return LayoutRecyclingRuntimeChecks.RunAsync(page.Grid);
+            case "presentation-pool": return PresentationPoolRuntimeChecks.RunAsync(page.Grid);
             case "text-template-context": return TextTemplateContextRuntimeChecks.RunAsync(page.Grid);
             case "cached-state":
                 CachedStateRuntimeChecks.Run();
