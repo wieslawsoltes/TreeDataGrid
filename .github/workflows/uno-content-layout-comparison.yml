@@ -1,0 +1,114 @@
+name: Uno content layout comparison
+
+# Diagnostic collection is independent of the unchanged 1.10 hard gate.
+# Both revisions are checked out unchanged and retained artifacts include failures.
+on:
+  push:
+    branches: [codex/uno-core-port]
+    paths: [.github/workflows/uno-content-layout-comparison.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.201
+      - name: Install matched native dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb fonts-dejavu-core libfontconfig1 libx11-6 libxrandr2 libxi6 libxcursor1 libgl1
+      - name: Run the same workload on both unmodified revisions
+        shell: bash
+        run: |
+          python3 -u - <<'PY'
+          import json, os, shutil, signal, subprocess
+          from pathlib import Path
+          output = Path('artifacts/content-layout-comparison').resolve()
+          output.mkdir(parents=True, exist_ok=True)
+          revisions = {
+              'baseline': '269557f594a79c959cb86c47caf69abe8103c348',
+              'candidate': 'e47f9fbf3b8fde91528c283d58417bd2d2020656',
+          }
+          results = {}
+          failures = []
+          for label, revision in revisions.items():
+              tree = Path(os.environ['RUNNER_TEMP']) / ('uno-content-layout-' + label)
+              subprocess.run(['git', 'worktree', 'add', '--detach', str(tree), revision], check=True)
+              command = ['python3', '-u', 'build/run-native-parity.py', '--pairs', '2', '--columns', '64', '--iterations', '25', '--max-ratio', '1.10']
+              with (output / (label + '.log')).open('w') as log:
+                  process = subprocess.Popen(command, cwd=tree, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
+                  try:
+                      code = process.wait(timeout=600)
+                  except subprocess.TimeoutExpired:
+                      os.killpg(process.pid, signal.SIGKILL)
+                      process.wait()
+                      code = 124
+              artifacts = tree / 'artifacts/native-parity'
+              if artifacts.exists():
+                  shutil.copytree(artifacts, output / label)
+              def load(name):
+                  path = artifacts / name
+                  return json.loads(path.read_text()) if path.is_file() else None
+              report = load('summary.json')
+              outcomes = load('outcomes.json')
+              clean = subprocess.run(['git', 'diff', '--exit-code'], cwd=tree).returncode == 0
+              clean = subprocess.run(['git', 'diff', '--cached', '--exit-code'], cwd=tree).returncode == 0 and clean
+              valid = (code in (0, 1) and report is not None and report['revision'] == revision and
+                       outcomes is not None and len(outcomes) == 6 and all(value == 0 for value in outcomes.values()) and clean)
+              results[label] = {'revision': revision, 'command': command, 'exitCode': code,
+                                'unchangedCheckout': clean, 'hostOutcomes': outcomes, 'report': report,
+                                'measurementCollectionComplete': valid}
+              if not valid:
+                  failures.append(label)
+              (output / 'results.json').write_text(json.dumps(results, indent=2) + '\n')
+              print('UNO_CONTENT_LAYOUT_COLLECTION=' + json.dumps({'label': label, 'valid': valid, 'exitCode': code, 'outcomes': outcomes}), flush=True)
+          if failures:
+              raise RuntimeError('Incomplete collection: ' + ', '.join(failures))
+          old = {item['operation']: item for item in results['baseline']['report']['comparisons']}
+          compared = []
+          for item in results['candidate']['report']['comparisons']:
+              operation = item['operation']
+              entry = {'operation': operation}
+              for metric in ['SynchronousUiMilliseconds', 'SynchronousUiAllocatedBytes', 'SettledMilliseconds']:
+                  before = old[operation][metric]['median']['Uno']
+                  after = item[metric]['median']['Uno']
+                  entry[metric] = {'before': before, 'after': after, 'afterOverBefore': after / before if before else None,
+                                   'beforeP95': old[operation][metric]['p95']['Uno'], 'afterP95': item[metric]['p95']['Uno']}
+              compared.append(entry)
+          summary = {
+              'schemaVersion': 1,
+              'scope': 'One runner; baseline revision then candidate. Each revision uses two matched AB/BA framework pairs. Revision-order and machine-state effects remain possible. Synchronous UI work and verified layout settlement, not GPU completion or frame rate.',
+              'revisions': revisions,
+              'measurementCollectionComplete': True,
+              'completePerformanceParityProven': False,
+              'strictBudgetMet': {label: value['report']['diagnosticBudgetMet'] for label, value in results.items()},
+              'comparisons': compared,
+          }
+          (output / 'before-after.json').write_text(json.dumps(summary, indent=2) + '\n')
+          print('UNO_CONTENT_LAYOUT_COMPARISON=' + json.dumps(summary), flush=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uno-content-layout-comparison
+          path: artifacts/content-layout-comparison
+          retention-days: 14
+          if-no-files-found: error
+      - name: Require unchanged source checkout
+        if: always()
+        run: git diff --exit-code && git diff --cached --exit-code
