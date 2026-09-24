@@ -27,7 +27,8 @@ public partial class TreeDataGridCell
             SetContentVisibility(expander, _expanderValue is null ? Visibility.Collapsed : Visibility.Visible);
             if (!IsContentLayoutCurrent(realization, revision)) return false;
             var margin = new Thickness(_indent * 20, 0, 0, 0);
-            if (expander.Margin != margin) expander.Margin = margin;
+            if (expander.Margin != margin || expander.ReadLocalValue(FrameworkElement.MarginProperty) is not Thickness local || local != margin)
+                expander.Margin = margin;
             if (!IsContentLayoutCurrent(realization, revision)) return false;
         }
         if (_text is { } text)
@@ -78,8 +79,10 @@ public partial class TreeDataGridCell
 
     private static void SetContentVisibility(UIElement element, Visibility value)
     {
-        // Native enum DP setters box even when the effective value is unchanged.
-        // Keep the real visibility transition, but do not repeat an equal write.
-        if (element.Visibility != value) element.Visibility = value;
+        // Establish the same local priority as the original unconditional write.
+        // An equal template/style/default value is not an owned local value.
+        // Once established, skip redundant native enum boxing and DP setters.
+        if (element.Visibility != value || element.ReadLocalValue(UIElement.VisibilityProperty) is not Visibility local || local != value)
+            element.Visibility = value;
     }
 }

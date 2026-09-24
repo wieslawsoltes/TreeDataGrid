@@ -95,11 +95,13 @@ public partial class TreeDataGridCell : Control
             _check.Indeterminate += OnCheckChanged;
         }
         if (_expander is not null) _expander.Click += OnExpand;
-        if (!UpdateContentKind()) return;
         var realization = RealizationVersion;
-        var revision = _contentLayoutRevision;
+        UpdateContentKind();
+        if (_unrealizing || realization != RealizationVersion) return;
+        // A nested same-realization style update does not replace the template's
+        // obligation to initialize its current text and visual states.
         UpdateValue();
-        if (IsContentLayoutCurrent(realization, revision)) UpdateState();
+        if (!_unrealizing && realization == RealizationVersion) UpdateState();
     }
     private void OnExpand(object sender, RoutedEventArgs e) { if (_expanderValue is { } value) value.IsExpanded = !value.IsExpanded; }
 
@@ -181,7 +183,7 @@ public partial class TreeDataGridCell : Control
         if (!ReferenceEquals(_value, value) || RealizationVersion != realization) return;
         SubscribeToModelChanges();
         if (!ReferenceEquals(_value, value) || RealizationVersion != realization) return;
-        if (Visibility != Visibility.Visible) Visibility = Visibility.Visible;
+        SetContentVisibility(this, Visibility.Visible);
         if (!ReferenceEquals(_value, value) || RealizationVersion != realization) return;
         if (!_rebinding) UpdateValue();
     }

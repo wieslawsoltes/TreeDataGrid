@@ -27,6 +27,8 @@ internal static class CellContentLayoutRuntimeChecks
             await Task.Delay(75);
             host.UpdateLayout();
             var text = FindText(cell) ?? throw new InvalidOperationException("Compiled text part is missing.");
+            Check(cell.ReadLocalValue(UIElement.VisibilityProperty) is Visibility.Visible,
+                "Initial realization did not establish its local visibility priority.");
             for (var property = 0; property < 3; ++property)
             {
                 VerifyStyle(property, recycle: false);
@@ -91,6 +93,15 @@ internal static class CellContentLayoutRuntimeChecks
             ++cases;
 
             Reset();
+            text.ClearValue(UIElement.VisibilityProperty);
+            Check(ReferenceEquals(text.ReadLocalValue(UIElement.VisibilityProperty), DependencyProperty.UnsetValue),
+                "The priority fixture did not remove its local visibility value.");
+            cell.Refresh();
+            Check(text.ReadLocalValue(UIElement.VisibilityProperty) is Visibility.Visible,
+                "An equal effective default prevented restoring the intended local visibility priority.");
+            ++cases;
+
+            Reset();
             for (var iteration = 0; iteration < 1024; ++iteration) cell.Refresh();
             var before = GC.GetAllocatedBytesForCurrentThread();
             for (var iteration = 0; iteration < 4096; ++iteration) cell.Refresh();
@@ -99,8 +110,8 @@ internal static class CellContentLayoutRuntimeChecks
             Check(text.Text == value.Text && text.Visibility == Visibility.Visible,
                 "Allocation optimization changed native content or visibility.");
             ++cases;
-            Check(cases == 11, "A content-layout scenario was skipped.");
-            Console.WriteLine("UNO_RUNTIME_CELL_CONTENT_LAYOUT_PASSED: cases=11; all three text-style getters, same-model recycling, nested refreshes, native setter reentrancy, inner-cell mode, getter failure/recovery, content-kind retirement and zero warm full-layout allocation");
+            Check(cases == 12, "A content-layout scenario was skipped.");
+            Console.WriteLine("UNO_RUNTIME_CELL_CONTENT_LAYOUT_PASSED: cases=12; all three text-style getters, same-model recycling, nested refreshes, native setter reentrancy, inner-cell mode, getter failure/recovery, content-kind retirement, local visibility priority and zero warm full-layout allocation");
 
             void SetNewStyle()
             {
