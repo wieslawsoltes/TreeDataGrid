@@ -7,6 +7,66 @@ namespace Uno.Controls.Presentation;
 /// <summary>Publishes a single, identity-preserving projection mutation.</summary>
 internal sealed class VisibleColumnList : ColumnListBase<CellColumn>
 {
+    private HashSet<CellColumn>? _membership;
+    private int _mutationDepth;
+
+    // Ownership is reference identity, not a custom column's Equals contract.
+    // The steady realization/recycling path performs one hash lookup, rather
+    // than scanning every visible definition for each cell. Do not alter the
+    // public Collection<T>.Contains contract of caller-owned column lists.
+    public new bool Contains(CellColumn column)
+    {
+        if (_mutationDepth != 0)
+        {
+            // Native collection/property callbacks can query the projection
+            // while its storage is changing. Never cache an intermediate state
+            // or register an extra listener that changes reentrancy policy.
+            for (var index = 0; index < Count; ++index)
+                if (ReferenceEquals(this[index], column)) return true;
+            return false;
+        }
+        if (_membership is null)
+        {
+            var membership = new HashSet<CellColumn>(Count, ReferenceEqualityComparer.Instance);
+            for (var index = 0; index < Count; ++index) membership.Add(this[index]);
+            _membership = membership;
+        }
+        return _membership.Contains(column);
+    }
+
+    protected override void InsertItem(int index, CellColumn item)
+    {
+        BeginMutation();
+        try { base.InsertItem(index, item); }
+        finally { EndMutation(); }
+    }
+    protected override void RemoveItem(int index)
+    {
+        BeginMutation();
+        try { base.RemoveItem(index); }
+        finally { EndMutation(); }
+    }
+    protected override void SetItem(int index, CellColumn item)
+    {
+        BeginMutation();
+        try { base.SetItem(index, item); }
+        finally { EndMutation(); }
+    }
+    protected override void MoveItem(int oldIndex, int newIndex)
+    {
+        BeginMutation();
+        try { base.MoveItem(oldIndex, newIndex); }
+        finally { EndMutation(); }
+    }
+    protected override void ClearItems()
+    {
+        BeginMutation();
+        try { base.ClearItems(); }
+        finally { EndMutation(); }
+    }
+    private void BeginMutation() { _membership = null; ++_mutationDepth; }
+    private void EndMutation() { _membership = null; --_mutationDepth; }
+
     internal void Synchronize(IReadOnlyList<CellColumn> next)
     {
         var common = Math.Min(Count, next.Count);
