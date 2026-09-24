@@ -75,7 +75,7 @@ public partial class App : Application
             await ColumnCompatibilityRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"], (DataTemplate)page.Resources["RuntimeEditingTemplate"]);
             await SourceExtensionsRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"], (DataTemplate)page.Resources["RuntimeEditingTemplate"]);
             await DeclarativeRuntimeChecks.RunAsync(page);
-            await BindingLifetimeRuntimeChecks.RunAsync(page.Grid);
+            await BindingLifetimeRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"]);
             await SourceCompatibilityRuntimeChecks.RunAsync(page.Grid);
             await AutomationRuntimeChecks.RunAsync(page.Grid);
             await TextSearchRuntimeChecks.RunAsync(page);

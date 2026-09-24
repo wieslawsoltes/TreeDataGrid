@@ -12,7 +12,6 @@ using Microsoft.UI.Xaml.Media;
 using Windows.Foundation;
 using Core = TreeDataGridCore;
 using CoreModels = TreeDataGridCore.Models;
-using CellColumn = Uno.Controls.Presentation.CellColumn;
 using BeginEditGestures = Uno.Controls.Models.TreeDataGrid.BeginEditGestures;
 
 namespace TreeDataGridUnoSample;
@@ -29,9 +28,15 @@ internal static class BrowserInputRuntimeChecks
         var items = Enumerable.Range(0, 100).Select(index => new Item(index)).ToArray();
         using var source = new Core.FlatTreeDataGridSource<Item>(items);
         source.Columns.Add(new CoreModels.TextColumn<Item, string>("Name", item => item.Name,
-            (item, value) => item.Name = value ?? string.Empty, width: new(240)));
+            (item, value) => item.Name = value ?? string.Empty, width: new(240))
+            { PresentationKey = "browser-input" });
         source.Columns.Add(new CoreModels.TextColumn<Item, string>("Kind", item => item.Kind, width: new(200)));
         source.Columns.Add(new CoreModels.TextColumn<Item, string>("Code", item => item.Code, width: new(240)));
+        var options = new global::Uno.Controls.Presentation.TreeDataGridPresentationOptions();
+        options.Columns.Add("browser-input", definition =>
+            new global::Uno.Controls.Presentation.ValueCellColumn<Item, string>(
+                (CoreModels.ValueColumn<Item, string>)definition, global::Uno.Controls.Presentation.CellKind.Text)
+            { EditGestures = BeginEditGestures.F2 });
         var grid = new global::Uno.Controls.TreeDataGrid
         {
             Width = 600, Height = 400,
@@ -40,14 +45,13 @@ internal static class BrowserInputRuntimeChecks
             SelectionMode = global::Uno.Controls.TreeDataGridSelectionMode.MultipleRows,
             CanUserResizeColumns = true,
             CanUserSortColumns = true,
+            PresentationOptions = options,
             Model = source,
         };
         var container = new Border { Padding = new Thickness(24), Child = grid };
         var phase = "initial-layout";
         try
         {
-            foreach (var column in grid.Presentation!.Columns.Cast<CellColumn>())
-                column.EditGestures = BeginEditGestures.F2;
             page.Content = container;
             await Until(() => grid.TryGetCell(0, 5) is { ActualWidth: > 0, ActualHeight: > 0 } &&
                 grid.ColumnHeadersPresenter?.TryGetElement(0) is { ActualWidth: > 0 });
