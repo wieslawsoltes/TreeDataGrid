@@ -280,43 +280,65 @@ namespace Uno.Controls.Models.TreeDataGrid
 
         public double GetEstimatedWidth(double constraint)
         {
+            // Like geometry reconstruction, an estimate must describe one
+            // coherent collection/layout revision. A custom property getter can
+            // replace columns, complete a nested commit or invalidate an earlier
+            // width. Retry without retaining stale columns or partial totals.
+            while (true)
+            {
+                var layout = _layoutRevision;
+                var geometry = _geometryRevision;
+                if (TryEstimateWidth(constraint, layout, geometry, out var result))
+                    return result;
+            }
+        }
+
+        private bool TryEstimateWidth(double constraint, int layout, int geometry, out double result)
+        {
+            result = 0;
             var hasStar = false;
             var totalMeasured = 0.0;
             var measuredCount = 0;
             var unmeasuredCount = 0;
+            var count = Count;
 
-            for (var i = 0; i < Count; ++i)
+            for (var i = 0; i < count; ++i)
             {
                 var column = (IUpdateColumnLayout)this[i];
+                var width = column.Width;
+                if (layout != _layoutRevision || geometry != _geometryRevision) return false;
 
-                if (column.Width.IsStar)
+                if (width.IsStar)
                 {
+                    var minimum = column.MinActualWidth;
+                    if (layout != _layoutRevision || geometry != _geometryRevision) return false;
                     hasStar = true;
-                    totalMeasured += column.MinActualWidth;
-                }
-                else if (!double.IsNaN(column.ActualWidth))
-                {
-                    totalMeasured += column.ActualWidth;
-                    ++measuredCount;
+                    totalMeasured += minimum;
                 }
                 else
-                    ++unmeasuredCount;
+                {
+                    // ActualWidth may be an application getter. Read it once,
+                    // both to avoid duplicate work and to use the validated value.
+                    var actual = column.ActualWidth;
+                    if (layout != _layoutRevision || geometry != _geometryRevision) return false;
+                    if (!double.IsNaN(actual))
+                    {
+                        totalMeasured += actual;
+                        ++measuredCount;
+                    }
+                    else ++unmeasuredCount;
+                }
             }
 
-            // If there are star columns, and all measured columns fit within the available space
-            // then we will fill the available space.
+            // Preserve the reference estimator's arithmetic and priority:
+            // viewport fill first, then measured/unmeasured extrapolation.
             if (hasStar && !double.IsInfinity(constraint) && totalMeasured < constraint)
-                return constraint;
-
-            // If there are a mix of measured and unmeasured columns then use the measured columns
-            // to estimate the size of the unmeasured columns.
-            if (measuredCount > 0 && unmeasuredCount > 0)
-            {
-                var estimated = (totalMeasured / measuredCount) * unmeasuredCount;
-                return totalMeasured + estimated;
-            }
-
-            return totalMeasured;
+                result = constraint;
+            else if (measuredCount > 0 && unmeasuredCount > 0)
+                result = totalMeasured + (totalMeasured / measuredCount) * unmeasuredCount;
+            else
+                result = totalMeasured;
+            return true;
         }
 
         public void CommitActualWidths()
