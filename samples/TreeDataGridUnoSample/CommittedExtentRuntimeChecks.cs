@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
@@ -16,9 +17,49 @@ internal static class CommittedExtentRuntimeChecks
 {
     internal static async Task RunAsync(MainPage page)
     {
+        ValidateStandaloneEstimates();
         await RunAsync(page, 2);
         await RunAsync(page, 1024);
         Console.WriteLine("UNO_RUNTIME_COMMITTED_EXTENT_PASSED: 2/1024 columns, zero estimator calls for hosted geometry, changed commits, cardinality/identity guards, standalone fallback and allocation-free warm queries");
+    }
+
+    private static void ValidateStandaloneEstimates()
+    {
+        var first = new EstimateColumn(20);
+        var last = new EstimateColumn(30);
+        var replacement = new EstimateColumn(123);
+        var star = new EstimateColumn(999, true);
+        var columns = new ColumnListBase<EstimateColumn> { first, last };
+        var probe = new CommittedExtentProbe { Items = columns };
+        try
+        {
+            Check(probe.Extent(double.PositiveInfinity) == 50 && first.ActualReads == 1 && last.ActualReads == 1,
+                "Standalone native estimation read a measured width more than once.");
+            first.OnActual = () =>
+            {
+                columns[0] = replacement;
+                Check(probe.Extent(double.PositiveInfinity) == 153,
+                    "A nested native extent query did not use the replacement column.");
+            };
+            Check(probe.Extent(double.PositiveInfinity) == 153,
+                "The returning native extent query published retired column geometry.");
+            last.OnActual = () => replacement.SetActual(223);
+            Check(probe.Extent(double.PositiveInfinity) == 253,
+                "A later getter invalidated an earlier width without restarting native estimation.");
+            columns.Clear();
+            columns.Add(star);
+            star.OnMinimum = columns.Clear;
+            Check(probe.Extent(500) == 0 && columns.Count == 0,
+                "Clearing a star column during native estimation fabricated a viewport extent.");
+        }
+        finally
+        {
+            probe.Items = null;
+            columns.Clear();
+        }
+        Check(first.Subscribers == 0 && last.Subscribers == 0 && replacement.Subscribers == 0 && star.Subscribers == 0,
+            "Standalone estimate callbacks retained column subscriptions after cleanup.");
+        Console.WriteLine("UNO_RUNTIME_STANDALONE_ESTIMATES_PASSED: single reads, nested same-count replacement, earlier-width invalidation, star retirement and subscription cleanup through the native presenter");
     }
 
     private static async Task RunAsync(MainPage page, int count)
@@ -57,7 +98,7 @@ internal static class CommittedExtentRuntimeChecks
                 "A hosted cell presenter rescanned its columns instead of using committed geometry.");
             columns.SetColumnWidth(count - 1, new Microsoft.UI.Xaml.GridLength(97));
             await Settle();
-            Check(ReferenceEquals(parent.TryGetElement(0), row), "A width update replaced its native row.");
+            Check(ReferenceEquals(parent.TryGetElement(0), row), "A hosted extent width update replaced its native row.");
             calls = columns.Estimates;
             Check(cells.Extent(19) == count * 60d + 37 && columns.Estimates == calls,
                 "A hosted extent query retained an obsolete width or used the clipping constraint.");
@@ -122,6 +163,40 @@ internal static class CommittedExtentRuntimeChecks
         internal const double Sentinel = 777;
         internal int Estimates;
         double IColumns.GetEstimatedWidth(double constraint) { ++Estimates; return Sentinel; }
+    }
+
+    private sealed class EstimateColumn(double actual, bool star = false) : IUpdateColumnLayout
+    {
+        private static readonly PropertyChangedEventArgs ActualChanged = new(nameof(ActualWidth));
+        private double _actual = actual;
+        private PropertyChangedEventHandler? _changed;
+        internal Action? OnActual, OnMinimum;
+        internal int ActualReads, Subscribers;
+        public Microsoft.UI.Xaml.GridLength Width => star ? new(1, GridUnitType.Star) : Microsoft.UI.Xaml.GridLength.Auto;
+        public double ActualWidth { get { ++ActualReads; var value = _actual; Invoke(ref OnActual); return value; } }
+        public double MinActualWidth { get { Invoke(ref OnMinimum); return 10; } }
+        public double MaxActualWidth => double.PositiveInfinity;
+        public bool StarWidthWasConstrained => false;
+        public bool? CanUserResize => true;
+        public object? Header => null;
+        public ListSortDirection? SortDirection { get; set; }
+        public object? Tag { get; set; }
+        public event PropertyChangedEventHandler? PropertyChanged
+        {
+            add { _changed += value; ++Subscribers; }
+            remove { _changed -= value; --Subscribers; }
+        }
+        public double CellMeasured(double width, int rowIndex) => throw new InvalidOperationException("Estimate fixture cannot measure.");
+        public bool CommitActualWidth() => throw new InvalidOperationException("Estimate fixture cannot commit.");
+        public void CalculateStarWidth(double availableWidth, double totalStars) => throw new InvalidOperationException("Estimate fixture cannot solve layout.");
+        public void SetWidth(Microsoft.UI.Xaml.GridLength width) => throw new InvalidOperationException("Estimate fixture cannot change policy.");
+        internal void SetActual(double value) { _actual = value; _changed?.Invoke(this, ActualChanged); }
+        private static void Invoke(ref Action? callback)
+        {
+            var current = callback;
+            callback = null;
+            current?.Invoke();
+        }
     }
 }
 
