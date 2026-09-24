@@ -4,14 +4,13 @@ using System.ComponentModel;
 using Microsoft.UI.Xaml;
 using TreeDataGridCore.Models;
 using UICell = Uno.Controls.Models.TreeDataGrid.ICell;
-using UITextCell = Uno.Controls.Models.TreeDataGrid.ITextCell;
 
 namespace Uno.Controls.Presentation;
 
 using UI = global::Uno.Controls.Models.TreeDataGrid;
 
 /// <summary>Adapts a public column implementation without copying its Core source.</summary>
-internal sealed class CellColumnAdapter<TModel> : CellColumn where TModel : class
+internal sealed partial class CellColumnAdapter<TModel> : CellColumn where TModel : class
 {
     private readonly ICellColumn<TModel> _inner;
     private bool _disposed;
@@ -109,79 +108,6 @@ internal sealed class CellColumnAdapter<TModel> : CellColumn where TModel : clas
         (_inner as IDisposable)?.Dispose();
     }
     private void OnInnerChanged(object? sender, PropertyChangedEventArgs e) => RaisePropertyChanged(e);
-
-    private sealed class CustomCellValue : CellValue
-    {
-        private readonly UICell _inner;
-        private readonly bool _ownsModel;
-        private bool _disposed;
-        public CustomCellValue(UICell inner, bool ownsModel)
-        {
-            _inner = inner;
-            _ownsModel = ownsModel;
-            Kind = inner switch { UI.CheckBoxCell => CellKind.CheckBox, UI.TemplateCell => CellKind.Template, _ => CellKind.Text };
-            EditGestures = inner.EditGestures;
-            UpdateTextOptions();
-            if (inner is INotifyPropertyChanged notifications)
-            {
-                try { notifications.PropertyChanged += OnChanged; }
-                catch { notifications.PropertyChanged -= OnChanged; throw; }
-            }
-        }
-        public override object? Value => _inner.Value;
-        public override UICell PresentationModel => _inner;
-        public override bool CanWrite => _inner is UI.CheckBoxCell check ? !check.IsReadOnly : _inner.CanEdit;
-        public override bool? IsThreeState => (_inner as UI.CheckBoxCell)?.IsThreeState;
-        public override object? EditTarget => _inner is IEditableObject ? _inner : null;
-        public override Exception? Error => (_inner as UI.IBoundCellState)?.Error;
-        public override DataTemplate? GetCellTemplate(Microsoft.UI.Xaml.Controls.Control anchor) =>
-            (_inner as UI.TemplateCell)?.GetCellTemplate(anchor);
-        public override DataTemplate? GetCellEditingTemplate(Microsoft.UI.Xaml.Controls.Control anchor) =>
-            (_inner as UI.TemplateCell)?.GetCellEditingTemplate?.Invoke(anchor);
-        public override string? DisplayText => (_inner as UITextCell)?.Text;
-        private TextCellOptions? _textOptions;
-        public override TextCellOptions? TextOptions => _textOptions;
-        public override bool CanEdit => _inner.CanEdit;
-        public void Refresh() => RaisePropertyChanged(nameof(Value));
-        public void RefreshAfterRetarget()
-        {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-            EditGestures = _inner.EditGestures;
-            UpdateTextOptions();
-        }
-        private void UpdateTextOptions()
-        {
-            if (_inner is not UITextCell text) return;
-            var culture = (_inner as UI.ITextCellState)?.Options?.Culture ?? System.Globalization.CultureInfo.CurrentCulture;
-            if (_textOptions is { } previous && previous.TextAlignment == text.TextAlignment && previous.TextWrapping == text.TextWrapping &&
-                previous.TextTrimming == text.TextTrimming && Equals(previous.Culture, culture)) return;
-            _textOptions = new()
-            {
-                TextAlignment = text.TextAlignment, TextWrapping = text.TextWrapping,
-                TextTrimming = text.TextTrimming, Culture = culture,
-            };
-        }
-        public override void Write(object? value)
-        {
-            if (!CanWrite) throw new InvalidOperationException("The custom cell is read-only.");
-            if (_inner is UI.CheckBoxCell check) { check.Value = (bool?)value; return; }
-            if (_inner is not UITextCell text) throw new NotSupportedException("The custom cell does not expose a text setter.");
-            text.Text = Convert.ToString(value, System.Globalization.CultureInfo.CurrentCulture);
-        }
-        public override void Dispose()
-        {
-            if (_disposed) return;
-            _disposed = true;
-            try { if (_inner is INotifyPropertyChanged notifications) notifications.PropertyChanged -= OnChanged; }
-            finally { if (_ownsModel) (_inner as IDisposable)?.Dispose(); }
-        }
-        private void OnChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            // TextCell publishes Text as well as Value. Preserve names so an
-            // external value update is not reported twice by the control.
-            if (!_disposed) RaisePropertyChanged(e);
-        }
-    }
 
     private sealed class CustomExpanderValue : ExpanderCellValue
     {
