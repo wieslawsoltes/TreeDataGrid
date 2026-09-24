@@ -5,6 +5,7 @@ Requires the pinned Playwright dependency and its Chromium installation. Static
 hosting is loopback-only. No source files or generated application files change.
 A successful publish, canvas appearance or success log alone is not acceptance:
 the application's completed result, page errors and HTTP failures are checked.
+The independent input route also requires actual mouse/keyboard driver actions.
 """
 from __future__ import annotations
 
@@ -46,7 +47,8 @@ def web_root(publish_directory: Path) -> Path:
     raise FileNotFoundError(f'No published index.html under {publish_directory}')
 
 
-def run_sample(browser: Any, name: str, root: Path, output: Path, timeout: int) -> dict[str, Any]:
+def run_sample(browser: Any, name: str, root: Path, output: Path, timeout: int,
+               *, input_scale: int | None = None) -> dict[str, Any]:
     output.mkdir(parents=True, exist_ok=True)
     messages: list[dict[str, Any]] = []
     failures: list[str] = []
@@ -59,7 +61,7 @@ def run_sample(browser: Any, name: str, root: Path, output: Path, timeout: int) 
     state = None
     report: dict[str, Any] = {'name': name, 'publishedRoot': str(root), 'passed': False}
     try:
-        context = browser.new_context(viewport={'width': 1280, 'height': 800}, device_scale_factor=1)
+        context = browser.new_context(viewport={'width': 1280, 'height': 800}, device_scale_factor=input_scale or 1)
         context.tracing.start(screenshots=True, snapshots=True, sources=False)
         page = context.new_page()
         page.on('console', lambda message: messages.append({'type': message.type, 'text': message.text}))
@@ -77,7 +79,14 @@ def run_sample(browser: Any, name: str, root: Path, output: Path, timeout: int) 
         page.on('response', response_received)
         page.on('requestfailed', lambda request: messages.append(
             {'type': 'requestfailed', 'url': request.url, 'error': request.failure}))
-        page.goto(origin + '/?smoke=1&offline=1&demo=1', wait_until='domcontentloaded', timeout=timeout)
+        query = '/?smoke=1&offline=1&demo=1'
+        if input_scale is not None:
+            query += '&browser-input=1'
+        page.goto(origin + query, wait_until='domcontentloaded', timeout=timeout)
+        if input_scale is not None:
+            from uno_browser_input import drive
+            report['inputSteps'] = drive(page, messages, timeout)
+            report['deviceScaleFactor'] = input_scale
         page.wait_for_function('globalThis.__treeDataGridSmoke?.complete === true', timeout=timeout)
         state = page.evaluate('globalThis.__treeDataGridSmoke')
         if not isinstance(state, dict) or state.get('complete') is not True or state.get('passed') is not True:
@@ -124,7 +133,7 @@ def main() -> int:
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
     summary: dict[str, Any] = {
-        'scope': 'Published trimmed package consumers, Chromium runtime and application assertions. Not native performance or physical-input/accessibility parity.',
+        'scope': 'Published trimmed consumers, Chromium assertions and browser-dispatched pointer/keyboard input at device scale factors 1 and 2. Not physical hardware, all-browser, IME or external screen-reader acceptance.',
         'completeBrowserParityProven': False,
         'passed': False,
         'results': [],
@@ -141,9 +150,15 @@ def main() -> int:
                     result = run_sample(browser, name, root, output / name, args.timeout * 1000)
                     summary['results'].append(result)
                     print('UNO_BROWSER_SAMPLE=' + json.dumps(result), flush=True)
+                for scale in (1, 2):
+                    name = f'showcase-input-scale-{scale}'
+                    result = run_sample(browser, name, roots['showcase'], output / name,
+                                        args.timeout * 1000, input_scale=scale)
+                    summary['results'].append(result)
+                    print('UNO_BROWSER_INPUT=' + json.dumps(result), flush=True)
             finally:
                 browser.close()
-        summary['passed'] = len(summary['results']) == 2 and all(result['passed'] for result in summary['results'])
+        summary['passed'] = len(summary['results']) == 4 and all(result['passed'] for result in summary['results'])
     except Exception as error:
         summary['driverError'] = str(error)
     (output / 'summary.json').write_text(json.dumps(summary, indent=2) + '\n')

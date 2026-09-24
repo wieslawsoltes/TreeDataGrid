@@ -29,7 +29,8 @@ internal static class SampleRunContext
             var value = parts.Length == 1 ? "1" : Uri.UnescapeDataString(parts[1]).ToLowerInvariant();
             // Query strings are launch options, never arbitrary process arguments,
             // file output locations, source paths or JavaScript fragments.
-            if ((key is "smoke" or "demo" or "offline" or "wikipedia-live") && (value is "" or "1" or "true")) result.Add("--" + key);
+            if ((key is "smoke" or "demo" or "offline" or "wikipedia-live" or "browser-input") &&
+                (value is "" or "1" or "true")) result.Add("--" + key);
         }
         return result.OrderBy(x => x, StringComparer.Ordinal).ToArray();
     }

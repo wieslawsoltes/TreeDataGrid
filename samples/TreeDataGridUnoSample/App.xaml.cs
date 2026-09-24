@@ -30,6 +30,17 @@ public partial class App : Application
         try
         {
             await Task.Delay(1500);
+            // This route requires an external browser input driver. It is not
+            // registered as an isolated native suite and cannot pass by calling
+            // the grid's selection/edit/sort APIs from the fixture itself.
+            if (SampleRunContext.HasArgument("--browser-input"))
+            {
+                if (!OperatingSystem.IsBrowser())
+                    throw new PlatformNotSupportedException("The browser-input route requires its browser driver.");
+                await BrowserInputRuntimeChecks.RunAsync(page);
+                SampleRunContext.ReportResult(true);
+                return;
+            }
             if (await TryRunSelectedSuiteAsync(page)) return;
             page.VerifyInitialRender();
             page.Grid.SelectCell(1, 0);
@@ -64,7 +75,7 @@ public partial class App : Application
             await ColumnCompatibilityRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"], (DataTemplate)page.Resources["RuntimeEditingTemplate"]);
             await SourceExtensionsRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"], (DataTemplate)page.Resources["RuntimeEditingTemplate"]);
             await DeclarativeRuntimeChecks.RunAsync(page);
-            await BindingLifetimeRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"]);
+            await BindingLifetimeRuntimeChecks.RunAsync(page.Grid);
             await SourceCompatibilityRuntimeChecks.RunAsync(page.Grid);
             await AutomationRuntimeChecks.RunAsync(page.Grid);
             await TextSearchRuntimeChecks.RunAsync(page);
