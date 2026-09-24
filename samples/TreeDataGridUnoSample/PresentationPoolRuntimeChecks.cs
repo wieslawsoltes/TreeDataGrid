@@ -60,7 +60,7 @@ internal static class PresentationPoolRuntimeChecks
                 Check(grid.BringCellIntoView(50, column), $"Wide-grid navigation failed at column {column}.");
                 await Task.Delay(100);
                 grid.UpdateLayout();
-                var cell = grid.TryGetCell(column, 50);
+                var cell = grid.TryGetCell(column, 50) as global::Uno.Controls.Primitives.TreeDataGridCell;
                 Check(cell is not null && ReferenceEquals(cell.RowModel, items[50]), "The native control references an obsolete row after pool turnover.");
                 Check(ShowcaseRuntimeChecks.Descendants(cell!).OfType<TextBlock>().Any(text => text.Text == items[50].Name),
                     "Wide-grid recycling left stale native text.");
