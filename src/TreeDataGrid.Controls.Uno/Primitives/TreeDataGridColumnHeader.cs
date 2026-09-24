@@ -32,51 +32,36 @@ public partial class TreeDataGridColumnHeader : Button
         DefaultStyleKey = typeof(TreeDataGridColumnHeader);
         Click += OnHeaderClick;
     }
-    public bool CanUserResize { get => (bool)GetValue(CanUserResizeProperty); private set => SetValue(CanUserResizeProperty, value); }
-    public ListSortDirection? SortDirection { get => (ListSortDirection?)GetValue(SortDirectionProperty); private set => SetValue(SortDirectionProperty, value); }
+    public bool CanUserResize { get => (bool)GetValue(CanUserResizeProperty); private set => SetValue(CanUserResizeProperty, value ? s_true : s_false); }
+    public ListSortDirection? SortDirection { get => (ListSortDirection?)GetValue(SortDirectionProperty); private set => SetValue(SortDirectionProperty, BoxSortDirection(value)); }
     public int ColumnIndex { get; private set; } = -1;
     public object? Header { get => GetValue(HeaderProperty); private set => SetValue(HeaderProperty, value); }
     public CellColumn? Column => _model as CellColumn;
-    public void Realize(IColumns columns, int columnIndex)
-    {
-        ArgumentNullException.ThrowIfNull(columns);
-        if (_model is not null) throw new InvalidOperationException("Column header is already realized.");
-        if ((uint)columnIndex >= (uint)columns.Count) throw new ArgumentOutOfRangeException(nameof(columnIndex));
-        ++_realizationVersion;
-        _columns = columns;
-        _model = columns[columnIndex];
-        ColumnIndex = columnIndex;
-        try
-        {
-            _model.PropertyChanged += OnModelPropertyChanged;
-            RefreshProperties();
-        }
-        catch (Exception error)
-        {
-            try { Unrealize(); }
-            catch (Exception cleanup) { throw new AggregateException(error, cleanup); }
-            throw;
-        }
-    }
-
-    public void UpdateColumnIndex(int columnIndex) => ColumnIndex = columnIndex;
+    public void Realize(IColumns columns, int columnIndex) => RealizeHeader(columns, columnIndex);
+    public void UpdateColumnIndex(int columnIndex) => UpdateHeaderIndex(columnIndex);
 
     internal void SetOwner(TreeDataGrid? owner)
     {
+        if (_unrealizing || _pendingUnrealize) return;
         _owner = owner;
         RefreshProperties();
     }
 
     internal void Realize(TreeDataGrid owner, CellColumn column, int index)
     {
-        SetOwner(owner);
+        if (_realizing || _unrealizing) throw new InvalidOperationException("Column header lifetime transition is in progress.");
         if (!ReferenceEquals(_model, column))
         {
             if (_model is not null) Unrealize();
             _owner = owner;
             Realize(owner.Presentation!.Columns, index);
         }
-        else { UpdateColumnIndex(index); RefreshProperties(); }
+        else
+        {
+            UpdateColumnIndex(index);
+            if (!ReferenceEquals(_model, column)) return;
+            SetOwner(owner);
+        }
     }
 
     private void OnModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -87,56 +72,8 @@ public partial class TreeDataGridColumnHeader : Button
             RefreshProperties();
     }
 
-    private void RefreshProperties()
-    {
-        var revision = _realizationVersion;
-        var model = _model;
-        // Never stringify user content to append the sort arrow. A header can
-        // be a model with a DataTemplate or a native control.
-        Header = model?.Header;
-        if (revision != _realizationVersion) return;
-        Content = Header;
-        if (revision != _realizationVersion) return;
-        if ((model as CellColumn)?.HeaderTemplate is { } template) ContentTemplate = template;
-        else ClearValue(ContentTemplateProperty);
-        if (revision != _realizationVersion) return;
-        if ((model as CellColumn)?.HeaderTemplateSelector is { } selector) ContentTemplateSelector = selector;
-        else ClearValue(ContentTemplateSelectorProperty);
-        if (revision != _realizationVersion) return;
-        CanUserResize = model?.CanUserResize ?? _owner?.CanUserResizeColumns ?? false;
-        if (revision != _realizationVersion) return;
-        SortDirection = model?.SortDirection;
-        if (revision != _realizationVersion) return;
-        Visibility = model is null ? Visibility.Collapsed : Visibility.Visible;
-    }
-    public void Unrealize()
-    {
-        ++_realizationVersion;
-        var model = _model;
-        _owner = null;
-        _columns = null;
-        _model = null;
-        ColumnIndex = -1;
-        _resizing = false;
-        System.Runtime.ExceptionServices.ExceptionDispatchInfo? error = null;
-        try { if (model is not null) model.PropertyChanged -= OnModelPropertyChanged; }
-        catch (Exception e) { error = System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(e); }
-        // Complete cleanup even when an application's property callback throws.
-        Clear(HeaderProperty, null);
-        Clear(ContentProperty, null);
-        Clear(ContentTemplateProperty, null);
-        Clear(ContentTemplateSelectorProperty, null);
-        Clear(CanUserResizeProperty, false);
-        Clear(SortDirectionProperty, null);
-        Clear(VisibilityProperty, Visibility.Collapsed);
-        error?.Throw();
+    public void Unrealize() => UnrealizeHeader();
 
-        void Clear(DependencyProperty property, object? value)
-        {
-            try { SetValue(property, value); }
-            catch (Exception e) { error ??= System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(e); }
-        }
-    }
     protected override void OnApplyTemplate()
     {
         if (_resizer is Thumb oldThumb)
@@ -185,7 +122,7 @@ public partial class TreeDataGridColumnHeader : Button
             ListSortDirection.Descending => "SortDescending",
             _ => "Unsorted",
         }, false);
-        if (_resizer is not null) _resizer.Visibility = CanUserResize ? Visibility.Visible : Visibility.Collapsed;
+        if (_resizer is not null) _resizer.SetValue(VisibilityProperty, CanUserResize ? s_visible : s_collapsed);
     }
     private void OnHeaderClick(object sender, RoutedEventArgs e)
     {

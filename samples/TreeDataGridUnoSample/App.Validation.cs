@@ -40,6 +40,9 @@ public partial class App
             case "recycling": return RuntimeChecks.RunAsync(page.Grid, Template("RuntimeCellTemplate"));
             case "viewport-measurement": return ViewportMeasurementRuntimeChecks.RunAsync(page.Grid);
             case "committed-extent": return CommittedExtentRuntimeChecks.RunAsync(page);
+            case "header-lifetime":
+                HeaderLifetimeRuntimeChecks.Run();
+                return Task.CompletedTask;
             case "drag-info":
                 DragInfoRuntimeChecks.Run();
                 return Task.CompletedTask;
