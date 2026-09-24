@@ -98,7 +98,7 @@ internal static class CommittedExtentRuntimeChecks
                 "A hosted cell presenter rescanned its columns instead of using committed geometry.");
             columns.SetColumnWidth(count - 1, new Microsoft.UI.Xaml.GridLength(97));
             await Settle();
-            Check(ReferenceEquals(parent.TryGetElement(0), row), "A hosted extent width update replaced its native row.");
+            Check(ReferenceEquals(parent.TryGetElement(0), row), "A width update replaced its native row.");
             calls = columns.Estimates;
             Check(cells.Extent(19) == count * 60d + 37 && columns.Estimates == calls,
                 "A hosted extent query retained an obsolete width or used the clipping constraint.");
@@ -172,7 +172,7 @@ internal static class CommittedExtentRuntimeChecks
         private PropertyChangedEventHandler? _changed;
         internal Action? OnActual, OnMinimum;
         internal int ActualReads, Subscribers;
-        public Microsoft.UI.Xaml.GridLength Width => star ? new(1, GridUnitType.Star) : Microsoft.UI.Xaml.GridLength.Auto;
+        public Microsoft.UI.Xaml.GridLength Width => star ? new(1, Microsoft.UI.Xaml.GridUnitType.Star) : Microsoft.UI.Xaml.GridLength.Auto;
         public double ActualWidth { get { ++ActualReads; var value = _actual; Invoke(ref OnActual); return value; } }
         public double MinActualWidth { get { Invoke(ref OnMinimum); return 10; } }
         public double MaxActualWidth => double.PositiveInfinity;
