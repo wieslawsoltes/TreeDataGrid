@@ -99,6 +99,24 @@ def convert(text: str) -> str:
             text = re.sub(r'\b(public|protected) ' + old + r'\(', r'\1 ' + new + '(', text)
     return text
 
+def cache_observer_snapshots(text: str) -> str:
+    # Preserve reference publication snapshots and callback order. Only stable
+    # multi-observer snapshot storage changes; upstream inputs stay untouched.
+    text = replace_once(text, '        private Exception? _error;',
+        '        // Immutable membership snapshots may be shared by nested publications.\n'
+        '        // Invalidate under _gate on every membership change and terminal state.\n'
+        '        private IObserver<T>[]? _observerSnapshot;\n        private Exception? _error;')
+    text = replace_once(text, '                    _observers.Add(observer);',
+        '                    _observers.Add(observer);\n                    _observerSnapshot = null;')
+    text = replace_once(text, '                        observers.Remove(observer);',
+        '                        observers.Remove(observer);\n                        _observerSnapshot = null;')
+    snapshot = 'observers = _observers.ToArray();'
+    terminal = '                    Volatile.Write(ref _observers, null);'
+    if text.count(snapshot) != 3 or text.count(terminal) != 2:
+        raise ValueError('Unexpected observable snapshot or terminal publication sites')
+    text = text.replace(snapshot, 'observers = _observerSnapshot ??= _observers.ToArray();')
+    return text.replace(terminal, '                    _observerSnapshot = null;\n' + terminal)
+
 def main() -> None:
     global check
     parser = argparse.ArgumentParser(description=__doc__)
@@ -158,6 +176,7 @@ def main() -> None:
     observable = observable.replace('lock (this)', 'lock (_gate)').replace('return Disposable.Empty;', 'return EmptySubscription.Instance;')
     observable = replace_once(observable, '        private Exception? _error;',
         '        private readonly object _gate = new();\n        private sealed class EmptySubscription : IDisposable\n        {\n            internal static readonly EmptySubscription Instance = new();\n            public void Dispose() { }\n        }\n        private Exception? _error;')
+    observable = cache_observer_snapshots(observable)
     put('src/TreeDataGrid.Controls.Uno/Experimental/Data/Core/LightweightObservableBase.cs', HEADER + observable)
     for name in ('FlatSelectionParityTests.cs', 'ObservableContractParityTests.cs'):
         put('tests/TreeDataGrid.Parity.Tests/' + name,

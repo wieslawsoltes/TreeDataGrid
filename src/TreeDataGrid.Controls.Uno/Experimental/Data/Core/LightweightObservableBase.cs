@@ -23,6 +23,9 @@ namespace Uno.Experimental.Data.Core
             internal static readonly EmptySubscription Instance = new();
             public void Dispose() { }
         }
+        // Immutable membership snapshots may be shared by nested publications.
+        // Invalidate under _gate on every membership change and terminal state.
+        private IObserver<T>[]? _observerSnapshot;
         private Exception? _error;
         private List<IObserver<T>>? _observers = new List<IObserver<T>>();
 
@@ -61,6 +64,7 @@ namespace Uno.Experimental.Data.Core
 
                     first = _observers.Count == 0;
                     _observers.Add(observer);
+                    _observerSnapshot = null;
                     break;
                 }
             }
@@ -86,6 +90,7 @@ namespace Uno.Experimental.Data.Core
                     if (observers != null)
                     {
                         observers.Remove(observer);
+                        _observerSnapshot = null;
 
                         if (observers.Count == 0)
                         {
@@ -138,7 +143,7 @@ namespace Uno.Experimental.Data.Core
                     }
                     else
                     {
-                        observers = _observers.ToArray();
+                        observers = _observerSnapshot ??= _observers.ToArray();
                     }
                 }
                 if (singleObserver != null)
@@ -167,7 +172,8 @@ namespace Uno.Experimental.Data.Core
                     {
                         return;
                     }
-                    observers = _observers.ToArray();
+                    observers = _observerSnapshot ??= _observers.ToArray();
+                    _observerSnapshot = null;
                     Volatile.Write(ref _observers, null);
                 }
 
@@ -195,7 +201,8 @@ namespace Uno.Experimental.Data.Core
                     }
 
                     _error = error;
-                    observers = _observers.ToArray();
+                    observers = _observerSnapshot ??= _observers.ToArray();
+                    _observerSnapshot = null;
                     Volatile.Write(ref _observers, null);
                 }
 
