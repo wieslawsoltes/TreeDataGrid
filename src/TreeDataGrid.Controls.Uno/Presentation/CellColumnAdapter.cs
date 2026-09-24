@@ -19,7 +19,7 @@ internal sealed partial class CellColumnAdapter<TModel> : CellColumn where TMode
         _inner = inner;
         _inner.SetWidth(Width);
         _inner.SortDirection = model.SortDirection;
-        _inner.PropertyChanged += OnInnerChanged;
+        AttachAdapterHandler(_inner, OnInnerChanged);
     }
     public override object? Header { get => _inner.Header; set => throw new NotSupportedException("The custom column owns its header."); }
     public override bool? CanUserResize => _inner.CanUserResize;
@@ -109,10 +109,12 @@ internal sealed partial class CellColumnAdapter<TModel> : CellColumn where TMode
     {
         if (_disposed) return;
         _disposed = true;
-        _inner.PropertyChanged -= OnInnerChanged;
-        (_inner as IDisposable)?.Dispose();
+        ReleaseAdapterModel(_inner, true, OnInnerChanged);
     }
-    private void OnInnerChanged(object? sender, PropertyChangedEventArgs e) => RaisePropertyChanged(e);
+    private void OnInnerChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (!_disposed) RaisePropertyChanged(e);
+    }
 
     private sealed class CustomExpanderValue : ExpanderCellValue
     {

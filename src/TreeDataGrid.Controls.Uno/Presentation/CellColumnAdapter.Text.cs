@@ -25,11 +25,7 @@ internal sealed partial class CellColumnAdapter<TModel> where TModel : class
             Kind = inner switch { UI.CheckBoxCell => CellKind.CheckBox, UI.TemplateCell => CellKind.Template, _ => CellKind.Text };
             EditGestures = inner.EditGestures;
             UpdateTextOptions();
-            if (inner is INotifyPropertyChanged notifications)
-            {
-                try { notifications.PropertyChanged += OnChanged; }
-                catch { notifications.PropertyChanged -= OnChanged; throw; }
-            }
+            if (inner is INotifyPropertyChanged notifications) AttachAdapterHandler(notifications, OnChanged);
         }
         public override object? Value => _inner.Value;
         public override UI.ICell PresentationModel => _inner;
@@ -140,8 +136,7 @@ internal sealed partial class CellColumnAdapter<TModel> where TModel : class
             InvalidateWrite();
             unchecked { ++_textOptionsRevision; }
             _textOptions = null;
-            try { if (_inner is INotifyPropertyChanged notifications) notifications.PropertyChanged -= OnChanged; }
-            finally { if (_ownsModel) (_inner as IDisposable)?.Dispose(); }
+            ReleaseAdapterModel(_inner, _ownsModel, OnChanged);
         }
         private void OnChanged(object? sender, PropertyChangedEventArgs e)
         {
