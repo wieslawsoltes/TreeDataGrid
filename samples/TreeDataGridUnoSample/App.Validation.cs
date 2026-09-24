@@ -68,6 +68,7 @@ public partial class App
                 CellRetirementRuntimeChecks.Run();
                 return Task.CompletedTask;
             case "cell-rendering": return CellRenderingRuntimeChecks.RunAsync(page);
+            case "cell-content-layout": return CellContentLayoutRuntimeChecks.RunAsync(page);
             case "cell-scalar-reentrancy":
                 CellScalarReentrancyRuntimeChecks.Run();
                 return Task.CompletedTask;

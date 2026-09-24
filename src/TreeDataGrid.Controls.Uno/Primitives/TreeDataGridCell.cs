@@ -95,9 +95,11 @@ public partial class TreeDataGridCell : Control
             _check.Indeterminate += OnCheckChanged;
         }
         if (_expander is not null) _expander.Click += OnExpand;
-        UpdateContentKind();
+        if (!UpdateContentKind()) return;
+        var realization = RealizationVersion;
+        var revision = _contentLayoutRevision;
         UpdateValue();
-        UpdateState();
+        if (IsContentLayoutCurrent(realization, revision)) UpdateState();
     }
     private void OnExpand(object sender, RoutedEventArgs e) { if (_expanderValue is { } value) value.IsExpanded = !value.IsExpanded; }
 
@@ -158,18 +160,28 @@ public partial class TreeDataGridCell : Control
         RowModel = rowModel;
         ColumnIndex = columnIndex;
         RowIndex = rowIndex;
-        _kind = value.ContentKind;
+        var kind = value.ContentKind;
+        if (_unrealizing || RealizationVersion != realization) return;
+        _kind = kind;
         // An expander wraps the inner content contract; the value remains the same
         // Core row and the native children stay attached while it is recycled.
-        if (!UsesInnerCellControl && _kind == CellKind.Template && template is null)
+        var inner = UsesInnerCellControl;
+        if (_unrealizing || RealizationVersion != realization) return;
+        if (!inner && kind == CellKind.Template && template is null)
             throw new InvalidOperationException($"No Uno cell template is registered for '{column.Model.PresentationKey}'.");
-        _indent = ((_expanderValue?.Row ?? row) as IIndentedRow)?.Indent ?? 0;
+        var indent = ((_expanderValue?.Row ?? row) as IIndentedRow)?.Indent ?? 0;
+        if (_unrealizing || RealizationVersion != realization) return;
+        _indent = indent;
         _template = template;
         _editingTemplate = editingTemplate;
+        // A nested style refresh may supersede layout without retiring this
+        // realization. Finish its subscription/visibility, but never continue
+        // applying the older layout's style values.
         UpdateContentKind();
         if (!ReferenceEquals(_value, value) || RealizationVersion != realization) return;
         SubscribeToModelChanges();
-        Visibility = Visibility.Visible;
+        if (!ReferenceEquals(_value, value) || RealizationVersion != realization) return;
+        if (Visibility != Visibility.Visible) Visibility = Visibility.Visible;
         if (!ReferenceEquals(_value, value) || RealizationVersion != realization) return;
         if (!_rebinding) UpdateValue();
     }
@@ -190,38 +202,8 @@ public partial class TreeDataGridCell : Control
     }
     protected virtual void ClearContent() => ClearBaseContent();
 
-    private void UpdateContentKind()
-    {
-        if (_expander is not null)
-        {
-            _expander.Visibility = _expanderValue is null ? Visibility.Collapsed : Visibility.Visible;
-            _expander.Margin = new(_indent * 20, 0, 0, 0);
-        }
-        if (_text is not null)
-        {
-            _text.Visibility = !UsesInnerCellControl && !IsEditing && _kind == CellKind.Text ? Visibility.Visible : Visibility.Collapsed;
-            // Compare before setting: native DP setters box enums. Specialized
-            // cell properties can also change independently of column options.
-            var alignment = DisplayTextAlignment;
-            var wrapping = DisplayTextWrapping;
-            var trimming = DisplayTextTrimming;
-            if (_text.TextAlignment != alignment) _text.TextAlignment = alignment;
-            if (_text.TextWrapping != wrapping) _text.TextWrapping = wrapping;
-            if (_text.TextTrimming != trimming) _text.TextTrimming = trimming;
-        }
-        if (_check is not null)
-        {
-            _check.Visibility = !UsesInnerCellControl && !IsEditing && _kind == CellKind.CheckBox ? Visibility.Visible : Visibility.Collapsed;
-            if (_check.IsThreeState != DisplayCheckBoxIsThreeState) _check.IsThreeState = DisplayCheckBoxIsThreeState;
-        }
-        if (_content is not null)
-        {
-            _content.Visibility = !UsesInnerCellControl && !IsEditing && _kind == CellKind.Template ? Visibility.Visible : Visibility.Collapsed;
-            if (!UsesInnerCellControl && !ReferenceEquals(_content.ContentTemplate, _template)) _content.ContentTemplate = _template;
-        }
-        if (_editorHost is not null) _editorHost.Visibility = !UsesInnerCellControl && IsEditing && _editingTemplate is null ? Visibility.Visible : Visibility.Collapsed;
-        if (_editContent is not null) _editContent.Visibility = !UsesInnerCellControl && IsEditing && _editingTemplate is not null ? Visibility.Visible : Visibility.Collapsed;
-    }
+    private bool UpdateContentKind() => UpdateCurrentContentKind();
+
     private void OnValueChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (_unrealizing || _rebinding || !ReferenceEquals(sender, _value)) return;
@@ -272,10 +254,12 @@ public partial class TreeDataGridCell : Control
     protected void RefreshCellPresentation()
     {
         if (_rebinding || _unrealizing) return;
+        var realization = RealizationVersion;
         Presenter?.InvalidateRowHeight(RowIndex);
-        UpdateContentKind();
+        if (realization != RealizationVersion || !UpdateContentKind()) return;
+        var revision = _contentLayoutRevision;
         RenderValue();
-        NotifyAutomationValueChanged();
+        if (IsContentLayoutCurrent(realization, revision)) NotifyAutomationValueChanged();
     }
     protected void SetCellTemplates(DataTemplate? content, DataTemplate? editing)
     {

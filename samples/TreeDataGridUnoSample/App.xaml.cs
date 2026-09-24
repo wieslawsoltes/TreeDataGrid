@@ -69,6 +69,7 @@ public partial class App : Application
             await CellLifecycleRuntimeChecks.RunAsync(page.Grid);
             CellRetirementRuntimeChecks.Run();
             await CellRenderingRuntimeChecks.RunAsync(page);
+            await CellContentLayoutRuntimeChecks.RunAsync(page);
             CellScalarReentrancyRuntimeChecks.Run();
             BindingWriteContractRuntimeChecks.Run();
             BindingSubscriptionLifetimeChecks.RunAll();
