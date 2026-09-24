@@ -169,7 +169,7 @@ public sealed class TypedBindingExpressionTests
     {
         var row = new Model { Text = "First" };
         TypedBindingExpression<Model, string?>? expression = null;
-        var descriptor = TypedBinding<Model>.OneWay(model =>
+        var descriptor = TypedBinding<Model>.OneWay<string?>(model =>
         {
             expression!.Dispose();
             return "Stale";
