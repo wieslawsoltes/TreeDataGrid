@@ -30,13 +30,19 @@ public partial class TextCell<T>
         {
             if (owner._disposed) return;
             var revision = unchecked(++owner._typedReceiveRevision);
+            var valueRevision = unchecked(owner._valueRevision + (value.HasValue ? 1 : 0));
             if (value.HasValue) owner.Receive(value.Value);
-            // Receive invokes application observers, which may replace this
-            // result with a nested publication or dispose the cell entirely.
-            if (!owner._disposed && revision == owner._typedReceiveRevision && value.HasError)
+            // Receive invokes application observers. A nested publication, local
+            // assignment or disposal supersedes this result's old fallback error.
+            if (!owner._disposed && revision == owner._typedReceiveRevision &&
+                valueRevision == owner._valueRevision && value.HasError)
                 owner.ErrorReceived(value.Error!);
         }
-        public void OnError(Exception error) => owner.ErrorReceived(error);
+        public void OnError(Exception error)
+        {
+            unchecked { ++owner._typedReceiveRevision; }
+            owner.ErrorReceived(error);
+        }
         public void OnCompleted() { }
     }
 }
@@ -67,17 +73,23 @@ public partial class CheckBoxCell
         {
             if (owner._disposed) return;
             var revision = unchecked(++owner._typedReceiveRevision);
+            var valueRevision = unchecked(owner._valueRevision + (value.HasValue ? 1 : 0));
             if (value.HasValue) owner.Receive(value.Value);
-            if (!owner._disposed && revision == owner._typedReceiveRevision && value.HasError)
+            if (!owner._disposed && revision == owner._typedReceiveRevision &&
+                valueRevision == owner._valueRevision && value.HasError)
                 owner.ErrorReceived(value.Error!);
         }
-        public void OnError(Exception error) => owner.ErrorReceived(error);
+        public void OnError(Exception error)
+        {
+            unchecked { ++owner._typedReceiveRevision; }
+            owner.ErrorReceived(error);
+        }
         public void OnCompleted() { }
     }
 }
 
-// Only owns the adaptation, not the source/subject. Its normal write path passes
-// the BindingValue struct without boxing or allocating a wrapper per assignment.
+// Owns only the adaptation, not the source/subject. BindingValue is passed
+// without boxing or allocating a wrapper per assignment.
 internal sealed class BindingCellWriter<T>(IObserver<BindingValue<T>> writer) : IObserver<T>
 {
     public void OnNext(T value) => writer.OnNext(value);

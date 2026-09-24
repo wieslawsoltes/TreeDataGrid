@@ -28,6 +28,9 @@ internal sealed class CellObserver<T>(Action<T> next, Action<Exception> error) :
 
 public partial class TextCell<T> : NotifyingBase, ITextCell, IDisposable, IEditableObject, ITextCellState
 {
+    private static readonly PropertyChangedEventArgs ValueChangedArgs = new(nameof(Value));
+    private static readonly PropertyChangedEventArgs TextChangedArgs = new(nameof(Text));
+    private static readonly PropertyChangedEventArgs ErrorChangedArgs = new(nameof(Error));
     private readonly IObserver<T>? _writer;
     private readonly ITextCellOptions? _options;
     private IDisposable? _subscription;
@@ -76,9 +79,9 @@ public partial class TextCell<T> : NotifyingBase, ITextCell, IDisposable, IEdita
                 _value = value;
                 // Keep the established Value -> Text -> writer notification order.
                 // Application callbacks can supersede the pending write.
-                RaisePropertyChanged(nameof(Value));
+                RaisePropertyChanged(ValueChangedArgs);
                 if (_disposed || revision != _valueRevision) return;
-                RaisePropertyChanged(nameof(Text));
+                RaisePropertyChanged(TextChangedArgs);
                 if (_disposed || revision != _valueRevision) return;
             }
             if (IsReadOnly || _editing || _receiving != 0) return;
@@ -96,8 +99,8 @@ public partial class TextCell<T> : NotifyingBase, ITextCell, IDisposable, IEdita
                     _value = previous;
                     try
                     {
-                        RaisePropertyChanged(nameof(Value));
-                        if (!_disposed && revision == _valueRevision) RaisePropertyChanged(nameof(Text));
+                        RaisePropertyChanged(ValueChangedArgs);
+                        if (!_disposed && revision == _valueRevision) RaisePropertyChanged(TextChangedArgs);
                     }
                     catch (Exception rollback) { throw new AggregateException(error, rollback); }
                 }
@@ -109,7 +112,7 @@ public partial class TextCell<T> : NotifyingBase, ITextCell, IDisposable, IEdita
     public string? Text
     {
         get => _editing ? _editText : _options?.StringFormat is { } format
-            ? string.Format(_options.Culture, format, _value) : _value?.ToString();
+            ? Presentation.CellTextFormatting.Format(_options.Culture, format, _value) : _value?.ToString();
         set
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
@@ -173,15 +176,17 @@ public partial class TextCell<T> : NotifyingBase, ITextCell, IDisposable, IEdita
             Error = null;
             _writeFailed = false;
             Value = value;
-            if (!_disposed) RaisePropertyChanged(nameof(Error));
+            if (!_disposed) RaisePropertyChanged(ErrorChangedArgs);
         }
         finally { --_receiving; }
     }
-    private void ErrorReceived(Exception error) { if (!_disposed) { Error = error; RaisePropertyChanged(nameof(Error)); } }
+    private void ErrorReceived(Exception error) { if (!_disposed) { Error = error; RaisePropertyChanged(ErrorChangedArgs); } }
 }
 
 public partial class CheckBoxCell : NotifyingBase, ICell, IDisposable, IBoundCellState
 {
+    private static readonly PropertyChangedEventArgs ValueChangedArgs = new(nameof(Value));
+    private static readonly PropertyChangedEventArgs ErrorChangedArgs = new(nameof(Error));
     private readonly IObserver<bool?>? _writer;
     private IDisposable? _subscription;
     private bool? _value;
@@ -221,7 +226,7 @@ public partial class CheckBoxCell : NotifyingBase, ICell, IDisposable, IBoundCel
             if (changed)
             {
                 _value = value;
-                RaisePropertyChanged(nameof(Value));
+                RaisePropertyChanged(ValueChangedArgs);
                 if (_disposed || revision != _valueRevision) return;
             }
             if (IsReadOnly || _receiving != 0) return;
@@ -234,7 +239,7 @@ public partial class CheckBoxCell : NotifyingBase, ICell, IDisposable, IBoundCel
                 if (!_disposed && revision == _valueRevision && changed)
                 {
                     _value = previous;
-                    try { RaisePropertyChanged(nameof(Value)); }
+                    try { RaisePropertyChanged(ValueChangedArgs); }
                     catch (Exception rollback) { throw new AggregateException(error, rollback); }
                 }
                 throw;
@@ -262,11 +267,11 @@ public partial class CheckBoxCell : NotifyingBase, ICell, IDisposable, IBoundCel
             Error = null;
             _writeFailed = false;
             Value = value;
-            if (!_disposed) RaisePropertyChanged(nameof(Error));
+            if (!_disposed) RaisePropertyChanged(ErrorChangedArgs);
         }
         finally { --_receiving; }
     }
-    private void ErrorReceived(Exception error) { if (!_disposed) { Error = error; RaisePropertyChanged(nameof(Error)); } }
+    private void ErrorReceived(Exception error) { if (!_disposed) { Error = error; RaisePropertyChanged(ErrorChangedArgs); } }
 }
 
 public class TemplateCell : ICell, IEditableObject
