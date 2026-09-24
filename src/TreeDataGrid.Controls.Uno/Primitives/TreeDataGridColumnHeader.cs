@@ -126,27 +126,13 @@ public partial class TreeDataGridColumnHeader : Button
     }
     private void OnHeaderClick(object sender, RoutedEventArgs e)
     {
-        if (!_resizing && _owner is { CanUserSortColumns: true } owner && Column is { CanUserSort: not false } column)
-            owner.Presentation?.SortBy(column, SortDirection == ListSortDirection.Ascending
-                ? ListSortDirection.Descending : ListSortDirection.Ascending);
-    }
-    private void OnResizeStarted(object sender, DragStartedEventArgs e) => _resizing = true;
-    private void OnResizeCompleted(object sender, DragCompletedEventArgs e) => _resizing = false;
-    private void OnResizeDelta(object sender, DragDeltaEventArgs e)
-    {
-        if (!CanUserResize || _columns is not { } columns || _model is not { } column || !double.IsFinite(e.HorizontalChange)) return;
-        var current = column.Width.IsAbsolute ? column.Width.Value : ActualWidth;
-        var next = current + e.HorizontalChange;
-        if (!double.IsFinite(next)) return;
-        var minimum = column is IUpdateColumnLayout layout ? Math.Max(0, layout.MinActualWidth) : 0;
-        var maximum = column is IUpdateColumnLayout limits ? limits.MaxActualWidth : double.PositiveInfinity;
-        // The same constraint precedence as layout: maximum wins if Min > Max.
-        columns.SetColumnWidth(ColumnIndex, new GridLength(Math.Min(maximum, Math.Max(minimum, next))));
-    }
-    private void OnResizeDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
-    {
-        if (!CanUserResize || _columns is null || _model is null) return;
-        _columns.SetColumnWidth(ColumnIndex, GridLength.Auto);
-        e.Handled = true;
+        if (_resizing || _owner is not { CanUserSortColumns: true } owner || Column is not { } column) return;
+        var revision = _realizationVersion;
+        var canSort = column.CanUserSort != false;
+        // A custom permission getter may retire the header or switch sources.
+        if (!canSort || revision != _realizationVersion || !ReferenceEquals(_owner, owner) || !ReferenceEquals(Column, column)) return;
+        var presentation = owner.Presentation;
+        if (presentation is null || !ReferenceEquals(presentation.Columns, _columns) || revision != _realizationVersion) return;
+        presentation.SortBy(column, SortDirection == ListSortDirection.Ascending ? ListSortDirection.Descending : ListSortDirection.Ascending);
     }
 }

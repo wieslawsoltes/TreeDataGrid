@@ -157,6 +157,8 @@ public partial class TreeDataGridColumnHeader
         List<Exception>? errors = null;
         try
         {
+            try { CancelHeaderResize(); }
+            catch (Exception error) { (errors ??= new()).Add(error); }
             try { if (observed is not null) observed.PropertyChanged -= OnModelPropertyChanged; }
             catch (Exception error) { (errors ??= new()).Add(error); }
             ClearHeaderProperty(HeaderProperty, null, ref errors);
