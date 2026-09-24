@@ -36,9 +36,7 @@ internal sealed partial class CellBinding<TModel, TValue> : IDisposable where TM
     {
         _column = column ?? throw new ArgumentNullException(nameof(column));
         _changed = changed ?? throw new ArgumentNullException(nameof(changed));
-        _accessors = column.GetterExpression is { } expression
-            ? s_accessors.GetValue(expression, static x => Accessors.Create(x)).Owners
-            : s_rootAccessors;
+        _accessors = GetOwnerAccessors(column);
         _owners = _accessors.Length == 1 ? Array.Empty<object?>() : new object?[_accessors.Length - 1];
         _propertyChanged = OnPropertyChanged;
         _collectionChanged = OnCollectionChanged;
@@ -47,7 +45,11 @@ internal sealed partial class CellBinding<TModel, TValue> : IDisposable where TM
     public TValue? Value { get; private set; }
     public Exception? Error { get; private set; }
     public bool CanWrite => _column.Setter is not null;
-    internal bool UsesColumn(ValueColumn<TModel, TValue> column) => ReferenceEquals(_column, column);
+    internal bool UsesColumn(ValueColumn<TModel, TValue> column) => ReferenceEquals(_descriptorSnapshot?.Origin ?? _column, column);
+    internal static Func<TModel, object?>[] GetOwnerAccessors(ValueColumn<TModel, TValue> column) =>
+        column.GetterExpression is { } expression
+            ? s_accessors.GetValue(expression, static x => Accessors.Create(x)).Owners
+            : s_rootAccessors;
 
     public void Retarget(TModel model)
     {
@@ -153,7 +155,16 @@ internal sealed partial class CellBinding<TModel, TValue> : IDisposable where TM
                 TValue? value;
                 Exception? error;
                 try { value = _column.GetValue(model); error = null; }
-                catch (Exception caught) { value = default; error = caught; }
+                catch (Exception caught)
+                {
+                    // Typed cell results without fallback keep the last value,
+                    // as the reference BindingValue observer does. Diagnostics
+                    // are still published independently and retain identity.
+                    value = _descriptorSnapshot is { } descriptor
+                        ? descriptor.Fallback.HasValue ? descriptor.Fallback.Value : Value
+                        : default;
+                    error = caught;
+                }
                 if (revision != _revision) continue;
                 // Distinct exceptions are distinct diagnostics even when the
                 // type is unchanged. Avoid application-defined equality/message

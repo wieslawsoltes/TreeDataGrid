@@ -63,7 +63,8 @@ public class TextColumn<TModel, TValue> : ValueCellColumn<TModel, TValue?>, ITex
     string? ITextSearchableColumn<TModel>.SelectValue(TModel model) => GetSearchText(model);
 
     private sealed class LiveTextCell(TextColumn<TModel, TValue> column, TreeDataGridCore.Models.IRow row)
-        : BoundCell<TModel, TValue?>(column._definition, row, canPool: true), ITextCell
+        : BoundCell<TModel, TValue?>(column._definition, row, canPool: true,
+            bindingSnapshot: column.CaptureBindingSnapshot()), ITextCell
     {
         public override TextCellOptions TextOptions => column.TextOptions;
         protected override CultureInfo? ConversionCulture => column.Options.Culture;

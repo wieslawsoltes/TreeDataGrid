@@ -13,11 +13,12 @@ internal class BoundCell<TModel, TValue> : CellValue where TModel : class
     private readonly CellBinding<TModel, TValue> _binding;
     private readonly bool _canPool;
     private readonly CultureInfo? _culture;
-    public BoundCell(ValueColumn<TModel, TValue> column, IRow row, bool canPool, CultureInfo? culture = null)
+    public BoundCell(ValueColumn<TModel, TValue> column, IRow row, bool canPool, CultureInfo? culture = null,
+        ColumnBindingSnapshot<TModel, TValue>? bindingSnapshot = null)
     {
         _canPool = canPool;
         _culture = culture;
-        _binding = new(column, Changed);
+        _binding = bindingSnapshot is null ? new(column, Changed) : new(bindingSnapshot, Changed);
         try { _binding.Retarget((TModel)row.Model!); }
         catch (Exception error)
         {

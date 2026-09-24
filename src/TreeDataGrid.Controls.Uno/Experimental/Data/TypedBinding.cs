@@ -12,11 +12,35 @@ namespace Uno.Experimental.Data;
 /// </remarks>
 public partial class TypedBinding<TIn, TOut> where TIn : class
 {
-    public Func<TIn, TOut>? Read { get; set; }
-    public Action<TIn, TOut>? Write { get; set; }
-    public Func<TIn, object>[]? Links { get; set; }
+    private Func<TIn, TOut>? _read;
+    private Action<TIn, TOut>? _write;
+    private Func<TIn, object>[]? _links;
+    private Optional<TOut> _fallbackValue;
+    // Cells capture descriptors, not live settings. Version the scalar settings
+    // without invoking application equality; arrays additionally need an element
+    // identity check because callers can change Links in place.
+    internal int CellRevision { get; private set; }
+    public Func<TIn, TOut>? Read
+    {
+        get => _read;
+        set { _read = value; unchecked { ++CellRevision; } }
+    }
+    public Action<TIn, TOut>? Write
+    {
+        get => _write;
+        set { _write = value; unchecked { ++CellRevision; } }
+    }
+    public Func<TIn, object>[]? Links
+    {
+        get => _links;
+        set { _links = value; unchecked { ++CellRevision; } }
+    }
     public BindingMode Mode { get; set; }
-    public Optional<TOut> FallbackValue { get; set; }
+    public Optional<TOut> FallbackValue
+    {
+        get => _fallbackValue;
+        set { _fallbackValue = value; unchecked { ++CellRevision; } }
+    }
     public Optional<TIn> Source { get; set; }
 
     public TypedBindingExpression<TIn, TOut> Instance(TIn? source, BindingMode mode = BindingMode.OneWay)

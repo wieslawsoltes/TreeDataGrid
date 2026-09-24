@@ -150,9 +150,10 @@ public partial class ValueCellColumn<TModel, TValue> : CellColumn, ICellColumn<T
         ? base.GetSearchText(model) : model is TModel typed ? FormatValue(_column.GetValue(typed)) : null;
     public override CellValue CreateCell(IRow row)
     {
+        var binding = CaptureBindingSnapshot();
         CellValue cell = Kind == CellKind.Text
-            ? new TextBoundCell<TModel, TValue>(_column, row, TextOptions)
-            : new BoundCell<TModel, TValue>(_column, row, canPool: true, TextOptions?.Culture);
+            ? new TextBoundCell<TModel, TValue>(_column, row, TextOptions, binding)
+            : new BoundCell<TModel, TValue>(_column, row, canPool: true, TextOptions?.Culture, binding);
         cell.EditGestures = Kind == CellKind.CheckBox ? BeginEditGestures.None : EditGestures;
         cell.Kind = Kind;
         return cell;
@@ -166,8 +167,9 @@ internal sealed class TextBoundCell<TModel, TValue> : BoundCell<TModel, TValue>,
 {
     private readonly TextCellOptions? _options;
     public override TextCellOptions? TextOptions => _options;
-    public TextBoundCell(ValueColumn<TModel, TValue> column, IRow row, TextCellOptions? options)
-        : base(column, row, canPool: true, options?.Culture) => _options = options;
+    public TextBoundCell(ValueColumn<TModel, TValue> column, IRow row, TextCellOptions? options,
+        ColumnBindingSnapshot<TModel, TValue>? bindingSnapshot = null)
+        : base(column, row, canPool: true, options?.Culture, bindingSnapshot) => _options = options;
     public string? Text
     {
         get => _options is { } options ? CellTextFormatting.Format(options.Culture, options.StringFormat, Value) : Value?.ToString();
