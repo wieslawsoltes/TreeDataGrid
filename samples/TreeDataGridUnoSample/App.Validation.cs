@@ -79,6 +79,7 @@ public partial class App
                 return Task.CompletedTask;
             case "presentation-options": return PresentationOptionsRuntimeChecks.RunAsync(page.Grid);
             case "custom-column-base": return CellColumnBaseRuntimeChecks.RunAsync(page.Grid);
+            case "value-column-base": return ValueColumnBaseRuntimeChecks.RunAsync(page.Grid);
             case "column-compatibility": return ColumnCompatibilityRuntimeChecks.RunAsync(page.Grid, Template("RuntimeCellTemplate"), Template("RuntimeEditingTemplate"));
             case "source-extensions": return SourceExtensionsRuntimeChecks.RunAsync(page.Grid, Template("RuntimeCellTemplate"), Template("RuntimeEditingTemplate"));
             case "declarative": return DeclarativeRuntimeChecks.RunAsync(page);
