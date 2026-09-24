@@ -2,9 +2,10 @@ using System;
 using System.ComponentModel;
 using System.Globalization;
 using Microsoft.UI.Xaml;
-using UI = Uno.Controls.Models.TreeDataGrid;
 
 namespace Uno.Controls.Presentation;
+
+using UI = global::Uno.Controls.Models.TreeDataGrid;
 
 internal sealed partial class CellColumnAdapter<TModel> where TModel : class
 {

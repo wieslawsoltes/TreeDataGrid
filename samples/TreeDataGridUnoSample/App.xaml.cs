@@ -77,6 +77,7 @@ public partial class App : Application
             HierarchyOwnershipRuntimeChecks.Run();
             await PresentationOptionsRuntimeChecks.RunAsync(page.Grid);
             await ValueColumnBaseRuntimeChecks.RunAsync(page.Grid);
+            await CustomCellOptionsRuntimeChecks.RunAsync(page.Grid);
             await BuiltInColumnComparisonRuntimeChecks.RunAsync(page.Grid);
             await BuiltInBindingRuntimeChecks.RunAsync(page.Grid);
             await ColumnCompatibilityRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"], (DataTemplate)page.Resources["RuntimeEditingTemplate"]);
