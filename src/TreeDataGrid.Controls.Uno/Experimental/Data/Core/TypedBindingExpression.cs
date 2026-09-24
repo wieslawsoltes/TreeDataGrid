@@ -55,9 +55,18 @@ public class TypedBindingExpression<TIn, TOut> : LightweightObservableBase<Bindi
     /// <summary>Receives target values. Source errors are followed by a source refresh, as in the reference subject contract.</summary>
     public void OnNext(BindingValue<TOut> value)
     {
-        if (!value.HasValue || !IsActive || _binding?.CanWrite != true) return;
-        try { _binding.Write(value.Value); }
-        catch { if (IsActive) _binding?.RefreshCurrent(); }
+        if (!value.HasValue || !IsActive ||
+            _binding is not { } binding || !binding.CanWrite)
+            return;
+        var revision = _rootRevision;
+        try { binding.Write(value.Value); }
+        catch
+        {
+            // Preserve the subject rejection policy, but never let an old write
+            // refresh a replacement activation or a subsequently selected root.
+            if (IsActive && ReferenceEquals(_binding, binding) && revision == _rootRevision)
+                binding.RefreshCurrent();
+        }
     }
     void IObserver<BindingValue<TOut>>.OnCompleted() { }
     void IObserver<BindingValue<TOut>>.OnError(Exception error) { }
@@ -99,7 +108,7 @@ public class TypedBindingExpression<TIn, TOut> : LightweightObservableBase<Bindi
             {
                 // Subscribe can synchronously emit, dispose or replace ownership
                 // before returning its token. Retired tokens are never retained.
-                var subscription = source.Subscribe(new RootObserver(this)) ??
+                var subscription = source.Subscribe(new RootObserver(this, binding)) ??
                     throw new InvalidOperationException("The root observable returned no subscription.");
                 if (IsActive && ReferenceEquals(_binding, binding)) _rootSubscription = subscription;
                 else subscription.Dispose();
@@ -173,8 +182,21 @@ public class TypedBindingExpression<TIn, TOut> : LightweightObservableBase<Bindi
     }
     private void RootFailed(Exception error)
     {
+        Exception? publicationFailure = null;
         try { PublishError(error); }
-        finally { Deinitialize(); }
+        catch (Exception failure)
+        {
+            publicationFailure = failure;
+            throw;
+        }
+        finally
+        {
+            try { Deinitialize(); }
+            catch (Exception cleanup) when (publicationFailure is not null)
+            {
+                throw new AggregateException(publicationFailure, cleanup);
+            }
+        }
     }
     public void Dispose()
     {
@@ -194,10 +216,14 @@ public class TypedBindingExpression<TIn, TOut> : LightweightObservableBase<Bindi
         if (failure is not null) System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(failure).Throw();
     }
 
-    private sealed class RootObserver(TypedBindingExpression<TIn, TOut> owner) : IObserver<TIn?>
+    private sealed class RootObserver(TypedBindingExpression<TIn, TOut> owner,
+        CellBinding<TIn, TOut> binding) : IObserver<TIn?>
     {
-        public void OnNext(TIn? value) => owner.RootChanged(value);
-        public void OnError(Exception error) => owner.RootFailed(error);
+        // An activation owns a distinct binding. Owner activity alone cannot
+        // distinguish a callback already captured by a retired subscription.
+        private bool IsCurrent => owner.IsActive && ReferenceEquals(owner._binding, binding);
+        public void OnNext(TIn? value) { if (IsCurrent) owner.RootChanged(value); }
+        public void OnError(Exception error) { if (IsCurrent) owner.RootFailed(error); }
         public void OnCompleted() { } // Completion of a root stream does not freeze its final model.
     }
 }
