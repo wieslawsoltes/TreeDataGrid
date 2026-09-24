@@ -8,8 +8,8 @@ using TreeDataGridCore.Models;
 
 namespace Uno.Controls.Models.TreeDataGrid;
 
-// Native observable bindings carry typed values, not Avalonia BindingValue<T>.
-// A separate observer is supported when the observable itself is not a subject.
+// Raw observable bindings and typed BindingValue<T> bindings share the same
+// cell state. A separate writer is supported when the observable is not a subject.
 internal interface IBoundCellState
 {
     Exception? Error { get; }
@@ -26,7 +26,7 @@ internal sealed class CellObserver<T>(Action<T> next, Action<Exception> error) :
     public void OnCompleted() { }
 }
 
-public class TextCell<T> : NotifyingBase, ITextCell, IDisposable, IEditableObject, ITextCellState
+public partial class TextCell<T> : NotifyingBase, ITextCell, IDisposable, IEditableObject, ITextCellState
 {
     private readonly IObserver<T>? _writer;
     private readonly ITextCellOptions? _options;
@@ -180,7 +180,7 @@ public class TextCell<T> : NotifyingBase, ITextCell, IDisposable, IEditableObjec
     private void ErrorReceived(Exception error) { if (!_disposed) { Error = error; RaisePropertyChanged(nameof(Error)); } }
 }
 
-public class CheckBoxCell : NotifyingBase, ICell, IDisposable, IBoundCellState
+public partial class CheckBoxCell : NotifyingBase, ICell, IDisposable, IBoundCellState
 {
     private readonly IObserver<bool?>? _writer;
     private IDisposable? _subscription;
