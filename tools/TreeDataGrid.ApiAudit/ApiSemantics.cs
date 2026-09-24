@@ -176,7 +176,17 @@ internal static class ApiSemantics
             if (value.Kind == TypedConstantKind.Error) unresolved("Unresolved attribute argument: " + owner);
             else if (value.Kind == TypedConstantKind.Array && !value.IsNull)
                 foreach (var child in value.Values) CheckConstant(child);
-            else if (value.Kind == TypedConstantKind.Type && value.Value is ITypeSymbol type) checkType(type);
+            else if (value.Kind == TypedConstantKind.Type && value.Value is ITypeSymbol type)
+            {
+                // Roslyn intentionally represents the omitted arguments in
+                // typeof(Generic<>) with error symbols. They are placeholders,
+                // not missing assembly dependencies. Check the referenced generic
+                // definition while retaining the ORIGINAL unbound typeof in the
+                // metadata inventory below. A genuinely missing definition still
+                // reaches checkType as an error and remains an audit failure.
+                checkType(type is INamedTypeSymbol { IsUnboundGenericType: true } unbound
+                    ? unbound.OriginalDefinition : type);
+            }
         }
     }
 

@@ -102,6 +102,7 @@ internal static class ApiSemanticChecks
         Check(ApiSemantics.ScalarText(-0.0d) == "ieee754:System.Double:0x8000000000000000" &&
             ApiSemantics.ScalarText(-0.0f) == "ieee754:System.Single:0x80000000" &&
             ApiSemantics.ScalarText(0.0d) != ApiSemantics.ScalarText(-0.0d), "floating point negative zero is not collapsed");
+        checks += ApiUnboundGenericChecks.Run();
         Console.WriteLine($"UNO_API_SEMANTIC_CHECKS_PASSED={checks}; compiled metadata only; no fixture execution");
         return checks;
 
