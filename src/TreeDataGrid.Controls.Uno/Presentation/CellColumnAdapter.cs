@@ -78,7 +78,12 @@ internal sealed partial class CellColumnAdapter<TModel> : CellColumn where TMode
     internal override bool SupportsRetainedCellReuse => true;
     internal override bool TryReuseCell(CellValue value, IRow row)
     {
-        if (_disposed || !_inner.TryReuseCell(value.PresentationModel, (IRow<TModel>)row) || _disposed) return false;
+        if (_disposed) return false;
+        // Even rejected or throwing reuse can partially mutate a custom cell.
+        // Supersede old writes before entering that application callback.
+        if (value is CustomCellValue customCell) customCell.InvalidateWrite();
+        else if (value is CustomExpanderValue customExpander) customExpander.InvalidateWrite();
+        if (!_inner.TryReuseCell(value.PresentationModel, (IRow<TModel>)row) || _disposed) return false;
         if (value is CustomCellValue cell) cell.RefreshAfterRetarget();
         if (value is CustomExpanderValue expander) expander.RefreshAfterRetarget();
         return true;
@@ -151,6 +156,13 @@ internal sealed partial class CellColumnAdapter<TModel> : CellColumn where TMode
         public override bool IsExpanded { get => _model.IsExpanded; set => _model.IsExpanded = value; }
         public override bool ShowExpander => _model.ShowExpander;
         public override void Write(object? value) => _content.Write(value);
+        internal void InvalidateWrite()
+        {
+            // Propagate only through adapter-owned wrappers. A borrowed native
+            // CellValue remains responsible for its own lifetime contract.
+            if (_content is CustomCellValue cell) cell.InvalidateWrite();
+            else if (_content is CustomExpanderValue expander) expander.InvalidateWrite();
+        }
         public void RefreshAfterRetarget()
         {
             ObjectDisposedException.ThrowIf(_disposed, this);

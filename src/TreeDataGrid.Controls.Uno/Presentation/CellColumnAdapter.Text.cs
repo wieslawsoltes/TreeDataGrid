@@ -16,6 +16,7 @@ internal sealed partial class CellColumnAdapter<TModel> where TModel : class
         private bool _disposed;
         private TextCellOptions? _textOptions;
         private int _textOptionsRevision;
+        private int _writeRevision;
 
         public CustomCellValue(UI.ICell inner, bool ownsModel)
         {
@@ -32,7 +33,16 @@ internal sealed partial class CellColumnAdapter<TModel> where TModel : class
         }
         public override object? Value => _inner.Value;
         public override UI.ICell PresentationModel => _inner;
-        public override bool CanWrite => _inner is UI.CheckBoxCell check ? !check.IsReadOnly : _inner.CanEdit;
+        public override bool CanWrite
+        {
+            get
+            {
+                if (_disposed) return false;
+                var revision = _writeRevision;
+                var result = _inner is UI.CheckBoxCell check ? !check.IsReadOnly : _inner.CanEdit;
+                return IsWriteCurrent(revision) && result;
+            }
+        }
         public override bool? IsThreeState => (_inner as UI.CheckBoxCell)?.IsThreeState;
         public override object? EditTarget => _inner is IEditableObject ? _inner : null;
         public override Exception? Error => (_inner as UI.IBoundCellState)?.Error;
@@ -41,7 +51,16 @@ internal sealed partial class CellColumnAdapter<TModel> where TModel : class
         public override DataTemplate? GetCellEditingTemplate(Microsoft.UI.Xaml.Controls.Control anchor) =>
             (_inner as UI.TemplateCell)?.GetCellEditingTemplate?.Invoke(anchor);
         public override string? DisplayText => (_inner as UI.ITextCell)?.Text;
-        public override bool CanEdit => _inner.CanEdit;
+        public override bool CanEdit
+        {
+            get
+            {
+                if (_disposed) return false;
+                var revision = _writeRevision;
+                var result = _inner.CanEdit;
+                return IsWriteCurrent(revision) && result;
+            }
+        }
         public override UI.BeginEditGestures EditGestures
         {
             get
@@ -60,6 +79,7 @@ internal sealed partial class CellColumnAdapter<TModel> where TModel : class
         public void RefreshAfterRetarget()
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
+            InvalidateWrite();
             UpdateTextOptions();
         }
         private void UpdateTextOptions()
@@ -87,17 +107,37 @@ internal sealed partial class CellColumnAdapter<TModel> where TModel : class
             };
         }
         private bool IsCurrent(int revision) => !_disposed && revision == _textOptionsRevision;
+        private bool IsWriteCurrent(int revision) => !_disposed && revision == _writeRevision;
+        internal void InvalidateWrite() { unchecked { ++_writeRevision; } }
         public override void Write(object? value)
         {
-            if (!CanWrite) throw new InvalidOperationException("The custom cell is read-only.");
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            var revision = unchecked(++_writeRevision);
+            var writable = CanWrite;
+            // A permission getter may retire/reuse the cell or make a newer
+            // assignment. Do not act on its now-obsolete permission result.
+            if (!IsWriteCurrent(revision)) return;
+            if (!writable) throw new InvalidOperationException("The custom cell is read-only.");
             if (_inner is UI.CheckBoxCell check) { check.Value = (bool?)value; return; }
             if (_inner is not UI.ITextCell text) throw new NotSupportedException("The custom cell does not expose a text setter.");
-            text.Text = Convert.ToString(value, CultureInfo.CurrentCulture);
+            var converted = Convert.ToString(value, CultureInfo.CurrentCulture);
+            if (!IsWriteCurrent(revision)) return;
+            if (value is not null && value is not string)
+            {
+                // Application conversion can change mutable permissions without
+                // changing cell identity. Ordinary string edits avoid this second
+                // query because their conversion cannot run application code.
+                writable = CanWrite;
+                if (!IsWriteCurrent(revision)) return;
+                if (!writable) throw new InvalidOperationException("The custom cell is read-only.");
+            }
+            text.Text = converted;
         }
         public override void Dispose()
         {
             if (_disposed) return;
             _disposed = true;
+            InvalidateWrite();
             unchecked { ++_textOptionsRevision; }
             _textOptions = null;
             try { if (_inner is INotifyPropertyChanged notifications) notifications.PropertyChanged -= OnChanged; }
