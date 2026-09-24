@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
@@ -12,10 +13,11 @@ using Uno.Controls.Presentation;
 using Uno.Controls.Primitives;
 using UI = Uno.Controls.Models.TreeDataGrid;
 using NativeLength = Microsoft.UI.Xaml.GridLength;
+using CellEventArgs = Uno.Controls.TreeDataGridCellEventArgs;
 
 namespace TreeDataGridUnoSample;
 
-/// <summary>Live custom text metadata consumed by actual native and published browser controls.</summary>
+/// <summary>Live metadata and realization-scoped styles on native and published browser controls.</summary>
 internal static class CustomCellOptionsRuntimeChecks
 {
     internal static async Task RunAsync(global::Uno.Controls.TreeDataGrid grid)
@@ -35,6 +37,11 @@ internal static class CustomCellOptionsRuntimeChecks
         var presentationOptions = new TreeDataGridPresentationOptions<Item>();
         AmountColumn? column = null;
         presentationOptions.Columns.Add("LiveCustomText", _ => column = new AmountColumn(textOptions));
+        var prepared = new Dictionary<TreeDataGridCell, PreparedStyle>(ReferenceEqualityComparer.Instance);
+        var preparedCount = 0;
+        var clearedCount = 0;
+        grid.CellPrepared += OnPrepared;
+        grid.CellClearing += OnClearing;
         try
         {
             grid.PresentationOptions = presentationOptions;
@@ -43,7 +50,8 @@ internal static class CustomCellOptionsRuntimeChecks
             await Settle();
             var first = grid.TryGetCell(0, 0) as TreeDataGridTextCell ?? throw new InvalidOperationException("No custom amount control.");
             Check(ReferenceEquals(grid.Presentation!.Model, source), "Custom metadata introduced a different Core source.");
-            VerifyVisibleRows(verifyControlStyles: true);
+            Check(grid.TryGetCell(0, 140) is null, "The distant target was already realized before navigation.");
+            VerifyVisibleRows();
 
             textOptions.Culture = CultureInfo.GetCultureInfo("fr-FR");
             textOptions.StringFormat = "Montant {0:F2}";
@@ -51,15 +59,15 @@ internal static class CustomCellOptionsRuntimeChecks
             textOptions.TextWrapping = TextWrapping.Wrap;
             textOptions.TextTrimming = TextTrimming.WordEllipsis;
             textOptions.BeginEditGestures = UI.BeginEditGestures.None;
-            // Reference cell models expose live options; the scalar CONTROL
-            // copies styles at realization. Ordinary value updates must not
-            // overwrite explicit control-level customization between realizations.
+            // Models expose live options; controls copy styles on realization.
+            // A cached cell is not newly realized just because navigation occurs.
             items[0].Amount = 13.75m;
             grid.UpdateLayout();
             Check(ReferenceEquals(first, grid.TryGetCell(0, 0)), "Changing custom text options replaced the native cell.");
-            VerifyCell(0, verifyControlStyles: false);
+            VerifyCell(0);
             Check(first.ViewModel!.EditGestures == UI.BeginEditGestures.None, "The existing adapter retained old edit gestures.");
             Check(first.TextAlignment == TextAlignment.Left, "Value refresh unexpectedly overwrote realization-time control alignment.");
+            prepared[first] = prepared[first] with { Alignment = TextAlignment.Center };
             first.TextAlignment = TextAlignment.Center;
             items[0].Notify();
             grid.UpdateLayout();
@@ -73,62 +81,85 @@ internal static class CustomCellOptionsRuntimeChecks
             grid.EditingCell!.EditingText = "21,5";
             Check(grid.CommitEdit() && items[0].Amount == 21.5m,
                 "The native custom editor did not use the live French conversion culture.");
-            VerifyCell(0, verifyControlStyles: false);
+            VerifyCell(0);
             Check(ReferenceEquals(first, grid.TryGetCell(0, 0)), "Native writeback replaced the existing custom control.");
             foreach (var item in items) item.Notify();
             grid.UpdateLayout();
-            VerifyVisibleRows(verifyControlStyles: false);
+            VerifyVisibleRows();
 
             Check(grid.BringCellIntoView(140, 0), "Distant custom styled row could not be brought into view.");
             await Settle();
-            Check(grid.TryGetCell(0, 140) is not null, "The requested distant styled control was not realized.");
-            VerifyVisibleRows(verifyControlStyles: true);
+            var distant = grid.TryGetCell(0, 140) as TreeDataGridTextCell ??
+                throw new InvalidOperationException("The requested distant styled control was not realized.");
+            Check(prepared[distant].Alignment == TextAlignment.Right && prepared[distant].Wrapping == TextWrapping.Wrap &&
+                prepared[distant].Trimming == TextTrimming.WordEllipsis, "The newly prepared target did not capture current column options.");
+            VerifyVisibleRows();
             Check(grid.RowsPresenter!.RealizedRows.Count is > 0 and < 100, "Custom styled rows lost bounded realization.");
             Check(grid.BringCellIntoView(0, 0), "Returning to the first custom row failed.");
             await Settle();
-            VerifyCell(0, verifyControlStyles: true);
+            VerifyCell(0);
             grid.Model = null;
+            Check(prepared.Count == 0 && preparedCount == clearedCount, "Custom cell lifetime notifications were not balanced.");
             Check(column?.Disposed == true, "The custom view column was not retired.");
             Check(items.All(item => item.Subscribers == 0), "Styled custom cells retained subscriptions after source removal.");
             Check(source.Rows.Count == items.Count, "View retirement changed or disposed the borrowed source.");
         }
         finally
         {
+            grid.CellPrepared -= OnPrepared;
+            grid.CellClearing -= OnClearing;
             grid.Model = null;
             grid.PresentationOptions = previousOptions;
         }
-        Console.WriteLine("UNO_RUNTIME_CUSTOM_CELL_OPTIONS_PASSED: live adapter metadata/culture/format/gestures, preserved scalar-control overrides, same-control French native edit, styles after distant/return realization, bounded rows and subscription cleanup");
+        Console.WriteLine("UNO_RUNTIME_CUSTOM_CELL_OPTIONS_PASSED: live adapter metadata/culture/format/gestures, preserved control overrides, same-control French edit, cached/new realization styles, distant/return rows and balanced lifetime/subscription cleanup");
 
         async Task Settle() { await Task.Delay(120); grid.UpdateLayout(); }
-        void VerifyVisibleRows(bool verifyControlStyles)
+        void OnPrepared(object? sender, CellEventArgs args)
+        {
+            var cell = (TreeDataGridCell)args.Cell;
+            Check(!prepared.ContainsKey(cell), "CellPrepared repeated without CellClearing.");
+            prepared.Add(cell, new(args.RowIndex, cell.RowModel, textOptions.TextAlignment,
+                textOptions.TextWrapping, textOptions.TextTrimming));
+            ++preparedCount;
+        }
+        void OnClearing(object? sender, CellEventArgs args)
+        {
+            var cell = (TreeDataGridCell)args.Cell;
+            Check(prepared.Remove(cell, out var previous) && previous.Row == args.RowIndex && ReferenceEquals(previous.Model, cell.RowModel),
+                "CellClearing lost its corresponding prepared identity.");
+            ++clearedCount;
+        }
+        void VerifyVisibleRows()
         {
             var checkedRows = 0;
             foreach (var cell in grid.RowsPresenter!.RealizedCells.Where(x => x.ColumnIndex == 0))
             {
-                VerifyCell(cell.RowIndex, verifyControlStyles);
+                VerifyCell(cell.RowIndex);
                 ++checkedRows;
             }
             Check(checkedRows > 0, "No custom styled rows were verified.");
         }
-        void VerifyCell(int rowIndex, bool verifyControlStyles)
+        void VerifyCell(int rowIndex)
         {
             var cell = grid.TryGetCell(0, rowIndex) as TreeDataGridCell ??
                 throw new InvalidOperationException("No expected custom styled cell at " + rowIndex);
             var model = (Item)source.Rows[rowIndex].Model!;
             var expected = string.Format(textOptions.Culture, textOptions.StringFormat!, model.Amount);
             Check(ReferenceEquals(cell.RowModel, model), "Custom style refresh changed row model identity.");
+            Check(prepared.TryGetValue(cell, out var style) && style.Row == rowIndex && ReferenceEquals(style.Model, model),
+                "A realized control does not match its actual preparation lifetime.");
             var snapshot = cell.ViewModel!.TextOptions;
             Check(snapshot is not null && snapshot.TextAlignment == textOptions.TextAlignment &&
                 snapshot.TextWrapping == textOptions.TextWrapping && snapshot.TextTrimming == textOptions.TextTrimming &&
                 ReferenceEquals(snapshot.Culture, textOptions.Culture), $"Stale custom adapter metadata at row {rowIndex}.");
             var text = ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().FirstOrDefault(t => t.Text == expected);
             Check(text is not null, $"Stale custom display at row {rowIndex}; expected '{expected}'.");
-            if (verifyControlStyles)
-                Check(text!.TextAlignment == textOptions.TextAlignment && text.TextWrapping == textOptions.TextWrapping &&
-                    text.TextTrimming == textOptions.TextTrimming, $"Stale newly realized custom control style at row {rowIndex}.");
+            Check(text!.TextAlignment == style.Alignment && text.TextWrapping == style.Wrapping && text.TextTrimming == style.Trimming,
+                $"Custom control style disagrees with its preparation/override at row {rowIndex}.");
         }
     }
 
+    private readonly record struct PreparedStyle(int Row, object? Model, TextAlignment Alignment, TextWrapping Wrapping, TextTrimming Trimming);
     private static void Check(bool condition, string message) { if (!condition) throw new InvalidOperationException(message); }
 
     private sealed class AmountColumn(UI.TextColumnOptions<Item> options)
