@@ -1,129 +1,93 @@
 # Current Uno completion checklist
 
-Updated 2026-09-24 UTC. Tested implementation **89525188**.
+Updated 2026-09-24 UTC. Tested implementation **6b940344**.
 **Full API, behavioral and performance parity are not established.**
 
-[Typed-root and observer review](uno-root-observer-review-2026-09-24.md) ·
-[Exact execution checkpoint](uno-ci-checkpoint-89525188.json) ·
-[Previous checklist preserved unchanged](archive/uno-current-work-before-89525188.md) ·
+[Custom adapter write/cleanup review](uno-custom-write-review-2026-09-24.md) ·
+[Exact completed execution checkpoint](uno-ci-checkpoint-6b940344.json) ·
+[Previous checklist preserved unchanged](archive/uno-current-work-before-6b940344.md) ·
 [Custom value-column guide](uno-custom-value-columns.md)
 
-## Shared architecture and revisions
+## Architecture and revisions
 
 PR #26 remains draft on `codex/uno-core-port`, based on master `3ca47316`.
-The actual shared Core assembly still owns sources, rows, hierarchy and selection.
-No Core source, dependency, native rendering, trimming or release policy changes
-are part of this continuation. No merge or public release was performed.
+The actual shared Core assembly owns sources, rows, hierarchy and selection.
+No duplicated source model, public release or merge was introduced.
 
-Starting head: `37a7f2ca0156174c7eba1d0c0bde9df838150845`.
-Product: `89525188ae3e12357e700e790e12df3660dc11b6`.
-Product tree: `631b18993d8d9970990b850fcce1ce2eb44d4945`.
-Tested merge: `d53006cd365327b86137f5e36759cd29d1fcceb6`.
-Documentation does not change the tested implementation.
+Starting head: `c6d9dd2b98f00e2b3b632692414d75a10ae5294d`.
+Product: `6b94034435ba3e1fb411c0a5a8bf2f68700d0b5c`.
+Product tree: `19d679958c39894e62b3ebe023da724dcc3b6e0d`.
+Tested merge: `e5a10c3cabbe79fabd3cc6ba4244d62277e22640`.
+Documentation-only updates do not change this product. Incoming column-estimation,
+header/resize, content-layout, built-in Binding and root fixes were preserved,
+not counted as authored implementation in this continuation.
 
-The intervening built-in Binding descriptor and last-value fixes in `2c181a0d`
-and `37a7f2ca` were already present, preserved and revalidated. They are not counted
-as authored here. The archived checklist's missing-Binding paragraph is superseded:
-built-ins now expose a descriptor and protected factory actually consumed by cells.
-Existing retained/pooled cells preserve construction snapshots; Core selector and
-sorting ownership remain independent. Legacy combined inheritance is still a
-separate equivalence question.
+## Implemented and executed
 
-## Implemented and tested in this continuation
+- The pending custom adapter write fix is committed: generation checks reject
+  obsolete permission/conversion results and old writes after same/other-row reuse.
+  Reuse invalidates before custom callbacks, including false/throwing returns;
+  adapted expander descendants receive invalidation without gaining ownership of
+  borrowed native values. Newer nested assignments win. Ordinary string writes
+  retain the warmed zero-allocation path.
+- The public `custom-write-lifetime` consumer exercises actual same-control/model/
+  adapter reuse over 160 Core rows, native editor commit, conversion errors,
+  changed permissions, source retirement, distant rendering and exact cleanup.
+  It is registered and also runs through sequential published consumers.
+- Custom event additions that throw after attachment are rolled back without
+  losing original errors. Unsubscription failure no longer skips owned disposal
+  or hides behind a second failure. Borrowed cells are never disposed. Recursive
+  disposal and queued retired column notifications are guarded.
 
-`b7ad1eb2` scopes each observable-root callback to its activation's exact CellBinding.
-A previous subscription cannot replace or terminate a newer activation. Rejected
-subject writes cannot refresh replacement activations/roots. Error publication and
-cleanup preserve original exceptions in order. Current root completion still leaves
-its final model observed. Nine unit cases cover these boundaries and zero managed
-allocation across 4,096 warmed old/current callback pairs.
+Authored coverage: **37 Uno unit cases and one native suite**. No new public API
+shapes or direct-framework cases are claimed. Further custom-expander/content
+review remains separate.
 
-`f8a86915` adds the `typed-root-lifetime` consumer for actual text and nullable-checkbox
-controls. The same control survives reactivation over caller-owned typed cell models;
-old value/null/error callbacks are rejected; scalar writes reach only the current
-model; fallback/recovery and final-root observation work; all subscriptions retire
-without disposing borrowed root observables. It runs independently and in sequential
-native/published browser consumers.
+## Completed functional and platform evidence
 
-`89525188` reuses immutable observer snapshots for stable multi-subscriber publication.
-Membership and terminal transitions invalidate the cache under the original gate.
-Nested publications retain original outer-snapshot behavior; duplicate subscriptions,
-callback ordering and exception semantics match the actual Avalonia implementation.
-Twelve added cases cover six differential traces, three allocation comparisons at
-2/8/128 subscribers and three removed/terminal observer collectability checks.
-Each 4,096-publication warm native allocation loop passes with zero managed bytes.
+[Functional run 36054939338](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36054939338)
+passes all fifteen stages on unchanged sources: **1,651 .NET cases**, zero failed
+or skipped, **64/64 native suites**, sequential showcase/recovery, both native
+sample builds with zero warnings/errors, and five Activity Monitor sections plus
+lifetime checks. Core/Uno/Avalonia/sample/direct-framework totals are
+228/695/536/41/151. The 12 Python audit tests, 39 metadata-semantic and 57
+normalization checks pass. Artifact `10831833666` retains all evidence.
 
-The offline materializer reproduces this explicit adaptation exactly from unchanged
-pinned/reference inputs. Source reproduction and all existing differential tests are
-still enforced. This continuation adds **21 .NET cases and one native suite**.
+[Platform run 36054939298](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36054939298)
+is fully successful: three desktop jobs, Linux native package execution, Windows
+App SDK build/publication, browser trimmed publication, and actual execution of
+both published consumers. Browser job `107819712289` reports four passed routes,
+zero failed, including browser-dispatched input at scales 1 and 2. Documentation
+was pushed only after that completed. Windows publication is not OS execution;
+pinned browser tests are not universal physical-input/IME/accessibility acceptance.
+Repository Build, offline reproducibility and published trimmed-binding execution
+also pass. Exact run IDs and checksums are in the checkpoint.
 
-## Completed functional and platform execution
+## Performance remains failed
 
-[Functional run 36004598398](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36004598398),
-job `107649396717`, passes all fifteen required stages on an unchanged checkout.
-Artifact `10810336124` contains the full inventories, fingerprints, TRX and native logs.
+[Paired run 36054939244](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36054939244)
+completes both builds and all four AB/BA hosts with valid frames but fails the
+unchanged **1.10 median timing/allocation ratio budget**. Uno/Avalonia timing ratios
+are 4.64x horizontal, 2.60x vertical, 3.89x diagonal, 1.54x replacement, 1.55x resize
+and 1.94x sort. Raw medians, allocation, p95 and settlement data are in artifact
+`10832306592`. These are synchronous UI/layout measurements, not GPU completion
+or frame rate. No controlled revision speedup is claimed; focused allocation tests
+do not replace the whole-grid gate.
 
-| Gate | Result |
-| --- | --- |
-| Core / Uno / Avalonia / sample-state tests | 228 / 612 / 536 / 41 passed |
-| Actual-framework comparison assembly | 122 passed |
-| **Total .NET cases** | **1,539; zero failed/skipped** |
-| Registered native suites | **60/60 passed** |
-| Sequential showcase and native recovery | Passed |
-| Both native sample builds | Zero warnings/errors |
-| Activity Monitor | All five sections and lifetime checks passed |
-| Python audit / metadata semantic / normalization checks | 12 / 39 / 57 passed |
+## Remaining gates
 
-Platform matrix [36004598542](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36004598542)
-is **fully successful**: Windows/Linux/macOS desktop jobs, Linux native regression
-and package-consumer execution, Windows App SDK sample/package build and publication,
-browser builds, trimmed publication and **actual execution of both published browser
-consumers**. Browser job `107649970087` reports four passed routes and zero failures:
-showcase, monitor, and browser-dispatched pointer/keyboard input at device scales
-1 and 2. The workflow's success was verified after its 13:33:23 UTC update, before
-pushing the final documentation commit. These are pinned-Chromium routes, not
-physical hardware, universal browser, IME, external screen-reader or universal DPI
-acceptance. Windows App SDK build/publication is not claimed as OS runtime execution.
+The compiled inventory remains 1,845 baseline / 1,833 target declarations, 1,010
+exact normalized matches and 835 missing-or-different baseline entries, with zero
+unresolved dependencies. Raw and supplemental metadata differences are preserved.
+These are not feature-completion percentages or automatically accepted mappings.
 
-Independent contract reproducibility `36004598917` verifies all 23 generated outputs
-offline and runs all 122 framework cases. Repository Build `36004598339` and the
-independently published/executed trimmed-binding contract `36004598362` pass too.
-
-## Whole-grid performance still fails
-
-[Paired run 36004598940](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36004598940),
-artifact `10810002332`, completes both builds and all four AB/BA hosts with valid
-frames. The unchanged **1.10 median timing/allocation budget remains failed**.
-
-| Workload | Avalonia median ms | Uno median ms | Uno/Avalonia |
-| --- | ---: | ---: | ---: |
-| Horizontal scroll | 0.19765 | 1.57820 | 7.98 |
-| Vertical scroll | 0.62235 | 1.56045 | 2.51 |
-| Distant diagonal scroll | 1.15785 | 5.24995 | 4.53 |
-| Replace visible row | 1.15900 | 2.22995 | 1.92 |
-| Resize visible column | 1.91550 | 2.39800 | 1.25 |
-| Sort | 18.96220 | 43.59355 | 2.30 |
-
-Sorting allocates less but remains slower. Scope is synchronous UI work and verified
-layout settlement, not GPU completion or frame rate. The flat workload does not
-isolate multi-observer typed-expression fan-out. Matched focused allocation tests
-do not replace this failed gate, and no controlled whole-grid before/after speedup
-is established by comparisons against older jobs on other hosted machines.
-
-## Remaining API and platform acceptance
-
-The unchanged auditor records **1,845 baseline / 1,833 target declarations, 1,010
-exact normalized matches and 835 missing-or-different baseline entries**. Dependencies
-fully resolve and strict self-comparison has zero differences. Supplemental metadata
-and every raw difference remain available; no Core equivalence is automatically
-accepted and no declaration count is a feature-completion percentage.
-
-Required before ready: finish actual member/signature/inheritance/attribute
-contracts and explicitly tested Core mappings; complete remaining callback and
-mixed-mutation review; meet unchanged native performance budgets with broader
-hierarchy/variable-height workloads; extend physical input/drag, Unicode/IME,
-external screen-reader and cross-head scaling/lifecycle verification.
+Required: genuine member/signature/inheritance/attribute completion and explicit
+Core equivalences; further callback/mixed-mutation and custom-expander review;
+unchanged native performance budgets with broader hierarchy/variable-height
+workloads; and physical input/drag, Unicode/IME, external accessibility and cross-head
+scaling/lifecycle acceptance.
 
 All authored implementation is pushed. Local shell/Python execution returned
-ClientError, so unrelated unknown local files could not be inspected. No assertion,
-trimming diagnostic, ownership rule, rendering setting or budget was weakened.
+ClientError, so unrelated unknown local working-tree files could not be inspected
+or certified as pushed. No assertion, Core ownership rule, trimming diagnostic,
+rendering option or performance threshold was weakened.
