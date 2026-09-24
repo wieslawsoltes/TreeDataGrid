@@ -18,7 +18,12 @@ internal class BoundCell<TModel, TValue> : CellValue where TModel : class
     {
         _canPool = canPool;
         _culture = culture;
-        _binding = bindingSnapshot is null ? new(column, Changed) : new(bindingSnapshot, Changed);
+        // A cell ignores an error result without a fallback, just like the
+        // reference scalar observer. Merely accessing Binding must not change
+        // that behavior. Internal non-cell bindings retain their own policy.
+        _binding = bindingSnapshot is null
+            ? new(column, Changed, retainValueOnError: true)
+            : new(bindingSnapshot, Changed);
         try { _binding.Retarget((TModel)row.Model!); }
         catch (Exception error)
         {

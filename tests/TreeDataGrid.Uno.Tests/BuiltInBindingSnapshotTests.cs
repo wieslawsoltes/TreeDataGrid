@@ -143,6 +143,33 @@ public sealed class BuiltInBindingSnapshotTests
         Assert.Equal(0, second.Model.Subscribers);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Pool_suspension_clears_prior_value_before_a_new_row_getter_fails(bool requestDescriptor)
+    {
+        var column = new U.TextColumn<Item, string?>("Name", x => x.Name);
+        if (requestDescriptor) _ = column.Binding;
+        var first = new Item { Name = "Private previous row" };
+        var second = new Item { FailRead = true };
+        using var cell = column.CreateCell(new Row(first));
+        Assert.Equal("Private previous row", cell.Value);
+        Assert.True(cell.TrySuspend());
+        Assert.Null(cell.Value);
+        Assert.Equal(0, first.Subscribers);
+        Assert.True(column.TryReuseCell(cell, new Row(second)));
+        Assert.Null(cell.Value);
+        Assert.IsType<InvalidOperationException>(cell.Error);
+        Assert.Equal(1, second.Subscribers);
+        second.FailRead = false;
+        second.Name = "New row recovered";
+        Assert.Equal("New row recovered", cell.Value);
+        Assert.Null(cell.Error);
+        cell.Dispose();
+        Assert.Null(cell.Value);
+        Assert.Equal(0, second.Subscribers);
+    }
+
     private sealed class Row(Item model) : IRow<Item>
     {
         public Item Model => model;
@@ -155,7 +182,8 @@ public sealed class BuiltInBindingSnapshotTests
         private static readonly PropertyChangedEventArgs NameChanged = new(nameof(Name));
         private string? _name = "Name";
         private PropertyChangedEventHandler? _changed;
-        public string? Name { get => _name; set { _name = value; _changed?.Invoke(this, NameChanged); } }
+        public bool FailRead { get; set; }
+        public string? Name { get => FailRead ? throw new InvalidOperationException("Expected getter failure.") : _name; set { _name = value; _changed?.Invoke(this, NameChanged); } }
         public int Subscribers { get; private set; }
         public event PropertyChangedEventHandler? PropertyChanged
         {

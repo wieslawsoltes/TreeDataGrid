@@ -27,15 +27,17 @@ internal sealed partial class CellBinding<TModel, TValue> : IDisposable where TM
     private readonly NotifyCollectionChangedEventHandler _collectionChanged;
     private readonly Action _changed;
     private TModel? _model;
+    private readonly bool _retainValueOnError;
     private bool _disposed;
     private bool _refreshing;
     private bool _refreshAgain;
     private int _revision;
 
-    public CellBinding(ValueColumn<TModel, TValue> column, Action changed)
+    public CellBinding(ValueColumn<TModel, TValue> column, Action changed, bool retainValueOnError = false)
     {
         _column = column ?? throw new ArgumentNullException(nameof(column));
         _changed = changed ?? throw new ArgumentNullException(nameof(changed));
+        _retainValueOnError = retainValueOnError;
         _accessors = GetOwnerAccessors(column);
         _owners = _accessors.Length == 1 ? Array.Empty<object?>() : new object?[_accessors.Length - 1];
         _propertyChanged = OnPropertyChanged;
@@ -162,7 +164,7 @@ internal sealed partial class CellBinding<TModel, TValue> : IDisposable where TM
                     // are still published independently and retain identity.
                     value = _descriptorSnapshot is { } descriptor
                         ? descriptor.Fallback.HasValue ? descriptor.Fallback.Value : Value
-                        : default;
+                        : _retainValueOnError ? Value : default;
                     error = caught;
                 }
                 if (revision != _revision) continue;
