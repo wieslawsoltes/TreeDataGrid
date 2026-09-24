@@ -163,7 +163,7 @@ internal sealed partial class CellBinding<TModel, TValue> : IDisposable where TM
                 if (revision != _revision) continue;
                 Value = value;
                 Error = error;
-                if (changed) _changed();
+                if (changed || _publishEveryRefresh) _changed();
             }
             while (_refreshAgain);
         }
