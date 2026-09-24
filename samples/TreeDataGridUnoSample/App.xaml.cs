@@ -72,6 +72,7 @@ public partial class App : Application
             BindingWriteContractRuntimeChecks.Run();
             BindingSubscriptionLifetimeChecks.RunAll();
             await TypedBindingRuntimeChecks.RunAsync(page);
+            await TypedRootLifetimeRuntimeChecks.RunAsync(page);
             HierarchyOwnershipRuntimeChecks.Run();
             await PresentationOptionsRuntimeChecks.RunAsync(page.Grid);
             await ValueColumnBaseRuntimeChecks.RunAsync(page.Grid);
