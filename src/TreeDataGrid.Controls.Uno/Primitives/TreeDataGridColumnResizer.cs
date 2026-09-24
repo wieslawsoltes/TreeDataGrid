@@ -1,3 +1,4 @@
+using System;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -28,7 +29,25 @@ public partial class TreeDataGridColumnResizer : Control
     public event DragCompletedEventHandler? DragCompleted;
 
     public bool IsDragging => _thumb?.IsDragging == true;
-    public void CancelDrag() => _thumb?.CancelDrag();
+    public void CancelDrag()
+    {
+        // Capture the original native resource: completion can replace the template.
+        if (_thumb is { } thumb) CancelThumbDrag(thumb);
+    }
+
+    internal static void CancelThumbDrag(Thumb thumb)
+    {
+        Exception? failure = null;
+        try { thumb.CancelDrag(); }
+        catch (Exception error) { failure = error; throw; }
+        finally
+        {
+            // Uno's Thumb.CancelDrag changes IsDragging and emits completion,
+            // but does not release capture. The retired grip must not retain it.
+            try { thumb.ReleasePointerCaptures(); }
+            catch (Exception cleanup) when (failure is not null) { throw new AggregateException(failure, cleanup); }
+        }
+    }
 
     protected override void OnApplyTemplate()
     {
@@ -38,7 +57,7 @@ public partial class TreeDataGridColumnResizer : Control
         {
             // Complete the old drag while its completion event is still wired,
             // so a header cannot remain in the resizing state after retemplating.
-            try { previous.CancelDrag(); }
+            try { CancelThumbDrag(previous); }
             finally
             {
                 previous.DragStarted -= OnDragStarted;

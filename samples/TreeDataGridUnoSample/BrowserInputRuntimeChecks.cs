@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Windows.Foundation;
 using Core = TreeDataGridCore;
@@ -83,9 +84,59 @@ internal static class BrowserInputRuntimeChecks
                 throw new InvalidOperationException("The resize-enabled header has no native Thumb.");
             var oldWidth = grid.Presentation!.Columns[0].ActualWidth;
             Emit("resize-column", thumb);
-            await Until(() => grid.Presentation!.Columns[0].ActualWidth >= oldWidth + 20);
+            await Until(() => grid.Presentation!.Columns[0].ActualWidth >= oldWidth + 20 && !thumb.IsDragging);
             Check(grid.Presentation!.Columns[0].ActualWidth <= oldWidth + 80,
                 "Column dragging applied a device-pixel delta as a layout-pixel delta.");
+
+            // A real second gesture captures this Thumb. Retire the whole native
+            // presentation in DragStarted, then verify no old delta/capture reaches
+            // the replacement. The driver still moves and releases its mouse.
+            header = grid.ColumnHeadersPresenter!.TryGetElement(0)!;
+            var retiredThumb = FindVisual<Thumb>(header) ?? throw new InvalidOperationException("No cancellation target Thumb.");
+            var widthBeforeCancellation = source.Columns[0].Width.Value;
+            var cancellationAttempted = false;
+            var pointerReleased = false;
+            var completionCount = 0;
+            var cancelledCompletion = false;
+            Exception? cancellationFailure = null;
+            PointerEventHandler released = (_, _) => pointerReleased = true;
+            DragCompletedEventHandler completed = (_, args) => { ++completionCount; cancelledCompletion |= args.Canceled; };
+            DragStartedEventHandler started = (_, _) =>
+            {
+                try
+                {
+                    Check(retiredThumb.IsDragging && (retiredThumb.PointerCaptures?.Count ?? 0) > 0,
+                        "The cancellation fixture did not receive an actual captured native drag.");
+                    grid.Model = null;
+                    Check(!retiredThumb.IsDragging && (retiredThumb.PointerCaptures?.Count ?? 0) == 0,
+                        "Retiring the header left its Thumb dragging or holding pointer capture.");
+                    grid.Model = source;
+                }
+                catch (Exception error) { cancellationFailure = error; }
+                finally { cancellationAttempted = true; }
+            };
+            page.AddHandler(UIElement.PointerReleasedEvent, released, true);
+            retiredThumb.DragCompleted += completed;
+            retiredThumb.DragStarted += started;
+            try
+            {
+                Emit("cancel-resize", retiredThumb);
+                await Until(() => cancellationAttempted && pointerReleased);
+                if (cancellationFailure is not null) throw new InvalidOperationException("Native resize cancellation failed.", cancellationFailure);
+                await Until(() => grid.Presentation?.Columns[0].ActualWidth > 0 && grid.ColumnHeadersPresenter?.TryGetElement(0) is { ActualWidth: > 0 });
+                Check(completionCount == 1 && cancelledCompletion, "Header retirement did not report exactly one cancelled native drag.");
+                Check(Math.Abs(source.Columns[0].Width.Value - widthBeforeCancellation) < 0.01 &&
+                    Math.Abs(grid.Presentation!.Columns[0].ActualWidth - widthBeforeCancellation) < 0.01,
+                    "A stale drag delta resized the replacement presentation.");
+                Check((retiredThumb.PointerCaptures?.Count ?? 0) == 0, "The retired Thumb reacquired pointer capture.");
+                Console.WriteLine("UNO_BROWSER_CANCELLED_RESIZE_PASSED: actual capture, synchronous source retirement, capture release, one cancelled completion, stale move/up rejection and replacement width identity");
+            }
+            finally
+            {
+                retiredThumb.DragStarted -= started;
+                retiredThumb.DragCompleted -= completed;
+                page.RemoveHandler(UIElement.PointerReleasedEvent, released);
+            }
 
             header = grid.ColumnHeadersPresenter!.TryGetElement(0)!;
             Emit("sort-column", header, fractionX: 0.25);
@@ -96,7 +147,7 @@ internal static class BrowserInputRuntimeChecks
             await Until(() => grid.Scroll!.VerticalOffset > 0);
             Check(grid.RowsPresenter!.RealizedRows.Count is > 0 and < 50 && source.Rows.Count == 100,
                 "Browser wheel scrolling lost the source or unboundedly realized rows.");
-            Console.WriteLine("UNO_BROWSER_INPUT_PASSED: pointer selection, ArrowDown, F2, typed commit, Escape cancellation, Ctrl selection, Thumb resize, header sort and wheel virtualization");
+            Console.WriteLine("UNO_BROWSER_INPUT_PASSED: pointer selection, ArrowDown, F2, typed commit, Escape cancellation, Ctrl selection, Thumb resize, cancelled resize/capture release, header sort and wheel virtualization");
         }
         finally
         {

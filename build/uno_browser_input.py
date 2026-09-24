@@ -8,7 +8,7 @@ from typing import Any
 STAGES = (
     'select-row', 'arrow-down', 'begin-edit', 'commit-edit',
     'select-cancel-row', 'begin-cancel-edit', 'cancel-edit',
-    'ctrl-select', 'resize-column', 'sort-column', 'wheel-scroll',
+    'ctrl-select', 'resize-column', 'cancel-resize', 'sort-column', 'wheel-scroll',
 )
 MARKER = 'UNO_BROWSER_INPUT_STEP='
 
@@ -60,7 +60,7 @@ def drive(page: Any, messages: list[dict[str, Any]], timeout: int) -> list[str]:
                     page.mouse.click(x, y)
                 finally:
                     page.keyboard.up('Control')
-            elif expected == 'resize-column':
+            elif expected in ('resize-column', 'cancel-resize'):
                 page.mouse.move(x, y)
                 page.mouse.down()
                 try:

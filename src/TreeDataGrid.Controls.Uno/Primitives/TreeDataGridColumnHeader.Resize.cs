@@ -55,7 +55,7 @@ public partial class TreeDataGridColumnHeader
     {
         _dragRealization = -1;
         unchecked { ++_resizeVersion; }
-        if (_resizer is Thumb thumb) thumb.CancelDrag();
+        if (_resizer is Thumb thumb) TreeDataGridColumnResizer.CancelThumbDrag(thumb);
         else if (_resizer is TreeDataGridColumnResizer grip) grip.CancelDrag();
     }
 }

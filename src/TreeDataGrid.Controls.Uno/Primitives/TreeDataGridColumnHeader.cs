@@ -81,7 +81,7 @@ public partial class TreeDataGridColumnHeader : Button
             oldThumb.DragStarted -= OnResizeStarted;
             oldThumb.DragDelta -= OnResizeDelta;
             oldThumb.DragCompleted -= OnResizeCompleted;
-            oldThumb.CancelDrag();
+            TreeDataGridColumnResizer.CancelThumbDrag(oldThumb);
         }
         else if (_resizer is TreeDataGridColumnResizer oldGrip)
         {
