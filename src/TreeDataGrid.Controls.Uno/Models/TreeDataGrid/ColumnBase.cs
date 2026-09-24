@@ -75,11 +75,17 @@ public abstract class ColumnBase<TModel, TValue> : ColumnBase<TModel> where TMod
     private int DefaultSortAscending(TModel? first, TModel? second)
     {
         if (first is null || second is null) return Comparer<TModel>.Default.Compare(first, second);
-        return Comparer<TValue?>.Default.Compare(ValueSelector(first), ValueSelector(second));
+        var firstValue = ValueSelector(first);
+        var secondValue = ValueSelector(second);
+        return Comparer<TValue?>.Default.Compare(firstValue, secondValue);
     }
     private int DefaultSortDescending(TModel? first, TModel? second)
     {
         if (first is null || second is null) return -Comparer<TModel>.Default.Compare(first, second);
-        return Comparer<TValue?>.Default.Compare(ValueSelector(second), ValueSelector(first));
+        // Preserve first/second getter evaluation even when value ordering is
+        // reversed. Reversing calls changes side effects and the first exception.
+        var firstValue = ValueSelector(first);
+        var secondValue = ValueSelector(second);
+        return Comparer<TValue?>.Default.Compare(secondValue, firstValue);
     }
 }

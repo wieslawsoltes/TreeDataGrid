@@ -37,12 +37,19 @@ public partial class ValueCellColumn<TModel, TValue>
     private int CompareAscending(TModel? first, TModel? second)
     {
         if (first is null || second is null) return Comparer<TModel>.Default.Compare(first, second);
-        return Comparer<TValue>.Default.Compare(ValueSelector(first), ValueSelector(second));
+        var firstValue = ValueSelector(first);
+        var secondValue = ValueSelector(second);
+        return Comparer<TValue>.Default.Compare(firstValue, secondValue);
     }
 
     private int CompareDescending(TModel? first, TModel? second)
     {
         if (first is null || second is null) return -Comparer<TModel>.Default.Compare(first, second);
-        return Comparer<TValue>.Default.Compare(ValueSelector(second), ValueSelector(first));
+        // Descending changes value comparison order, not evaluation order.
+        // Both selectors are application code: the first may mutate the second
+        // model or throw. Evaluate each exactly once in reference argument order.
+        var firstValue = ValueSelector(first);
+        var secondValue = ValueSelector(second);
+        return Comparer<TValue>.Default.Compare(secondValue, firstValue);
     }
 }
