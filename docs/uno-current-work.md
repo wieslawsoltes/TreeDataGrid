@@ -1,188 +1,132 @@
 # Current Uno completion checklist
 
-Updated 2026-09-25 UTC. Tested implementation **266883a0**;
-measured runtime optimization **14be7480**.
-**The audit is more rigorously verified and horizontal recycling is faster;
-full API, behavioral and performance parity are not established.**
+Updated 2026-09-25 UTC. Retained implementation **13e2ff79**.
+**The audit's signature blind spot is corrected. Two performance candidates were
+rejected; this continuation claims no new accepted runtime speedup or full parity.**
 
-[API audit correctness and interpretation](uno-api-audit-review-2026-09-25.md) ·
-[Avalonia comparison and performance evidence](uno-performance-audit-review-2026-09-25.md) ·
-[Exact execution checkpoint](uno-ci-checkpoint-266883a0.json) ·
-[Previous checklist preserved unchanged](archive/uno-current-work-before-266883a0.md)
+[Audit and experiment review](uno-signature-audit-performance-review-2026-09-25.md) ·
+[Exact execution checkpoint](uno-ci-checkpoint-13e2ff79.json) ·
+[Previous checklist preserved](archive/uno-current-work-before-13e2ff79.md)
 
-## Revisions and architecture
+## Revisions and retained changes
 
-PR #26 remains draft on `codex/uno-core-port`, based on master `3ca47316`.
-The actual shared Core assembly owns sources, rows, hierarchy and selection.
-This review introduces no copied Core state, renderer change, merge or public release.
+Starting head `07c571547fd6357317df2df6b4d3e5637fe81511`.
+Audit correction `15eec42dc462c9ea358c11620e694eddd3bc5d30`.
+Experimental runtime `d2ad0cb97d6a45f22cf06bf8b57c646fb2611a20`.
+Comparison setup `c52cf980e9a3c78b789ee167d75dd7c5ac1a73e0`.
+Candidate withdrawal and retained implementation `13e2ff7901a249393f29b8eed57dff544963afcf`.
+Tested tree `14e4748469c798efd4eac4613deeaf4d7a43e007`.
+CI merge `7780595e02ad455f0a2c237135fc0672d8058ca0`, with that same tree.
 
-Starting head: `889bfde669e430e507d8aeb16826e131cbf42226`.
-Audit reader/accounting: `d42c3e3f9d53167948c180444569787cfca4aaa2`.
-Runtime optimization: `14be7480c26962973ec921fabd3e3f5a168344a6`.
-Audit review integrity: `da989f8df53c79e04cdde942f375b437e9c85afe`.
-Tested implementation: `266883a04a7d6e11cd6c41eef16a69e0f1e8cadf`.
-Tested tree: `0d03c332b872c94f943763cf0c2d1fa7925664e7`.
-CI merge: `56eaa26c064dbabc6ac37c459e74a39490e672b0`, with the identical tree
-verified through the Git commit API. The runtime library is unchanged between the
-measured `14be7480` and tested `266883a0`; intervening changes are audit tooling,
-comparison/regression workflows and a new fixture compilation correction.
-Final documentation follows completed platform execution and changes only docs.
+The runtime-library source diff against the starting head is empty after withdrawal.
+Retained work consists of signature-audit correctness, four direct-framework binding
+comparisons, one loaded vertical-retirement scenario and the reproducible rejected
+experiment. Actual shared Core still owns source, row, hierarchy and selection
+state. Earlier horizontal-visibility optimizations remain; their earlier performance
+results are not recounted as new work. No merge or public release is included.
+Final documentation follows completed implementation validation and changes only docs.
 
-## What the 834 audit differences actually mean
+## Audit findings
 
-The number is reproducible **declared metadata**, not 834 missing features. It
-includes changed native signatures, moved Core owners, inherited rather than
-redeclared members, changed bases/modifiers and generated exports. No raw difference
-was removed by this review and no candidate mapping was accepted automatically.
+The raw **834** is reproducible declared metadata, not a missing-feature count.
+Historical all-input accounting is 1,845 baseline / 1,847 target / 1,011 exact;
+590 exact matches are the identical shared Core dependency. UI-only accounting is
+1,255 / 1,257 / **421 exact**, with the same 834 missing-or-different and 836
+additional-or-different entries. Scopes reconcile; normalized collisions are zero.
 
-| Scope | Baseline | Target | Exact | Missing/different | Additional/different |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Historical all-input audit | 1,845 | 1,847 | 1,011 | 834 | 836 |
-| Shared Core on both sides | 590 | 590 | 590 | 0 | 0 |
-| UI assemblies only | 1,255 | 1,257 | 421 | 834 | 836 |
+The 834 partition is 214 changed same-identity declarations, 43 absent type identities,
+316 members of absent types, 118 members not declared on matched types and 143
+overload/parameter differences. Core-relocation and inherited candidates remain
+explicitly unaccepted; none is subtracted or hidden. Native signature and inheritance
+examples, strict-mode interpretation and remaining metadata boundaries are in the review.
 
-The same Core bytes contribute 590 self-matches, not independent Uno UI coverage.
-All scopes reconcile and normalized collisions are zero. Exact declarations are
-not a feature-completion percentage. The 834 split into 214 changed declarations
-at the same identity, 43 absent exported owners, 316 members of absent owners,
-118 undeclared members on matched types and 143 overload/parameter differences.
-The absent-owner group includes 351 Core-relocation candidates and eight generated
-exports. Separately, 148 raw differences have same-name inherited candidates;
-these overlap the categories and are not subtracted or treated as equivalences.
+A remaining false-negative defect was fixed: ordinary C# display omitted ordered
+signature `modreq`/`modopt` and convention details. The supplemental reader now records
+return/ref/parameter/field/accessor, array/pointer/function-pointer and nested/enclosing
+generic argument sites; modifier order/duplicates, required/optional distinction,
+calling conventions and unresolved modifier types. Output schema is 6. All **62 new
+production PE-reader checks** pass, alongside 27 existing reader, 39 semantic,
+57 normalization and 23 Python integrity checks. A local negative control with only
+the new append hook disabled fails the unchanged modifier-only regression.
 
-The audit now emits `scope-accounting.json`/`.md` beside complete raw and supplemental
-inventories. Supplemental counts remain 13,465 / 15,813, with 3,838 exact matches,
-9,627 missing/different and 11,975 additional/different. Dependency resolution and
-strict self-comparison pass. The guide explains source-compatibility, declaration,
-inheritance, metadata and behavioral boundaries instead of hiding mismatches.
+Raw counts remain unchanged; richer supplemental rows still count 13,465 / 15,813,
+3,838 exact, 9,627 missing-or-different and 11,975 additional-or-different. Strict
+self-comparison has zero declared and supplemental differences. Local strict cross-
+framework audit exits 1; inventory mode exits 0 without claiming parity. Full ABI,
+assembly-qualified forwarding, attribute inheritance, source lookup, native property
+defaults and behavior still require explicit acceptance.
 
-## Actual audit defects corrected and reproduced
+## Performance experiments and decision
 
-The full declared reader used JSON's default numeric serialization for constants,
-which threw on NaN/infinity even though a supplemental helper handled them safely.
-The full path now uses the existing exact scalar representation, preserving
-nonfinite values and signed-zero bits. Twenty-seven emitted-PE fixtures exercise
-actual `Surface.Read`, not only helpers or a self-comparison of product binaries.
+The reference Avalonia presenter uses deferred same-row-container rebind, reusable
+cell models, bounded native ranges and real measure-validity checks. An aggressive
+Uno row-range prototype was investigated, fault-tested and rejected locally after
+mixed/diagonal regressions. It was never pushed. Native measurement was not replaced
+with an unsafe size-only cache.
 
-The Python reviewer previously validated only a candidate's normalized string,
-allowing fabricated remaining metadata to pass as target evidence. It now requires
-the entire verified target record. Both producer/reviewer detect ambiguous normalized
-identities before sets/dictionaries can hide declarations. Malformed records,
-duplicate candidates and boolean/floating-point counts are explicitly rejected.
-Twelve original review tests remain unchanged; eleven integrity tests were added.
+A narrower reusable retirement-snapshot candidate was pushed and tested. Controlled
+[ABBA run 36197169685](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36197169685)
+compared exact baseline `15eec42d` and candidate `d2ad0cb9`: all 16 hosts completed,
+100 Uno samples per workload/revision, and eight identical frame sequences. It saved
+80-1,200 bytes in four workloads, but five timing medians worsened: horizontal +18.25%,
+vertical +14.26%, diagonal +4.30%, resize +19.78%, sort +9.51%; replacement improved
+3.33%. Complete medians, p95, settlement, reference ratios and per-pass results are
+retained in artifact `10890289852`. These diagnostics are not confidence intervals.
 
-[Original/corrected regression run 36182461885](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36182461885)
-executes exact original `889bfde6` and corrected `da989f8d` tooling on identical
-compiled constant-bearing inputs. Original audit exits 2; corrected strict audit
-exits 0 with no differences. Original Python review passes its 12 existing tests
-but seven new test methods fail assertions and two raise errors; the corrected
-review passes all 23. The original output's 12 assertion failures include subtests,
-not twelve independent failing methods. Both old/new logs are retained in artifact
-`10884832987`. No original tooling source was patched for this proof.
+That result did not justify the small allocation benefit. `13e2ff79` restores the
+exact original presenter blob and removes the experimental helper and its twelve
+new tests. No preexisting assertion was removed. Candidate checkpoint `c52cf980` had
+passed 1,874 cases; the twelve withdrawn helper cases are deliberately not counted
+in the final **1,862**. Four direct-framework tests and the loaded native scenario
+remain useful independent regression coverage. The pinned experiment remains
+reproducible, not presented as a successful optimization or rerun until favorable.
 
-## Avalonia source review and runtime optimization
+## Final implementation validation
 
-The performance guide compares actual Avalonia presenter code against Uno's bounded
-realization, native container/model recycling, natural-width measurement, viewport
-lookup, delegate caches and Core data ownership. Many reference techniques are
-already implemented and are not recounted as new work. Avalonia's `IsMeasureValid`
-plus constraints cannot safely be replaced by a size-only Uno cache: native text,
-font, theme, wrapping, template and descendant changes can invalidate measurement
-without changing those keys. Dirty native measurement is not skipped.
+[Functional run 36197904479](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36197904479)
+passes all fifteen stages on unchanged input: **228 Core + 882 Uno + 536 Avalonia +
+41 sample-state + 175 direct-framework = 1,862 cases**, zero failed/skipped;
+**65/65 native suites**; sequential native smoke; both native sample builds with
+zero warnings/errors; Activity Monitor checks; and the full audit/integrity suite.
+The new marker `UNO_RUNTIME_VERTICAL_RETIREMENT_PASSED` appears in isolated and
+sequential native logs. Report artifact `10891795146`; source artifact `10890806503`.
 
-Baseline profile [36179566554](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36179566554)
-records both original frameworks, 600 valid operations each, with exact pinned
-sources and tracing tools. Visibility and retirement paths motivated the change.
-Whole-process sampled residence includes startup, waits and other threads; it is
-not per-operation CPU or allocation attribution. Artifact: `10883881462`.
+[Platform run 36197904535](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36197904535)
+passes all six jobs: Windows/macOS/Linux builds/tests, Linux X11 native/NuGet execution,
+Windows App SDK builds/package publication, and actual published trimmed-browser
+consumers. Downloaded browser artifact `10891236045` verifies four passed routes:
+showcase, Activity Monitor, and all fifteen browser-dispatched input stages at scales
+1 and 2. The new vertical-retirement marker is present in the published showcase
+console. Chromium is 143.0.7499.4. Browser artifact hash and route results were
+independently inspected, not inferred from a successful build. Windows publication
+is not Windows OS runtime acceptance; these browser routes are not physical-device,
+universal-browser, IME or external screen-reader acceptance. Existing browser
+splash-screen warnings remain. Supporting Build, dependency, reference-pack,
+trimmed-binding and reproducibility workflows also passed; no retry was requested.
 
-`TreeDataGridCellsPresenter.RecyclingVisibility.cs` preserves the visibility of a
-parented cell reused during its own synchronous horizontal measure. Previously it
-could collapse the native subtree just before making it visible again. Model
-retirement, binding, editing, native measurement and lifecycle callbacks still run.
-A finally path finishes every unused visual decision before returning, including
-exceptions and reentrant source retirement. It never collapses a newer realized
-identity. Ordinary removals are not deferred across dispatcher turns. The retained
-pending set has a per-presenter memory cost; this is not a zero-allocation grid.
+Local SDK 10.0.201 and public offline assets were used for real .NET tests and native
+experiments. The local net8 reference pack was 8.0.31 instead of requested 8.0.25,
+without changing target frameworks; CI used unmodified repository pins. Local 882 Uno
+and 175 direct-framework cases passed after withdrawal. Seven retained authored
+implementation/test files match CI bytes; original presenter bytes and absence of
+rejected files were verified. The archived source independently reconstructs Git
+tree `14e4748469c798efd4eac4613deeaf4d7a43e007`. Source, functional, browser and performance
+archive hashes match their metadata; source.tar matches its manifest.
 
-One new loaded-native scenario inside `cell-lifecycle` verifies stable controls over
-five horizontal windows, actual text/Core identity, zero same-pass rebind collapse,
-bounded realization, surplus-cell hiding, callback retirement and recovery. Marker:
-`UNO_RUNTIME_HORIZONTAL_RECYCLING_VISIBILITY_PASSED`. No new xUnit case or registered
-native suite is claimed. The initial new fixture used the wrong CacheLength owner;
-`f3dc28a5` corrects it to `RowsPresenter` without changing library code or assertions.
+## Independent performance budget and remaining work
 
-## Controlled performance evidence, including regressions
+[Final paired run 36197904730](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36197904730)
+completes both builds and all four hosts but **fails the unchanged 1.10 budget**.
+Timing/allocation Uno-to-Avalonia ratios are horizontal **2.609/0.741**, vertical
+**1.937/1.957**, diagonal **3.507/1.928**, replacement **1.509/2.668**, resize
+**1.588/1.516**, sort **1.302/0.620**. Artifact `10890599750` retains raw evidence.
+This separate runner is not combined with the controlled experiment as a before/after
+claim. Synchronous UI/layout work is not GPU completion or frame rate.
 
-[ABBA comparison 36181683208](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36181683208)
-executes baseline `889bfde6` and runtime candidate `14be7480` on one runner in
-baseline/candidate/candidate/baseline order, alternating frameworks within each pass.
-All 16 framework hosts complete. Each Uno operation has 100 samples per revision;
-all eight ordered Uno frame sequences have identical geometry and row/cell counts.
-Artifact `10884114103` preserves every raw sample and original 1.10 gate result.
-
-| Operation | Baseline ms | Candidate ms | Time change | Allocation change |
-| --- | ---: | ---: | ---: | ---: |
-| Horizontal scroll | 1.76345 | 0.87880 | -50.17% | 22,528 to 15,688 bytes (-30.36%) |
-| Vertical scroll | 1.88985 | 1.97305 | +4.40% | 191,904 to 196,608 bytes (+2.45%) |
-| Distant diagonal scroll | 7.03115 | 6.50295 | -7.51% | Unchanged |
-| Visible-row replacement | 2.37080 | 2.26040 | -4.66% | Unchanged |
-| Visible-column resize | 3.46815 | 3.29395 | -5.02% | Unchanged |
-| Sort | 45.36360 | 42.34140 | -6.66% | Unchanged |
-
-These are pooled medians, not statistical confidence intervals. Horizontal p95
-improves 3.0243 to 1.1984 ms and settlement median 1.98690 to 1.11330 ms. Diagonal
-p95 worsens 9.787 to 11.238 ms despite its lower median. Vertical timing/allocation
-regressions and per-pass variance are retained, not explained away by a favorable
-separate run. The complete allocation-stack cause is not established. Headers,
-hierarchy and variable row heights are not covered by this fixed-text benchmark.
-
-## Completed current implementation validation
-
-[Functional run 36182466684](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36182466684)
-passes all fifteen stages on unchanged committed sources: **1,858 .NET cases**
-(228 Core, 882 Uno, 536 Avalonia, 41 sample-state, 171 direct-framework), zero
-failures/skips; **65/65 native suites**; sequential native smoke; both native builds
-with zero warnings/errors; and five Activity Monitor sections plus lifetime checks.
-Tooling passes 27 full-reader, 39 semantic, 57 normalization and 23 Python checks.
-Report artifact `10885255434`; source artifact `10884194747`.
-
-[Platform run 36182466644](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36182466644)
-passes all six jobs: Windows/macOS/Linux builds/tests, Linux native/NuGet execution,
-Windows App SDK build/publication and published trimmed-browser consumers. The new
-native visibility marker appears in both sequential and NuGet-consumer logs. Native
-artifact: `10885152456`.
-
-Browser job `108228075921` passes showcase, Activity Monitor and all fifteen external
-input stages at both device scales 1 and 2, using Chromium 143.0.7499.4/Playwright
-1.57.0. The new scenario is wired into the passed showcase; its individual browser
-marker was not separately extracted. Browser artifact `10885643712`. Existing
-browser UnoSplashScreen warnings remain. Native Invoke/browser-driver success is
-not physical-device, all-browser, IME, external accessibility or universal DPI
-acceptance; Windows publication is not Windows OS runtime execution.
-
-Build, dependency snapshot, reference packs, trimmed binding and reproducibility
-also pass. No retry was requested for this final implementation. The previously
-reported intermittent allocation observation remains undiagnosed.
-
-## Independent budget and remaining work
-
-[Current paired run 36182466685](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36182466685)
-completes both builds/all four hosts but **fails the unchanged 1.10 budget**.
-Time ratios Uno/Avalonia are horizontal 3.069, vertical 2.035, diagonal 3.497,
-replacement 1.618, resize 1.565 and sort 1.850. Horizontal allocation is 0.741x the
-reference; other allocations and timing still exceed budget. Artifact `10884334633`.
-Do not combine different-runner numbers into additional before/after claims.
-
-Required next acceptance: genuine API contracts and explicitly tested Core/native
-mappings; vertical/diagonal lifecycle/allocation and source-sort work; unchanged
-budgets with hierarchy/variable-height workloads; the intermittent allocation
-investigation; physical input/drag, Unicode/IME, accessibility and cross-head
-lifecycle/scaling. All optimizations and full Avalonia-equivalent performance are
-not marked complete. No existing assertion, Core implementation, renderer setting,
-trimming diagnostic, workload or performance threshold was weakened.
-
-Local execution tools returned ClientError. .NET/Python/native/browser execution
-was performed in GitHub Actions; logs, artifact metadata and Git tree identities
-were inspected. Archive digests below are runner/API observations, not locally
-recomputed hashes or independently reconstructed source archives.
+Remaining gates: genuine API adaptations with compiler/behavioral proofs; native
+text/measurement and source-sort performance; broader callback and hierarchy/variable-
+height workloads; the prior undiagnosed intermittent allocation observation; physical
+input/drag, Unicode/IME, external accessibility and cross-head lifecycle/scaling.
+No assertion, Core ownership rule, rendering setting, trimming diagnostic, workload
+or performance threshold was weakened. PR #26 remains draft and the full port is not
+marked complete.
