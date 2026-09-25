@@ -26,9 +26,10 @@ internal static class TypedColumnContractRuntimeChecks
         Check(ReferenceEquals(projection[0], column), "Typed column covariance changed column identity.");
         var model = row.Model;
         var first = typed.CreateCell(row);
-        var second = legacy.CreateCell(row);
+        U.ICell? second = null;
         try
         {
+            second = legacy.CreateCell(row);
             Check(first is CellValue && second is CellValue && !ReferenceEquals(first, second),
                 "Typed factories did not return independently owned native cell values.");
             Check(Equals(first.Value, second.Value) && first.CanEdit == second.CanEdit && ReferenceEquals(row.Model, model),
@@ -39,7 +40,7 @@ internal static class TypedColumnContractRuntimeChecks
             try { (first as IDisposable)?.Dispose(); }
             finally { (second as IDisposable)?.Dispose(); }
         }
-        columns.Clear(); // The list borrows, rather than disposes, its column.
+        columns.Clear();
         Check(ReferenceEquals(typed.GetComparison(ListSortDirection.Ascending), column.GetComparison(ListSortDirection.Ascending)),
             "Removing a typed column retired the caller's column.");
         Console.WriteLine("UNO_RUNTIME_TYPED_COLUMN_CONTRACT_PASSED: built-in and legacy interface dispatch, comparison identity, Core row identity, native cell factories, typed-list covariance and independent cleanup");

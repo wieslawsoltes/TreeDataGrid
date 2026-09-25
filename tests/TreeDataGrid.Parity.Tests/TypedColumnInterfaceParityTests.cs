@@ -24,7 +24,7 @@ public sealed class TypedColumnInterfaceParityTests
         Comparison<Item?> descending = static (a, b) => StringComparer.Ordinal.Compare(b?.Text, a?.Text);
         A.IColumn<Item> reference = kind switch
         {
-            0 => new A.TextColumn<Item, string>("Text", x => x.Text, options: new()
+            0 => new A.TextColumn<Item, string?>("Text", x => x.Text, options: new()
                 { CanUserSortColumn = allow, CompareAscending = ascending, CompareDescending = descending }),
             1 => new A.CheckBoxColumn<Item>("Flag", x => x.Flag, options: new()
                 { CanUserSortColumn = allow, CompareAscending = ascending, CompareDescending = descending }),
@@ -33,7 +33,7 @@ public sealed class TypedColumnInterfaceParityTests
         };
         U.IColumn<Item> target = kind switch
         {
-            0 => new U.TextColumn<Item, string>("Text", x => x.Text, options: new()
+            0 => new U.TextColumn<Item, string?>("Text", x => x.Text, options: new()
                 { CanUserSortColumn = allow, CompareAscending = ascending, CompareDescending = descending }),
             1 => new U.CheckBoxColumn<Item>("Flag", x => x.Flag, options: new()
                 { CanUserSortColumn = allow, CompareAscending = ascending, CompareDescending = descending }),
@@ -54,18 +54,19 @@ public sealed class TypedColumnInterfaceParityTests
     [InlineData(true)]
     public void Typed_interface_cell_creation_uses_the_same_shared_core_row_and_binding(bool editable)
     {
-        A.IColumn<Item> reference = new A.TextColumn<Item, string>("Text", x => x.Text,
-            editable ? static (x, value) => x.Text = value : null);
-        U.IColumn<Item> target = new U.TextColumn<Item, string>("Text", x => x.Text,
-            editable ? static (x, value) => x.Text = value : null);
+        A.IColumn<Item> reference = editable
+            ? new A.TextColumn<Item, string?>("Text", x => x.Text, static (x, value) => x.Text = value)
+            : new A.TextColumn<Item, string?>("Text", x => x.Text);
+        U.IColumn<Item> target = editable
+            ? new U.TextColumn<Item, string?>("Text", x => x.Text, static (x, value) => x.Text = value)
+            : new U.TextColumn<Item, string?>("Text", x => x.Text);
         using var targetLifetime = Assert.IsAssignableFrom<IDisposable>(target);
         var model = new Item { Text = "Original" };
-        // The reference row contract already exposes its actual Core row. No
-        // copied row or UI source is needed to compare both typed interfaces.
+        // Both interfaces operate on this same Core-compatible reference row.
         var row = new SharedRow(model);
         var a = reference.CreateCell(row);
-        var u = target.CreateCell(row);
         using var al = Assert.IsAssignableFrom<IDisposable>(a);
+        var u = target.CreateCell(row);
         using var ul = Assert.IsAssignableFrom<IDisposable>(u);
         Assert.Equal(a.Value, u.Value);
         Assert.Equal(a.CanEdit, u.CanEdit);
@@ -80,7 +81,7 @@ public sealed class TypedColumnInterfaceParityTests
         Assert.Same(model, ((TreeDataGridCore.Models.IRow<Item>)row).Model);
     }
 
-    private sealed class Item { public string Text { get; set; } = "Text"; public bool? Flag { get; set; } }
+    private sealed class Item { public string? Text { get; set; } = "Text"; public bool? Flag { get; set; } }
     private sealed class SharedRow(Item model) : A.IRow<Item>
     {
         public Item Model => model;

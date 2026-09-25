@@ -19,7 +19,7 @@ public sealed class TypedColumnContractTests
     {
         using P.CellColumn native = kind switch
         {
-            0 => new U.TextColumn<Model, string>("Text", x => x.Text, (x, value) => x.Text = value),
+            0 => new U.TextColumn<Model, string?>("Text", x => x.Text, (x, value) => x.Text = value),
             1 => new U.CheckBoxColumn<Model>("Flag", x => x.Flag, (x, value) => x.Flag = value),
             _ => new U.TemplateColumn<Model>("Template", (object)"Display"),
         };
@@ -91,7 +91,7 @@ public sealed class TypedColumnContractTests
     [Fact]
     public void Typed_column_list_covariance_preserves_actual_columns_and_layout()
     {
-        using var first = new U.TextColumn<Model, string>("Text", x => x.Text, width: new GridLength(80));
+        using var first = new U.TextColumn<Model, string?>("Text", x => x.Text, width: new GridLength(80));
         using var second = new U.CheckBoxColumn<Model>("Flag", x => x.Flag, width: new GridLength(50));
         var columns = new U.ColumnList<Model> { first, second };
         IReadOnlyList<U.IColumn<Model>> typed = columns;
@@ -108,8 +108,8 @@ public sealed class TypedColumnContractTests
     {
         Comparison<Model?> core = static (_, _) => 11;
         Comparison<Model?> view = static (_, _) => 23;
-        var definition = new Core.Models.ValueColumn<Model, string>("Text", x => x.Text, options: new() { CompareAscending = core });
-        using var column = new U.TextColumn<Model, string>(definition, new() { CompareAscending = view });
+        var definition = new Core.Models.ValueColumn<Model, string?>("Text", x => x.Text, options: new() { CompareAscending = core });
+        using var column = new U.TextColumn<Model, string?>(definition, new() { CompareAscending = view });
         var typed = (U.IColumn<Model>)column;
         Assert.Same(view, typed.GetComparison(ListSortDirection.Ascending));
         Assert.Same(core, definition.GetComparison(ListSortDirection.Ascending));
@@ -119,7 +119,7 @@ public sealed class TypedColumnContractTests
     [Fact]
     public void Warm_interface_comparisons_allocate_no_new_managed_storage()
     {
-        using var column = new U.TextColumn<Model, string>("Text", x => x.Text);
+        using var column = new U.TextColumn<Model, string?>("Text", x => x.Text);
         var typed = (U.IColumn<Model>)column;
         var a = new Model { Text = "A" }; var b = new Model { Text = "B" };
         for (var i = 0; i < 1024; ++i) _ = typed.GetComparison(ListSortDirection.Ascending)!(a, b);
@@ -129,7 +129,7 @@ public sealed class TypedColumnContractTests
         Assert.Equal(-4096, total); Assert.Equal(0L, allocated);
     }
 
-    private sealed class Model { public string Text { get; set; } = "Text"; public bool? Flag { get; set; } = true; }
+    private sealed class Model { public string? Text { get; set; } = "Text"; public bool? Flag { get; set; } = true; }
     private sealed class Row(Model model) : Core.Models.IRow<Model>
     {
         public Model Model => model;
@@ -144,7 +144,7 @@ public sealed class TypedColumnContractTests
         public override bool CanEdit => false;
         public override void Write(object? value) => throw new NotSupportedException();
     }
-    private sealed class SpecializedColumn() : U.TextColumn<Model, string>("Text", x => x.Text)
+    private sealed class SpecializedColumn() : U.TextColumn<Model, string?>("Text", x => x.Text)
     {
         private static readonly Comparison<Model?> Comparison = static (_, _) => 37;
         internal int Creates;
