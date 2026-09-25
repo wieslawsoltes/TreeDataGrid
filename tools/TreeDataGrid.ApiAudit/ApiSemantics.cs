@@ -119,6 +119,7 @@ internal static class ApiSemantics
                     Accessor(evt.RaiseMethod, "raise", details);
                     break;
             }
+            ApiSignatureMetadata.Append(symbol, details, checkType);
             if (extra is not null) details.Add(extra);
             var raw = owner + " | " + relation + " | depth=" + baseDepth.ToString(CultureInfo.InvariantCulture) +
                 " | " + symbol.ToDisplayString(Display) + " | " + string.Join(" | ", details);
@@ -221,7 +222,7 @@ internal static class ApiSemantics
                 "No method body or native framework code is executed.",
                 "Inherited declarations retain their actual declaring types and constructed generic arguments; hiding/overload applicability still needs consumer compilation.",
                 "Attributes are declared metadata at their original sites, not reflection-instantiated attributes or AttributeUsage inheritance resolution.",
-                "Assembly/module attributes, custom modifiers, explicit interface accessor bodies, dependency-property defaults and native layout/input behavior remain separate acceptance surfaces."
+                "Assembly/module attributes, explicit interface accessor bodies, dependency-property defaults and native layout/input behavior remain separate acceptance surfaces. Signature modifier sequences and calling conventions are recorded, not a complete ABI proof."
             }
         }, options) + "\n");
         return result;

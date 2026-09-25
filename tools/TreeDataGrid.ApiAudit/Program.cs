@@ -25,6 +25,7 @@ try
     var semanticChecks = ApiSemanticChecks.Run();
     var normalizationChecks = ApiNameNormalizer.RunChecks();
     var surfaceChecks = ApiSurfaceChecks.Run();
+    var signatureChecks = ApiSignatureChecks.Run();
     if (args.Length == 1) return 0;
     var baselinePath = Path.GetFullPath(args[0]);
     var targetPath = Path.GetFullPath(args[1]);
@@ -57,12 +58,13 @@ try
     var accounting = ApiAuditAccounting.Write(baseline, target, Path.GetFileNameWithoutExtension(corePath), output, jsonOptions);
     var report = new
     {
-        schemaVersion = 5,
+        schemaVersion = 6,
         mode = "declared-public-and-protected-metadata-shapes",
         namespaceMappings = Surface.NamespaceMappings,
         namespaceNormalization = "Explicit qualified-name roots only; quoted constants/defaults/attribute values are preserved; Core mappings are not inferred",
         namespaceNormalizationChecks = normalizationChecks,
         fullMetadataReaderChecks = surfaceChecks,
+        signatureMetadataChecks = signatureChecks,
         baselineShapes = left.Count,
         targetShapes = right.Count,
         exactNormalizedMatches = matched,
@@ -84,7 +86,7 @@ try
             "Documentation identities classify differences; candidate matches do not establish equivalence or remove raw differences.",
             "Matching declarations do not validate method bodies, event ordering, native input or timing.",
             "Inherited candidates and declared custom attributes are recorded separately; C# lookup applicability and AttributeUsage inheritance are not automatically inferred.",
-            "Assembly/module attributes, custom modifiers and native dependency-property defaults still require separate review.",
+            "Signature custom modifiers and calling conventions are compared in supplemental metadata. Assembly/module attributes and native dependency-property defaults still require separate review.",
             "Unresolved metadata dependencies are reported; they are never silently treated as matching contracts.",
             "Historical raw counts include shared Core on both sides. Its identical dependency self-matches are not UI-port coverage."
         }
