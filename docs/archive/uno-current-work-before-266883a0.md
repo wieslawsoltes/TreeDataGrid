@@ -1,335 +1,111 @@
-{
-  "schemaVersion": 1,
-  "recordedDateUtc": "2026-09-25",
-  "repository": "wieslawsoltes/TreeDataGrid",
-  "pullRequest": 26,
-  "branch": "codex/uno-core-port",
-  "startingHead": "bf703838bcaa16cbc059f3a7a339b528777a050b",
-  "testedImplementation": "ab5f30a6d00bfa33332d750b6e7e1ea2c6f1af4f",
-  "testedTree": "df3410e3bf492d312abe82d02b9e5dce274cfcb6",
-  "ciMergeCommit": "2897938891625862b6b8f3af1829d1c9aae5d171",
-  "sourceVerification": {
-    "localReviewedTreeEqualsGitHubTree": true,
-    "ciArchivedTreeEqualsTestedTree": true,
-    "all14ChangedFilesByteComparedWithArchive": true,
-    "sourceTarDigestVerified": true,
-    "sourceTarSha256": "ae56adb52d5eb293d715a33ccc000e41abdace1f5f71ef049aacb641e9689e2b"
-  },
-  "authoredCoverage": {
-    "newUnoUnitCases": 21,
-    "newNativeScenarios": 10,
-    "newRegisteredNativeSuites": 0,
-    "newBrowserPointerStages": 3,
-    "browserInputStagesPerScale": 15,
-    "newDirectFrameworkCases": 0
-  },
-  "functional": {
-    "runId": 36169575190,
-    "jobId": 108185550222,
-    "conclusion": "success",
-    "outcomes": {
-      "core": 0,
-      "uno": 0,
-      "avalonia": 0,
-      "sample-state": 0,
-      "contract-parity": 0,
-      "native": 0,
-      "native-smoke": 0,
-      "activity": 0,
-      "activity-smoke": 0,
-      "isolated-suites": 0,
-      "avalonia-api-build": 0,
-      "api-audit": 0,
-      "api-self-check": 0,
-      "parity-review-tests": 0,
-      "parity-review": 0
-    },
-    "dotnetCases": {
-      "uno-tests": {
-        "total": 882,
-        "passed": 882,
-        "failed": 0,
-        "notExecuted": 0
-      },
-      "core-tests": {
-        "total": 228,
-        "passed": 228,
-        "failed": 0,
-        "notExecuted": 0
-      },
-      "avalonia-tests": {
-        "total": 536,
-        "passed": 536,
-        "failed": 0,
-        "notExecuted": 0
-      },
-      "contract-parity-tests": {
-        "total": 171,
-        "passed": 171,
-        "failed": 0,
-        "notExecuted": 0
-      },
-      "sample-state-tests": {
-        "total": 41,
-        "passed": 41,
-        "failed": 0,
-        "notExecuted": 0
-      }
-    },
-    "totalDotnetCases": 1858,
-    "nativeSuites": {
-      "registered": 65,
-      "passed": 65
-    },
-    "newMarkerInIsolatedNativeLog": true,
-    "newMarkerInSequentialNativeLog": true,
-    "apiAudit": {
-      "baselineShapes": 1845,
-      "targetShapes": 1847,
-      "exactNormalizedMatches": 1011,
-      "missingOrDifferent": 834,
-      "additionalOrDifferent": 836,
-      "unresolvedBaselineTypes": [],
-      "unresolvedTargetTypes": [],
-      "completeApiParityProven": false
-    },
-    "strictSelfComparison": "1847/1847 exact, zero differences and no unresolved dependencies",
-    "nativeBuildWarnings": 0,
-    "nativeBuildErrors": 0,
-    "activityBuildWarnings": 0,
-    "activityBuildErrors": 0,
-    "pythonReviewCasesPassed": 12,
-    "metadataSemanticChecksPassed": 39,
-    "normalizationChecksPassed": 57
-  },
-  "platform": {
-    "runId": 36169575203,
-    "ubuntuJob": 108185548655,
-    "windowsJob": 108185548663,
-    "macosJob": 108185548831,
-    "linuxNativeJob": 108185548859,
-    "windowsNativeJob": 108185548752,
-    "browserJob": 108185548329,
-    "completedJobs": [
-      {
-        "id": 108185548655,
-        "name": "Ubuntu builds and tests",
-        "conclusion": "success"
-      },
-      {
-        "id": 108185548663,
-        "name": "Windows builds and tests",
-        "conclusion": "success"
-      },
-      {
-        "id": 108185548831,
-        "name": "macOS builds and tests",
-        "conclusion": "success"
-      },
-      {
-        "id": 108185548859,
-        "name": "Linux native runtime and NuGet consumers",
-        "conclusion": "success"
-      },
-      {
-        "id": 108185548752,
-        "name": "Windows App SDK builds and package publication",
-        "conclusion": "success"
-      },
-      {
-        "id": 108185548329,
-        "name": "Published trimmed Chromium samples and input",
-        "conclusion": "success"
-      }
-    ],
-    "conclusion": "success",
-    "status": "completed"
-  },
-  "performance": {
-    "runId": 36169575234,
-    "conclusion": "failure",
-    "beforeAfterExperimentForThisChange": false,
-    "comparisons": [
-      {
-        "operation": "distant-diagonal-scroll",
-        "avaloniaMs": 2.7603,
-        "unoMs": 9.3,
-        "timeRatio": 3.3691990001086842,
-        "allocationRatio": 1.9284410078910181
-      },
-      {
-        "operation": "replace-visible-row",
-        "avaloniaMs": 2.4563,
-        "unoMs": 3.7796,
-        "timeRatio": 1.5387371249440214,
-        "allocationRatio": 2.6677908937605395
-      },
-      {
-        "operation": "resize-visible-column",
-        "avaloniaMs": 4.8451,
-        "unoMs": 6.53815,
-        "timeRatio": 1.3494355121669315,
-        "allocationRatio": 1.5160611329733686
-      },
-      {
-        "operation": "scroll-x",
-        "avaloniaMs": 0.5095000000000001,
-        "unoMs": 2.6658,
-        "timeRatio": 5.232188420019626,
-        "allocationRatio": 1.0634441087613293
-      },
-      {
-        "operation": "scroll-y",
-        "avaloniaMs": 1.0605,
-        "unoMs": 2.52575,
-        "timeRatio": 2.3816595945308814,
-        "allocationRatio": 1.9566068515497552
-      },
-      {
-        "operation": "sort",
-        "avaloniaMs": 44.8647,
-        "unoMs": 65.3247,
-        "timeRatio": 1.4560378203799424,
-        "allocationRatio": 0.6197229488476887
-      }
-    ],
-    "budget": 1.1,
-    "budgetMet": false,
-    "scope": "Synchronous UI-thread source/layout work and verified layout-settlement latency. Not GPU completion, frame rate, input latency, accessibility, variable-height or all-feature parity.",
-    "pairs": 2
-  },
-  "artifacts": [
-    {
-      "id": 10879843127,
-      "name": "uno-validation-report",
-      "bytes": 4667861,
-      "sha256": "a7efa0598a66ea54caf5b39463377176cf44621593372f2851c62770ceae6457",
-      "independentlyRecomputed": true
-    },
-    {
-      "id": 10879827301,
-      "name": "uno-validation-source",
-      "bytes": 1537362,
-      "sha256": "fab1d6b4ecd30f366664c16cadaf01a115d1bd6b93ba0b04d56d5e8b032d3d97",
-      "independentlyRecomputed": true
-    },
-    {
-      "id": 10879298204,
-      "name": "uno-tests-ubuntu-latest",
-      "bytes": 274479,
-      "sha256": "3d5bda0af2ac1cb2a370b73b54da43dc355dd3d40cdca9e3d6333e0f5011a75f",
-      "independentlyRecomputed": true
-    },
-    {
-      "id": 10880147526,
-      "name": "native-parity",
-      "bytes": 18238,
-      "sha256": "b9813958ae0f894055f0c61a42a46fa6bbfe736b3dc94fb14a7327c084863cca",
-      "independentlyRecomputed": true
-    },
-    {
-      "id": 10879204744,
-      "name": "uno-browser-samples",
-      "bytes": 181900647,
-      "sha256": "d1806180723236b13c2d89e615036c2c2beb77afe0657ef5c27f98fe2bcdafbe",
-      "independentlyRecomputed": true
-    }
-  ],
-  "localChecks": {
-    "pythonDriverSyntax": "passed",
-    "all15DriverStagesWithFakePage": "passed",
-    "invalidCoordinatesRejected": "NaN, infinity, negative, past-viewport",
-    "outOfOrderReadinessRejected": true,
-    "dotnetExecutedLocally": false,
-    "csharpProducerMatchesPython15StageOrder": true
-  },
-  "boundaries": {
-    "fullApiParityProven": false,
-    "fullPerformanceParityProven": false,
-    "originalAllocationFailureDiagnosed": false,
-    "preexistingUnitAssertionsChanged": false,
-    "coreImplementationChanged": false,
-    "rendererOrBudgetChanged": false,
-    "merged": false,
-    "publicReleaseCreated": false,
-    "draft": true,
-    "retriesRequestedForThisImplementation": 0,
-    "windowsNativeBuildIsNotWindowsOSRuntimeAcceptance": true,
-    "oldWarmLayoutAllocationCasesPassedUnchangedOnUbuntu": [
-      1,
-      128,
-      129,
-      1024
-    ]
-  },
-  "documentationOnlyFollowup": true,
-  "supportingWorkflows": [
-    {
-      "id": 36169575285,
-      "name": "Build",
-      "conclusion": "success"
-    },
-    {
-      "id": 36169575288,
-      "name": "Uno trimmed binding contract",
-      "conclusion": "success"
-    },
-    {
-      "id": 36169575175,
-      "name": "Uno dependency snapshot",
-      "conclusion": "success"
-    },
-    {
-      "id": 36169575266,
-      "name": "Uno contract reproducibility",
-      "conclusion": "success"
-    },
-    {
-      "id": 36169575185,
-      "name": "Uno reference packs",
-      "conclusion": "success"
-    }
-  ],
-  "browser": {
-    "runId": 36169575203,
-    "jobId": 108185548329,
-    "conclusion": "success",
-    "revision": "2897938891625862b6b8f3af1829d1c9aae5d171",
-    "chromiumVersion": "143.0.7499.4",
-    "passedRoutes": [
-      "showcase",
-      "monitor",
-      "showcase-input-scale-1",
-      "showcase-input-scale-2"
-    ],
-    "failedRoutes": [],
-    "inputStagesPerScale": 15,
-    "deviceScaleFactors": [
-      1,
-      2
-    ],
-    "inputStages": [
-      "select-row",
-      "arrow-down",
-      "begin-edit",
-      "commit-edit",
-      "select-cancel-row",
-      "begin-cancel-edit",
-      "cancel-edit",
-      "ctrl-select",
-      "resize-column",
-      "cancel-resize",
-      "sort-column",
-      "sort-column-descending",
-      "sort-column-clear",
-      "sort-column-restart",
-      "wheel-scroll"
-    ],
-    "newMarkerObservedAtBothScales": true,
-    "showcaseNativeScenariosPassed": 10,
-    "showcaseNativeMarkerObserved": true,
-    "consoleAndSummaryExtractedAndInspected": true,
-    "scope": "Published trimmed consumers, Chromium assertions and browser-dispatched pointer/keyboard input at device scale factors 1 and 2. Not physical hardware, all-browser, IME or external screen-reader acceptance.",
-    "completeBrowserParityProven": false
-  }
-}
+# Current Uno completion checklist
+
+Updated 2026-09-25 UTC. Tested implementation **ab5f30a6**.
+**Full API, behavioral and performance parity are not established.**
+
+[Tri-state sorting guide](uno-tristate-sorting.md) ·
+[Exact execution checkpoint](uno-ci-checkpoint-ab5f30a6.json) ·
+[Previous checklist preserved unchanged](archive/uno-current-work-before-ab5f30a6.md)
+
+## Revisions and architecture
+
+PR #26 remains draft on `codex/uno-core-port`, based on master `3ca47316`.
+Starting head: `bf703838bcaa16cbc059f3a7a339b528777a050b`.
+Implementation: `ab5f30a6d00bfa33332d750b6e7e1ea2c6f1af4f`.
+Tested tree: `df3410e3bf492d312abe82d02b9e5dce274cfcb6`.
+CI merge checkout: `2897938891625862b6b8f3af1829d1c9aae5d171`.
+The reviewed local tree matches the GitHub tree and archived CI tree; all fourteen
+changed files were also byte-compared against the downloaded CI source archive.
+Final documentation is a separate follow-up; it changes no implementation,
+test, build or workflow source and is not itself the tested implementation above.
+
+Sources, rows, hierarchy and selection remain owned by the actual shared Core
+assembly. No merge, public release, renderer change or Core copy is introduced.
+The previous viewport/observer work is retained, not counted as new work here.
+
+## Implemented opt-in sorting cycle
+
+The previously inert `AllowTriStateSorting` creation option now reaches typed,
+fluent, declarative, template, custom-adapter and expander view columns. The
+opt-in cycle is ascending → descending → source order; another click restarts
+ascending. Default two-state behavior is unchanged.
+
+The third transition delegates through `TreeDataGridPresentation.ClearSort()`
+to the existing shared Core implementation. It restores current collection order,
+not a captured initial order, and preserves source/row/selection identity and
+hierarchical expansion. Multiple views observe the source's shared sort state.
+The typed custom adapter now forwards the live per-column sorting permission.
+
+Header activation checks realization/request generations, current direction,
+owner/presentation/column identity, indexed membership, enabled/resize state and
+permission before dispatch. Application callback retirement or a newer sort must
+not allow an obsolete transition to clear either source. No glyph is manually
+published after the source callback. This is an opt-in functional extension,
+not proof of an already-implemented Avalonia third-state interaction.
+
+## Authored and executed coverage
+
+Added **21 Uno unit cases**, **ten native scenarios** inside the existing
+`builtin-column-comparison` suite, and **three browser pointer stages**. There
+are no new registered native suites or direct-framework cases. New native checks
+use loaded header controls and their public Invoke provider, observe actual Click
+delivery, and assert source order, visible glyph and realized Core-model identity.
+Browser checks remain separate external pointer/keyboard delivery, not scripted
+.NET sort calls. The browser protocol now contains fifteen stages per scale.
+
+Functional run **36169575190**, job **108185550222**, passed all fifteen stages:
+
+| Gate | Result |
+| --- | --- |
+| Core / Uno / Avalonia cases | 228 / 882 / 536 passed |
+| Sample-state / direct-framework cases | 41 / 171 passed |
+| Total .NET cases | **1,858 passed, zero failed or skipped** |
+| Registered native suites | **65/65 passed** |
+| New native scenarios | **10/10 passed in isolated and sequential logs** |
+| Strict API self-comparison | **1,847/1,847 exact, zero differences** |
+
+Platform run **36169575203** validates Windows/macOS/Ubuntu builds and tests,
+Linux X11 runtime and native NuGet consumers, native Windows App SDK build/package
+publication, and published trimmed Chromium consumers. Browser status is recorded
+in the exact execution checkpoint. Native Windows publication is not Windows OS
+runtime execution; automated Chromium input is not physical-device/all-browser,
+IME or external screen-reader acceptance.
+
+Downloaded source, validation, Ubuntu-test and paired-performance archive digests
+were independently recomputed. The source.tar digest also matched its manifest.
+Python driver syntax, the fifteen-stage fake-page dispatch, invalid target bounds
+and out-of-order readiness rejection were checked locally. No local .NET compiler
+was available; .NET execution evidence comes from the unmodified CI checkout.
+
+The old intermittent allocation failure is not diagnosed. All four unchanged
+warm-layout allocation cases passed in the inspected Ubuntu run. No retries,
+preexisting unit assertion changes or performance-threshold changes were used for
+this implementation's initial functional validation.
+
+## Independent gates still outstanding
+
+Paired native performance run **36169575234** remains **failed** at the unchanged
+**1.10** budget. Latest median time/allocation ratios (Uno / Avalonia):
+
+| Workload | Time | Allocation |
+| --- | ---: | ---: |
+| Horizontal scroll | 5.232 | 1.063 |
+| Vertical scroll | 2.382 | 1.957 |
+| Distant diagonal scroll | 3.369 | 1.928 |
+| Visible-row replacement | 1.539 | 2.668 |
+| Visible-column resize | 1.349 | 1.516 |
+| Sort | 1.456 | 0.620 |
+
+This is not a controlled before/after experiment for this feature. The raw
+artifact retains p95, allocations and settlement data. These measurements are
+synchronous UI/source/layout work, not GPU completion or frame rate.
+
+API audit: **1,845 baseline / 1,847 target declarations; 1,011 exact matches;
+834 missing-or-different baseline / 836 additional-or-different target entries**.
+Dependencies resolve. This feature adds five public declarations; it does not
+reduce the original 834 baseline differences or silently waive native/Core mappings.
+
+- [ ] Complete genuine API/signature/inheritance/attribute contracts and explicit Core/native mappings.
+- [ ] Explain the intermittent allocation observation and continue custom-source callback review.
+- [ ] Meet unchanged performance budgets; extend hierarchy/variable-height workloads.
+- [ ] Complete physical input/drag, Unicode/IME, external accessibility and cross-head acceptance.
