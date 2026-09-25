@@ -18,6 +18,7 @@ internal static class CellLifecycleRuntimeChecks
     {
         NativeObserverAllocationRuntimeChecks.Run();
         await HorizontalRecyclingVisibilityRuntimeChecks.RunAsync(grid);
+        await VerticalRetirementRuntimeChecks.RunAsync(grid);
         grid.Model = null;
         var items = new ObservableCollection<Item>(Enumerable.Range(0, 200).Select(i => new Item($"Cell {i:000}")));
         using var source = new FlatTreeDataGridSource<Item>(items);
