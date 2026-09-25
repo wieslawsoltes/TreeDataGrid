@@ -20,10 +20,11 @@ try
 {
     CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
     CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
-    // The actual metadata reader is regression-tested before either normal
-    // comparison or strict self-comparison can produce a successful report.
+    // Exercise the production emitted-PE reader as well as individual metadata
+    // helpers. A helper-only fixture cannot detect a failure in Surface.Add.
     var semanticChecks = ApiSemanticChecks.Run();
     var normalizationChecks = ApiNameNormalizer.RunChecks();
+    var surfaceChecks = ApiSurfaceChecks.Run();
     if (args.Length == 1) return 0;
     var baselinePath = Path.GetFullPath(args[0]);
     var targetPath = Path.GetFullPath(args[1]);
@@ -53,13 +54,15 @@ try
     File.WriteAllText(Path.Combine(output, "classified-differences.json"), JsonSerializer.Serialize(classified, jsonOptions) + "\n");
     File.WriteAllLines(Path.Combine(output, "absent-exported-types.txt"), absentTypes);
     var semantics = ApiSemantics.WriteComparison(baseline.SemanticEntries, target.SemanticEntries, output, jsonOptions);
+    var accounting = ApiAuditAccounting.Write(baseline, target, Path.GetFileNameWithoutExtension(corePath), output, jsonOptions);
     var report = new
     {
-        schemaVersion = 4,
+        schemaVersion = 5,
         mode = "declared-public-and-protected-metadata-shapes",
         namespaceMappings = Surface.NamespaceMappings,
         namespaceNormalization = "Explicit qualified-name roots only; quoted constants/defaults/attribute values are preserved; Core mappings are not inferred",
         namespaceNormalizationChecks = normalizationChecks,
+        fullMetadataReaderChecks = surfaceChecks,
         baselineShapes = left.Count,
         targetShapes = right.Count,
         exactNormalizedMatches = matched,
@@ -71,6 +74,9 @@ try
         unresolvedTargetTypes = target.UnresolvedTypes,
         supplementalMetadata = semantics,
         supplementalMetadataChecks = semanticChecks,
+        scopeAccounting = new { accounting.SharedCore, accounting.UiAssemblies, accounting.SharedCoreBytesIdentical,
+            accounting.ScopeCountsAreAdditive, normalizationCollisions = accounting.NormalizationCollisions.Length,
+            inheritedCandidateDifferences = accounting.InheritedMemberReviews.Length },
         completeApiParityProven = false,
         limitations = new[]
         {
@@ -79,7 +85,8 @@ try
             "Matching declarations do not validate method bodies, event ordering, native input or timing.",
             "Inherited candidates and declared custom attributes are recorded separately; C# lookup applicability and AttributeUsage inheritance are not automatically inferred.",
             "Assembly/module attributes, custom modifiers and native dependency-property defaults still require separate review.",
-            "Unresolved metadata dependencies are reported; they are never silently treated as matching contracts."
+            "Unresolved metadata dependencies are reported; they are never silently treated as matching contracts.",
+            "Historical raw counts include shared Core on both sides. Its identical dependency self-matches are not UI-port coverage."
         }
     };
     File.WriteAllText(Path.Combine(output, "summary.json"), JsonSerializer.Serialize(report, jsonOptions) + "\n");
@@ -94,6 +101,10 @@ try
     Console.WriteLine("UNO_API_SUPPLEMENTAL_METADATA=" + JsonSerializer.Serialize(semantics));
     Console.WriteLine("UNO_API_DIFFERENCE_CATEGORIES=" + JsonSerializer.Serialize(categories));
     Console.WriteLine("UNO_API_ABSENT_EXPORTED_TYPES=" + JsonSerializer.Serialize(absentTypes));
+    // Ambiguous normalized identities invalidate accounting in every mode; do
+    // not let a HashSet silently turn multiple different declarations into one.
+    if (accounting.NormalizationCollisions.Length > 0 || !accounting.ScopeCountsAreAdditive)
+        throw new InvalidDataException("API scope accounting contains ambiguous normalized declarations; see scope-accounting.json.");
     return strict && (missing.Length > 0 || semantics.MissingOrDifferent > 0 ||
         baseline.UnresolvedTypes.Length > 0 || target.UnresolvedTypes.Length > 0) ? 1 : 0;
 }
@@ -210,7 +221,7 @@ internal sealed record Surface(InputAssembly[] Inputs, ApiEntry[] Entries, strin
                 text += " | bases=" + string.Join(",", bases);
             }
             if (symbol is IFieldSymbol { HasConstantValue: true } field)
-                text += " | constant=" + JsonSerializer.Serialize(field.ConstantValue);
+                text += " | constant=" + ApiSemantics.ScalarText(field.ConstantValue);
             var identity = symbol.GetDocumentationCommentId()
                 ?? throw new InvalidDataException($"No metadata documentation identity for {symbol.Kind}: {text}");
             var owner = (symbol as INamedTypeSymbol ?? symbol.ContainingType)?.GetDocumentationCommentId()
