@@ -37,7 +37,7 @@ internal static class CustomExpanderLifetimeRuntimeChecks
                 ReferenceEquals(adapter.Row, source.Rows[0]) && ReferenceEquals(Text().RowModel, root),
                 "Initial custom expander lost native rendering or shared Core identity.");
             var changes = 0;
-            adapter.PropertyChanged += (_, args) => { if (args is CellContentChangedEventArgs) ++changes; };
+            adapter.PropertyChanged += (_, args) => { if (args.PropertyName == nameof(CellValue.Value)) ++changes; };
             obsolete.ReadAlignment = () => model.Replace(winner);
             model.Replace(obsolete);
             await Settle();
