@@ -8,7 +8,7 @@ using U = Uno.Controls.Models.TreeDataGrid;
 namespace TreeDataGridUnoSample;
 
 /// <summary>Exercises typed interface dispatch inside actual native/trimmed consumers.</summary>
-internal static class TypedColumnContractRuntimeChecks
+internal static partial class TypedColumnContractRuntimeChecks
 {
     internal static void Run<TModel, TValue>(ValueCellColumn<TModel, TValue> column, IRow<TModel> row) where TModel : class
     {
@@ -22,8 +22,21 @@ internal static class TypedColumnContractRuntimeChecks
                 "The legacy factory contract selected a different comparison implementation.");
         }
         var columns = new U.ColumnList<TModel> { column };
-        IReadOnlyList<U.IColumn<TModel>> projection = columns;
-        Check(ReferenceEquals(projection[0], column), "Typed column covariance changed column identity.");
+        try
+        {
+            IReadOnlyList<U.IColumn<TModel>> projection = columns;
+            Check(ReferenceEquals(projection[0], column), "The typed column projection changed column identity.");
+            VerifyPair(typed, legacy, row);
+        }
+        finally { columns.Clear(); }
+        Check(ReferenceEquals(typed.GetComparison(ListSortDirection.Ascending), column.GetComparison(ListSortDirection.Ascending)),
+            "Removing a typed column retired the caller's column.");
+        VerifyLegacyFactories(legacy, row);
+        Console.WriteLine("UNO_RUNTIME_TYPED_COLUMN_CONTRACT_PASSED: built-in and legacy interface dispatch, comparison identity, Core row identity, native cell factories, typed-list projection and independent cleanup");
+    }
+
+    private static void VerifyPair<TModel>(U.IColumn<TModel> typed, ICellColumn<TModel> legacy, IRow<TModel> row)
+    {
         var model = row.Model;
         var first = typed.CreateCell(row);
         U.ICell? second = null;
@@ -40,11 +53,8 @@ internal static class TypedColumnContractRuntimeChecks
             try { (first as IDisposable)?.Dispose(); }
             finally { (second as IDisposable)?.Dispose(); }
         }
-        columns.Clear();
-        Check(ReferenceEquals(typed.GetComparison(ListSortDirection.Ascending), column.GetComparison(ListSortDirection.Ascending)),
-            "Removing a typed column retired the caller's column.");
-        Console.WriteLine("UNO_RUNTIME_TYPED_COLUMN_CONTRACT_PASSED: built-in and legacy interface dispatch, comparison identity, Core row identity, native cell factories, typed-list covariance and independent cleanup");
     }
+
     private static void Check(bool condition, string message)
     {
         if (!condition) throw new InvalidOperationException(message);

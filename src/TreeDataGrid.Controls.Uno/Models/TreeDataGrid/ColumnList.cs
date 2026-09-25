@@ -17,9 +17,15 @@ namespace Uno.Controls.Models.TreeDataGrid;
 /// view facade. Sorting, hierarchy and source definitions remain Core-owned.
 /// Removing a column does not dispose it or transfer ownership to this list.
 /// </remarks>
-public class ColumnList<TModel> : ColumnListBase<ICellColumn<TModel>>, IReadOnlyList<IColumn<TModel>>
+public class ColumnList<TModel> : ColumnListBase<ICellColumn<TModel>>, IColumns, IReadOnlyList<IColumn<TModel>>
 {
     private ConditionalWeakTable<ICellColumn<TModel>, TypedColumnView>? _typedViews;
+
+    // Provide an exact untyped interface map at the same inheritance level.
+    // Otherwise variant dispatch can choose the new typed IReadOnlyList slot
+    // instead of the inherited native slot, leaking a facade into native layout.
+    IColumn IReadOnlyList<IColumn>.this[int index] => this[index];
+    IEnumerator<IColumn> IEnumerable<IColumn>.GetEnumerator() => GetEnumerator();
 
     IColumn<TModel> IReadOnlyList<IColumn<TModel>>.this[int index] => GetTypedColumn(this[index]);
 
