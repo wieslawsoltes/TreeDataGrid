@@ -22,15 +22,12 @@ internal static class HorizontalRecyclingVisibilityRuntimeChecks
         var oldWidth = grid.Width;
         var oldHeight = grid.Height;
         var oldRowHeight = grid.RowHeight;
-        var oldCache = grid.CacheLength;
+        var oldCache = grid.RowsPresenter!.CacheLength;
         var factory = new Factory();
         var items = new ObservableCollection<Model>(Enumerable.Range(0, 100).Select(i => new Model("Row " + i)));
         using var source = new FlatTreeDataGridSource<Model>(items);
         for (var i = 0; i < 96; ++i)
-        {
-            var number = i;
             source.Columns.Add(new TextColumn<Model, string>("C" + i, row => row.Text, width: new(80)));
-        }
         var cancelOnClearing = false;
         grid.CellClearing += OnClearing;
         try
@@ -38,7 +35,7 @@ internal static class HorizontalRecyclingVisibilityRuntimeChecks
             grid.Width = 340;
             grid.Height = 200;
             grid.RowHeight = 28;
-            grid.CacheLength = 0;
+            grid.RowsPresenter.CacheLength = 0;
             grid.ElementFactory = factory;
             grid.Model = source;
             await Settle();
@@ -92,7 +89,7 @@ internal static class HorizontalRecyclingVisibilityRuntimeChecks
             grid.CellClearing -= OnClearing;
             grid.Model = null;
             grid.ElementFactory = oldFactory;
-            grid.CacheLength = oldCache;
+            grid.RowsPresenter.CacheLength = oldCache;
             grid.RowHeight = oldRowHeight;
             grid.Width = oldWidth;
             grid.Height = oldHeight;
