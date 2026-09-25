@@ -1,5 +1,4 @@
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.ComponentModel;
 using Microsoft.UI.Xaml;
@@ -119,53 +118,8 @@ namespace Uno.Controls.Models.TreeDataGrid
             int itemCount,
             double startU,
             int firstIndex,
-            ref double estimatedElementSizeU)
-        {
-            // We have no elements, nothing to do here.
-            if (itemCount <= 0)
-                return (-1, 0);
-
-            // If we're at 0 then display the first item.
-            if (LayoutMath.IsZero(viewportStartU))
-                return (0, 0);
-
-            var u = startU;
-
-            for (var i = 0; i < Count; ++i)
-            {
-                var size = this[i].ActualWidth;
-
-                // A zero-width Auto column has not provided a useful viewport anchor yet.
-                // Falling back to the measured-width estimate keeps large horizontal jumps
-                // accurate while still allowing zero to reserve its configured minimum width.
-                if (double.IsNaN(size) || size <= 0)
-                    break;
-
-                var endU = u + size;
-
-                if (endU > viewportStartU && u < viewportEndU)
-                    return (firstIndex + i, u);
-
-                u = endU;
-            }
-
-            // We don't have any realized elements in the requested viewport, or can't rely on
-            // StartU being valid. Estimate the index using only the estimated size. First,
-            // estimate the element size, using defaultElementSizeU if we don't have any realized
-            // elements.
-            var estimatedSize = ((IColumnViewportEstimator)this).EstimateElementSize() switch
-            {
-                -1 => estimatedElementSizeU,
-                var v => v,
-            };
-
-            // Store the estimated size for the next layout pass.
-            estimatedElementSizeU = estimatedSize;
-
-            // Estimate the element at the start of the viewport.
-            var index = Math.Min((int)(viewportStartU / estimatedSize), itemCount - 1);
-            return (index, index * estimatedSize);
-        }
+            ref double estimatedElementSizeU) =>
+            GetViewportAnchor(viewportStartU, viewportEndU, itemCount, startU, firstIndex, ref estimatedElementSizeU);
 
         double IColumnViewportEstimator.EstimateElementSize()
         {
@@ -175,52 +129,7 @@ namespace Uno.Controls.Models.TreeDataGrid
 
         private void EnsureGeometry()
         {
-            while (_geometryDirty) RebuildGeometry();
-        }
-
-        private void RebuildGeometry()
-        {
-            var revision = _geometryRevision;
-            var count = Count;
-            double[]? rented = null;
-            Span<double> ends = count <= 128 ? stackalloc double[count] :
-                (rented = ArrayPool<double>.Shared.Rent(count)).AsSpan(0, count);
-            try
-            {
-                var end = 0.0;
-                var total = 0.0;
-                var measuredCount = 0;
-                var prefixCount = 0;
-                var knownPrefix = true;
-                for (var i = 0; i < count; ++i)
-                {
-                    var width = this[i].ActualWidth;
-                    if (revision != _geometryRevision) return;
-                    // Measure first, publish later. An ActualWidth getter can
-                    // replace the collection and recursively query its geometry.
-                    knownPrefix &= !double.IsNaN(width) && width >= 0;
-                    if (knownPrefix)
-                    {
-                        end += width;
-                        ends[prefixCount++] = end;
-                    }
-                    if (!double.IsNaN(width) && width > 0)
-                    {
-                        total += width;
-                        ++measuredCount;
-                    }
-                }
-                // No application callbacks occur while publishing. Reserve
-                // storage before clearing so allocation failure keeps the old
-                // committed prefix intact and the dirty flag retryable.
-                if (_columnEnds.Capacity < prefixCount) _columnEnds.Capacity = prefixCount;
-                _columnEnds.Clear();
-                for (var i = 0; i < prefixCount; ++i) _columnEnds.Add(ends[i]);
-                _estimatedElementSize = measuredCount > 0 ? total / measuredCount : -1;
-                _geometryDirty = false;
-                unchecked { ++_geometryRevision; }
-            }
-            finally { if (rented is not null) ArrayPool<double>.Shared.Return(rented); }
+            while (_geometryDirty) BuildGeometrySnapshot();
         }
 
         private void InvalidateGeometry()

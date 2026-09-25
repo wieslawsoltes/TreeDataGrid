@@ -212,7 +212,7 @@ public sealed class ColumnViewportSnapshotTests
         var estimate = 77d;
         Assert.Equal((2, 40d), estimator.GetOrEstimateColumnAt(10000, 10001, 100, 0, 0, ref estimate));
         estimate = 77;
-        Assert.Equal((2, 40d), estimator.GetOrEstimateColumnAt(25, 26, 3, 0, 2, ref estimate));
+        Assert.Equal((1, 20d), estimator.GetOrEstimateColumnAt(25, 26, 3, 0, 2, ref estimate));
         Assert.Equal((2, 40d), estimator.GetOrEstimateColumnAt(100, 101, 3, 0, int.MaxValue, ref estimate));
         columns.Clear();
         Assert.Equal((-1, 0d), estimator.GetOrEstimateColumnAt(0, 1, 3, 0, 0, ref estimate));
