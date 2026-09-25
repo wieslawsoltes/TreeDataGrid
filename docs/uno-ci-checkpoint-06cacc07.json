@@ -1,0 +1,247 @@
+{
+  "schemaVersion": 1,
+  "dateUtc": "2026-09-25",
+  "repository": "wieslawsoltes/TreeDataGrid",
+  "pullRequest": 26,
+  "branch": "codex/uno-core-port",
+  "startingCommit": "6ce462a80823188f802e00d1c89e34f8643a1e63",
+  "baseCommit": "3ca47316d724e5e040ab0281a880e8df999b25fc",
+  "testedCommit": "06cacc070c5cb596717934eee95ecca4cf7971b1",
+  "testedTree": "b35bd05665cb5628477c1cfc44594b2cb6fcb608",
+  "testedMerge": "5ab562998327fe4af1341a661fce927a4303f69c",
+  "mergeTreeMatchesProductTree": true,
+  "implementationCommits": [
+    "8b3260b24b7673326e09fafd91f59521ab631487",
+    "9439bd9f6e78edfd737814a9caa67cd16aa45242",
+    "06cacc070c5cb596717934eee95ecca4cf7971b1"
+  ],
+  "authoredCoverage": {
+    "newUnoUnitCases": 27,
+    "columnFactoryTransactionCases": 16,
+    "columnObserverLifetimeCases": 11,
+    "newDifferentialCases": 0,
+    "newRegisteredNativeSuites": 0,
+    "newNativeScenarios": 1,
+    "containingSuite": "presentation-pool",
+    "marker": "UNO_RUNTIME_COLUMN_FACTORY_TRANSACTIONS_PASSED",
+    "includedInSequentialConsumers": true,
+    "newExportedApiShapes": 0
+  },
+  "intermediateFailures": [
+    {
+      "commit": "8b3260b24b7673326e09fafd91f59521ab631487",
+      "issue": "Core non-generic column snapshot required an explicit IColumn<TModel> cast; corrected in 9439bd9f."
+    },
+    {
+      "commit": "9439bd9f6e78edfd737814a9caa67cd16aa45242",
+      "issue": "All 1740 .NET cases passed; new native consumer had an ambiguous IndexPath reference. 06cacc07 explicitly uses TreeDataGridCore.IndexPath without changing its assertion."
+    }
+  ],
+  "validation": {
+    "runId": 36123533101,
+    "jobId": 108034332698,
+    "artifactId": 10859940130,
+    "artifactSha256": "5f3310e787ebf4b14a0529e43fa98d6f962d0c2a459aebc91d1f47459809d1a4",
+    "conclusion": "success",
+    "unchangedCheckout": true,
+    "requiredStages": 15,
+    "passedStages": 15,
+    "dotnetTests": {
+      "core": 228,
+      "uno": 784,
+      "avalonia": 536,
+      "sampleState": 41,
+      "directFrameworkParity": 151,
+      "total": 1740,
+      "failed": 0,
+      "skipped": 0
+    },
+    "pythonAuditTests": 12,
+    "metadataSemanticChecks": 39,
+    "normalizationChecks": 57,
+    "nativeSuites": {
+      "registered": 65,
+      "passed": 65
+    },
+    "sequentialNative": "passed",
+    "activityMonitor": "five sections and lifetime passed",
+    "nativeSampleBuildWarnings": 0,
+    "nativeSampleBuildErrors": 0,
+    "newNativeMarkerInIsolatedLog": true,
+    "newNativeMarkerInSequentialLog": true
+  },
+  "sourceArtifact": {
+    "artifactId": 10857709586,
+    "artifactSha256": "291e46df26f54553ca04f0a4412a5f0ed8754205195cc1908a17226847255497",
+    "authoredSourceFilesComparedByteForByte": 6
+  },
+  "platform": {
+    "runId": 36123533150,
+    "conclusion": "success",
+    "completedJobs": 6,
+    "successfulJobs": 6,
+    "desktopLinux": "success",
+    "desktopMacOS": "success",
+    "desktopWindows": "success",
+    "linuxNativeConsumers": "success",
+    "windowsAppSdkBuildAndPublication": "success",
+    "browserJobId": 108034373863,
+    "browserBuilds": "success",
+    "browserPackages": "success",
+    "browserPublication": "success",
+    "browserRuntime": "success",
+    "browserResults": {
+      "main": "PASS",
+      "inputScale1": "PASS",
+      "inputScale2": "PASS",
+      "activityMonitor": "PASS"
+    },
+    "newNativeMarkerInPublishedBrowserLog": true,
+    "browserVersion": "143.0.7499.4",
+    "browserArtifactId": 10859481819,
+    "browserArtifactName": "uno-browser-samples",
+    "browserArtifactSha256": "9e23faec18af70322298d949ca53014be6b88b52536e728d13e601264cabb6a7",
+    "documentationPushedAfterProductPlatformCompletion": true,
+    "scope": "Windows App SDK build/publication is not Windows OS runtime execution. Pinned Chromium and browser-dispatched input at scales 1/2 are not physical hardware, universal browser, IME, external screen-reader or universal DPI acceptance."
+  },
+  "otherCompletedChecks": {
+    "repositoryBuild": {
+      "runId": 36123533235,
+      "conclusion": "success"
+    },
+    "contractReproducibility": {
+      "runId": 36123533105,
+      "conclusion": "success"
+    },
+    "publishedTrimmedBindingContract": {
+      "runId": 36123533131,
+      "conclusion": "success"
+    },
+    "referencePacks": {
+      "runId": 36123533077,
+      "conclusion": "success"
+    },
+    "dependencySnapshot": {
+      "runId": 36123533160,
+      "conclusion": "success"
+    }
+  },
+  "api": {
+    "baselineShapes": 1845,
+    "targetShapes": 1833,
+    "exactNormalizedMatches": 1010,
+    "missingOrDifferent": 835,
+    "additionalOrDifferent": 823,
+    "unresolvedBaselineTypes": 0,
+    "unresolvedTargetTypes": 0,
+    "strictSelfComparison": "passed",
+    "supplementalMetadata": {
+      "baselineEntries": 13465,
+      "targetEntries": 15732,
+      "exactMatches": 3822,
+      "missingOrDifferent": 9643,
+      "additionalOrDifferent": 11910
+    },
+    "rawDifferencesPreserved": true,
+    "automaticCoreEquivalencesAccepted": 0,
+    "countsAreFeatureCompletionPercentages": false,
+    "completeApiParityProven": false,
+    "completeBehavioralParityProven": false
+  },
+  "performance": {
+    "runId": 36123533134,
+    "conclusion": "failure",
+    "artifactId": 10859480309,
+    "artifactSha256": "a91c2434b2297dc10f3501691e39476c7703f0f2e4b51d8ba7d990be4b6d4899",
+    "buildsAndHostsSucceeded": true,
+    "validMeasuredFrames": true,
+    "pairedHosts": 4,
+    "pairs": 2,
+    "order": "AB/BA alternating",
+    "unchangedRatioBudget": 1.1,
+    "budgetMet": false,
+    "scope": "Synchronous UI-thread source/layout work and verified layout-settlement latency. Not GPU completion, frame rate, input latency, accessibility, variable-height or all-feature parity.",
+    "wholeGridBeforeAfterSpeedupClaim": false,
+    "completePerformanceParityProven": false,
+    "medianComparisons": [
+      {
+        "operation": "distant-diagonal-scroll",
+        "avaloniaMilliseconds": 1.74325,
+        "unoMilliseconds": 7.98095,
+        "timingRatio": 4.578201634877384,
+        "avaloniaAllocatedBytes": 503912.0,
+        "unoAllocatedBytes": 985112.0,
+        "allocationRatio": 1.9549286383336772
+      },
+      {
+        "operation": "replace-visible-row",
+        "avaloniaMilliseconds": 1.6959,
+        "unoMilliseconds": 2.5924500000000004,
+        "timingRatio": 1.528657350079604,
+        "avaloniaAllocatedBytes": 37952.0,
+        "unoAllocatedBytes": 102144.0,
+        "allocationRatio": 2.6913996627318717
+      },
+      {
+        "operation": "resize-visible-column",
+        "avaloniaMilliseconds": 2.81385,
+        "unoMilliseconds": 3.1835,
+        "timingRatio": 1.1313680544449776,
+        "avaloniaAllocatedBytes": 87416.0,
+        "unoAllocatedBytes": 130128.0,
+        "allocationRatio": 1.488606204813764
+      },
+      {
+        "operation": "scroll-x",
+        "avaloniaMilliseconds": 0.32235,
+        "unoMilliseconds": 1.76945,
+        "timingRatio": 5.4892197921513874,
+        "avaloniaAllocatedBytes": 21184.0,
+        "unoAllocatedBytes": 24448.0,
+        "allocationRatio": 1.1540785498489425
+      },
+      {
+        "operation": "scroll-y",
+        "avaloniaMilliseconds": 0.9169499999999999,
+        "unoMilliseconds": 1.97165,
+        "timingRatio": 2.150226293691041,
+        "avaloniaAllocatedBytes": 98080.0,
+        "unoAllocatedBytes": 194592.0,
+        "allocationRatio": 1.9840130505709626
+      },
+      {
+        "operation": "sort",
+        "avaloniaMilliseconds": 33.866550000000004,
+        "unoMilliseconds": 53.667950000000005,
+        "timingRatio": 1.584689022058639,
+        "avaloniaAllocatedBytes": 1675936.0,
+        "unoAllocatedBytes": 1052056.0,
+        "allocationRatio": 0.6277423481564929
+      }
+    ],
+    "rawP95AndSettlementPreservedInArtifact": true
+  },
+  "acceptance": {
+    "draft": true,
+    "merged": false,
+    "publicRelease": false,
+    "assertionsWeakened": false,
+    "coreOwnershipChanged": false,
+    "trimmingDiagnosticsRelaxed": false,
+    "rendererOptionsChanged": false,
+    "performanceThresholdChanged": false,
+    "allUnoPortWorkComplete": false,
+    "remaining": [
+      "Genuine API member/signature/inheritance/attribute completion and explicit tested Core/native mappings",
+      "Broader custom-source and mixed-mutation callback review beyond the tested column factory/observer/lifecycle paths",
+      "Unchanged native timing/allocation budgets and hierarchy/variable-height workloads",
+      "Physical input/drag, Unicode/IME, external accessibility and cross-head scaling/lifecycle acceptance"
+    ]
+  },
+  "localValidation": {
+    "dotnetSdkAvailable": false,
+    "dotnetAndNativeExecution": "GitHub Actions on unchanged committed sources",
+    "authoredSourcesMatchDownloadedCiSource": true,
+    "previousChecklistPreservedBlob": "95287ba5b636895d2d9cb6b39cb84e1cde044a31"
+  }
+}
