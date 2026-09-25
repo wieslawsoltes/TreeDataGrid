@@ -36,6 +36,13 @@ public abstract partial class TreeDataGridPresentation
     public virtual bool SortBy(IColumn column, ListSortDirection direction) =>
         Model.SortBy(column is CellColumn native && Model.Columns.Any(model => ReferenceEquals(model, native.Model)) ? native.Model : null, direction);
 
+    /// <summary>Restores Core source order and clears its sort indicators without replacing the source or selection.</summary>
+    public virtual void ClearSort()
+    {
+        ObjectDisposedException.ThrowIf(_viewRowsDisposed, this);
+        Model.ClearSort();
+    }
+
     /// <summary>Moves rows through the original Core source using native drag effects.</summary>
     public virtual void MoveRows(IEnumerable<IndexPath> indexes, IndexPath target, TreeDataGridRowDropPosition position, DataPackageOperation effects) =>
         Model.MoveRows(Model, indexes, target, (RowDropPosition)position, (RowMoveEffects)effects);

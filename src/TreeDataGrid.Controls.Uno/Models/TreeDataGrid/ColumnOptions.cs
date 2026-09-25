@@ -18,6 +18,9 @@ public class ColumnOptions<TModel> : TreeDataGridCore.Models.ColumnOptions<TMode
         get => base.MaxWidth is { } width ? new(width.Value, (GridUnitType)width.GridUnitType) : null;
         set => base.MaxWidth = value is { } width ? new(width.Value, (TreeDataGridCore.GridUnitType)width.GridUnitType) : null;
     }
+    /// <summary>Allows header activation to cycle from descending back to source order.</summary>
+    /// <remarks>This is a live view interaction policy; Core comparers remain unchanged.</remarks>
+    public bool AllowTriStateSorting { get; set; }
     public BeginEditGestures BeginEditGestures { get; set; } = BeginEditGestures.Default;
     internal static TreeDataGridCore.GridLength? ToCore(GridLength? width) =>
         width is { } value ? new(value.Value, (TreeDataGridCore.GridUnitType)value.GridUnitType) : null;
@@ -31,6 +34,7 @@ public class ColumnOptions<TModel> : TreeDataGridCore.Models.ColumnOptions<TMode
         core.CanUserSortColumn = source.CanUserSortColumn;
         core.CompareAscending = source.CompareAscending;
         core.CompareDescending = source.CompareDescending;
+        target.AllowTriStateSorting = source is ColumnOptions<TModel> native && native.AllowTriStateSorting;
         return target;
     }
 }

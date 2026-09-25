@@ -436,6 +436,7 @@ namespace Uno.Controls
         {
             target.CanUserResizeColumn = source.CanUserResize;
             target.CanUserSortColumn = source.CanUserSortColumn;
+            target.AllowTriStateSorting = source.AllowTriStateSorting;
             target.MinWidth = source.MinWidth;
             target.MaxWidth = source.MaxWidth;
             target.BeginEditGestures = source.BeginEditGestures;

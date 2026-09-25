@@ -93,6 +93,7 @@ internal static class BuiltInColumnComparisonRuntimeChecks
         }
         Check(items.All(item => item.Subscribers == 0), "Public comparison use retained bindings after the grid source was removed.");
         Check(source.Rows.Count == items.Count, "View retirement disposed the borrowed Core source.");
+        await TriStateSortingRuntimeChecks.RunAsync(grid);
         Console.WriteLine("UNO_RUNTIME_BUILTIN_COLUMN_COMPARISON_PASSED: cached raw selector, captured value policy, live template policy, independent Core sorting, native edit/re-sort, distant rendering, bounded realization and source cleanup");
 
         async Task Settle() { await Task.Delay(120); grid.UpdateLayout(); }

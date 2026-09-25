@@ -19,6 +19,7 @@ public abstract class TreeDataGridColumn : ColumnCreateOptions
     {
         CanUserResizeColumn = CanUserResize,
         CanUserSortColumn = CanUserSortColumn,
+        AllowTriStateSorting = AllowTriStateSorting,
         MinWidth = MinWidth,
         MaxWidth = MaxWidth,
         BeginEditGestures = BeginEditGestures,

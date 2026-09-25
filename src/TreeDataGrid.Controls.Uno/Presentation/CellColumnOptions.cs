@@ -2,11 +2,12 @@ using Microsoft.UI.Xaml;
 
 namespace Uno.Controls.Presentation;
 
-/// <summary>View-only sizing options. Sorting and value access belong to Core models.</summary>
+/// <summary>View-only sizing and interaction options. Sort execution and value access belong to Core models.</summary>
 public sealed class CellColumnOptions
 {
     private readonly ICellColumnLayoutOptions? _source;
     private bool? _canUserResizeColumn;
+    private bool _allowTriStateSorting;
     private GridLength _minWidth = new(30);
     private GridLength? _maxWidth;
 
@@ -17,6 +18,12 @@ public sealed class CellColumnOptions
     {
         get => _source is { } source ? source.CanUserResizeColumn : _canUserResizeColumn;
         set { if (_source is { } source) source.CanUserResizeColumn = value; else _canUserResizeColumn = value; }
+    }
+    /// <summary>Live header-cycle policy; sorting itself remains Core-owned.</summary>
+    public bool AllowTriStateSorting
+    {
+        get => _source is { } source ? source.AllowTriStateSorting : _allowTriStateSorting;
+        set { if (_source is { } source) source.AllowTriStateSorting = value; else _allowTriStateSorting = value; }
     }
     public GridLength MinWidth
     {
@@ -35,6 +42,7 @@ public sealed class CellColumnOptions
 internal interface ICellColumnLayoutOptions
 {
     bool? CanUserResizeColumn { get; set; }
+    bool AllowTriStateSorting { get; set; }
     GridLength MinWidth { get; set; }
     GridLength? MaxWidth { get; set; }
 }

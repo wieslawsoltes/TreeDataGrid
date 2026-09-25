@@ -124,15 +124,5 @@ public partial class TreeDataGridColumnHeader : Button
         }, false);
         if (_resizer is not null) _resizer.SetValue(VisibilityProperty, CanUserResize ? s_visible : s_collapsed);
     }
-    private void OnHeaderClick(object sender, RoutedEventArgs e)
-    {
-        if (_resizing || _owner is not { CanUserSortColumns: true } owner || Column is not { } column) return;
-        var revision = _realizationVersion;
-        var canSort = column.CanUserSort != false;
-        // A custom permission getter may retire the header or switch sources.
-        if (!canSort || revision != _realizationVersion || !ReferenceEquals(_owner, owner) || !ReferenceEquals(Column, column)) return;
-        var presentation = owner.Presentation;
-        if (presentation is null || !ReferenceEquals(presentation.Columns, _columns) || revision != _realizationVersion) return;
-        presentation.SortBy(column, SortDirection == ListSortDirection.Ascending ? ListSortDirection.Descending : ListSortDirection.Ascending);
-    }
+    private void OnHeaderClick(object sender, RoutedEventArgs e) => CycleSort();
 }

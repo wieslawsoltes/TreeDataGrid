@@ -36,7 +36,8 @@ internal static class BrowserInputRuntimeChecks
         var options = new global::Uno.Controls.Presentation.TreeDataGridPresentationOptions();
         options.Columns.Add("browser-input", definition =>
             new global::Uno.Controls.Presentation.ValueCellColumn<Item, string>(
-                (CoreModels.ValueColumn<Item, string>)definition, global::Uno.Controls.Presentation.CellKind.Text)
+                (CoreModels.ValueColumn<Item, string>)definition, global::Uno.Controls.Presentation.CellKind.Text,
+                viewOptions: new global::Uno.Controls.Models.TreeDataGrid.TextColumnOptions<Item> { AllowTriStateSorting = true })
             { EditGestures = BeginEditGestures.F2 });
         var grid = new global::Uno.Controls.TreeDataGrid
         {
@@ -142,6 +143,20 @@ internal static class BrowserInputRuntimeChecks
             Emit("sort-column", header, fractionX: 0.25);
             await Until(() => source.IsSorted && ReferenceEquals(source.Rows[0].Model, items[2]));
             Check(items[2].Name == "Browser edited", "Header sorting lost the committed model value.");
+
+            Emit("sort-column-descending", grid.ColumnHeadersPresenter!.TryGetElement(0), fractionX: 0.25);
+            await Until(() => source.Columns[0].SortDirection == ListSortDirection.Descending && ReferenceEquals(source.Rows[0].Model, items[99]));
+            var selectedBeforeClear = source.RowSelection!.SelectedItems.ToArray();
+            Emit("sort-column-clear", grid.ColumnHeadersPresenter!.TryGetElement(0), fractionX: 0.25);
+            await Until(() => !source.IsSorted && source.Columns[0].SortDirection is null && ReferenceEquals(source.Rows[0].Model, items[0]));
+            Check(source.Rows.Select(row => row.Model).SequenceEqual(items) &&
+                source.RowSelection.SelectedItems.SequenceEqual(selectedBeforeClear),
+                "The browser third click lost current source order or selected model identity.");
+            Check(grid.ColumnHeadersPresenter!.TryGetElement(0)!.SortDirection is null,
+                "The browser third click left the native header glyph sorted.");
+            Emit("sort-column-restart", grid.ColumnHeadersPresenter.TryGetElement(0), fractionX: 0.25);
+            await Until(() => source.Columns[0].SortDirection == ListSortDirection.Ascending && ReferenceEquals(source.Rows[0].Model, items[2]));
+            Console.WriteLine("UNO_BROWSER_TRISTATE_SORTING_PASSED: four pointer activations, source-order reset, retained selection and sort-glyph synchronization");
 
             Emit("wheel-scroll", grid.Scroll);
             await Until(() => grid.Scroll!.VerticalOffset > 0);

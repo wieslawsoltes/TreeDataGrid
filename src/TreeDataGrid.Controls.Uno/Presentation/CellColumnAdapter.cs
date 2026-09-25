@@ -45,6 +45,10 @@ internal sealed partial class CellColumnAdapter<TModel> : CellColumn where TMode
     }
     public override object? Header { get => _inner.Header; set => throw new NotSupportedException("The custom column owns its header."); }
     public override bool? CanUserResize => _inner.CanUserResize;
+    public override bool? CanUserSort =>
+        _inner is UI.ColumnBase<TModel> column ? column.Options.CanUserSortColumn : null;
+    public override bool AllowTriStateSorting =>
+        _inner is CellColumnBase<TModel> column && column.Options.AllowTriStateSorting;
     public override double MinimumWidth => GetConstraint(maximum: false);
     public override double MaximumWidth => GetConstraint(maximum: true);
     private double GetConstraint(bool maximum)

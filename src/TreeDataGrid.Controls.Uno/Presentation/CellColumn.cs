@@ -59,6 +59,8 @@ public abstract partial class CellColumn : NotifyingBase, IDisposable
     public virtual bool IsThreeState => false;
     public virtual bool? CanUserResize => null;
     public virtual bool? CanUserSort => null;
+    /// <summary>Whether descending header activation restores the shared source's original order.</summary>
+    public virtual bool AllowTriStateSorting => false;
     public Microsoft.UI.Xaml.Controls.DataTemplateSelector? HeaderTemplateSelector { get; init; }
     public DataTemplate? HeaderTemplate { get; init; }
     public BeginEditGestures BeginEditGestures { get; init; } = BeginEditGestures.Default;
@@ -133,6 +135,8 @@ public partial class ValueCellColumn<TModel, TValue> : CellColumn, ICellColumn<T
     public override CellKind Kind => _kind;
     public override bool? CanUserResize => _options.CanUserResizeColumn;
     public override bool? CanUserSort => _options.CanUserSortColumn;
+    public override bool AllowTriStateSorting =>
+        _options is global::Uno.Controls.Models.TreeDataGrid.ColumnOptions<TModel> native && native.AllowTriStateSorting;
     public override bool IsThreeState => _column is CheckBoxColumn<TModel> check && check.IsThreeState;
     public override double MinimumWidth => _options.MinWidth.IsAuto ? MeasuredWidth : _options.MinWidth.Value;
     public override double MaximumWidth => _options.MaxWidth is { } maximum ? maximum.IsAuto ? MeasuredWidth : maximum.Value : double.PositiveInfinity;
@@ -199,6 +203,7 @@ internal sealed class ExpanderCellColumn<TModel> : CellColumn where TModel : cla
     public override bool IsThreeState => _inner.IsThreeState;
     public override bool? CanUserResize => _inner.CanUserResize;
     public override bool? CanUserSort => _inner.CanUserSort;
+    public override bool AllowTriStateSorting => _inner.AllowTriStateSorting;
     public override TextCellOptions? TextOptions => _inner.TextOptions;
     public override bool IsTextSearchEnabled => _inner.IsTextSearchEnabled;
     public override string? GetSearchText(object? model) => _inner.GetSearchText(model);

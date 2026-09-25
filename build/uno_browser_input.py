@@ -8,7 +8,8 @@ from typing import Any
 STAGES = (
     'select-row', 'arrow-down', 'begin-edit', 'commit-edit',
     'select-cancel-row', 'begin-cancel-edit', 'cancel-edit',
-    'ctrl-select', 'resize-column', 'cancel-resize', 'sort-column', 'wheel-scroll',
+    'ctrl-select', 'resize-column', 'cancel-resize', 'sort-column',
+    'sort-column-descending', 'sort-column-clear', 'sort-column-restart', 'wheel-scroll',
 )
 MARKER = 'UNO_BROWSER_INPUT_STEP='
 
