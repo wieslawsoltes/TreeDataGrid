@@ -31,6 +31,10 @@ public partial class TreeDataGridCell : Control
     private ExpanderCellValue? _expanderValue;
     private CellValue? _value;
     private CellValue? _subscribedValue;
+    // Instance method-group conversions allocate on every add/remove. The cell
+    // is reused across rows, so retain one delegate for its observation lifetime.
+    // This cache owns no model and does not change retirement/sender checks.
+    private PropertyChangedEventHandler? _valueChangedHandler;
     private bool _updating;
     private bool _rebinding;
     private bool _prepared;
@@ -219,7 +223,7 @@ public partial class TreeDataGridCell : Control
         if (_value is { } value)
         {
             _subscribedValue = value;
-            value.PropertyChanged += OnValueChanged;
+            value.PropertyChanged += _valueChangedHandler ??= OnValueChanged;
         }
     }
     /// <summary>Stop observing the model without changing its ownership.</summary>
@@ -227,7 +231,7 @@ public partial class TreeDataGridCell : Control
     {
         var subscribed = _subscribedValue;
         _subscribedValue = null;
-        if (subscribed is not null) subscribed.PropertyChanged -= OnValueChanged;
+        if (subscribed is not null) subscribed.PropertyChanged -= _valueChangedHandler;
     }
     protected virtual void OnModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {

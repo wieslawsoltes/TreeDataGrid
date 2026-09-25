@@ -16,6 +16,7 @@ internal static class CellLifecycleRuntimeChecks
 {
     public static async Task RunAsync(Uno.Controls.TreeDataGrid grid)
     {
+        NativeObserverAllocationRuntimeChecks.Run();
         grid.Model = null;
         var items = new ObservableCollection<Item>(Enumerable.Range(0, 200).Select(i => new Item($"Cell {i:000}")));
         using var source = new FlatTreeDataGridSource<Item>(items);

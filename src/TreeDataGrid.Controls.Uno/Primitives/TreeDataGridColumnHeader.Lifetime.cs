@@ -14,6 +14,9 @@ public partial class TreeDataGridColumnHeader
     private static readonly object s_visible = Visibility.Visible, s_collapsed = Visibility.Collapsed;
     private static readonly object s_ascending = ListSortDirection.Ascending, s_descending = ListSortDirection.Descending;
     private IColumn? _observedModel;
+    // Cache per container, not per source; the delegate never captures a column.
+    // Reusing it preserves custom accessor order and deferred cleanup semantics.
+    private PropertyChangedEventHandler? _modelChangedHandler;
     private bool _realizing, _unrealizing, _pendingUnrealize;
     private int _refreshVersion;
 
@@ -47,7 +50,7 @@ public partial class TreeDataGridColumnHeader
             // Remember the attempted attachment before entering the accessor. If
             // it cancels and then attaches, deferred cleanup removes that attachment.
             _observedModel = model;
-            model.PropertyChanged += OnModelPropertyChanged;
+            model.PropertyChanged += _modelChangedHandler ??= OnModelPropertyChanged;
             if (revision != _realizationVersion || !ReferenceEquals(model, _model)) return;
             RefreshProperties();
         }
@@ -75,7 +78,8 @@ public partial class TreeDataGridColumnHeader
             throw new InvalidOperationException("Column header is not available for reindexing.");
         var revision = _realizationVersion;
         var count = columns.Count;
-        if (revision != _realizationVersion || !ReferenceEquals(columns, _columns)) return;
+        if (revision != _realizationVersion) return;
+        if (!ReferenceEquals(columns, _columns)) return;
         if ((uint)columnIndex >= (uint)count) throw new ArgumentOutOfRangeException(nameof(columnIndex));
         if (ColumnIndex == columnIndex) return;
         ColumnIndex = columnIndex;
@@ -159,7 +163,7 @@ public partial class TreeDataGridColumnHeader
         {
             try { CancelHeaderResize(); }
             catch (Exception error) { (errors ??= new()).Add(error); }
-            try { if (observed is not null) observed.PropertyChanged -= OnModelPropertyChanged; }
+            try { if (observed is not null) observed.PropertyChanged -= _modelChangedHandler; }
             catch (Exception error) { (errors ??= new()).Add(error); }
             ClearHeaderProperty(HeaderProperty, null, ref errors);
             ClearHeaderProperty(ContentProperty, null, ref errors);
