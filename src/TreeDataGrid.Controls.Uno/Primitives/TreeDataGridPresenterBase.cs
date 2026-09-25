@@ -78,7 +78,6 @@ namespace Uno.Controls.Primitives
         private bool _preserveRecycledElementVisualTreeMembership;
         private int _retainedRecycledElementCount;
         private readonly Dictionary<Control, Size> _previousConstraints = new();
-        private Presentation.RetirementSnapshot<Control> _retirementSnapshot;
         // Cached state for fast reattachment (fixes for tab switching performance)
         private Rect _cachedViewport;
 
@@ -1192,7 +1191,7 @@ namespace Uno.Controls.Primitives
             try
             {
                 _pendingReset = false;
-                var active = _retirementSnapshot.Capture(_previousConstraints);
+                var active = _previousConstraints.Keys.ToArray();
                 _realizedElements?.ResetForReuse();
                 _measureElements?.ResetForReuse();
                 if (_focusedElement is { } focused) focused.LostFocus -= OnUnrealizedFocusedElementLostFocus;
@@ -1226,7 +1225,6 @@ namespace Uno.Controls.Primitives
             }
             finally
             {
-                _retirementSnapshot.Clear();
                 _elementFactory = (TreeDataGridElementFactory?)GetValue(ElementFactoryProperty);
                 _previousConstraints.Clear();
                 _pendingReset = _pendingFactoryChange = false;
