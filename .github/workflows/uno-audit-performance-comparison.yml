@@ -38,8 +38,8 @@ jobs:
           output = Path('artifacts/api-performance-comparison').resolve()
           output.mkdir(parents=True, exist_ok=True)
           revisions = {
-              'baseline': '889bfde669e430e507d8aeb16826e131cbf42226',
-              'candidate': '14be7480c26962973ec921fabd3e3f5a168344a6',
+              'baseline': '15eec42dc462c9ea358c11620e694eddd3bc5d30',
+              'candidate': 'd2ad0cb97d6a45f22cf06bf8b57c646fb2611a20',
           }
           order = ['baseline', 'candidate', 'candidate', 'baseline']
           trees, records = {}, []
