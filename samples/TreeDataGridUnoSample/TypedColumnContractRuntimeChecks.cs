@@ -32,6 +32,7 @@ internal static partial class TypedColumnContractRuntimeChecks
         Check(ReferenceEquals(typed.GetComparison(ListSortDirection.Ascending), column.GetComparison(ListSortDirection.Ascending)),
             "Removing a typed column retired the caller's column.");
         VerifyLegacyFactories(legacy, row);
+        VerifyColumnObservers(legacy, row);
         Console.WriteLine("UNO_RUNTIME_TYPED_COLUMN_CONTRACT_PASSED: built-in and legacy interface dispatch, comparison identity, Core row identity, native cell factories, typed-list projection and independent cleanup");
     }
 
