@@ -47,12 +47,6 @@ public partial class TreeDataGridCellsPresenter : TreeDataGridColumnarPresenterB
     private TreeDataGridPresentation? Presentation => _row?.Presentation;
     protected override Orientation Orientation => Orientation.Horizontal;
     protected override bool OwnsRecyclingPool => true;
-    protected override bool PreserveRecycledElementVisibility(Control element) =>
-        // Row.Unrealize hides the whole parent synchronously after its cells
-        // retire. Retained cell content already belongs to a balanced rebind
-        // scope; EndRebind(false) collapses unused cells at finalization. Do not
-        // defer horizontal-only recycling in a row that stays visible.
-        _deferRowRebind && element is TreeDataGridCell cell && _deferred.Contains(cell);
     public ITreeDataGridRows? Rows { get => (ITreeDataGridRows?)GetValue(RowsProperty); set => SetValue(RowsProperty, value); }
     public int RowIndex { get; private set; } = -1;
     public IReadOnlyCollection<TreeDataGridCell> RealizedCells => _realized.Values;
@@ -500,15 +494,7 @@ public partial class TreeDataGridCellsPresenter : TreeDataGridColumnarPresenterB
     protected override Rect? GetParentPresenterViewPort() => Presenter?.CellViewport ?? base.GetParentPresenterViewPort();
     protected override Rect GetMeasureViewport(Rect viewport) => Presenter?.CellViewport ?? base.GetMeasureViewport(viewport);
 
-    protected override Size MeasureOverride(Size availableSize)
-    {
-        if (_resettingCells || RowIndex < 0 || _row?.IsResettingCells == true || Rows is null || RowIndex >= Rows.Count || Items is not IColumns) return default;
-        // The native rows presenter constrains each row to the committed extent.
-        // Natural-width measurement must not be capped by that previous extent,
-        // or a wider Auto cell can never grow its column on first realization.
-        var result = base.MeasureOverride(Presenter is not null ? new Size(double.PositiveInfinity, availableSize.Height) : availableSize);
-        return Presenter is { } presenter ? new(presenter.Geometry.TotalWidth, Math.Max(presenter.RowEstimate, result.Height)) : result;
-    }
+    protected override Size MeasureOverride(Size availableSize) => MeasureWithRecyclingVisibility(availableSize);
 
     protected override Size MeasureElement(int index, Control element, Size availableSize)
     {
