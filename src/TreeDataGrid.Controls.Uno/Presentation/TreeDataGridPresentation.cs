@@ -180,6 +180,13 @@ public sealed partial class TreeDataGridPresentation<TModel> : TreeDataGridPrese
             ObjectDisposedException.ThrowIf(_disposed, this);
             if (version != _lifecycleVersion) return;
             _active = true;
+            // Observe Core structural changes before custom definition accessors
+            // execute. A subscription callback may reorder/remove columns during
+            // Resume; the new projection must not miss that detached-time gap.
+            foreach (var view in _views.Values) view.View.PropertyChanged += OnViewChanged;
+            _model.PropertyChanged += OnModelChanged;
+            _model.Sorted += OnSorted;
+            if (_model.Columns is INotifyCollectionChanged columns) columns.CollectionChanged += OnColumnsChanged;
             base.Resume();
             if (!Current()) return;
             foreach (var observation in _observed.Values.ToArray())
@@ -187,10 +194,6 @@ public sealed partial class TreeDataGridPresentation<TModel> : TreeDataGridPrese
                 observation.UpdateSubscription();
                 if (!Current()) return;
             }
-            foreach (var view in _views.Values) view.View.PropertyChanged += OnViewChanged;
-            _model.PropertyChanged += OnModelChanged;
-            _model.Sorted += OnSorted;
-            if (_model.Columns is INotifyCollectionChanged columns) columns.CollectionChanged += OnColumnsChanged;
             SetRows();
             if (!Current()) return;
             _selection.Resume();

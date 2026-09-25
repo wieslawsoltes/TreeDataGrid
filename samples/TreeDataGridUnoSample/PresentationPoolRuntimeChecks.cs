@@ -15,6 +15,7 @@ internal static class PresentationPoolRuntimeChecks
 {
     internal static async Task RunAsync(Uno.Controls.TreeDataGrid grid)
     {
+        await ColumnFactoryRuntimeChecks.RunAsync(grid);
         foreach (var operation in new[] { "dispose", "suspend-resume", "columns", "rows" })
             VerifyFactoryRetirement(operation);
 

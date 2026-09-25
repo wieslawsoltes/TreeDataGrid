@@ -41,7 +41,7 @@ public sealed partial class TreeDataGridPresentation<TModel> where TModel : clas
         var models = _model.Columns.ToArray();
         var inputs = new ColumnInput[models.Length];
         for (var i = 0; i < inputs.Length; ++i)
-            inputs[i] = new(models[i], models[i].PresentationKey, models[i].IsVisible);
+            inputs[i] = new((IColumn<TModel>)models[i], models[i].PresentationKey, models[i].IsVisible);
         if (!Current()) return;
         var desired = new HashSet<IColumn>(models, ReferenceEqualityComparer.Instance);
 
