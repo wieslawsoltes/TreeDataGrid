@@ -1,0 +1,101 @@
+name: Uno audit integrity regression
+
+on:
+  push:
+    branches: [codex/uno-core-port]
+    paths: [.github/workflows/uno-audit-integrity-regression.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit-regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.201
+      - name: Execute original and corrected audit programs on identical inputs
+        run: |
+          python3 -u - <<'PY'
+          import json, os, shutil, subprocess
+          from pathlib import Path
+          output = Path('artifacts/audit-integrity').resolve()
+          output.mkdir(parents=True, exist_ok=True)
+          root = Path(os.environ['RUNNER_TEMP']) / 'audit-integrity'
+          root.mkdir()
+          revisions = {'baseline': '889bfde669e430e507d8aeb16826e131cbf42226',
+                       'corrected': 'da989f8df53c79e04cdde942f375b437e9c85afe'}
+          for name, code in {
+              'Fixture.Core': 'namespace Shared; public class Row { public int Value { get; set; } }',
+              'Fixture.Ui': 'namespace Ui; public class Column { public const double NotANumber = double.NaN; public const double Infinity = double.PositiveInfinity; public const double NegativeZero = -0.0; }'
+          }.items():
+              directory = root / name
+              directory.mkdir()
+              (directory / (name + '.csproj')).write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Library</OutputType></PropertyGroup></Project>')
+              (directory / 'Fixture.cs').write_text(code)
+              subprocess.run(['dotnet', 'build', str(directory / (name + '.csproj')), '-c', 'Release'], check=True)
+          ui = root / 'Fixture.Ui/bin/Release/net10.0/Fixture.Ui.dll'
+          core = root / 'Fixture.Core/bin/Release/net10.0/Fixture.Core.dll'
+          tests = subprocess.check_output(['git', 'show', revisions['corrected'] + ':build/test-uno-parity-audit.py'])
+          results = {}
+          for label, revision in revisions.items():
+              tree = root / label
+              subprocess.run(['git', 'worktree', 'add', '--detach', str(tree), revision], check=True)
+              audit_output = output / (label + '-constant-report')
+              process = subprocess.run(['dotnet', 'run', '--project', 'tools/TreeDataGrid.ApiAudit', '-c', 'Release', '--',
+                  str(ui), str(ui), str(core), str(audit_output), '--strict'], cwd=tree,
+                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=180)
+              (output / (label + '-constant-reader.log')).write_text(process.stdout)
+              expected = 2 if label == 'baseline' else 0
+              assert process.returncode == expected, (label, process.returncode, process.stdout)
+              if label == 'baseline':
+                  assert 'positive and negative infinity' in process.stdout
+              else:
+                  summary = json.loads((audit_output / 'summary.json').read_text())
+                  assert summary['missingOrDifferent'] == summary['additionalOrDifferent'] == 0
+                  assert summary['fullMetadataReaderChecks'] == 27
+              isolated = root / (label + '-python')
+              isolated.mkdir()
+              (isolated / 'test-uno-parity-audit.py').write_bytes(tests)
+              shutil.copyfile(tree / 'build/audit-uno-parity.py', isolated / 'audit-uno-parity.py')
+              python_results = {}
+              for suite in ('ReviewTests', 'IntegrityTests'):
+                  checked = subprocess.run(['python3', 'test-uno-parity-audit.py', suite, '-v'], cwd=isolated,
+                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=30)
+                  (output / (label + '-' + suite + '.log')).write_text(checked.stdout)
+                  expected_python = 1 if label == 'baseline' and suite == 'IntegrityTests' else 0
+                  assert checked.returncode == expected_python, (label, suite, checked.stdout)
+                  python_results[suite] = checked.returncode
+                  print(label + ' ' + suite + '\n' + checked.stdout)
+              results[label] = {'revision': revision, 'constantReaderExitCode': process.returncode,
+                                'pythonSuites': python_results, 'expectedOutcomesObserved': True}
+              subprocess.run(['git', 'diff', '--exit-code'], cwd=tree, check=True)
+              subprocess.run(['git', 'diff', '--cached', '--exit-code'], cwd=tree, check=True)
+          result = {'schemaVersion': 1, 'results': results,
+                    'sameCompiledInputFiles': True, 'originalAuditAndReviewSourcesUnmodified': True,
+                    'rawApiDifferencesWaived': 0, 'completeApiParityProven': False}
+          (output / 'summary.json').write_text(json.dumps(result, indent=2) + '\n')
+          print('UNO_AUDIT_INTEGRITY_REGRESSION=' + json.dumps(result))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uno-audit-integrity-regression
+          path: artifacts/audit-integrity
+          retention-days: 14
+          if-no-files-found: error
+      - name: Require unchanged main checkout
+        if: always()
+        run: git diff --exit-code && git diff --cached --exit-code
