@@ -15,7 +15,8 @@ namespace Uno.Controls.Presentation;
 /// Base for custom view columns over shared Core rows. Native presenters adapt
 /// this public layout contract through the same path as other ICellColumn types.
 /// </summary>
-public abstract class CellColumnBase<TModel> : NotifyingBase, ICellColumn<TModel>, IColumnMeasurementOptions
+public abstract class CellColumnBase<TModel> : NotifyingBase, ICellColumn<TModel>,
+    global::Uno.Controls.Models.TreeDataGrid.IColumn<TModel>, IColumnMeasurementOptions
 {
     private double _actualWidth = double.NaN;
     private GridLength _width;
@@ -63,10 +64,12 @@ public abstract class CellColumnBase<TModel> : NotifyingBase, ICellColumn<TModel
         Width.IsAuto || Options.MinWidth.IsAuto || Options.MaxWidth?.IsAuto == true;
 
     public abstract ICell CreateCell(IRow<TModel> row);
-    // Preserve an application's explicit implementation of the existing factory
-    // even when accessed through the newly available typed column contract.
-    ICell Uno.Controls.Models.TreeDataGrid.IColumn<TModel>.CreateCell(IRow<TModel> row) =>
+    // Independent interfaces preserve this bridge when a subclass reimplements
+    // only the legacy factory. Dispatch through its actual interface slot.
+    ICell global::Uno.Controls.Models.TreeDataGrid.IColumn<TModel>.CreateCell(IRow<TModel> row) =>
         ((ICellColumn<TModel>)this).CreateCell(row);
+    Comparison<TModel?>? global::Uno.Controls.Models.TreeDataGrid.IColumn<TModel>.GetComparison(
+        ListSortDirection direction) => null;
 
     double IUpdateColumnLayout.CellMeasured(double width, int rowIndex)
     {

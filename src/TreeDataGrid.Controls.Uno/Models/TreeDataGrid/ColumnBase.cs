@@ -29,7 +29,8 @@ public abstract class ColumnBase<TModel> : CellColumnBase<TModel>, IColumn<TMode
     // Reimplement at this level: the older CellColumnBase accepts factories with
     // no comparison. Its default interface body must not shadow this virtual API.
     Comparison<TModel?>? IColumn<TModel>.GetComparison(ListSortDirection direction) => GetComparison(direction);
-    ICell IColumn<TModel>.CreateCell(TreeDataGridCore.Models.IRow<TModel> row) => CreateCell(row);
+    ICell IColumn<TModel>.CreateCell(TreeDataGridCore.Models.IRow<TModel> row) =>
+        ((ICellColumn<TModel>)this).CreateCell(row);
 }
 
 /// <summary>Native value-column extension contract with reusable typed bindings and sort delegates.</summary>

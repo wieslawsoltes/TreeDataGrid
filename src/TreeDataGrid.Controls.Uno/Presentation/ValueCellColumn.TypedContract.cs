@@ -12,6 +12,9 @@ public partial class ValueCellColumn<TModel, TValue> : UI.IColumn<TModel>
     /// <remarks>The untyped virtual factory remains the customization point.</remarks>
     public virtual CellValue CreateCell(IRow<TModel> row) => CreateCell((IRow)row);
 
-    UI.ICell UI.IColumn<TModel>.CreateCell(IRow<TModel> row) => CreateCell(row);
+    // The legacy slot may itself have been explicitly reimplemented by a custom
+    // subclass. Both interface routes must use that same implementation.
+    UI.ICell UI.IColumn<TModel>.CreateCell(IRow<TModel> row) =>
+        ((ICellColumn<TModel>)this).CreateCell(row);
     Comparison<TModel?>? UI.IColumn<TModel>.GetComparison(ListSortDirection direction) => GetComparison(direction);
 }
