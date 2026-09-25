@@ -1,0 +1,133 @@
+name: Uno audit performance comparison
+
+on:
+  push:
+    branches: [codex/uno-core-port]
+    paths: [.github/workflows/uno-audit-performance-comparison.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.201
+      - name: Install the matched native environment
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb fonts-dejavu-core libfontconfig1 libx11-6 libxrandr2 libxi6 libxcursor1 libgl1
+      - name: Collect exact unchanged revisions in ABBA order
+        run: |
+          python3 -u - <<'PY'
+          import hashlib, json, math, os, shutil, signal, statistics, subprocess
+          from pathlib import Path
+          output = Path('artifacts/api-performance-comparison').resolve()
+          output.mkdir(parents=True, exist_ok=True)
+          revisions = {
+              'baseline': '889bfde669e430e507d8aeb16826e131cbf42226',
+              'candidate': '14be7480c26962973ec921fabd3e3f5a168344a6',
+          }
+          order = ['baseline', 'candidate', 'candidate', 'baseline']
+          trees, records = {}, []
+          reports = {label: [] for label in revisions}
+          environment = None
+          uno_frames = None
+          for label, revision in revisions.items():
+              tree = Path(os.environ['RUNNER_TEMP']) / ('api-performance-' + label)
+              subprocess.run(['git', 'worktree', 'add', '--detach', str(tree), revision], check=True)
+              trees[label] = tree
+          for ordinal, label in enumerate(order):
+              tree, revision = trees[label], revisions[label]
+              folder = tree / 'artifacts/native-parity'
+              if folder.exists(): shutil.rmtree(folder)
+              name = f'{ordinal:02d}-{label}'
+              with (output / (name + '.log')).open('w') as log:
+                  child = subprocess.Popen(['python3', '-u', 'build/run-native-parity.py',
+                      '--pairs', '2', '--columns', '64', '--iterations', '25', '--max-ratio', '1.10'],
+                      cwd=tree, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
+                  try: code = child.wait(timeout=480)
+                  except subprocess.TimeoutExpired:
+                      os.killpg(child.pid, signal.SIGKILL)
+                      child.wait()
+                      code = 124
+              if folder.exists(): shutil.copytree(folder, output / name)
+              summary = json.loads((folder / 'summary.json').read_text()) if (folder / 'summary.json').exists() else None
+              outcomes = json.loads((folder / 'outcomes.json').read_text()) if (folder / 'outcomes.json').exists() else {}
+              record = {'ordinal': ordinal, 'label': label, 'revision': revision,
+                        'exitCode': code, 'hostOutcomes': outcomes, 'summary': summary}
+              records.append(record)
+              (output / 'passes.json').write_text(json.dumps(records, indent=2) + '\n')
+              assert summary and summary['revision'] == revision, record
+              assert len(outcomes) == 6 and all(value == 0 for value in outcomes.values()), record
+              assert summary['diagnosticBudget'] == 1.10, record
+              assert code == (0 if summary['diagnosticBudgetMet'] else 1), record
+              for framework in ('Avalonia', 'Uno'):
+                  for pair in range(2):
+                      report = json.loads((folder / f'{pair:02d}-{framework}.json').read_text())
+                      assert report['revision'] == revision and report['framework'] == framework
+                      assert len(report['measurements']) == 150
+                      matched = {key: report[key] for key in ('workload', 'runtime', 'architecture', 'os', 'serverGc', 'scope')}
+                      if environment is None: environment = matched
+                      assert environment == matched, (environment, matched)
+                      for sample in report['measurements']:
+                          assert sample['Frame']['Error'] is None
+                      if framework == 'Uno':
+                          frames = [(sample['Operation'], sample['Iteration'], sample['Frame']) for sample in report['measurements']]
+                          if uno_frames is None: uno_frames = frames
+                          assert frames == uno_frames, 'Uno realized frame geometry changed across exact revisions/hosts'
+                          reports[label].append(report)
+              subprocess.run(['git', 'diff', '--exit-code'], cwd=tree, check=True)
+              subprocess.run(['git', 'diff', '--cached', '--exit-code'], cwd=tree, check=True)
+              print('UNO_API_PERFORMANCE_PASS=' + json.dumps(record), flush=True)
+          operations = sorted({sample['Operation'] for report in reports['baseline'] for sample in report['measurements']})
+          assert len(operations) == 6
+          comparisons = []
+          for operation in operations:
+              entry = {'operation': operation}
+              for metric in ('SynchronousUiMilliseconds', 'SynchronousUiAllocatedBytes', 'SettledMilliseconds'):
+                  samples = {label: [sample[metric] for report in runs for sample in report['measurements']
+                             if sample['Operation'] == operation] for label, runs in reports.items()}
+                  assert all(len(values) == 100 and all(math.isfinite(v) and v >= 0 for v in values) for values in samples.values())
+                  medians = {label: statistics.median(values) for label, values in samples.items()}
+                  entry[metric] = {
+                      'samplesPerRevision': 100, 'median': medians,
+                      'candidateOverBaseline': medians['candidate'] / medians['baseline'] if medians['baseline'] else None,
+                      'p95': {label: sorted(values)[math.ceil(.95 * len(values)) - 1] for label, values in samples.items()},
+                  }
+              comparisons.append(entry)
+          result = {
+              'schemaVersion': 1, 'revisions': revisions, 'revisionOrder': order,
+              'frameworkOrderWithinEachPass': 'Avalonia/Uno, Uno/Avalonia',
+              'environment': environment, 'collectionSucceeded': True,
+              'successfulFrameworkHosts': 16, 'identicalUnoFrameSequences': 8,
+              'frameSequenceSha256': hashlib.sha256(json.dumps(uno_frames, sort_keys=True).encode()).hexdigest(),
+              'comparisons': comparisons, 'completePerformanceParityProven': False,
+              'scope': 'Same runner, exact unmodified revisions in ABBA order. Pooled medians/p95 are diagnostic, not statistical confidence intervals. Every original independent 1.10 budget outcome and every frame remain in artifacts. Not GPU completion, frame rate, hierarchy or variable-height acceptance.',
+          }
+          (output / 'before-after.json').write_text(json.dumps(result, indent=2) + '\n')
+          print('UNO_API_PERFORMANCE_COMPARISON=' + json.dumps(result), flush=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uno-api-performance-comparison
+          path: artifacts/api-performance-comparison
+          retention-days: 14
+          if-no-files-found: error
+      - name: Require unchanged workflow checkout
+        if: always()
+        run: git diff --exit-code && git diff --cached --exit-code
