@@ -75,7 +75,7 @@ public sealed partial class TreeDataGridPresentation<TModel> : TreeDataGridPrese
     // forward an inner definition's event without changing its sender. Different
     // definitions may share that inner column, but each view is notified once.
     // Observations also survive failed factories so a repaired definition retries.
-    private readonly Dictionary<IColumn, PropertyChangedEventHandler> _observed = new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<IColumn, ColumnObservation> _observed = new(ReferenceEqualityComparer.Instance);
     private readonly VisibleColumnList _visible = new();
     private readonly Dictionary<CellColumn, Stack<CellValue>> _pool = new(ReferenceEqualityComparer.Instance);
     private readonly TreeDataGridSelection<TModel> _selection;
@@ -95,7 +95,12 @@ public sealed partial class TreeDataGridPresentation<TModel> : TreeDataGridPrese
         _typedOptions = typedOptions;
         _selection = new(model, _visible);
         try { Resume(); }
-        catch { Dispose(); throw; }
+        catch (Exception error)
+        {
+            try { Dispose(); }
+            catch (Exception cleanup) { throw new AggregateException(error, cleanup); }
+            throw;
+        }
     }
     public override ITreeDataGridSource<TModel> Model => _model;
     public override Uno.Controls.Models.TreeDataGrid.IColumns Columns => _visible;
@@ -109,39 +114,98 @@ public sealed partial class TreeDataGridPresentation<TModel> : TreeDataGridPrese
         foreach (var view in _views.Values) view.View.ResetWidthMeasurement();
     }
 
+    private bool _resuming;
+    private bool _suspending;
+    private bool _resumeAgain;
+    private int _lifecycleVersion;
+
     public override void Suspend()
     {
-        if (!_active) return;
-        unchecked { ++_cellOperationVersion; }
+        _resumeAgain = false;
+        if (_suspending || (!_active && !_resuming)) return;
+        _suspending = true;
+        unchecked { ++_cellOperationVersion; ++_lifecycleVersion; }
         _active = false;
-        base.Suspend();
-        _selection.Suspend();
-        _model.PropertyChanged -= OnModelChanged;
-        _model.Sorted -= OnSorted;
-        if (_model.Columns is INotifyCollectionChanged columns) columns.CollectionChanged -= OnColumnsChanged;
-        if (_rows is not null) _rows.CollectionChanged -= OnRowsChanged;
+        // Snapshot ownership before the first application callback. Every old
+        // subscription/pool is attempted even when an earlier cleanup fails.
+        var observations = _observed.Values.ToArray();
+        var views = _views.Values.ToArray();
+        var rows = _rows;
         _rows = null;
-        foreach (var observation in _observed) observation.Key.PropertyChanged -= observation.Value;
-        foreach (var view in _views.Values) view.View.PropertyChanged -= OnViewChanged;
-        ClearPool();
-        RaisePropertyChanged(new(nameof(SelectionInteraction)));
+        List<Exception>? errors = null;
+        try
+        {
+            Run(base.Suspend);
+            Run(_selection.Suspend);
+            Run(() => _model.PropertyChanged -= OnModelChanged);
+            Run(() => _model.Sorted -= OnSorted);
+            Run(() => { if (_model.Columns is INotifyCollectionChanged columns) columns.CollectionChanged -= OnColumnsChanged; });
+            Run(() => { if (rows is not null) rows.CollectionChanged -= OnRowsChanged; });
+            foreach (var observation in observations) Run(observation.UpdateSubscription);
+            foreach (var view in views) view.View.PropertyChanged -= OnViewChanged;
+            Run(ClearPool);
+            Run(() => RaisePropertyChanged(new(nameof(SelectionInteraction))));
+        }
+        finally { _suspending = false; }
+        if (_resumeAgain && !_resuming && !_disposed) Run(Resume);
+        ThrowCleanupErrors(errors);
+        void Run(Action action) { try { action(); } catch (Exception error) { (errors ??= new()).Add(error); } }
     }
 
     public override void Resume()
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
+        if (_suspending) { _resumeAgain = true; return; }
         if (_active) return;
-        SynchronizeColumns();
-        _active = true;
-        base.Resume();
-        foreach (var observation in _observed) observation.Key.PropertyChanged += observation.Value;
-        foreach (var view in _views.Values) view.View.PropertyChanged += OnViewChanged;
-        _model.PropertyChanged += OnModelChanged;
-        _model.Sorted += OnSorted;
-        if (_model.Columns is INotifyCollectionChanged columns) columns.CollectionChanged += OnColumnsChanged;
-        SetRows();
-        _selection.Resume();
-        RaisePropertyChanged(new(nameof(SelectionInteraction)));
+        if (_resuming) { _resumeAgain = true; return; }
+        _resuming = true;
+        try
+        {
+            do
+            {
+                _resumeAgain = false;
+                ResumeCore();
+            }
+            while (_resumeAgain && !_disposed && !_active);
+        }
+        finally { _resuming = false; _resumeAgain = false; }
+    }
+
+    private void ResumeCore()
+    {
+        var version = unchecked(++_lifecycleVersion);
+        try
+        {
+            SynchronizeColumns();
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            if (version != _lifecycleVersion) return;
+            _active = true;
+            base.Resume();
+            if (!Current()) return;
+            foreach (var observation in _observed.Values.ToArray())
+            {
+                observation.UpdateSubscription();
+                if (!Current()) return;
+            }
+            foreach (var view in _views.Values) view.View.PropertyChanged += OnViewChanged;
+            _model.PropertyChanged += OnModelChanged;
+            _model.Sorted += OnSorted;
+            if (_model.Columns is INotifyCollectionChanged columns) columns.CollectionChanged += OnColumnsChanged;
+            SetRows();
+            if (!Current()) return;
+            _selection.Resume();
+            if (Current()) RaisePropertyChanged(new(nameof(SelectionInteraction)));
+        }
+        catch (Exception error)
+        {
+            if (Current())
+            {
+                try { Suspend(); }
+                catch (Exception cleanup) { throw new AggregateException(error, cleanup); }
+            }
+            throw;
+        }
+        bool Current() => !_disposed && _active && version == _lifecycleVersion;
     }
 
     public override void Dispose()
@@ -217,91 +281,6 @@ public sealed partial class TreeDataGridPresentation<TModel> : TreeDataGridPrese
         if (errors is not null) throw new AggregateException(errors);
     }
 
-    private void SynchronizeColumns()
-    {
-        unchecked { ++_cellOperationVersion; }
-        var desired = new HashSet<IColumn>(_model.Columns, ReferenceEqualityComparer.Instance);
-        foreach (var removed in _observed.Keys.Where(x => !desired.Contains(x)).ToArray())
-        {
-            // Retire identity before an application's remove accessor can call
-            // the old handler. No stale event may reconfigure current views.
-            var handler = _observed[removed];
-            _observed.Remove(removed);
-            if (_active) removed.PropertyChanged -= handler;
-        }
-        foreach (var column in desired)
-        {
-            if (_observed.ContainsKey(column)) continue;
-            PropertyChangedEventHandler? handler = null;
-            handler = (_, args) =>
-            {
-                // A multicast event may already have captured this handler
-                // before an earlier observer removes and re-adds the definition.
-                // Its replacement view must not receive that retired event.
-                if (_observed.TryGetValue(column, out var current) && ReferenceEquals(current, handler))
-                    OnColumnChanged(column, args);
-            };
-            _observed.Add(column, handler);
-            if (_active) column.PropertyChanged += handler;
-        }
-
-        var replacements = new Dictionary<IColumn, (CellColumn View, string? Key)>(ReferenceEqualityComparer.Instance);
-        try
-        {
-            foreach (IColumn<TModel> column in desired)
-            {
-                if (_views.TryGetValue(column, out var current) && current.Key == column.PresentationKey) continue;
-                var view = column.Accept(this) ?? throw new InvalidOperationException("A column factory returned null.");
-                replacements.Add(column, (view, column.PresentationKey));
-            }
-            // Retire the pool before committing definitions. If a custom cell
-            // throws during cleanup, every newly staged view still needs disposal.
-            ClearPool();
-        }
-        catch (Exception error)
-        {
-            var errors = new List<Exception> { error };
-            foreach (var replacement in replacements.Values)
-                try { replacement.View.Dispose(); }
-                catch (Exception cleanupError) { errors.Add(cleanupError); }
-            ThrowCleanupErrors(errors);
-            throw;
-        }
-
-        // Commit only after all factories have succeeded. Existing realized cells
-        // and the previous projection remain valid if a replacement throws.
-        var retired = new List<CellColumn>();
-        foreach (var column in _views.Keys.ToArray())
-            if (!desired.Contains(column) || replacements.ContainsKey(column))
-            {
-                retired.Add(_views[column].View);
-                if (_active) _views[column].View.PropertyChanged -= OnViewChanged;
-                _views.Remove(column);
-            }
-        foreach (var replacement in replacements)
-        {
-            _views.Add(replacement.Key, replacement.Value);
-            if (_active) replacement.Value.View.PropertyChanged += OnViewChanged;
-        }
-        List<Exception>? notificationErrors = null;
-        try
-        {
-            var next = new List<CellColumn>(_model.Columns.Count);
-            foreach (var column in _model.Columns)
-                if (column.IsVisible) next.Add(_views[column].View);
-            // Publish index maps before observers receive the atomic list change.
-            _selection.ColumnsChanged(next);
-            _visible.Synchronize(next);
-        }
-        catch (Exception error) { (notificationErrors ??= new()).Add(error); }
-        try { ColumnsChanged?.Invoke(this, EventArgs.Empty); }
-        catch (Exception error) { (notificationErrors ??= new()).Add(error); }
-        foreach (var column in retired)
-            try { column.Dispose(); }
-            catch (Exception error) { (notificationErrors ??= new()).Add(error); }
-        ThrowCleanupErrors(notificationErrors);
-    }
-
     private void SetRows()
     {
         var rows = _model.Rows;
@@ -335,6 +314,11 @@ public sealed partial class TreeDataGridPresentation<TModel> : TreeDataGridPrese
     private void OnColumnChanged(IColumn column, PropertyChangedEventArgs e)
     {
         if (!_active || _disposed || !_observed.ContainsKey(column)) return;
+        if (_synchronizingColumns)
+        {
+            unchecked { ++_cellOperationVersion; }
+            _columnsAgain = true;
+        }
         if (string.IsNullOrEmpty(e.PropertyName) || e.PropertyName is nameof(IColumn.IsVisible) or nameof(IColumn.PresentationKey))
         {
             SynchronizeColumns();
@@ -347,12 +331,12 @@ public sealed partial class TreeDataGridPresentation<TModel> : TreeDataGridPrese
         finally { _notifyingModel = wasNotifyingModel; }
         // ModelChanged invokes user code. It may dispose this presentation,
         // remove the definition or replace its view before returning.
-        if (_active && !_disposed && _views.TryGetValue(column, out var current) && ReferenceEquals(current.View, view.View))
+        if (_active && !_disposed && !_synchronizingColumns && _views.TryGetValue(column, out var current) && ReferenceEquals(current.View, view.View))
             ColumnsChanged?.Invoke(this, EventArgs.Empty);
     }
     private void OnViewChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (!_notifyingModel && e.PropertyName != nameof(CellColumn.ActualWidth))
+        if (_active && !_disposed && !_notifyingModel && e.PropertyName != nameof(CellColumn.ActualWidth))
             ColumnsChanged?.Invoke(this, EventArgs.Empty);
     }
     private void OnModelChanged(object? sender, PropertyChangedEventArgs e)
