@@ -19,9 +19,11 @@ internal sealed partial class CellColumnAdapter<TModel> where TModel : class
         private CellValue _content = new EmptyCell();
         private object? _rawContent;
         private bool _disposed;
+        private bool _parentWritable = true;
         private bool _initializing = true;
         private bool _observingModel;
         private bool _cleanupStarted;
+        private bool _ownedModelReleased;
         private bool _refreshing;
         private bool _refreshAgain;
         private bool _notifyRequested;
@@ -62,9 +64,10 @@ internal sealed partial class CellColumnAdapter<TModel> where TModel : class
                 _initializing = false;
                 if (_disposed)
                 {
-                    // Adapt owns model cleanup when construction throws. On a
-                    // successful but reentrantly retired construction we own it.
-                    try { ReleaseAll(disposeModel: failure is null); }
+                    // Adapt owns the raw model until construction succeeds.
+                    // CompleteConstruction transfers/retires ownership outside
+                    // Adapt's constructor-failure cleanup, avoiding double disposal.
+                    try { ReleaseAll(disposeModel: false); }
                     catch (Exception cleanup) when (failure is not null)
                     { throw new AggregateException(failure, cleanup); }
                 }
@@ -74,17 +77,17 @@ internal sealed partial class CellColumnAdapter<TModel> where TModel : class
         public override UI.ICell PresentationModel => _model;
         public override CellValue Inner => _content;
         public override object? Content => _rawContent;
-        internal override bool HasContent => _rawContent is UI.ICell;
+        internal override bool HasContent => _contentCurrent && _rawContent is UI.ICell;
         public override IRow Row => _model.Row;
         public override object? Value => _model.Value;
         public override bool CanEdit => ReadPermission(write: false);
         public override bool CanWrite => ReadPermission(write: true);
         private bool ReadPermission(bool write)
         {
-            if (_disposed || !_contentCurrent) return false;
+            if (_disposed || !_contentCurrent || !_parentWritable) return false;
             var revision = _revision;
             var result = write ? _content.CanWrite : _model.CanEdit;
-            return IsCurrent(revision) && _contentCurrent && result;
+            return IsCurrent(revision) && _contentCurrent && _parentWritable && result;
         }
         public override string? DisplayText => _content.DisplayText;
         public override TextCellOptions? TextOptions => _content.TextOptions;
@@ -118,7 +121,7 @@ internal sealed partial class CellColumnAdapter<TModel> where TModel : class
         public override void Write(object? value)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
-            if (!_contentCurrent) throw new InvalidOperationException("The expander content has not been synchronized.");
+            if (!_contentCurrent || !_parentWritable) throw new InvalidOperationException("The expander content has not been synchronized.");
             _content.Write(value);
         }
         internal void InvalidateWrite()
@@ -128,6 +131,18 @@ internal sealed partial class CellColumnAdapter<TModel> where TModel : class
             // Borrowed native values keep their own lifetime responsibilities.
             if (_content is CustomCellValue cell) cell.InvalidateWrite();
             else if (_content is CustomExpanderValue expander) expander.InvalidateWrite();
+        }
+        internal void SetParentWritable(bool value)
+        {
+            if (_parentWritable == value) return;
+            _parentWritable = value;
+            InvalidateWrite();
+            SetContentWritable(value && _contentCurrent);
+        }
+        private void SetContentWritable(bool value)
+        {
+            if (_content is CustomCellValue leaf) leaf.SetParentWritable(value);
+            else if (_content is CustomExpanderValue expander) expander.SetParentWritable(value);
         }
         public void RefreshAfterRetarget()
         {
@@ -140,6 +155,7 @@ internal sealed partial class CellColumnAdapter<TModel> where TModel : class
         {
             InvalidateWrite();
             _contentCurrent = false;
+            SetContentWritable(false);
             _notifyRequested = true;
             _resetRequested |= reset;
             _refreshAgain = true;
@@ -204,6 +220,7 @@ internal sealed partial class CellColumnAdapter<TModel> where TModel : class
                         }
                     }
                     else _contentCurrent = true;
+                    SetContentWritable(_parentWritable && _contentCurrent);
                     if (!IsCurrent(revision)) continue;
                     if (_refreshInner)
                     {
@@ -244,7 +261,19 @@ internal sealed partial class CellColumnAdapter<TModel> where TModel : class
                 }
                 while (!_disposed && _refreshAgain);
             }
-            catch (Exception error) { failure = error; throw; }
+            catch (Exception error)
+            {
+                failure = error;
+                if (!_disposed && !_initializing && !_contentCurrent)
+                {
+                    // A failed candidate must not leave an editor bound to old
+                    // content. HasContent is false until a later successful sync.
+                    try { RaisePropertyChanged(nameof(Content)); }
+                    catch (Exception notification)
+                    { failure = new AggregateException(error, notification); throw failure; }
+                }
+                throw;
+            }
             finally
             {
                 _refreshing = false;
@@ -288,23 +317,33 @@ internal sealed partial class CellColumnAdapter<TModel> where TModel : class
             InvalidateWrite();
             if (!_initializing && !_refreshing) ReleaseAll(disposeModel: true);
         }
+        internal void CompleteConstruction()
+        {
+            if (_disposed) ReleaseAll(disposeModel: true);
+        }
         private void ReleaseAll(bool disposeModel)
         {
-            if (_cleanupStarted) return;
-            _cleanupStarted = true;
             List<Exception>? errors = null;
-            if (_observingModel)
+            if (!_cleanupStarted)
             {
-                _observingModel = false;
-                try { if (_model is INotifyPropertyChanged notifications) notifications.PropertyChanged -= ModelChanged; }
+                _cleanupStarted = true;
+                if (_observingModel)
+                {
+                    _observingModel = false;
+                    try { if (_model is INotifyPropertyChanged notifications) notifications.PropertyChanged -= ModelChanged; }
+                    catch (Exception error) { (errors ??= new()).Add(error); }
+                }
+                try { _content.PropertyChanged -= InnerChanged; }
+                catch (Exception error) { (errors ??= new()).Add(error); }
+                try { DisposeAdapter(_content, _rawContent); }
                 catch (Exception error) { (errors ??= new()).Add(error); }
             }
-            try { _content.PropertyChanged -= InnerChanged; }
-            catch (Exception error) { (errors ??= new()).Add(error); }
-            try { DisposeAdapter(_content, _rawContent); }
-            catch (Exception error) { (errors ??= new()).Add(error); }
-            try { if (disposeModel && _ownsModel) (_model as IDisposable)?.Dispose(); }
-            catch (Exception error) { (errors ??= new()).Add(error); }
+            if (disposeModel && _ownsModel && !_ownedModelReleased)
+            {
+                _ownedModelReleased = true;
+                try { (_model as IDisposable)?.Dispose(); }
+                catch (Exception error) { (errors ??= new()).Add(error); }
+            }
             if (errors is { Count: 1 }) ExceptionDispatchInfo.Capture(errors[0]).Throw();
             if (errors is not null) throw new AggregateException(errors);
         }

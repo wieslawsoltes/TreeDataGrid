@@ -102,6 +102,7 @@ public partial class App
             case "standalone-cell":
                 StandaloneCellRuntimeChecks.Run(Template("RuntimeCellTemplate"));
                 return Task.CompletedTask;
+            case "custom-expander-lifetime": return CustomExpanderLifetimeRuntimeChecks.RunAsync(page);
             case "public-expander": return PublicExpanderRuntimeChecks.RunAsync(page);
             case "standalone-row": return StandaloneRowRuntimeChecks.RunAsync(page);
             case "row-lifetime":

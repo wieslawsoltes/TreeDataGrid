@@ -173,7 +173,12 @@ public sealed partial class TreeDataGridPresentation<TModel> : TreeDataGridPrese
                 var result = typedCreate(column) ?? throw new InvalidOperationException("The column factory returned no column.");
                 if (result is CellColumn native) { native.AttachModel(column); return native; }
                 try { return new CellColumnAdapter<TModel>(column, result); }
-                catch { (result as IDisposable)?.Dispose(); throw; }
+                catch (Exception error)
+                {
+                    try { (result as IDisposable)?.Dispose(); }
+                    catch (Exception cleanup) { throw new AggregateException(error, cleanup); }
+                    throw;
+                }
             }
             if (_options is not null && _options.Columns.TryGetValue(key, out var create))
             {

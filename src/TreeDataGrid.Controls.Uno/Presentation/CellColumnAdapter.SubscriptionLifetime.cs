@@ -6,25 +6,12 @@ namespace Uno.Controls.Presentation;
 
 internal sealed partial class CellColumnAdapter<TModel> where TModel : class
 {
-    private static void AttachAdapterHandler(INotifyPropertyChanged model, PropertyChangedEventHandler handler)
-    {
-        try { model.PropertyChanged += handler; }
-        catch (Exception error)
-        {
-            // Add accessors can attach before throwing. Roll back the attempted
-            // registration without losing the original construction failure.
-            try { model.PropertyChanged -= handler; }
-            catch (Exception cleanup) { throw new AggregateException(error, cleanup); }
-            throw;
-        }
-    }
-
-    private static void ReleaseAdapterModel(object model, bool ownsModel, PropertyChangedEventHandler handler)
+    private static void ReleaseAdapterModel(object model, bool ownsModel, PropertyChangedEventHandler handler, bool detach = true)
     {
         Exception? failure = null;
         try
         {
-            if (model is INotifyPropertyChanged notifications) notifications.PropertyChanged -= handler;
+            if (detach && model is INotifyPropertyChanged notifications) notifications.PropertyChanged -= handler;
         }
         catch (Exception error) { failure = error; }
         try { if (ownsModel) (model as IDisposable)?.Dispose(); }

@@ -14,12 +14,34 @@ internal sealed partial class CellColumnAdapter<TModel> : CellColumn where TMode
 {
     private readonly ICellColumn<TModel> _inner;
     private bool _disposed;
+    private bool _initializing = true;
+    private bool _observingInner;
     public CellColumnAdapter(IColumn model, ICellColumn<TModel> inner) : base(model)
     {
         _inner = inner;
-        _inner.SetWidth(Width);
-        _inner.SortDirection = model.SortDirection;
-        AttachAdapterHandler(_inner, OnInnerChanged);
+        Exception? failure = null;
+        try
+        {
+            _inner.SetWidth(Width);
+            _inner.SortDirection = model.SortDirection;
+            _observingInner = true;
+            _inner.PropertyChanged += OnInnerChanged;
+            ObjectDisposedException.ThrowIf(_disposed, this);
+        }
+        catch (Exception error) { failure = error; _disposed = true; throw; }
+        finally
+        {
+            _initializing = false;
+            if (_disposed)
+            {
+                var detach = _observingInner;
+                _observingInner = false;
+                // Failed construction leaves the custom column with its factory.
+                try { ReleaseAdapterModel(_inner, false, OnInnerChanged, detach); }
+                catch (Exception cleanup) when (failure is not null)
+                { throw new AggregateException(failure, cleanup); }
+            }
+        }
     }
     public override object? Header { get => _inner.Header; set => throw new NotSupportedException("The custom column owns its header."); }
     public override bool? CanUserResize => _inner.CanUserResize;
@@ -44,26 +66,44 @@ internal sealed partial class CellColumnAdapter<TModel> : CellColumn where TMode
         (_inner as UI.IColumnMeasurementOptions)?.RequiresUnconstrainedWidthMeasurement ?? true;
     public override CellValue CreateCell(IRow row)
     {
-        var cell = _inner.CreateCell((IRow<TModel>)row) ?? throw new InvalidOperationException("The column returned no cell.");
-        return Adapt(cell, true, null);
+        var cell = Adapt(CreateOwnedCell(row), true, null);
+        try { ObjectDisposedException.ThrowIf(_disposed, this); return cell; }
+        catch (Exception error)
+        {
+            try { cell.Dispose(); }
+            catch (Exception cleanup) { throw new AggregateException(error, cleanup); }
+            throw;
+        }
     }
     // Public view-row realization transfers the actual UI model to its caller.
     // Do not create a native adapter that would need another ownership registry.
-    internal override UICell CreateCellModel(IRow row) => _inner.CreateCell((IRow<TModel>)row) ??
-        throw new InvalidOperationException("The column returned no cell.");
+    internal override UICell CreateCellModel(IRow row) => CreateOwnedCell(row);
+    private UICell CreateOwnedCell(IRow row)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        var cell = _inner.CreateCell((IRow<TModel>)row) ?? throw new InvalidOperationException("The column returned no cell.");
+        try { ObjectDisposedException.ThrowIf(_disposed, this); return cell; }
+        catch (Exception error)
+        {
+            try { (cell as IDisposable)?.Dispose(); }
+            catch (Exception cleanup) { throw new AggregateException(error, cleanup); }
+            throw;
+        }
+    }
     internal static CellValue Adapt(UICell cell, bool ownsModel, HashSet<UICell>? ancestors = null)
     {
         if (cell is CellValue native) return native;
+        CellValue result;
         try
         {
             if (cell is UI.IExpanderCellPresentation expander)
             {
                 ancestors ??= new(ReferenceEqualityComparer.Instance);
                 if (!ancestors.Add(cell)) throw new InvalidOperationException("An expander cell cannot contain itself or an ancestor.");
-                try { return new CustomExpanderValue(expander, ownsModel, ancestors); }
+                try { result = new CustomExpanderValue(expander, ownsModel, ancestors); }
                 finally { ancestors.Remove(cell); }
             }
-            return new CustomCellValue(cell, ownsModel);
+            else result = new CustomCellValue(cell, ownsModel);
         }
         catch (Exception error)
         {
@@ -71,6 +111,12 @@ internal sealed partial class CellColumnAdapter<TModel> : CellColumn where TMode
             catch (Exception cleanup) { throw new AggregateException(error, cleanup); }
             throw;
         }
+        // Construction failures above belong to the factory. Ownership has now
+        // transferred, so failure while retiring a completed adapter must not
+        // make that factory dispose the same raw model for a second time.
+        if (result is CustomCellValue leaf) leaf.CompleteConstruction();
+        else if (result is CustomExpanderValue parent) parent.CompleteConstruction();
+        return result;
     }
     // Third-party columns select each row's actual cell model/kind. Do not
     // overwrite it with this adapter's default column kind.
@@ -86,7 +132,7 @@ internal sealed partial class CellColumnAdapter<TModel> : CellColumn where TMode
         if (!_inner.TryReuseCell(value.PresentationModel, (IRow<TModel>)row) || _disposed) return false;
         if (value is CustomCellValue cell) cell.RefreshAfterRetarget();
         if (value is CustomExpanderValue expander) expander.RefreshAfterRetarget();
-        return true;
+        return !_disposed;
     }
     internal override bool RecordWidth(double width, int rowIndex = -1)
     {
@@ -109,7 +155,10 @@ internal sealed partial class CellColumnAdapter<TModel> : CellColumn where TMode
     {
         if (_disposed) return;
         _disposed = true;
-        ReleaseAdapterModel(_inner, true, OnInnerChanged);
+        if (_initializing) return;
+        var detach = _observingInner;
+        _observingInner = false;
+        ReleaseAdapterModel(_inner, true, OnInnerChanged, detach);
     }
     private void OnInnerChanged(object? sender, PropertyChangedEventArgs e)
     {

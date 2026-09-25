@@ -14,6 +14,10 @@ internal sealed partial class CellColumnAdapter<TModel> where TModel : class
         private readonly UI.ICell _inner;
         private readonly bool _ownsModel;
         private bool _disposed;
+        private bool _parentWritable = true;
+        private bool _initializing = true;
+        private bool _observingInner;
+        private bool _ownedModelReleased;
         private TextCellOptions? _textOptions;
         private int _textOptionsRevision;
         private int _writeRevision;
@@ -22,10 +26,31 @@ internal sealed partial class CellColumnAdapter<TModel> where TModel : class
         {
             _inner = inner;
             _ownsModel = ownsModel;
-            Kind = inner switch { UI.CheckBoxCell => CellKind.CheckBox, UI.TemplateCell => CellKind.Template, _ => CellKind.Text };
-            EditGestures = inner.EditGestures;
-            UpdateTextOptions();
-            if (inner is INotifyPropertyChanged notifications) AttachAdapterHandler(notifications, OnChanged);
+            Exception? failure = null;
+            try
+            {
+                Kind = inner switch { UI.CheckBoxCell => CellKind.CheckBox, UI.TemplateCell => CellKind.Template, _ => CellKind.Text };
+                EditGestures = inner.EditGestures;
+                UpdateTextOptions();
+                if (!_disposed && inner is INotifyPropertyChanged notifications)
+                {
+                    _observingInner = true;
+                    notifications.PropertyChanged += OnChanged;
+                }
+            }
+            catch (Exception error) { failure = error; Dispose(); throw; }
+            finally
+            {
+                _initializing = false;
+                if (_disposed)
+                {
+                    // Event accessors must unwind before removal. Adapt owns
+                    // the raw model until construction succeeds completely.
+                    try { Release(disposeModel: false); }
+                    catch (Exception cleanup) when (failure is not null)
+                    { throw new AggregateException(failure, cleanup); }
+                }
+            }
         }
         public override object? Value => _inner.Value;
         public override UI.ICell PresentationModel => _inner;
@@ -33,7 +58,7 @@ internal sealed partial class CellColumnAdapter<TModel> where TModel : class
         {
             get
             {
-                if (_disposed) return false;
+                if (_disposed || !_parentWritable) return false;
                 var revision = _writeRevision;
                 var result = _inner is UI.CheckBoxCell check ? !check.IsReadOnly : _inner.CanEdit;
                 return IsWriteCurrent(revision) && result;
@@ -51,7 +76,7 @@ internal sealed partial class CellColumnAdapter<TModel> where TModel : class
         {
             get
             {
-                if (_disposed) return false;
+                if (_disposed || !_parentWritable) return false;
                 var revision = _writeRevision;
                 var result = _inner.CanEdit;
                 return IsWriteCurrent(revision) && result;
@@ -103,11 +128,18 @@ internal sealed partial class CellColumnAdapter<TModel> where TModel : class
             };
         }
         private bool IsCurrent(int revision) => !_disposed && revision == _textOptionsRevision;
-        private bool IsWriteCurrent(int revision) => !_disposed && revision == _writeRevision;
+        private bool IsWriteCurrent(int revision) => !_disposed && _parentWritable && revision == _writeRevision;
         internal void InvalidateWrite() { unchecked { ++_writeRevision; } }
+        internal void SetParentWritable(bool value)
+        {
+            if (_parentWritable == value) return;
+            _parentWritable = value;
+            InvalidateWrite();
+        }
         public override void Write(object? value)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
+            if (!_parentWritable) throw new InvalidOperationException("The parent expander content has not been synchronized.");
             var revision = unchecked(++_writeRevision);
             var writable = CanWrite;
             // A permission getter may retire/reuse the cell or make a newer
@@ -136,7 +168,19 @@ internal sealed partial class CellColumnAdapter<TModel> where TModel : class
             InvalidateWrite();
             unchecked { ++_textOptionsRevision; }
             _textOptions = null;
-            ReleaseAdapterModel(_inner, _ownsModel, OnChanged);
+            if (!_initializing) Release(disposeModel: true);
+        }
+        internal void CompleteConstruction()
+        {
+            if (_disposed) Release(disposeModel: true);
+        }
+        private void Release(bool disposeModel)
+        {
+            var detach = _observingInner;
+            _observingInner = false;
+            var dispose = disposeModel && _ownsModel && !_ownedModelReleased;
+            if (dispose) _ownedModelReleased = true;
+            ReleaseAdapterModel(_inner, dispose, OnChanged, detach);
         }
         private void OnChanged(object? sender, PropertyChangedEventArgs e)
         {

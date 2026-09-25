@@ -99,6 +99,7 @@ public partial class App : Application
             RowLifetimeRuntimeChecks.Run();
             RowConstructionRuntimeChecks.Run();
             await PublicExpanderRuntimeChecks.RunAsync(page);
+            await CustomExpanderLifetimeRuntimeChecks.RunAsync(page);
             await GenericPresenterRuntimeChecks.RunAsync(page);
             await SpecializedCellRuntimeChecks.RunAsync(page.Grid, (DataTemplate)page.Resources["RuntimeCellTemplate"],
                 (DataTemplate)page.Resources["RuntimeEditingTemplate"], (Microsoft.UI.Xaml.Controls.ControlTemplate)page.Resources["CompatibleTextCellTemplate"],
