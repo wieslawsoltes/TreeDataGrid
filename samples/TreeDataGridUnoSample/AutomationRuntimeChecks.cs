@@ -18,6 +18,7 @@ internal static class AutomationRuntimeChecks
 {
     public static async Task RunAsync(Uno.Controls.TreeDataGrid grid)
     {
+        await AutomationCellLifetimeRuntimeChecks.RunAsync(grid);
         var previousModel = grid.Model;
         var previousOptions = grid.PresentationOptions;
         var previousMode = grid.SelectionMode;
