@@ -24,7 +24,7 @@ namespace Uno.Controls.Models.TreeDataGrid
     /// <summary>
     /// An implementation of <see cref="IColumns"/> that stores its columns in a list.
     /// </summary>
-    public class ColumnListBase<TColumn> : NotifyingListBase<TColumn>, IColumns,
+    public partial class ColumnListBase<TColumn> : NotifyingListBase<TColumn>, IColumns,
         IColumnLayoutBatch, IColumnViewportEstimator where TColumn : class, IColumn
     {
         private int _actualWidthBatchDepth;
@@ -229,49 +229,6 @@ namespace Uno.Controls.Models.TreeDataGrid
             _geometryDirty = true;
         }
 
-        // One weak owner per observed column, never a global subscription table.
-        // Duplicate column entries share a subscription until their last removal.
-        private readonly Dictionary<IColumn, (ColumnSubscription Subscription, int Count)> _subscriptions =
-            new(ReferenceEqualityComparer.Instance);
-
-        private void SubscribeColumn(IColumn column)
-        {
-            if (_subscriptions.TryGetValue(column, out var existing))
-                _subscriptions[column] = (existing.Subscription, existing.Count + 1);
-            else
-                _subscriptions.Add(column, (new ColumnSubscription(this, column), 1));
-        }
-
-        private void UnsubscribeColumn(IColumn column)
-        {
-            if (!_subscriptions.TryGetValue(column, out var existing)) return;
-            if (existing.Count > 1) _subscriptions[column] = (existing.Subscription, existing.Count - 1);
-            else
-            {
-                _subscriptions.Remove(column);
-                existing.Subscription.Dispose();
-            }
-        }
-
-        private sealed class ColumnSubscription : IDisposable
-        {
-            private readonly WeakReference<ColumnListBase<TColumn>> _owner;
-            private readonly IColumn _column;
-            public ColumnSubscription(ColumnListBase<TColumn> owner, IColumn column)
-            {
-                _owner = new(owner);
-                _column = column;
-                try { column.PropertyChanged += Changed; }
-                catch { column.PropertyChanged -= Changed; throw; }
-            }
-            private void Changed(object? sender, PropertyChangedEventArgs args)
-            {
-                if (_owner.TryGetTarget(out var owner)) owner.OnColumnPropertyChanged(sender, args);
-                else Dispose();
-            }
-            public void Dispose() => _column.PropertyChanged -= Changed;
-        }
-
         private void OnColumnPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (string.IsNullOrEmpty(e.PropertyName) || e.PropertyName == nameof(IColumn.ActualWidth))
@@ -425,71 +382,6 @@ namespace Uno.Controls.Models.TreeDataGrid
 
         void IColumnLayoutBatch.RequestFinalMeasure() =>
             _actualWidthBatchNeedsFinalMeasure = true;
-
-        protected override void ClearItems()
-        {
-            CheckReentrancy();
-            unchecked { ++_layoutRevision; }
-            _columnWidthsDirty = true;
-            InvalidateGeometry();
-            foreach (var column in this)
-                UnsubscribeColumn(column);
-            _committedConstraints.Clear();
-            base.ClearItems();
-        }
-
-        protected override void InsertItem(int index, TColumn item)
-        {
-            CheckReentrancy();
-            unchecked { ++_layoutRevision; }
-            _columnWidthsDirty = true;
-            InvalidateGeometry();
-            SubscribeColumn(item);
-            _committedConstraints.Insert(index, (double.NaN, double.NaN));
-            base.InsertItem(index, item);
-        }
-
-        protected override void MoveItem(int oldIndex, int newIndex)
-        {
-            if ((uint)oldIndex >= (uint)Count)
-                throw new ArgumentOutOfRangeException(nameof(oldIndex));
-            if ((uint)newIndex >= (uint)Count)
-                throw new ArgumentOutOfRangeException(nameof(newIndex));
-
-            // Keep the constraint snapshots aligned before the collection-changed event is raised,
-            // so synchronous listeners always observe a consistent column list.
-            CheckReentrancy();
-            unchecked { ++_layoutRevision; }
-            InvalidateGeometry();
-            var constraints = _committedConstraints[oldIndex];
-            _committedConstraints.RemoveAt(oldIndex);
-            _committedConstraints.Insert(newIndex, constraints);
-            _columnWidthsDirty = true;
-            base.MoveItem(oldIndex, newIndex);
-        }
-
-        protected override void RemoveItem(int index)
-        {
-            CheckReentrancy();
-            unchecked { ++_layoutRevision; }
-            _columnWidthsDirty = true;
-            InvalidateGeometry();
-            UnsubscribeColumn(this[index]);
-            _committedConstraints.RemoveAt(index);
-            base.RemoveItem(index);
-        }
-
-        protected override void SetItem(int index, TColumn item)
-        {
-            CheckReentrancy();
-            unchecked { ++_layoutRevision; }
-            _columnWidthsDirty = true;
-            InvalidateGeometry();
-            UnsubscribeColumn(this[index]);
-            SubscribeColumn(item);
-            _committedConstraints[index] = (double.NaN, double.NaN);
-            base.SetItem(index, item);
-        }
 
         private void UpdateColumnSizes()
         {
