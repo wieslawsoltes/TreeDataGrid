@@ -63,6 +63,10 @@ public abstract class CellColumnBase<TModel> : NotifyingBase, ICellColumn<TModel
         Width.IsAuto || Options.MinWidth.IsAuto || Options.MaxWidth?.IsAuto == true;
 
     public abstract ICell CreateCell(IRow<TModel> row);
+    // Preserve an application's explicit implementation of the existing factory
+    // even when accessed through the newly available typed column contract.
+    ICell Uno.Controls.Models.TreeDataGrid.IColumn<TModel>.CreateCell(IRow<TModel> row) =>
+        ((ICellColumn<TModel>)this).CreateCell(row);
 
     double IUpdateColumnLayout.CellMeasured(double width, int rowIndex)
     {

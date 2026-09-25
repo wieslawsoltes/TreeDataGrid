@@ -40,6 +40,7 @@ internal static class BuiltInColumnComparisonRuntimeChecks
             await Settle();
             Check(view is not null && ReferenceEquals(view.Model, definition) && ReferenceEquals(grid.Presentation!.Model, source),
                 "The built-in public comparison path replaced the original Core definition or source.");
+            TypedColumnContractRuntimeChecks.Run(view!, (IRow<Item>)source.Rows[0]);
             Check(ReferenceEquals(view!.ValueSelector, definition.Getter) && ReferenceEquals(view.ValueSelector(items[0]), items[0].Name),
                 "The public selector did not return the raw model value through its cached Core accessor.");
             Check(ReferenceEquals(view.GetComparison(ListSortDirection.Ascending), viewAscending),

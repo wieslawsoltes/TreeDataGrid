@@ -17,7 +17,7 @@ namespace Uno.Controls.Models.TreeDataGrid;
 /// policy object, also visible through a base-class options reference. This is
 /// an ICellColumn view, not a second Core column/source implementation.
 /// </remarks>
-public abstract class ColumnBase<TModel> : CellColumnBase<TModel>
+public abstract class ColumnBase<TModel> : CellColumnBase<TModel>, IColumn<TModel>
 {
     public ColumnBase(object? header, GridLength? width, ColumnOptions<TModel> options)
         : base(header, width, new CellColumnOptions(options ?? throw new ArgumentNullException(nameof(options))))
@@ -25,6 +25,11 @@ public abstract class ColumnBase<TModel> : CellColumnBase<TModel>
 
     public new ColumnOptions<TModel> Options { get; }
     public abstract Comparison<TModel?>? GetComparison(ListSortDirection direction);
+
+    // Reimplement at this level: the older CellColumnBase accepts factories with
+    // no comparison. Its default interface body must not shadow this virtual API.
+    Comparison<TModel?>? IColumn<TModel>.GetComparison(ListSortDirection direction) => GetComparison(direction);
+    ICell IColumn<TModel>.CreateCell(TreeDataGridCore.Models.IRow<TModel> row) => CreateCell(row);
 }
 
 /// <summary>Native value-column extension contract with reusable typed bindings and sort delegates.</summary>
