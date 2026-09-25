@@ -17,26 +17,52 @@ import subprocess
 
 def review(baseline: dict, target: dict, differences: list[dict], summary: dict) -> dict:
     required = ('Assembly', 'Kind', 'Raw', 'Normalized', 'Identity', 'DeclaringType', 'MetadataName')
-    for surface in (baseline, target):
-        if not isinstance(surface.get('Entries'), list):
+
+    def index_surface(surface):
+        if not isinstance(surface, dict) or not isinstance(surface.get('Entries'), list):
             raise ValueError('Missing compiled entry inventory')
+        indexed = {}
         for entry in surface['Entries']:
-            if any(not isinstance(entry.get(key), str) for key in required):
+            if not isinstance(entry, dict) or any(not isinstance(entry.get(key), str) for key in required):
                 raise ValueError('Malformed compiled API entry')
+            shape = entry['Normalized']
+            if shape in indexed and indexed[shape] != entry:
+                raise ValueError('Ambiguous normalized API declaration: ' + shape)
+            indexed[shape] = entry
         if surface.get('UnresolvedTypes'):
             raise ValueError('Resolve metadata dependencies before classifying parity')
-    left = {entry['Normalized']: entry for entry in baseline['Entries']}
-    right = {entry['Normalized']: entry for entry in target['Entries']}
+        return indexed
+
+    left, right = index_surface(baseline), index_surface(target)
     missing = left.keys() - right.keys()
+    if not isinstance(differences, list):
+        raise ValueError('Missing classified difference inventory')
     by_shape = {}
     for difference in differences:
-        shape = difference['Baseline']['Normalized']
+        if not isinstance(difference, dict) or not isinstance(difference.get('Baseline'), dict):
+            raise ValueError('Malformed classified baseline')
+        shape = difference['Baseline'].get('Normalized')
+        if not isinstance(shape, str):
+            raise ValueError('Malformed classified baseline shape')
         if shape in by_shape:
             raise ValueError('Duplicate raw difference: ' + shape)
         if shape not in left or difference['Baseline'] != left[shape]:
             raise ValueError('A classified difference does not match its input inventory')
-        if any(candidate['Normalized'] not in right for candidate in difference['Candidates']):
-            raise ValueError('A classified candidate is not in the target inventory')
+        candidates = difference.get('Candidates')
+        if not isinstance(candidates, list):
+            raise ValueError('Malformed classified candidate inventory')
+        seen = set()
+        for candidate in candidates:
+            if not isinstance(candidate, dict) or not isinstance(candidate.get('Normalized'), str):
+                raise ValueError('Malformed classified candidate')
+            candidate_shape = candidate['Normalized']
+            # Matching only a normalized string let altered assembly, raw text,
+            # declaring owner or documentation identity masquerade as evidence.
+            if right.get(candidate_shape) != candidate:
+                raise ValueError('A classified candidate does not match its target inventory entry')
+            if candidate_shape in seen:
+                raise ValueError('Duplicate classified candidate: ' + candidate_shape)
+            seen.add(candidate_shape)
         by_shape[shape] = difference
     if by_shape.keys() != missing:
         raise ValueError('Classification lost or invented a raw difference')
@@ -44,14 +70,14 @@ def review(baseline: dict, target: dict, differences: list[dict], summary: dict)
               'exactNormalizedMatches': len(left.keys() & right.keys()),
               'missingOrDifferent': len(missing),
               'additionalOrDifferent': len(right.keys() - left.keys())}
-    if any(summary.get(key) != value for key, value in counts.items()):
+    if not isinstance(summary, dict) or any(type(summary.get(key)) is not int or summary[key] != value for key, value in counts.items()):
         raise ValueError('Raw summary does not match its complete inventories')
     core_types = defaultdict(list)
-    for entry in target['Entries']:
+    for entry in right.values():
         if entry['Assembly'] == 'TreeDataGrid.Core' and entry['Identity'].startswith('T:'):
             core_types[entry['MetadataName']].append(entry)
-    baseline_types = {entry['Identity']: entry for entry in baseline['Entries'] if entry['Identity'].startswith('T:')}
-    target_types = {entry['Identity'] for entry in target['Entries'] if entry['Identity'].startswith('T:')}
+    baseline_types = {entry['Identity']: entry for entry in left.values() if entry['Identity'].startswith('T:')}
+    target_types = {entry['Identity'] for entry in right.values() if entry['Identity'].startswith('T:')}
     records = []
     for shape in sorted(left):
         entry = left[shape]
@@ -86,7 +112,7 @@ def review(baseline: dict, target: dict, differences: list[dict], summary: dict)
                        'exactShapes': len(entries) - len(unresolved),
                        'unresolvedShapes': len(unresolved),
                        'categories': dict(sorted(Counter(entry['category'] for entry in unresolved).items()))})
-    return {'schemaVersion': 1, 'scope': 'All declared public/protected shapes in the supplied compiled inventories',
+    return {'schemaVersion': 2, 'scope': 'All declared public/protected shapes in the supplied compiled inventories',
             'rawCounts': counts, 'reviewCategories': categories,
             'allBaselineShapesAccountedFor': len(records) == len(left),
             'rawDifferencesPreserved': sum(item['rawDifference'] is not None for item in records) == len(missing),
@@ -95,7 +121,7 @@ def review(baseline: dict, target: dict, differences: list[dict], summary: dict)
             'additionalTargetDeclarations': [right[shape] for shape in sorted(right.keys() - left.keys())],
             'completeApiParityProven': False, 'completeBehavioralParityProven': False,
             'limitations': ['Same-name Core candidates do not establish signature or behavior equivalence.',
-                            'Inherited external framework members and custom attributes are not in the input inventory.',
+                            'Inherited external framework members and custom attributes are recorded in separate supplemental inventories, not these declared entries.',
                             'Matching declared shapes do not prove defaults, event ordering, native input, rendering or performance.']}
 
 

@@ -98,5 +98,72 @@ class ReviewTests(unittest.TestCase):
             audit.review(surface, surface, [], {})
 
 
+class IntegrityTests(unittest.TestCase):
+    def test_candidate_must_match_every_recorded_metadata_field(self):
+        old, candidate = entry('T:UI.Old'), entry('T:UI.New')
+        for field in ('Assembly', 'Kind', 'Raw', 'Identity', 'DeclaringType', 'MetadataName'):
+            with self.subTest(field=field), self.assertRaisesRegex(ValueError, 'candidate'):
+                altered = dict(candidate, **{field: 'fabricated metadata'})
+                run([old], [candidate], missing=[{'Baseline': old, 'Category': 'missing', 'Candidates': [altered]}])
+
+    def test_baseline_normalization_collision_cannot_overwrite_a_declaration(self):
+        item = entry('T:UI.Type')
+        with self.assertRaisesRegex(ValueError, 'Ambiguous'):
+            run([item, dict(item, Assembly='AnotherAssembly')], [])
+
+    def test_target_normalization_collision_cannot_inflate_exact_coverage(self):
+        item = entry('T:UI.Type')
+        with self.assertRaisesRegex(ValueError, 'Ambiguous'):
+            run([item], [item, dict(item, Raw='different raw declaration')])
+
+    def test_identical_duplicate_records_are_not_ambiguous(self):
+        item = entry('T:UI.Type')
+        result = run([item, dict(item)], [item, dict(item)])
+        self.assertEqual(1, result['rawCounts']['exactNormalizedMatches'])
+        self.assertEqual(1, len(result['records']))
+
+    def test_duplicate_candidates_are_rejected(self):
+        old, candidate = entry('T:UI.Old'), entry('T:UI.New')
+        with self.assertRaisesRegex(ValueError, 'Duplicate classified candidate'):
+            run([old], [candidate], missing=[{'Baseline': old, 'Category': 'missing', 'Candidates': [candidate, candidate]}])
+
+    def test_nonlist_candidate_inventory_is_rejected(self):
+        old = entry('T:UI.Old')
+        with self.assertRaisesRegex(ValueError, 'candidate inventory'):
+            run([old], [], missing=[{'Baseline': old, 'Category': 'missing', 'Candidates': {}}])
+
+    def test_malformed_classified_baseline_is_rejected(self):
+        old = entry('T:UI.Old')
+        with self.assertRaisesRegex(ValueError, 'baseline'):
+            run([old], [], missing=[{'Baseline': None, 'Category': 'missing', 'Candidates': []}])
+
+    def test_boolean_summary_count_is_not_an_integer_count(self):
+        item = entry('T:UI.Type')
+        counts = {'baselineShapes': True, 'targetShapes': 1, 'exactNormalizedMatches': 1,
+                  'missingOrDifferent': 0, 'additionalOrDifferent': 0}
+        with self.assertRaisesRegex(ValueError, 'summary'):
+            run([item], [item], summary=counts)
+
+    def test_floating_summary_count_is_not_an_integer_count(self):
+        item = entry('T:UI.Type')
+        counts = {'baselineShapes': 1.0, 'targetShapes': 1, 'exactNormalizedMatches': 1,
+                  'missingOrDifferent': 0, 'additionalOrDifferent': 0}
+        with self.assertRaisesRegex(ValueError, 'summary'):
+            run([item], [item], summary=counts)
+
+    def test_malformed_inventory_record_fails_closed(self):
+        surface = {'Inputs': [], 'Entries': [None], 'UnresolvedTypes': []}
+        with self.assertRaisesRegex(ValueError, 'Malformed compiled API entry'):
+            audit.review(surface, surface, [], {})
+
+    def test_verified_candidate_stays_unaccepted_and_keeps_the_raw_difference(self):
+        old, candidate = entry('T:UI.Old'), entry('T:UI.New')
+        diff = {'Baseline': old, 'Category': 'missing', 'Candidates': [dict(candidate)]}
+        result = run([old], [candidate], missing=[diff])
+        self.assertEqual(diff, result['records'][0]['rawDifference'])
+        self.assertFalse(result['records'][0]['equivalenceAccepted'])
+        self.assertEqual(1, result['rawCounts']['missingOrDifferent'])
+
+
 if __name__ == '__main__':
     unittest.main()
