@@ -1,9 +1,10 @@
 using System;
 using System.ComponentModel;
 using TreeDataGridCore.Models;
-using UI = Uno.Controls.Models.TreeDataGrid;
 
 namespace Uno.Controls.Presentation;
+
+using UI = global::Uno.Controls.Models.TreeDataGrid;
 
 public partial class ValueCellColumn<TModel, TValue> : UI.IColumn<TModel>
 {
