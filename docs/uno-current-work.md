@@ -1,173 +1,178 @@
 # Current Uno completion checklist
 
-Updated 2026-09-25 UTC. Tested implementation **6b8d43b2**;
-product correction **c92c78ca**.
-**Full API, behavioral and performance parity are not established.**
+Updated 2026-09-25 UTC. Tested implementation **611f5439**, product **f06ceeb0**.
+**Functional/platform validation passes after one Ubuntu retry. Full API,
+behavioral and performance parity are not established.**
 
-[Column observer review](uno-column-observer-review-2026-09-25.md) ·
-[Exact execution checkpoint](uno-ci-checkpoint-6b8d43b2.json) ·
-[Typed column guide](uno-typed-column-contract.md) ·
-[Previous checklist preserved unchanged](archive/uno-current-work-before-6b8d43b2.md)
+[Viewport snapshot review](uno-column-viewport-review-2026-09-25.md) ·
+[Exact execution checkpoint](uno-ci-checkpoint-611f5439.json) ·
+[Previous checklist preserved unchanged](archive/uno-current-work-before-611f5439.md)
 
-## Revisions and architecture
+## Revisions and scope
 
 PR #26 remains draft on `codex/uno-core-port`, based on master `3ca47316`.
 Sources, rows, hierarchy and selection remain owned by the actual shared Core
-assembly. No copied Core state, merge or public release was introduced.
+assembly. No merge, public release, renderer change or Core copy is introduced.
 
-Starting head: `757d1c0db5bd88a6386b774a29672daf9741b556`.
-Test-first checkpoint: `72383243ec91b9e31256691c6cf55121f79fd268`.
-Product correction: `c92c78ca08bcfccd3f2c0c46bfb1e8b7e7f36787`.
-Tested consumer checkpoint: `6b8d43b26e25038f82cac2b60b9306873e9ad907`.
-Tested tree: `c960f4d795f7387653472e94b38b492fc8e80ca6`.
-CI merge: `fa9d5fa3f542f297b4fb4d05c907e6d3c59f8932`, with the same tree,
-verified through the Git commit API. Final documentation is recorded after all
-implementation platform jobs completed and does not modify product, test, build
-or workflow sources. Earlier typed-column and automation work is preserved and
-revalidated, not counted again as newly authored work.
+Starting head: `ad72ec8f3b1c24e59d5483be6abde543ff27fd8c`.
+Initial test commit: `6dabcbdfa7d550d8b5c342d48fd328c924be9236`.
+Product commit: `f06ceeb0536f94f7417d58e81b40d06d08b3a7f4`.
+Consumer/test correction: `611f543959eea0e6cedf00f694b27af5960ed2a4`.
+Implementation tree: `9aa2a7a72f02ea91c2dbcee549f38c2487c750ae`.
+CI merge: `09e61d966cb84512e90a6b8b97386d5f0e83df3c`, with the same tree,
+verified through the Git commit API. Final documentation follows completed
+implementation validation and changes no product, test, build or workflow sources.
+Prior observer-lifetime work is preserved and revalidated, not recounted as new.
 
-## Implemented observer lifetime correction
+## Implemented coherent viewport fallback
 
-`ColumnListBase<TColumn>` stages event attachment before owning a new column,
-acquires a replacement observer before retiring the original, and maintains one
-weak-owner subscription per distinct column with reference-counted duplicates.
-A separate structural revision rejects stale inserts/replacements after reentrant
-collection mutation while allowing layout-only reentry.
+The primary `GetColumnAt` already used cached binary search. Its fallback viewport
+estimator still rescanned live widths without revision checks, potentially mixing
+retired/current columns after an application getter mutated the collection. Healthy
+warm fallback calls also repeated reads after the hit-test had built a snapshot.
 
-Constraints and subscription ownership are aligned before the base collection
-publishes its structural change. Retired subscriptions are inactive before custom
-remove accessors execute. A throwing removal therefore cannot leave an original
-entry silently unobserved; a remove callback may repopulate the collection without
-being overwritten by an outer stale mutation. Publishers retaining old handlers
-cannot invalidate replacement geometry. Same-object replacement and duplicate
-removal avoid redundant subscriptions. Caller-owned columns are never disposed.
+`ColumnListBase.Viewport.cs` now publishes nonnegative cumulative hit-test ends,
+raw strictly-positive viewport-prefix widths, and the mean of all positive measured
+widths from one revision-checked pass. Stale scratch values are discarded after
+callbacks; newer nested geometry publications remain authoritative. Both destination
+capacities are reserved before publication. Getter errors preserve identity and
+leave reconstruction retryable.
 
-Clear attempts every retired observer independently. InsertRange, RemoveRange and
-Reset preserve the real shared base's batching rules, but defer retired-accessor
-execution until the outer batch unwinds. An unsubscribe error cannot interrupt an
-otherwise successful range removal or hide its complete collection notification.
-The cleanup queue is detached before callbacks, allowing a reentrant batch to own
-a separate queue. A single exception retains its identity; multiple failures are
-reported in attempted order, with the primary operation/notification error first.
+Warm zero-origin searches use O(log p) binary lookup. Shifted origins retain O(p)
+sequential additions over cached raw widths, preserving floating-point order.
+For `[1e16, 1, 1]` at origin `-1e16`, sequential ends must remain `0, 1, 2`;
+translating cumulative sums or subtracting adjacent ends would lose unit columns.
+No approximation or tolerance change is used to conceal that difference.
 
-**Exception boundary:** validation/attachment failure preserves original membership
-and observation unless the application itself performed a newer nested mutation.
-Notification or cleanup failure occurs after structural commit and does not roll
-it back. Blindly retrying removal at an old index can therefore remove a different
-column. Arbitrary throwing batch actions retain the shared base's partial-mutation
-semantics; this is neither a rollback engine nor a concurrent collection. A
-publisher refusing removal may retain an inert subscription object, but that object
-holds only a weak reference to the collection and accepts no retired events.
+The fallback retains positive-width mean semantics, rejects invalid estimate
+scales, clamps indexes before integer conversion, bounds caller counts against
+current columns, and saturates overflowing estimated positions. Empty and near-zero
+origin shortcuts avoid width getters. These are intentional robustness changes for
+invalid/stale internal inputs, not blanket equivalence waivers.
 
-The implementation is in `ColumnListBase.Subscriptions.cs`; the existing width
-solver and geometry-query implementation are otherwise unchanged. Core sources,
-renderer settings, trimming diagnostics, existing assertions and the independent
-performance threshold remain unchanged. No blanket API waiver or speedup is claimed.
+The additional retained raw prefix costs one double per usable entry plus list
+capacity overhead. Rebuild scratch uses two doubles per column: stack storage for
+small snapshots and one returned pool lease for larger snapshots. Warm queries
+need no scratch allocation or live width reads. Primary hit-testing, constrained
+width solving, shared Core state and observer transactions are otherwise unchanged.
+This is a focused correctness/lookup improvement, not a measured whole-grid speedup.
 
-## Test-first evidence and new coverage
+## Authored coverage and initial fixture correction
 
-This continuation adds **20 Uno unit cases**, **one composite native consumer
-scenario**, **zero differential-framework cases**, and **zero registered suites**.
-The native suite count remains 65.
+This continuation adds **31 Uno unit cases**, **one native consumer scenario**,
+**zero direct-framework cases**, and **zero registered native suites**. The native
+registry remains 65. Three theory cases exercise **3,588 ordinary numeric-oracle
+combinations**, not 3,588 separately registered or cross-framework tests.
 
-The test-only baseline `72383243` executed with **18 new cases failing and two
-passing**, while all preceding 810 Uno cases passed: 812 passed / 18 failed / 830
-total. Linux job `108128927575` in
-[run 36152484026](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36152484026)
-retains the failures in artifact `10873085067`. This deliberately failing baseline
-is not final acceptance. The correction passes all 20 cases without changing their
-assertions.
+Coverage includes cold/warm snapshots, structural and width reentry, nested
+stack/pool queries, throwing getters, shifted rounding, unknown/zero/negative
+prefixes, invalid estimate scales, stale counts, overflow and allocation/getter
+counts. Two- and 300-column fixtures assert zero managed allocation across 8,192
+measured warm queries and no repeated width reads.
 
-Coverage includes failed attachment/rollback, duplicate ownership, same-object
-replacement, independent Clear cleanup, complete range/reset notification, invalid
-arguments, retired handlers, structural and layout-only reentry, current geometry,
-subsequent reuse, and primary/cleanup exception identity.
+`ColumnViewportRuntimeChecks` invokes production protected anchor dispatch through
+an actual native `TreeDataGridColumnHeadersPresenter` subclass, checking 4,096 warm
+fallbacks, notifications, nonfinite means, nested replacement, geometry and cleanup.
+Its marker is `UNO_RUNTIME_COLUMN_VIEWPORT_SNAPSHOT_PASSED`. The probe presenter is
+not attached to a visual tree; the enclosing existing `builtin-column-comparison`
+suite retains actual rendering/editing/sorting/virtualization assertions.
 
-`TypedColumnContractRuntimeChecks.Observers.cs` extends the existing
-`builtin-column-comparison` consumer using actual Core rows and native cell values.
-It verifies failed replacement recovery, two independently owned values through
-typed/legacy factories, throwing Clear with a reentrant replacement, duplicate
-observers, inert retained handlers, same-factory readdition and range notification.
-Its marker is `UNO_RUNTIME_COLUMN_OBSERVER_LIFETIME_PASSED`. The enclosing suite
-retains rendering, editing, sorting and virtualization assertions. The new fault
-injection itself targets collections/native values, not every attached-grid source
-replacement or external OS input path.
+The initial test-only commit did not establish an executed failing baseline:
+its Uno tests failed compilation because xUnit could not infer a unique enumerable
+element type. `611f5439` adds explicit `Assert.All<ProbeColumn>` type arguments.
+The product commit also corrects one newly authored expectation: viewport 25 divided
+by mean width 20 anchors at `(1, 20)`, not `(2, 40)`. Tests predating this continuation
+and their thresholds remain unchanged.
 
-## Completed functional and platform evidence
+## Completed functional, native and browser execution
 
-[Functional run 36153026239](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36153026239),
-job `108131037887`, passed all fifteen stages on unchanged committed input:
-**228 Core + 830 Uno + 536 Avalonia + 41 sample-state + 171 direct-framework =
-1,806 .NET cases**, zero failures/skips; **65/65 native suites**; sequential native
-checks; both native sample builds with zero warnings/errors; and all five Activity
-Monitor sections plus lifetime checks. Python review/metadata-semantic/normalization
-checks remain 12/39/57. Artifact `10871959785` contains full logs/TRX/raw inventories;
-source snapshot artifact `10871963910` preserves the input.
+[Functional run 36160233485](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36160233485),
+job `108155075408`, passed all fifteen stages on unchanged input:
+**228 Core + 861 Uno + 536 Avalonia + 41 sample-state + 171 direct-framework =
+1,837 .NET cases**, zero failed/skipped; **65/65 native suites**; sequential native
+smoke; both native builds with zero warnings/errors; five Activity Monitor sections
+and lifetime; Python review/metadata/normalization checks 12/39/57. Report artifact
+`10875358660` and source artifact `10875505656` preserve this checkpoint.
 
-[Platform run 36153026174](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36153026174)
-completed **all six jobs successfully**: Windows/macOS/Linux builds and tests,
-Linux native runtime and NuGet consumers, Windows App SDK builds/package publication,
-and published trimmed-browser consumers. Linux native job `108131105745` includes
-the new observer marker in both sequential and NuGet-consumer execution. Native
-artifact `10872223307` retains results, packages and rendered samples.
+[Platform run 36160233552](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36160233552)
+now concludes **success**, with all six latest job summaries successful. This covers
+Windows/macOS/Linux build/test jobs, Linux native runtime/NuGet consumers, Windows
+App SDK build/publication and published trimmed-browser consumers. Full native log
+`108154872250` contains the new viewport marker in both sequential and native
+NuGet-consumer execution; artifact `10875431675` retains native evidence.
 
-Browser job `108131105980` passed **all four execution routes**: showcase, Activity
-Monitor, and browser-dispatched pointer/keyboard input at device scales 1 and 2.
-The new scenario is wired into the passed published showcase; its individual marker
-was inspected in native logs, not separately extracted from the browser artifact.
-Chromium is pinned to 143.0.7499.4 with Playwright 1.57.0. These results are not
-physical-hardware, all-browser, IME, external screen-reader or universal DPI acceptance.
-Windows App SDK publication is not Windows OS runtime execution. Existing browser
-UnoSplashScreen warnings remain; the zero-warning statement above applies to the
-native sample builds, not all platform steps.
+Full browser log `108154872217` confirms **four successful execution routes**:
+showcase, Activity Monitor, and browser-dispatched pointer/keyboard input at scales
+1 and 2, with Chromium 143.0.7499.4 and Playwright 1.57.0. The new scenario is wired
+into that passed showcase; its individual browser marker was not extracted from
+an artifact. Existing UnoSplashScreen warnings remain. Windows package publication
+is not Windows OS runtime execution, and browser-driver input is not physical,
+all-browser, IME, external screen-reader or universal DPI acceptance.
 
-The final artifact listing identifies browser artifact `10873281184`. The browser
-job log and artifact listing returned different artifact IDs/digests; both
-observations are retained in the execution checkpoint. Archive-byte equivalence is
-not independently verified. Execution success is established separately from the
-completed job and its four route results.
+The checkpoint keeps artifact observations tied to their provenance. The inspected
+browser job log identifies artifact `10875843019`; a later run-level listing returns
+`10876080941`. No byte equivalence or exact attempt relationship between those
+objects is asserted. Execution results are separate from archive verification.
 
 Repository Build, dependency snapshot, reference packs, trimmed binding contract
-and contract reproducibility workflows also passed for the tested implementation.
+and contract reproducibility workflows also passed for implementation `611f5439`.
+
+## Original Ubuntu allocation failure retained
+
+The first Ubuntu platform job `108154871827` passed 860/861 Uno cases, including
+all 31 new cases, but failed the unchanged
+`ColumnLayoutReentrancyTests.Warm_layout_and_geometry_queries_allocate_no_managed_storage(count: 1)`:
+**32,664 bytes observed versus zero expected**. Its recorded artifact is
+`10875158471`. No assertion was removed, skipped or relaxed.
+
+That case passed in the independent 861/861 Linux validation above. One accepted
+request to retry the Ubuntu job then completed as `108159261385`: **228 Core,
+861 Uno and 41 sample-state cases passed**, zero failures/skips, and the solution
+build reported zero warnings/errors on the same `09e61d9` checkout. Retry artifact
+from its log: `10875896904`. No source changes occurred between those attempts.
+
+**The original intermittent allocation observation is not explained or fixed.**
+The successful independent run and retry do not erase it or establish its cause.
+The zero-allocation assertion and performance thresholds are unchanged. The latest
+run-level listing returns new IDs for all six jobs; this continuation requested only
+the targeted Ubuntu rerun action and records the returned observations separately.
 
 ## Independent performance gate remains failed
 
-[Paired run 36153026273](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36153026273),
-job `108130735752`, completed both builds and all four alternating AB/BA hosts with
-valid measurements. The unchanged **1.10 median timing/allocation ratio budget**
-remains failed. Artifact `10872197632` retains raw allocations, p95 and settlement.
+[Paired run 36160233549](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36160233549),
+job `108154705890`, completed both builds and all four alternating AB/BA hosts.
+The unchanged **1.10 median timing/allocation ratio budget remains failed**.
+Artifact `10874349811` preserves raw data, including p95 and settlement.
 
 | Workload | Avalonia median ms | Uno median ms | Time ratio | Allocation ratio |
 | --- | ---: | ---: | ---: | ---: |
-| Horizontal scroll | 0.12870 | 1.09150 | 8.481 | 1.063 |
-| Vertical scroll | 0.44400 | 1.25770 | 2.833 | 1.930 |
-| Distant diagonal scroll | 1.05320 | 4.26495 | 4.050 | 1.928 |
-| Replace visible row | 0.87345 | 1.62695 | 1.863 | 2.668 |
-| Resize visible column | 1.56390 | 1.81005 | 1.157 | 1.537 |
-| Sort | 19.81450 | 32.64545 | 1.648 | 0.619 |
+| Horizontal scroll | 0.28585 | 1.77755 | 6.218 | 1.063 |
+| Vertical scroll | 0.84880 | 1.83215 | 2.159 | 1.957 |
+| Distant diagonal scroll | 1.90765 | 6.24865 | 3.276 | 1.928 |
+| Replace visible row | 1.20795 | 2.17270 | 1.799 | 2.668 |
+| Resize visible column | 2.00865 | 2.79770 | 1.393 | 1.489 |
+| Sort | 19.29585 | 41.91680 | 2.172 | 0.620 |
 
-The scope is synchronous UI-thread source/layout work and verified settlement,
-not GPU completion, frame rate, physical input or full-feature performance. This
-is not a controlled before/after experiment for the observer correction. Absolute
-timing changes from different runners must not be described as product speedups.
+These measure synchronous UI/source/layout work and verified settlement, not GPU
+completion or frame rate. They are not a controlled before/after experiment for
+this change. Different-runner timing differences are not proof of a speedup.
 
 ## Audit and remaining acceptance
 
-The unchanged auditor reports **1,845 baseline / 1,842 target declarations,
-1,011 exact normalized matches, 834 missing-or-different baseline and 831
-additional-or-different target entries**. Three declared overrides of previously
-inherited batch methods remain visible in the raw inventory. Dependencies resolve
-and strict self-comparison has no differences. Supplemental metadata:
-13,465 / 15,793 entries; 3,838 exact; 9,627 missing-or-different and 11,955
-additional-or-different. Counts are not completion percentages or accepted mappings.
+The unchanged audit remains **1,845 baseline / 1,842 target declarations; 1,011
+exact matches; 834 missing-or-different baseline and 831 additional-or-different
+target entries**. Dependencies resolve and strict self-comparison has no differences.
+Supplemental metadata remains 13,465 / 15,793 entries, 3,838 exact, 9,627 missing
+and 11,955 additional/different. No public declaration was added by private cache
+helpers. Counts are not completion percentages or accepted Core/native mappings.
 
-Remaining gates are genuine API/signature/inheritance/attribute contracts and tested
-Core/native mappings; broader custom-source/mixed-callback behavior; unchanged
-performance budgets and hierarchy/variable-height workloads; physical input/drag,
-Unicode/IME, external accessibility and cross-head lifecycle/scaling acceptance.
-The entire port is not marked complete.
+Remaining gates include genuine API/signature/inheritance/attribute contracts and
+tested Core/native mappings; broader custom-source callbacks; the unexplained
+allocation observation; unchanged performance budgets and hierarchy/variable-height
+workloads; physical input/drag, Unicode/IME, external accessibility and cross-head
+lifecycle/scaling acceptance. The entire port is not marked complete.
 
-Local execution tools returned ClientError. No local compilation, extraction or
-byte-for-byte archive verification is claimed. Evidence comes from GitHub Actions
-on unchanged committed input, inspected job logs/artifact metadata and Git tree
-identities verified through the repository API.
+Local execution tools returned ClientError. No local compilation, artifact extraction
+or independently recomputed archive digest is claimed. Execution evidence comes from
+GitHub Actions on committed input, inspected logs/artifact metadata and verified
+Git tree identities.
