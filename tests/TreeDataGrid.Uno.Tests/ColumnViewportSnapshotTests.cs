@@ -16,7 +16,7 @@ public sealed class ColumnViewportSnapshotTests
         Assert.Equal((1, 10d), Anchor(columns, 15, 16, ref estimate));
         Assert.Equal(77, estimate);
         Assert.Equal(20, ((U.IColumnViewportEstimator)columns).EstimateElementSize());
-        Assert.All(columns, column => Assert.Equal(1, column.Reads));
+        Assert.All<ProbeColumn>(columns, column => Assert.Equal(1, column.Reads));
         columns.Clear();
     }
 
@@ -28,7 +28,7 @@ public sealed class ColumnViewportSnapshotTests
         var estimate = 77d;
         Assert.Equal((2, 30d), Anchor(columns, 45, 46, ref estimate));
         Assert.Equal(77, estimate);
-        Assert.All(columns, column => Assert.Equal(1, column.Reads));
+        Assert.All<ProbeColumn>(columns, column => Assert.Equal(1, column.Reads));
         columns.Clear();
     }
 
@@ -40,7 +40,7 @@ public sealed class ColumnViewportSnapshotTests
         var estimate = 77d;
         Assert.Equal((2, 60d), Anchor(columns, 1000, 1001, ref estimate));
         Assert.Equal(30, estimate);
-        Assert.All(columns, column => Assert.Equal(1, column.Reads));
+        Assert.All<ProbeColumn>(columns, column => Assert.Equal(1, column.Reads));
         columns.Clear();
     }
 
@@ -59,7 +59,7 @@ public sealed class ColumnViewportSnapshotTests
         var estimate = 77d;
         Assert.Equal((0, 0d), Anchor(columns, 15, 16, ref estimate));
         Assert.Equal(0, retired.Subscribers);
-        Assert.All(columns, column => Assert.Equal(1, column.Subscribers));
+        Assert.All<ProbeColumn>(columns, column => Assert.Equal(1, column.Subscribers));
         Assert.Equal((0, 0d), columns.GetColumnAt(15));
         columns.Clear();
     }
@@ -109,7 +109,7 @@ public sealed class ColumnViewportSnapshotTests
         var estimate = 77d;
         Assert.Equal((0, 0d), Anchor(columns, 15, 16, ref estimate));
         Assert.Equal(150, ((U.IColumnViewportEstimator)columns).EstimateElementSize());
-        Assert.All(columns, column => Assert.Equal(1, column.Reads));
+        Assert.All<ProbeColumn>(columns, column => Assert.Equal(1, column.Reads));
         columns.Clear();
     }
 
@@ -141,7 +141,7 @@ public sealed class ColumnViewportSnapshotTests
         Assert.Equal((1, 0d), estimator.GetOrEstimateColumnAt(.5, 1.5, 3, -1e16, 0, ref estimate));
         Assert.Equal((2, 1d), estimator.GetOrEstimateColumnAt(1.5, 2.5, 3, -1e16, 0, ref estimate));
         Assert.Equal(77, estimate);
-        Assert.All(columns, column => Assert.Equal(1, column.Reads));
+        Assert.All<ProbeColumn>(columns, column => Assert.Equal(1, column.Reads));
         columns.Clear();
     }
 
@@ -253,7 +253,7 @@ public sealed class ColumnViewportSnapshotTests
         var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
         Assert.Equal(0L, allocated);
         Assert.Equal(8192L * (count - 1), sum);
-        Assert.All(columns, column => Assert.Equal(1, column.Reads));
+        Assert.All<ProbeColumn>(columns, column => Assert.Equal(1, column.Reads));
         columns.Clear();
     }
 
