@@ -37,26 +37,103 @@ jobs:
           dotnet restore tools/TreeDataGrid.ApiAudit/TreeDataGrid.ApiAudit.csproj
       - name: Archive public assets only
         run: |
-          mkdir -p artifacts/offline "$RUNNER_TEMP/offline/dotnet/sdk" "$RUNNER_TEMP/offline/nuget"
+          mkdir -p artifacts/offline "$RUNNER_TEMP/offline/dotnet/sdk" "$RUNNER_TEMP/offline/nuget/packages"
           dotnet --info > artifacts/offline/dotnet-info.txt
           git rev-parse HEAD > artifacts/offline/revision.txt
-          git bundle create artifacts/offline/source.bundle HEAD refs/heads/codex/uno-core-port
+          git bundle create artifacts/offline/source.bundle HEAD
           cp /usr/share/dotnet/dotnet "$RUNNER_TEMP/offline/dotnet/"
           cp -a /usr/share/dotnet/host "$RUNNER_TEMP/offline/dotnet/"
-          cp -a /usr/share/dotnet/shared "$RUNNER_TEMP/offline/dotnet/"
+          mkdir -p "$RUNNER_TEMP/offline/dotnet/shared/Microsoft.NETCore.App"
+          cp -a /usr/share/dotnet/shared/Microsoft.NETCore.App/8.* /usr/share/dotnet/shared/Microsoft.NETCore.App/10.* "$RUNNER_TEMP/offline/dotnet/shared/Microsoft.NETCore.App/"
           cp -a /usr/share/dotnet/packs "$RUNNER_TEMP/offline/dotnet/"
           cp -a /usr/share/dotnet/sdk/10.0.201 "$RUNNER_TEMP/offline/dotnet/sdk/"
           if test -d /usr/share/dotnet/sdk-manifests; then cp -a /usr/share/dotnet/sdk-manifests "$RUNNER_TEMP/offline/dotnet/"; fi
-          # Do not archive ~/.nuget/NuGet, configuration, home, git config or tokens.
-          cp -a "$HOME/.nuget/packages" "$RUNNER_TEMP/offline/nuget/"
-          tar -C "$RUNNER_TEMP/offline" -czf artifacts/offline/public-toolchain.tar.gz dotnet nuget
-          sha256sum artifacts/offline/* > artifacts/offline/SHA256SUMS
+          python3 - <<'PY'
+          import json, os, shutil
+          from pathlib import Path
+          cache = Path.home()/'.nuget/packages'
+          target = Path(os.environ['RUNNER_TEMP'])/'offline/nuget/packages'
+          paths = {'uno.sdk/6.7.30'}
+          for assets in Path('.').rglob('project.assets.json'):
+              for library in json.loads(assets.read_text())['libraries'].values():
+                  if library.get('type') == 'package': paths.add(library['path'])
+          for path in sorted(paths):
+              source = cache/path
+              if source.is_dir():
+                  shutil.copytree(source, target/path, ignore=shutil.ignore_patterns('*.nupkg'))
+          print('SELECTED_PUBLIC_PACKAGES=', len(paths))
+          PY
+          du -sh "$RUNNER_TEMP/offline/"*
+          tar -C "$RUNNER_TEMP/offline" -I 'gzip -1' -cf "$RUNNER_TEMP/public-toolchain.tar.gz" dotnet nuget
+          split -b 450M -d "$RUNNER_TEMP/public-toolchain.tar.gz" artifacts/offline/toolchain.part-
+          sha256sum artifacts/offline/toolchain.part-* artifacts/offline/source.bundle > artifacts/offline/SHA256SUMS
+          test ! -f artifacts/offline/toolchain.part-08
       - uses: actions/upload-artifact@v4
         with:
-          name: uno-offline-development-inputs
-          path: artifacts/offline
+          name: uno-offline-manifest
+          path: |
+            artifacts/offline/SHA256SUMS
+            artifacts/offline/source.bundle
+            artifacts/offline/dotnet-info.txt
+            artifacts/offline/revision.txt
           retention-days: 3
           compression-level: 0
           if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uno-offline-part-00
+          path: artifacts/offline/toolchain.part-00
+          retention-days: 3
+          compression-level: 0
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: hashFiles('artifacts/offline/toolchain.part-01') != ''
+        with:
+          name: uno-offline-part-01
+          path: artifacts/offline/toolchain.part-01
+          retention-days: 3
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        if: hashFiles('artifacts/offline/toolchain.part-02') != ''
+        with:
+          name: uno-offline-part-02
+          path: artifacts/offline/toolchain.part-02
+          retention-days: 3
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        if: hashFiles('artifacts/offline/toolchain.part-03') != ''
+        with:
+          name: uno-offline-part-03
+          path: artifacts/offline/toolchain.part-03
+          retention-days: 3
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        if: hashFiles('artifacts/offline/toolchain.part-04') != ''
+        with:
+          name: uno-offline-part-04
+          path: artifacts/offline/toolchain.part-04
+          retention-days: 3
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        if: hashFiles('artifacts/offline/toolchain.part-05') != ''
+        with:
+          name: uno-offline-part-05
+          path: artifacts/offline/toolchain.part-05
+          retention-days: 3
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        if: hashFiles('artifacts/offline/toolchain.part-06') != ''
+        with:
+          name: uno-offline-part-06
+          path: artifacts/offline/toolchain.part-06
+          retention-days: 3
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        if: hashFiles('artifacts/offline/toolchain.part-07') != ''
+        with:
+          name: uno-offline-part-07
+          path: artifacts/offline/toolchain.part-07
+          retention-days: 3
+          compression-level: 0
       - name: Require unchanged product checkout
         run: git diff --exit-code && git diff --cached --exit-code
