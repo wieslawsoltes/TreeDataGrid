@@ -1,0 +1,62 @@
+name: Uno offline development inputs
+
+on:
+  push:
+    branches: [codex/uno-core-port]
+    paths: [.github/workflows/uno-offline-development.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inputs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      TreeDataGridUnoSampleTargetFrameworks: net10.0-desktop
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.201
+      - name: Restore exact development inputs
+        run: |
+          dotnet restore solutions/TreeDataGrid.Uno.slnx
+          dotnet restore tests/TreeDataGrid.Parity.Tests/TreeDataGrid.Parity.Tests.csproj
+          dotnet restore tests/Avalonia.Controls.TreeDataGrid.Tests/Avalonia.Controls.TreeDataGrid.Tests.csproj
+          dotnet restore benchmarks/TreeDataGrid.Parity.Avalonia/TreeDataGrid.Parity.Avalonia.csproj
+          dotnet restore benchmarks/TreeDataGrid.Parity.Uno/TreeDataGrid.Parity.Uno.csproj
+          dotnet restore tools/TreeDataGrid.ApiAudit/TreeDataGrid.ApiAudit.csproj
+      - name: Archive public assets only
+        run: |
+          mkdir -p artifacts/offline "$RUNNER_TEMP/offline/dotnet/sdk" "$RUNNER_TEMP/offline/nuget"
+          dotnet --info > artifacts/offline/dotnet-info.txt
+          git rev-parse HEAD > artifacts/offline/revision.txt
+          git bundle create artifacts/offline/source.bundle HEAD refs/heads/codex/uno-core-port
+          cp /usr/share/dotnet/dotnet "$RUNNER_TEMP/offline/dotnet/"
+          cp -a /usr/share/dotnet/host "$RUNNER_TEMP/offline/dotnet/"
+          cp -a /usr/share/dotnet/shared "$RUNNER_TEMP/offline/dotnet/"
+          cp -a /usr/share/dotnet/packs "$RUNNER_TEMP/offline/dotnet/"
+          cp -a /usr/share/dotnet/sdk/10.0.201 "$RUNNER_TEMP/offline/dotnet/sdk/"
+          if test -d /usr/share/dotnet/sdk-manifests; then cp -a /usr/share/dotnet/sdk-manifests "$RUNNER_TEMP/offline/dotnet/"; fi
+          # Do not archive ~/.nuget/NuGet, configuration, home, git config or tokens.
+          cp -a "$HOME/.nuget/packages" "$RUNNER_TEMP/offline/nuget/"
+          tar -C "$RUNNER_TEMP/offline" -czf artifacts/offline/public-toolchain.tar.gz dotnet nuget
+          sha256sum artifacts/offline/* > artifacts/offline/SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uno-offline-development-inputs
+          path: artifacts/offline
+          retention-days: 3
+          compression-level: 0
+          if-no-files-found: error
+      - name: Require unchanged product checkout
+        run: git diff --exit-code && git diff --cached --exit-code
