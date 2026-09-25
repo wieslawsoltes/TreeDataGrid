@@ -62,7 +62,7 @@ internal static class ColumnFactoryRuntimeChecks
             await Settle();
             CheckCell(10, visible);
             Check(grid.SelectCell(10, visible) && source.Selection is ITreeDataGridCellSelectionModel<Item> selection &&
-                selection.SelectedIndex.ColumnIndex == source.Columns.IndexOf(first) && selection.SelectedIndex.RowIndex == new IndexPath(10),
+                selection.SelectedIndex.ColumnIndex == source.Columns.IndexOf(first) && selection.SelectedIndex.RowIndex == new TreeDataGridCore.IndexPath(10),
                 "Native selection did not map the visible column to its current Core index.");
             Check(grid.BeginEdit(10, visible), "The remapped column did not open a native editor.");
             grid.EditingCell!.EditingText = "Edited after factory replacement";
