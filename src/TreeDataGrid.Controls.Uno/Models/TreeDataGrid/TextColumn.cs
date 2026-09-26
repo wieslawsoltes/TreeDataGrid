@@ -76,7 +76,7 @@ public class TextColumn<TModel, TValue> : ValueCellColumn<TModel, TValue?>, ITex
         public string? Text
         {
             get => column.Options.StringFormat is { } format
-                ? CellTextFormatting.Format(column.Options.Culture, format, Value) : Value?.ToString();
+                ? CellTextFormatting.Format(column.Options.Culture, format, TypedValue) : Value?.ToString();
             set => Write(value);
         }
         public TextTrimming TextTrimming => column.Options.TextTrimming;

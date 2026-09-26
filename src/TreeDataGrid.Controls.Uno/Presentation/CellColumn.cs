@@ -67,8 +67,8 @@ public abstract partial class CellColumn : NotifyingBase, IDisposable
     public BeginEditGestures EditGestures { get => BeginEditGestures; init => BeginEditGestures = value; }
     /// <summary>Optional model-to-text selector for template-column incremental search.</summary>
     public Func<object?, string?>? TextSearchValueSelector { get; init; }
-    public virtual bool IsTextSearchEnabled => TextSearchValueSelector is not null;
     public virtual string? GetSearchText(object? model) => TextSearchValueSelector?.Invoke(model);
+    public virtual bool IsTextSearchEnabled => TextSearchValueSelector is not null;
     public virtual string FormatValue(object? value) => TextOptions is { } options
         ? CellTextFormatting.Format(options.Culture, options.StringFormat, value) : value?.ToString() ?? string.Empty;
     public virtual TextCellOptions? TextOptions => null;
@@ -176,7 +176,7 @@ internal sealed class TextBoundCell<TModel, TValue> : BoundCell<TModel, TValue>,
         : base(column, row, canPool: true, options?.Culture, bindingSnapshot) => _options = options;
     public string? Text
     {
-        get => _options is { } options ? CellTextFormatting.Format(options.Culture, options.StringFormat, Value) : Value?.ToString();
+        get => _options is { } options ? CellTextFormatting.Format(options.Culture, options.StringFormat, TypedValue) : Value?.ToString();
         set => Write(value);
     }
     public TextTrimming TextTrimming => _options?.TextTrimming ?? TextTrimming.CharacterEllipsis;

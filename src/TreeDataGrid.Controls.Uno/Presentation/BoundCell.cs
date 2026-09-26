@@ -33,6 +33,9 @@ internal class BoundCell<TModel, TValue> : CellValue where TModel : class
         }
     }
     public override object? Value => _binding.Value;
+    // Only sealed internal text implementations use this view of the same value.
+    // Public object-valued dispatch and all custom virtual overrides are unchanged.
+    protected TValue? TypedValue => _binding.Value;
     public override Exception? Error => _binding.Error;
     public override bool CanEdit => Kind != CellKind.CheckBox && _binding.CanWrite;
     public override bool CanWrite => _binding.CanWrite;

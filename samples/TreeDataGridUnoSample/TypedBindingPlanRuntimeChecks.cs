@@ -11,6 +11,7 @@ internal static partial class TypedBindingPlanRuntimeChecks
 {
     internal static void Run()
     {
+        VerifyNumericFormatting();
         VerifySameAssignments();
         var a = new Model { Number = 17 }; var b = new Model { Number = 29 };
         var descriptor = TypedBinding<Model>.TwoWay(x => x.Number, (x, v) => x.Number = v);
