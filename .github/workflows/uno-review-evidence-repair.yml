@@ -1,0 +1,68 @@
+name: Uno review evidence repair
+
+on:
+  push:
+    branches: [codex/uno-core-port]
+    paths:
+      - .github/workflows/uno-review-evidence-repair.yml
+      - build/render-uno-comparison-evidence.py
+      - build/test-uno-evidence-render.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify evidence renderer negative controls
+        run: python3 build/test-uno-evidence-render.py -v
+      - uses: actions/download-artifact@v4
+        with:
+          name: uno-unformatted-text-comparison
+          run-id: 36266229246
+          github-token: ${{ github.token }}
+          path: artifacts/historical-unformatted
+      - name: Fetch artifact provenance without storing credentials
+        env:
+          GH_READ_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request
+          from pathlib import Path
+          records = {}
+          for key, artifact, run in [('comparison', 10914227901, 36266229246), ('initialFailure', 10913688104, 36266046811)]:
+              request = urllib.request.Request(f'https://api.github.com/repos/wieslawsoltes/TreeDataGrid/actions/artifacts/{artifact}',
+                  headers={'Authorization': 'Bearer ' + os.environ['GH_READ_TOKEN'], 'Accept': 'application/vnd.github+json'})
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  data = json.load(response)
+              if data['id'] != artifact or data['workflow_run']['id'] != run or data['expired']:
+                  raise ValueError('Artifact provenance does not match the pinned run')
+              records[key] = data
+          Path('artifacts/artifact-provenance.json').write_text(json.dumps(records, indent=2) + '\n')
+          PY
+      - name: Recompute all historical workloads and corrected checkpoint
+        run: |
+          python3 build/render-uno-comparison-evidence.py \
+            --input artifacts/historical-unformatted \
+            --output artifacts/review-evidence-repair \
+            --checkpoint docs/uno-raw-text-checkpoint-b38ca0f7.json \
+            --artifact-metadata artifacts/artifact-provenance.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uno-review-evidence-repair
+          path: |
+            artifacts/review-evidence-repair
+            artifacts/artifact-provenance.json
+          retention-days: 14
+          if-no-files-found: error
+      - name: Require unchanged checked-out sources
+        if: always()
+        run: git diff --exit-code && git diff --cached --exit-code
