@@ -15,9 +15,11 @@ internal static class CellTextFormatting
         culture ??= CultureInfo.CurrentCulture;
         if (format == "{0}" && culture.GetType() == typeof(CultureInfo))
         {
-            if (typeof(T).IsValueType) return FormatIdentityValue(culture, value);
+            // Preserve the established string/null shortcuts before querying
+            // the generic type. Numeric JIT instantiations eliminate these tests.
             if (value is string text) return text;
             if (value is null) return string.Empty;
+            if (typeof(T).IsValueType) return FormatIdentityValue(culture, value);
         }
         return string.Format(culture, format, value);
     }

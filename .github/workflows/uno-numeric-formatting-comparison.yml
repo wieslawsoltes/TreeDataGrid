@@ -26,10 +26,10 @@ jobs:
           dotnet-version: |
             8.0.x
             10.0.201
-      # Both earlier source candidates and their adverse controls are preserved.
-      # This revision removes the duplicated fallback hop; the original baseline,
-      # complete ten-workload harness, runtime options and collector are unchanged.
-      - name: Compare single-dispatch formatting and all control paths
+      # Retain all three earlier candidates and their complete measurements.
+      # This source revision restores string/null fast-path ordering before the
+      # numeric type query; baseline, ten workloads and collector remain unchanged.
+      - name: Compare string-first formatting and complete numeric controls
         run: >-
           python3 -u build/compare-numeric-formatting.py
           --baseline 603b461eaf16339232628b1490a9847e7fb1cca4
