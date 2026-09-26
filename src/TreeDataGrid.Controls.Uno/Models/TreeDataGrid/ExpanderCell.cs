@@ -18,6 +18,9 @@ public class ExpanderCell<TModel> : NotifyingBase, IExpanderCell, IDisposable, I
     private IDisposable? _showSubscription;
     private IDisposable? _expandedSubscription;
     private bool _disposed;
+    private bool _initializing = true;
+    private bool _observingRow;
+    private bool _cleanupStarted;
 
     public ExpanderCell(ICell inner, IExpanderRow<TModel> row,
         IObservable<bool> showExpander, IObservable<bool>? isExpanded)
@@ -27,39 +30,86 @@ public class ExpanderCell<TModel> : NotifyingBase, IExpanderCell, IDisposable, I
         ArgumentNullException.ThrowIfNull(showExpander);
         Content = inner;
         Row = row;
+        Exception? failure = null;
         try
         {
+            // Event accessors may publish this instance, attach and then throw,
+            // or dispose it before completing their add. Record attempted
+            // ownership first and let the accessor unwind before removing it.
+            _observingRow = true;
             row.PropertyChanged += RowPropertyChanged;
+            if (_disposed) return;
             _showSubscription = showExpander.Subscribe(new CellObserver<bool>(
                 value => { if (!_disposed) Row.UpdateShowExpander(value); }, ReceiveError));
+            if (_disposed) return;
             if (isExpanded is not null)
                 _expandedSubscription = isExpanded.Subscribe(new CellObserver<bool>(
                     value => { if (!_disposed) Row.IsExpanded = value; }, ReceiveError));
         }
         catch (Exception error)
         {
-            try { Dispose(); }
-            catch (Exception cleanup) { throw new AggregateException(error, cleanup); }
+            failure = error;
+            _disposed = true;
             throw;
+        }
+        finally
+        {
+            _initializing = false;
+            if (_disposed)
+            {
+                // Subscribe can synchronously retire the cell, then return its
+                // lease. Only now have all returned handles been captured.
+                try { ReleaseAll(); }
+                catch (Exception cleanup) when (failure is not null)
+                { throw new AggregateException(failure, cleanup); }
+            }
         }
     }
 
-    public bool CanEdit => Content.CanEdit;
+    public bool CanEdit
+    {
+        get
+        {
+            if (_disposed) return false;
+            var result = Content.CanEdit;
+            return !_disposed && result;
+        }
+    }
     public ICell Content { get; }
     public BeginEditGestures EditGestures => Content.EditGestures;
     public IExpanderRow<TModel> Row { get; }
-    public bool ShowExpander => Row.ShowExpander;
+    public bool ShowExpander
+    {
+        get
+        {
+            if (_disposed) return false;
+            var result = Row.ShowExpander;
+            return !_disposed && result;
+        }
+    }
     public object? Value => Content.Value;
     public Exception? Error { get; private set; }
-    public bool IsExpanded { get => Row.IsExpanded; set => Row.IsExpanded = value; }
+    public bool IsExpanded
+    {
+        get => Row.IsExpanded;
+        set { ObjectDisposedException.ThrowIf(_disposed, this); Row.IsExpanded = value; }
+    }
 
     object? IExpanderCellPresentation.Content => Content;
     IRow IExpanderCellPresentation.Row => Row;
 
     public void Dispose()
     {
-        if (_disposed) return;
         _disposed = true;
+        // Construction may still be inside an event add or Subscribe callback.
+        // Retire delivery immediately, but release ownership after it unwinds.
+        if (!_initializing) ReleaseAll();
+    }
+
+    private void ReleaseAll()
+    {
+        if (_cleanupStarted) return;
+        _cleanupStarted = true;
         var show = _showSubscription;
         var expanded = _expandedSubscription;
         _showSubscription = null;
@@ -67,8 +117,12 @@ public class ExpanderCell<TModel> : NotifyingBase, IExpanderCell, IDisposable, I
         List<Exception>? errors = null;
         // A custom event accessor or disposable must not prevent release of the
         // remaining ownership. Retired callbacks are rejected before touching Row.
-        try { Row.PropertyChanged -= RowPropertyChanged; }
-        catch (Exception error) { (errors ??= new()).Add(error); }
+        if (_observingRow)
+        {
+            _observingRow = false;
+            try { Row.PropertyChanged -= RowPropertyChanged; }
+            catch (Exception error) { (errors ??= new()).Add(error); }
+        }
         try { show?.Dispose(); }
         catch (Exception error) { (errors ??= new()).Add(error); }
         try { expanded?.Dispose(); }

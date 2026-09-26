@@ -17,6 +17,7 @@ internal static class PublicExpanderRuntimeChecks
 {
     internal static async Task RunAsync(MainPage page)
     {
+        PublicExpanderConstructionChecks.RunAll();
         var previous = page.Content;
         var root = new Node();
         root.Children.Add(new());
@@ -64,6 +65,40 @@ internal static class PublicExpanderRuntimeChecks
                 "Public model disposal retained observable subscriptions.");
             source.Expand(0);
             Check(source.Rows.Count == 2, "Public cell cleanup retired a caller-owned Core row/source.");
+            Exception? retiredWrite = null;
+            try { model.IsExpanded = false; }
+            catch (Exception error) { retiredWrite = error; }
+            Check(retiredWrite is ObjectDisposedException && row.IsExpanded && source.Rows.Count == 2,
+                "The disposed public model could still write to the live Core hierarchy.");
+
+            // Reuse the same native control and exact Core row with a new public
+            // model. Retired observers must not affect its values or expansion.
+            using var replacementText = new Values<string>("Recovered content");
+            using var replacementShow = new Values<bool>(true);
+            using var replacementExpanded = new Values<bool>(true);
+            using var replacementContent = new UI.TextCell<string>(replacementText, false);
+            using var replacement = new UI.ExpanderCell<Node>(replacementContent, row, replacementShow, replacementExpanded);
+            control.Realize(new TreeDataGridElementFactory(), null, replacement, 0, 0);
+            host.UpdateLayout();
+            var replacementInner = FindText(control) ?? throw new InvalidOperationException("Recovery lost the native inner control.");
+            show.OnNext(false);
+            expanded.OnNext(false);
+            text.OnNext("Retired content");
+            Check(ReferenceEquals(control.Model, replacement) && ReferenceEquals(replacement.Row, row) &&
+                control.IsExpanded && control.ShowExpander && replacementInner.Value == "Recovered content" &&
+                source.Rows.Count == 2, "Retired sources contaminated a recovered native expander.");
+            Check(control.BeginEdit(), "The recovered public expander could not edit.");
+            control.EditingText = "Recovered edit";
+            Check(control.CommitEdit() && replacementText.Current == "Recovered edit",
+                "The recovered expander wrote through the retired content binding.");
+            control.IsExpanded = false;
+            Check(!row.IsExpanded && source.Rows.Count == 1, "Recovered native expansion lost the Core controller.");
+            control.Unrealize();
+            replacement.Dispose();
+            Check(replacementText.Subscribers == 0 && replacementShow.Subscribers == 0 &&
+                replacementExpanded.Subscribers == 0, "The recovered model leaked observers.");
+            Console.WriteLine("UNO_RUNTIME_PUBLIC_EXPANDER_RECOVERY_PASSED: retired direct write rejected, " +
+                "same native control and Core row, old-source isolation, new editor writeback and exact cleanup");
             Console.WriteLine("UNO_RUNTIME_PUBLIC_EXPANDER_PASSED: native rendering, borrowed Core row, observable expansion/visibility/content, controller writeback, text editing and deterministic ownership cleanup");
         }
         finally

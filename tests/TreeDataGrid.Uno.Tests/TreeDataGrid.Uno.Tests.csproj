@@ -10,5 +10,6 @@
     <ProjectReference Include="../../src/TreeDataGrid.Controls.Uno/TreeDataGrid.Controls.Uno.csproj" />
     <Compile Include="../../tools/TreeDataGrid.ApiAudit/ApiDifferences.cs" Link="ApiAudit/ApiDifferences.cs" />
     <Compile Include="../../samples/TreeDataGridUnoSample/BindingSubscriptionLifetimeChecks.cs" Link="Runtime/BindingSubscriptionLifetimeChecks.cs" />
+    <Compile Include="../../samples/TreeDataGridUnoSample/PublicExpanderConstructionChecks.cs" Link="Runtime/PublicExpanderConstructionChecks.cs" />
   </ItemGroup>
 </Project>
