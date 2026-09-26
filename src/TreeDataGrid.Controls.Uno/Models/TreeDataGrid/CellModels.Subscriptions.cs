@@ -1,20 +1,21 @@
 using System;
+using Uno.Data;
 
 namespace Uno.Controls.Models.TreeDataGrid;
 
 public partial class TextCell<T>
 {
-    // Constructors are the only callers. There is no owned lease until Subscribe
-    // returns; publication and synchronous application callbacks may precede it.
-    private void AttachSubscription<TValue>(IObservable<TValue> binding, IObserver<TValue> observer)
+    // Separate concrete observer routes avoid another generic method instantiation
+    // on the constructor path. Neither observer retains a subscription handle:
+    // the cell captures it only after synchronous publication has unwound.
+    private void AttachSubscription(IObservable<T> binding, RawObserver observer)
     {
         IDisposable? subscription;
         try { subscription = binding.Subscribe(observer); }
         catch
         {
-            // A throwing publisher can retain the observer without returning a
-            // lease. Retire the escaped cell so later callbacks are inert. The
-            // publisher remains responsible for its inaccessible registration.
+            // A source that throws without returning its lease owns rollback of
+            // that registration. Retire its escaped observer's cell immediately.
             Dispose();
             throw;
         }
@@ -22,8 +23,16 @@ public partial class TextCell<T>
         else _subscription = subscription;
     }
 
-    // The raw overload needs one owner reference, not a wrapper containing two
-    // separately allocated instance delegates. TypedObserver remains unchanged.
+    private void AttachSubscription(IObservable<BindingValue<T>> binding, TypedObserver observer)
+    {
+        IDisposable? subscription;
+        try { subscription = binding.Subscribe(observer); }
+        catch { Dispose(); throw; }
+        if (_disposed) subscription?.Dispose();
+        else _subscription = subscription;
+    }
+
+    // One owner reference replaces the raw wrapper's two instance delegates.
     private sealed class RawObserver(TextCell<T> owner) : IObserver<T>
     {
         public void OnNext(T value) => owner.Receive(value);
@@ -34,15 +43,20 @@ public partial class TextCell<T>
 
 public partial class CheckBoxCell
 {
-    private void AttachSubscription<TValue>(IObservable<TValue> binding, IObserver<TValue> observer)
+    private void AttachSubscription(IObservable<bool?> binding, RawObserver observer)
     {
         IDisposable? subscription;
         try { subscription = binding.Subscribe(observer); }
-        catch
-        {
-            Dispose();
-            throw;
-        }
+        catch { Dispose(); throw; }
+        if (_disposed) subscription?.Dispose();
+        else _subscription = subscription;
+    }
+
+    private void AttachSubscription(IObservable<BindingValue<bool?>> binding, TypedObserver observer)
+    {
+        IDisposable? subscription;
+        try { subscription = binding.Subscribe(observer); }
+        catch { Dispose(); throw; }
         if (_disposed) subscription?.Dispose();
         else _subscription = subscription;
     }

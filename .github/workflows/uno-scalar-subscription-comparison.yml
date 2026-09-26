@@ -26,7 +26,10 @@ jobs:
           dotnet-version: |
             8.0.x
             10.0.201
-      - name: Run exact-revision controls and constructor regressions
+      # Keep the generic-helper experiment and all adverse controls in history.
+      # This revision specializes the attachment overloads; all ten workloads,
+      # all 32 regressions, runtime defaults and original baseline stay fixed.
+      - name: Compare concrete observer dispatch and constructor regressions
         run: python3 -u build/compare-scalar-subscriptions.py --baseline 31f9857801a890e8a760aaafc318d383daacc1ff --candidate "$GITHUB_SHA"
       - uses: actions/upload-artifact@v4
         if: always()
