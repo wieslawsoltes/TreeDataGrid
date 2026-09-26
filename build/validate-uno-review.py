@@ -12,8 +12,10 @@ import xml.etree.ElementTree as ET
 
 SUITES = ('core', 'uno', 'avalonia', 'sample-state', 'contract-parity')
 STAGES = (*SUITES, 'native', 'native-smoke', 'activity', 'activity-smoke', 'isolated-suites',
-          'avalonia-api-build', 'api-audit', 'api-self-check', 'parity-review-tests', 'parity-review', 'browser-validator-tests', 'review-tool-tests')
+          'avalonia-api-build', 'api-audit', 'api-self-check', 'parity-review-tests', 'parity-review',
+          'browser-validator-tests', 'review-tool-tests', 'review-regressions')
 MARKER = 'UNO_RUNTIME_DECLARATIVE_OWNERSHIP_REVIEW_PASSED'
+PRESENTER_MARKER = 'UNO_RUNTIME_REVIEW_PRESENTER_CALLBACKS_PASSED'
 
 
 def verify_trx(path: Path) -> int:
@@ -79,6 +81,16 @@ def verify_self_audit(summary: dict) -> None:
         raise ValueError('Self-audit supplemental inventory does not reconcile')
 
 
+def verify_preservation(report: dict, negative: dict) -> None:
+    if report.get('declaredRegressionGatePassed') is not True:
+        raise ValueError('The compiled declared API preservation gate did not pass')
+    for key in ('removedOrChangedTargetShapes', 'rewrittenExistingRecords', 'lostReferenceMatches'):
+        if report.get(key) != []:
+            raise ValueError('An existing declared contract regressed')
+    if negative.get('declaredRegressionGatePassed') is not False or not negative.get('lostReferenceMatches'):
+        raise ValueError('The same-count removed-export control was not rejected')
+
+
 def collect(root: Path, artifacts: Path) -> dict:
     outcomes = json.loads((artifacts / 'validation-outcomes.json').read_text())
     if any(type(outcomes.get(name)) is not int or outcomes[name] != 0 for name in STAGES):
@@ -93,9 +105,19 @@ def collect(root: Path, artifacts: Path) -> dict:
         inputs[str(paths[0].relative_to(artifacts))] = hashlib.sha256(paths[0].read_bytes()).hexdigest()
     expected = re.findall(r'case "([a-z-]+)":', (root / 'samples/TreeDataGridUnoSample/App.Validation.cs').read_text())
     native = verify_native(artifacts / 'uno-native-suites', expected)
-    for path in (artifacts / 'uno-native-suites/declarative/runtime.log', artifacts / 'logs/native-smoke.log'):
-        if MARKER not in path.read_text(errors='replace'):
-            raise ValueError('Declarative ownership review did not execute in isolated and sequential modes')
+    for marker, suite in ((MARKER, 'declarative'), (PRESENTER_MARKER, 'appearance')):
+        for path in (artifacts / f'uno-native-suites/{suite}/runtime.log', artifacts / 'logs/native-smoke.log'):
+            if marker not in path.read_text(errors='replace'):
+                raise ValueError('Review scenario did not execute in isolated and sequential modes: ' + marker)
+    preservation = json.loads((artifacts / 'review-regressions/api-preservation.json').read_text())
+    negative = json.loads((artifacts / 'review-regressions/removed-export-control.json').read_text())
+    verify_preservation(preservation, negative)
+    regression = json.loads((artifacts / 'review-regressions/summary.json').read_text())
+    if regression.get('passed') is not True:
+        raise ValueError('Review regression reproduction did not pass')
+    for name in ('api-preservation', 'removed-export-control', 'summary'):
+        path = artifacts / f'review-regressions/{name}.json'
+        inputs[str(path.relative_to(artifacts))] = hashlib.sha256(path.read_bytes()).hexdigest()
     audit_path = artifacts / 'api-audit'
     documents = {}
     for name in ('avalonia', 'uno', 'classified-differences', 'summary'):
@@ -117,9 +139,10 @@ def collect(root: Path, artifacts: Path) -> dict:
         'nativeSuites': native, 'nativeSuiteCount': len(native), 'inputSha256': inputs,
         'rawApiCounts': reviewed['rawCounts'], 'rawDifferencesPreserved': reviewed['rawDifferencesPreserved'],
         'functionalEvidenceVerified': True, 'strictSelfAuditVerified': True,
+        'declaredApiPreservationVerified': True, 'removedExportControlRejected': True,
         'completeApiParityProven': False, 'completeFeatureParityProven': False,
         'completePerformanceParityProven': False,
-        'boundary': 'All registered native suites and five executed test assemblies reconcile. This is not proof of untested features, physical input/IME, external accessibility, all platform heads, or the separate 1.10 native performance gate.'
+        'boundary': 'All registered native suites and five executed test assemblies reconcile. Declared preservation rejects removal of existing exports, but does not waive unresolved cross-framework or supplemental differences. Not proof of untested features, physical input/IME, external accessibility, all platform heads, or the separate 1.10 native performance gate.'
     }
 
 
@@ -133,7 +156,8 @@ def main() -> int:
     path.write_text(json.dumps(report, indent=2) + '\n')
     print('UNO_PR_REVIEW_EVIDENCE=' + json.dumps({key: report[key] for key in
         ('revision', 'testCases', 'totalDotnetCases', 'nativeSuiteCount', 'rawApiCounts',
-         'functionalEvidenceVerified', 'strictSelfAuditVerified', 'completeFeatureParityProven')}))
+         'functionalEvidenceVerified', 'strictSelfAuditVerified', 'declaredApiPreservationVerified',
+         'removedExportControlRejected', 'completeFeatureParityProven')}))
     return 0
 
 

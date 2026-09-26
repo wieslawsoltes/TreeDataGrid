@@ -110,6 +110,7 @@ public sealed class ReviewCleanupTests
     private sealed class ProbeRow(int modelIndex, Node model) : IRow<Node>, IModelIndexableRow, IDisposable
     {
         public int ModelIndex { get; private set; } = modelIndex;
+        public IndexPath ModelIndexPath => new(ModelIndex);
         public Node Model => model;
         object? IRow.Model => Model;
         public object? Header => null;
