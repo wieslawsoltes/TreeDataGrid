@@ -1,179 +1,216 @@
 # Current Uno completion checklist
 
-2026-09-26 UTC. Tested implementation **b30dfd65** on `codex/uno-core-port`, PR #26.
-**Draft: full API and performance parity remain open. No merge or release.**
+2026-09-26 UTC. Tested source **b38ca0f7**, runtime implementation **879e75ad**.
+**Draft: 784 declared API differences remain and the native performance gate fails.**
 
-[Scalar construction and allocation review](uno-scalar-subscription-review-2026-09-26.md) ·
-[Nullable-format regression correction](uno-nullable-formatting-review-2026-09-26.md) ·
-[Exact CI checkpoint](uno-ci-checkpoint-b30dfd65.json) ·
-[Previous checklist preserved unchanged](archive/uno-current-work-before-b30dfd65.md)
+[Implementation and reproduction review](uno-declarative-policy-unformatted-text-2026-09-26.md) ·
+[Exact execution checkpoint](uno-raw-text-checkpoint-b38ca0f7.json) ·
+[Previous checklist preserved unchanged](archive/uno-current-work-before-b38ca0f7.md)
 
-## Actual starting point and commits
+## Implemented on the existing shared Core
 
-The actual starting head was `31f9857801a890e8a760aaafc318d383daacc1ff`.
-It already contained the previous interrupted numeric-formatting optimization and
-its tests, benchmark and workflow. Those additions are preserved and measured,
-not counted as newly authored here. Earlier shared-Core, API, binding, expander
-and native recycling work remains intact.
+This continuation starts at `4f2dc4cc96043fb33dc157d76b96d63e8c62b366`.
+PR #26 remains on `codex/uno-core-port`, based on master `3ca47316`.
+Sources, rows, hierarchy and selection are still owned by the actual shared Core.
+No merge or public release is requested.
 
-| Commit | New work in this continuation |
-| --- | --- |
-| `43bb25ad` | Raw/typed scalar constructor retirement, direct-owner observers, 32 regressions and native consumer |
-| `9b2a4512` | Same-test baseline proof and exact-source ten-workload scalar comparison |
-| `926cb2ea` | Nullable double-boxing correction, seven tests and unchanged numeric controls |
-| `b30dfd65` | Concrete observer-attachment overloads; repeat the complete comparison on the new source |
+TreeDataGridColumn now directly declares six portable policies: CanUserResize,
+CanUserSortColumn, AllowTriStateSorting, CompareAscending, CompareDescending and
+BeginEditGestures. Every accessor forwards to existing ColumnCreateOptions state.
+This restores declaration owners, not six new runtime features. There are no
+additional policy fields, delegates, event stores or subscriptions. Existing
+captured scalar options versus live configured comparison callbacks are unchanged.
 
-Tested tree: `3f02a9a1343dc4330e8f2869cb55baca4fa61169`.
-CI merge: `dc80e45663bb6c4d6d15020bb3eee633686e91fa`.
-Its tree is identical according to the Git commit API. Final documentation changes
-no implementation, test or workflow input from this tested tree.
+LiveTextCell and TextBoundCell use their existing by-value TypedValue accessor for
+parameterless ToString instead of boxing through the public object-valued Value.
+Mutable struct ToString runs on a copy, original exceptions propagate, and nested
+source updates affect the next query without corrupting the current read snapshot.
+The public virtual Value/FormatValue APIs, custom dispatch and binding ownership
+remain unchanged.
 
-## Scalar constructor correctness and allocation
+Immutable Core-backed text cells and CellColumn.FormatValue now also recognize a
+null StringFormat as no format, matching the established scalar/live behavior.
+Previously an existing options object with a null format called string.Format(null)
+and threw. Raw Text preserves null; the existing FormatValue API preserves its
+empty-string result for null. Parameterless formatting follows CurrentCulture,
+not an explicitly supplied display provider. No formatted string or culture cache
+is introduced. No public nullability annotations change.
 
-Raw TextCell/CheckBoxCell construction now releases subscription leases returned
-after synchronous retirement instead of retaining them in already disposed cells.
-Both raw and typed constructors retire an escaped cell when Subscribe or its initial
-application callback throws. The original exception remains observable, and late
-value/error delivery is inert. A publisher that throws without returning its lease
-remains responsible for its inaccessible registration. Caller-owned observable
-sources and shared Core rows are not disposed by these constructors.
+Only TreeDataGridColumn.cs, Models/TreeDataGrid/TextColumn.cs and
+Presentation/CellColumn.cs change in the runtime library. Shared Core, original
+Avalonia sources, renderer and layout algorithms are unchanged.
 
-Raw observers now store one cell owner instead of allocating two instance delegates
-plus a wrapper. Concrete raw/typed attachment overloads preserve the same late-lease
-and failure semantics. Typed value/error generations, completion behavior, initial
-read versus live writeback, and the existing notification order remain unchanged.
-No public signature, per-cell field, global cache, renderer or Core storage changes.
-This is reentrant lifetime handling, not cross-thread synchronization.
+## Commits and exact validation input
 
-The same 32 new tests execute against both products: original runtime **20 pass /
-12 fail**, retained runtime **32 pass / zero fail**, with none skipped. Only the new
-test fixture is overlaid on the baseline; its product sources remain unmodified.
-The new public consumer uses raw/typed text and nullable-checkbox models, independent
-owners, writeback, stale callbacks, cleanup and throwing initial equality. It uses
-no private reflection. Its existing value-column-base suite retains loaded-grid
-rendering/editing/sorting/virtualization assertions. Focused new checks use cell
-models, not an additional independently attached visual tree.
+Runtime and tests: `879e75ad5cf2da5f14b657d408a58e28b685be14`.
+Corrected new fixture: `b38ca0f74446621fba43474c9759c130b7f852bb`.
+Tested tree: `835d089f89d6d0843b612369909c8fd8ed3f847b`.
+CI merge: `5683f9497e378083eca938765f67ec389a8fae38`, with that exact tree.
+Tree identity was checked through the Git commit API, not local reconstruction.
 
-## Corrected inherited numeric regression
+The first run compiled and executed 293 paired-framework cases: 292 passed and a
+new defaults assertion failed. It incorrectly compared GridLength.Auto.Value
+payloads (Avalonia 0, Uno 1). The corrected test independently asserts IsAuto and
+retains all pixel minimum, gesture, policy and declared-shape checks. No preexisting
+assertion, layout rule or normalization mapping changes. Runtime files are identical
+between the two commits. Failed functional run `36266049705` and failed comparison
+`36266046811` remain recorded; the latter never reached measured benchmark hosts.
 
-The previous numeric candidate allocated **88 bytes rather than 64** per nullable
-integer display. Runtime string/null tests could box a nullable value before the
-composite fallback boxed it again. The corrected identity-format route checks the
-generic type first. Reference-string identity is statically guarded; unknown value
-types and Nullable<T> reach composite formatting once. Existing exact numeric and
-exact-CultureInfo checks remain, preserving custom providers and live culture data.
+The final four-path documentation-only commit uses `[skip ci]` to avoid replacing
+active implementation validation under the existing PR concurrency rule. Product
+and test commits were not skipped. Workflow acceptance rules and the 1.10 native
+budget are unchanged; pending documentation-head checks are not called green.
 
-Six new nullable value/allocation cases and one string-identity case cover the change.
-The unchanged public comparison measures nullable display at **64 bytes per query**
-in every corrected pass, equal to the original pre-numeric baseline. Existing numeric
-argument-box reductions remain, but formatted result strings are still allocated.
+## Executed baseline proof and authored coverage
 
-Authored coverage totals **39 Uno cases**, **one composite native scenario**,
-**zero new paired-framework cases** and **zero new registered native suites**.
-Prior numeric tests are revalidated rather than recounted. No existing assertion
-was removed or relaxed.
+The same corrected 49 new cases run against both exact implementations:
 
-## Completed canonical functional validation
+| Input plus new fixtures | Passed | Failed | Skipped |
+| --- | ---: | ---: | ---: |
+| Original 4f2dc4cc runtime | 32 | **17** | 0 |
+| Retained b38ca0f7 runtime | **49** | 0 | 0 |
 
-[Run 36263498845](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36263498845)
-passed all fifteen stages on unchanged committed input:
+The baseline failures are six declared-owner checks, nine immutable-null-format
+cases and two allocation assertions. Only new fixtures are copied to the old test
+projects; no baseline runtime source is edited. Coverage comprises eleven native
+unit cases and 38 paired-framework cases. Tests protect nullable/accessor metadata,
+one policy store, callback identity, null-format culture behavior, mutable value
+copies, errors/recovery, reentrant ToString, retargeting, writeback and cleanup.
 
-| Suite | Passed |
+One new composite public-consumer scenario extends existing value-column-base.
+It uses native cell models over actual Core rows; its enclosing suite retains
+loaded-grid rendering, editing, sorting and virtualization. It is not a new
+registered suite or another independently attached visual tree. Marker
+`UNO_RUNTIME_UNFORMATTED_TEXT_POLICIES_PASSED` was explicitly inspected in both
+native sequential and native NuGet-consumer logs, job `108471544769`.
+
+## Canonical functional validation
+
+[Run 36266232264](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36266232264)
+passes every one of its fifteen stages on unchanged committed input.
+
+| Gate | Result |
 | --- | ---: |
-| Core | 228 |
-| Uno | 1,016 |
-| Original Avalonia | 536 |
-| Sample state | 41 |
-| Paired framework | 255 |
-| **Total .NET** | **2,076; zero failed/skipped** |
-| Registered native suites | **65/65** |
+| Core | 228 passed |
+| Uno | **1,027 passed** |
+| Original Avalonia | 536 passed |
+| Sample-state | 41 passed |
+| Paired-framework | **293 passed** |
+| **Total .NET cases** | **2,125; zero failed/skipped** |
+| Registered native suites | **65/65 passed** |
 
-Sequential native execution, both native sample builds with zero warnings/errors,
-Activity Monitor's five sections and lifetime checks, and the original API/integrity
-stages pass. Report artifact `10912598983` and source artifact `10913257322` preserve
-full input/logs/TRX/inventories. Counts were inspected in completed job logs, not
-independently extracted from local TRX archives.
+Sequential native checks, both native sample builds (zero warnings/errors), and
+Activity Monitor's five sections and lifetime checks pass. Existing signature-reader,
+interface-ordering and Python integrity checks pass. Report artifact `10914342820`
+contains 127 files; source artifact `10913354948` retains the exact input. The
+artifact ZIPs were downloaded, but not locally extracted or independently hashed.
+Counters were read from completed execution logs.
 
-[Platform run 36263498816](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36263498816)
-had **four completed successful jobs out of six** at this recorded snapshot:
-Windows/Ubuntu builds/tests, native Linux/NuGet consumers, and Windows App SDK
-build/package publication. Browser builds and packing passed; publication is still
-running and browser execution is not yet accepted. macOS is queued with no steps.
-Prior revisions' browser/macOS results are not substituted. Later job states may be
-recorded in the PR description without rewriting this historical observation.
+[Platform run 36266232255](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36266232255)
+currently has **four completed successful jobs**: Windows/Ubuntu builds and tests,
+Linux native/NuGet consumers, and Windows App SDK builds/package publication.
+Browser builds and packing pass, publication is running, and actual published-
+consumer execution is pending. macOS job `108471544933` is queued with no steps.
+Neither incomplete job is counted as passed; older-head results are not substituted.
+Windows package publication does not establish Windows OS runtime acceptance.
 
-The new consumer is wired into the passed isolated/sequential/native-package routes;
-its individual marker was not independently extracted from their archives in this
-continuation. Windows publication is not Windows OS runtime acceptance, and browser
-automation is not physical-device, universal-browser, IME or external accessibility
-acceptance. Build, reference packs, dependency snapshot, trimmed binding and contract
-reproducibility workflows also pass for the tested implementation.
+Supporting Build, dependency snapshot, trimmed-binding, reference-pack and contract-
+reproducibility workflows all pass on b38ca0f7. Earlier intermittent allocation
+observations remain unexplained; a successful run does not resolve that investigation.
 
-## Performance: reproducible savings, explicit latency regressions
+## Declared API: 790 to 784, with raw differences retained
 
-[Scalar comparison 36263496161](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36263496161)
-uses exact starting/retained sources, one public harness and ABBA process order.
-Four processes complete ten workloads with fifty samples per workload/revision under
-inherited runtime defaults. Every sample, p95, per-pass median, checksum and release
-check is preserved. Raw text creation falls **256 to 120 bytes (-53.125%)** and raw
-checkbox creation **232 to 96 bytes (-58.621%)**. Each saves 136 bytes; typed and
-constant controls have unchanged allocation.
+The unchanged production API reader independently reconciles six exact new target
+shapes against the complete reference inventory. Every previous raw target record
+and every reference record remains unchanged. No newly missing declaration,
+normalization-policy change, unresolved dependency or collision is permitted.
+The canonical native-target audit independently confirms the same declared totals:
 
-Timing is mixed: raw read-only text median is **33.62% slower**, typed read-only
-text **7.47% slower**, typed read-only checkbox **24.35% slower**, constant text
-**4.85% slower** and constant checkbox **1.62% slower**. Raw editable text and both
-raw checkbox medians improve, but that does not justify a universal speedup claim.
-The earlier generic-helper candidate and all its adverse controls remain preserved
-at run `36263106695`; the overload change is a distinct source experiment, not a
-rerun that discards unfavorable measurements. Retention is for correctness plus
-repeatable allocation reduction, with these latency tradeoffs explicitly accepted
-for further review rather than called solved.
+| Scope | Reference | Target | Exact | Missing/different | Additional/different |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Combined | 1,845 | 1,894 | 1,061 | **784** | 833 |
+| Identical Core dependency | 590 | 590 | 590 | 0 | 0 |
+| Independent UI assemblies | 1,255 | 1,304 | 471 | **784** | 833 |
 
-[Numeric comparison 36263270092](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36263270092)
-uses the original pre-numeric baseline and corrected `926cb2ea`. All ten unchanged
-workloads pass, with nullable allocation restored to baseline. All pooled timing
-medians are lower in this run, but large baseline-pass variation in unchanged
-provider/object controls prevents strong causal timing claims. The review includes
-both pass-level examples and the prior adverse `31f98578` results.
+The six changes reduce undeclared members on matched types from eighty to 74.
+Other categories remain: 208 changed same-identity declarations, 43 absent exported
+types, 316 members of absent types and 143 overload/parameter-identity differences.
+The 590 Core self-matches are dependency identity, not independent UI-port coverage.
 
-These diagnostics measure scalar cell construction or warm display queries, not
-native visual layout, whole-grid sorting, startup, frame rate or GPU completion.
-Allocation figures are runtime/architecture measurements, not CLR size guarantees.
-No confidence intervals, statistical significance or full causal attribution claimed.
+Supplemental metadata does NOT close with these declarations: target entries rise
+from 15,880 to **15,916**, and additional/different entries from 11,993 to **12,029**.
+The 36 new supplemental differences remain visible. Baseline supplemental entries
+stay 13,465, exact matches 3,887, and missing/different 9,578. Strict target
+self-comparison is clean across 1,894 declarations and 15,916 supplemental records.
+Counts are not feature-completion percentages, ABI certification or compatibility
+waivers for native/Core/inheritance adaptations.
 
-## Independent native gate and API differences
+## Controlled text-query allocation and timing
 
-[Native run 36263498796](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36263498796)
-completed both builds and all four hosts but failed the unchanged **1.10** budget.
+[Run 36266229246](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36266229246)
+uses one identical external public harness against exact revisions in ABBA order.
+All four hosts complete ten workloads, each with fifty measured batches per revision
+(8,192 queries per batch after twelve warmup batches per host). Exact strings,
+checksums, library fingerprints and unchanged worktrees are checked. Runtime
+settings are inherited, without tiering or ReadyToRun overrides.
+
+Environment: .NET 10.0.12, x64 Ubuntu 24.04.5 LTS, workstation GC. All results below
+are pooled medians; full samples, per-pass medians, p95, baseline failures and API
+inventories remain in artifact `10914227901` (43 files).
+
+| Query | Baseline ns | Candidate ns | Bytes before | Bytes after |
+| --- | ---: | ---: | ---: | ---: |
+| Live int, raw | 73.16 | 54.41 | 64 | **40** |
+| Core int, raw | 31.59 | 26.75 | 64 | **40** |
+| Live decimal, raw | 96.62 | 87.26 | 80 | **48** |
+| Live nullable int, raw | 49.62 | 31.32 | 64 | **40** |
+| Core null nullable | 16.67 | 14.47 | 0 | 0 |
+| Live string, raw | 20.15 | 19.90 | 0 | 0 |
+| Core object, raw | 30.85 | **32.47** | 40 | 40 |
+| Live int, formatted | 84.39 | **85.05** | 80 | 80 |
+| Core int, formatted | 82.15 | **83.06** | 80 | 80 |
+| Scalar int control | 25.77 | **26.06** | 40 | 40 |
+
+The targeted saving is 24 bytes per measured int/nullable-int query (-37.5%) and
+32 bytes per decimal query (-40%). Result strings still allocate; object sizes
+are specific to the measured runtime. Null/string controls remain allocation-free,
+while object, formatted and scalar-control allocations are unchanged.
+
+Adverse results remain explicit: Core object median +5.26%, live formatted +0.78%,
+Core formatted +1.11%, scalar control +1.11%. Core raw-int p95 worsens from **42.20
+to 53.15 ns**, despite its lower median. The live-int candidate's two pass medians
+also differ (59.01 versus 40.78 ns). These results are not dismissed as proven noise.
+No sample/workload was removed and no same-code measurement retry was requested.
+Pooled diagnostics do not establish confidence intervals, universal speedup or
+complete causal attribution. These are warm cell-model display queries, not
+construction, startup, native visual layout, whole-grid sorting or frame rate.
+
+## Independent native gate still fails
+
+[Run 36266232248](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36266232248)
+completes both builds and all four hosts but fails the unchanged **1.10** budget.
 
 | Operation | Uno/Avalonia time | Uno/Avalonia allocation |
 | --- | ---: | ---: |
-| Horizontal scroll | 2.113 | 0.695 |
-| Vertical scroll | 1.891 | 1.932 |
-| Distant diagonal scroll | 3.460 | 1.917 |
-| Visible-row replacement | 1.600 | 2.668 |
-| Visible-column resize | 2.063 | 1.516 |
-| Sorting | 1.552 | 0.620 |
+| Horizontal scroll | 2.047 | 0.695 |
+| Vertical scroll | 2.050 | 1.957 |
+| Distant diagonal scroll | 2.330 | 1.917 |
+| Visible-row replacement | 1.431 | 2.668 |
+| Visible-column resize | 1.573 | 1.516 |
+| Sorting | 1.356 | 0.620 |
 
-These synchronous UI/layout and settlement results are not combined with isolated
-managed benchmarks into a whole-grid before/after improvement claim.
+Artifact `10914332678` retains raw results. This synchronous UI/layout/settlement
+comparison is not a controlled before/after whole-grid improvement from the raw-text
+patch; do not combine it with microbenchmarks or earlier different-runner ratios.
 
-The fresh API inventory remains **1,845 reference / 1,888 target / 1,055 exact /
-790 missing-or-different / 833 additional-or-different**. Identical Core contributes
-590 dependency self-matches, not independent UI-port coverage. Dependencies resolve,
-normalization collisions are zero and strict self-comparison is clean across 1,888
-declarations and 15,880 supplemental records. No normalization waiver or signature
-was added. Full API, ABI and behavior parity are not proven by inventory collection.
+Remaining: native/Core/type/inheritance API contracts and supplemental metadata;
+measured native text/layout and sorting costs; hierarchy/variable-height workloads;
+physical input, Unicode/IME, external accessibility and cross-head lifecycle/scaling.
+Full API and performance parity are not established. No old assertion, shared Core
+rule, renderer setting, normalizer or native acceptance budget was weakened.
 
-Remaining work includes those actual native/Core/inheritance contracts, measured
-native text/layout and source sorting, vertical latency, hierarchy/variable heights,
-broader callbacks, earlier intermittent allocation observations, physical input,
-Unicode/IME, external accessibility and cross-head lifecycle/scaling acceptance.
-
-Local container and Python execution returned ClientError. Tests/benchmarks ran in
-GitHub Actions; completed logs, returned artifact metadata and Git tree identities
-were inspected. No local compilation, archive extraction, locally reconstructed
-source tree or independently recomputed archive digest is claimed. The final
-five-path documentation-only commit uses the existing `[skip ci]` practice to avoid
-superseding active product validation. Product/test commits were not skipped; this
-does not make documentation-head required checks green. No merge is requested.
+Local container/Python tools returned ClientError; all new execution ran in GitHub
+Actions. Completed logs, returned artifact metadata and repository tree identities
+were inspected. No local compilation, archive extraction or independently recomputed
+archive digest is claimed. The checkpoint distinguishes failed, passed and pending
+stages rather than representing the full branch as green.
