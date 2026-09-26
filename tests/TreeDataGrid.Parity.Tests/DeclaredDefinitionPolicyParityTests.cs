@@ -101,7 +101,10 @@ public sealed class DeclaredDefinitionPolicyParityTests
         var a = expected.Snapshot(); var u = actual.Snapshot();
         expected.CompareAscending = actual.CompareAscending = static (_, _) => 31;
         Assert.Null(a.CompareAscending); Assert.Null(u.CompareAscending);
-        Assert.Equal(expected.Width.Value, actual.Width.Value);
+        // Native Auto has a different unused numeric payload (1 versus 0).
+        // Assert the actual unit contract; no GridLength normalization is added.
+        Assert.True(expected.Width.IsAuto);
+        Assert.True(actual.Width.IsAuto);
         Assert.Equal(expected.MinWidth.Value, actual.MinWidth.Value);
         Assert.Null(actual.MaxWidth);
         Assert.Equal((int)expected.BeginEditGestures, (int)actual.BeginEditGestures);

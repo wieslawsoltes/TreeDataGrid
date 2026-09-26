@@ -26,7 +26,10 @@ jobs:
           dotnet-version: |
             8.0.x
             10.0.201
-      - name: Compare exact sources, regression fixtures and production API inventories
+      # Initial collection is retained. The corrected fixture compares Auto
+      # units, not the platforms' different unused numeric payloads. Product,
+      # reader, all workloads and measurement policy remain unchanged.
+      - name: Compare exact sources with corrected Auto-unit contract assertions
         run: >-
           python3 -u build/compare-unformatted-text.py
           --baseline 4f2dc4cc96043fb33dc157d76b96d63e8c62b366
