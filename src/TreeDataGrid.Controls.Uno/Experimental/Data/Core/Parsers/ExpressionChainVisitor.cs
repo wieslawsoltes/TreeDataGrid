@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 
 #nullable enable
 
@@ -56,7 +57,7 @@ namespace Uno.Data.Core.Parsers
                 node.Expression.Type.IsValueType == false)
             {
                 var link = Expression.Lambda<Func<TIn, object>>(node.Expression, _rootExpression.Parameters);
-                _links.Add(link.Compile(preferInterpretation: true));
+                _links.Add(link.Compile(preferInterpretation: !RuntimeFeature.IsDynamicCodeCompiled));
                 _head = node;
             }
 
@@ -72,7 +73,7 @@ namespace Uno.Data.Core.Parsers
                 node.Type.IsValueType == false)
             {
                 var link = Expression.Lambda<Func<TIn, object>>(node.Object, _rootExpression.Parameters);
-                _links.Add(link.Compile(preferInterpretation: true));
+                _links.Add(link.Compile(preferInterpretation: !RuntimeFeature.IsDynamicCodeCompiled));
                 _head = node;
             }
 

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "dateUtc": "2026-09-26",
+  "repository": "wieslawsoltes/TreeDataGrid",
+  "pullRequest": 26,
+  "remoteBase": "93af65089d9ccaa0f124d6cc9b3e311284cd570b",
+  "originalLocalHead": "2ae4bd62c0d59831502b53a6f7d36fe558e116a2",
+  "originalLocalTree": "13c86af54fd66d685d2dc914cc03b54dccf8c02a",
+  "originalLocalCommits": [
+    "26cd7fc794aa8631dc114b88864bb1c8c3a5df61",
+    "65f55c65f039fe3843d93b0d28e80c4a2c2c065f",
+    "15b94fa389389a5c818b297ce482637ad22f7dc0",
+    "2ae4bd62c0d59831502b53a6f7d36fe558e116a2"
+  ],
+  "recoveredNonDocumentationFileCount": 14,
+  "recoveredNonDocumentationFilesUnchanged": true,
+  "sourceSha256": {
+    "benchmarks/TreeDataGrid.AccessorExecution/Program.cs": "36743de19e17361ed42105bbf9952eb825ae9e502e5db6b154fa04bba9c91481",
+    "benchmarks/TreeDataGrid.AccessorExecution/TreeDataGrid.AccessorExecution.csproj": "6bc5978fa4408776c7951fc2f7ee8dbbd361a724323f85986c47dfb498b7e324",
+    "build/compare-accessor-execution.py": "ec95ea8ea4502ccce04ea8a0522ab61d625a6fe54d4b66a53041979b5a4d9504",
+    "build/materialize-uno-parity-contracts.py": "cc102f67d001009651f36a53b9d460328db9190e6cb92e6e9f7ed0cffe51b73f",
+    "build/reconcile-uno-portable-facades.py": "1cc108fa2b73b5eb25974e722c7c898d9c15d8cc5466c29125f1013fcd047c80",
+    "src/TreeDataGrid.Controls.Uno/Experimental/Data/Core/Parsers/ExpressionChainVisitor.cs": "e6bb6301a6614e56e96106ca09d7a7872c4b0281d901472c9776e90d1bfd1e22",
+    "src/TreeDataGrid.Controls.Uno/Models/TreeDataGrid/CheckBoxColumn.cs": "aa08d6e98a4067e6ae72e46b448deac29404884a95888a9b8a3bf6cb1e43ac0e",
+    "src/TreeDataGrid.Controls.Uno/Models/TreeDataGrid/ColumnBase.cs": "310b034ba0bb677937a5edfa5acf249973846228f7da1c481c8cc6f40530202e",
+    "src/TreeDataGrid.Controls.Uno/Models/TreeDataGrid/ColumnOptions.cs": "93833aaf7c3bb74000ff8730e90ab1f822a0b561a812e8a45a9ae3611d3d8630",
+    "src/TreeDataGrid.Controls.Uno/TreeDataGridExpressionHelper.cs": "b2ec076f7b914b7f7d114b947edfed8dcd031cd84b71fd7b9d862d7b361c2483",
+    "src/TreeDataGrid.Controls.Uno/TreeDataGridItemsSourceView.cs": "a3c63bf74fd749439b05c95adadd7b63ac0dc21bbc6e34ad6fb0dc004b6e0937",
+    "tests/TreeDataGrid.Parity.Tests/DeclaredPortableApiParityTests.cs": "c17731f9953fec0d2470c87bd11fdf9f9e6c48db7d6e534544b743e3107267c0",
+    "tests/TreeDataGrid.Parity.Tests/ExpressionAccessorParityTests.cs": "fc3ea6ed21bb5fa00678dd794bedbc8e648895c0de5b92254506279860613cb1",
+    "tests/TreeDataGrid.Uno.Tests/ExpressionAccessorExecutionTests.cs": "3d49cd0b7f31a4959d72a96812203446cb5a0681c1802418889c994b17c56c46"
+  },
+  "freshLocalUno": {
+    "passed": 903,
+    "failed": 0,
+    "skipped": 0
+  },
+  "historicalLocalDotnetTotal": 1920,
+  "historicalNativeSuites": 65,
+  "historicalDeclaredGap": 806,
+  "historicalNativePerformanceGatePassed": false,
+  "freshRemoteValidation": "pending for import commit",
+  "mergeOrRelease": false,
+  "completeParityProven": false,
+  "environment": "Offline .NET SDK 10.0.201, available 8.0.31 reference/apphost packs selected in SDK metadata. Initial missing trailing slash in package-cache SourceRoot repaired in environment only. Shell GitHub DNS unavailable; connector publication attempted independently."
+}

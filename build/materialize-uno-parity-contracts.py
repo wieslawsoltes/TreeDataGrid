@@ -169,6 +169,14 @@ def main() -> None:
         put('src/TreeDataGrid.Controls.Uno/Selection/' + name,
             HEADER + 'using TreeDataGridCore.Selection;\n' + original.replace('Avalonia.Controls', 'Uno.Controls'))
     visitor = (ROOT / 'src/Avalonia.Controls.TreeDataGrid/Experimental/Data/Core/Parsers/ExpressionChainVisitor.cs').read_text(encoding='utf-8-sig')
+    # Retain the pinned visitor's traversal and owner semantics. Only execution
+    # policy changes: compile reusable links on JIT hosts, interpret on AOT/WASM.
+    visitor = replace_once(visitor, 'using System.Linq.Expressions;',
+        'using System.Linq.Expressions;\nusing System.Runtime.CompilerServices;')
+    if visitor.count('Compile(preferInterpretation: true)') != 2:
+        raise ValueError('Unexpected expression-chain compilation sites')
+    visitor = visitor.replace('Compile(preferInterpretation: true)',
+        'Compile(preferInterpretation: !RuntimeFeature.IsDynamicCodeCompiled)')
     put('src/TreeDataGrid.Controls.Uno/Experimental/Data/Core/Parsers/ExpressionChainVisitor.cs',
         HEADER + visitor.replace('namespace Avalonia.Data.Core.Parsers', 'namespace Uno.Data.Core.Parsers'))
     observable = (ROOT / 'src/Avalonia.Controls.TreeDataGrid/Experimental/Data/Core/LightweightObservableBase.cs').read_text(encoding='utf-8-sig')

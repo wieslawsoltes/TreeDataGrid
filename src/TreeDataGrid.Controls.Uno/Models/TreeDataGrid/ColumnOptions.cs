@@ -8,6 +8,36 @@ namespace Uno.Controls.Models.TreeDataGrid;
 /// <summary>UI options extending, rather than duplicating, Core column policy.</summary>
 public class ColumnOptions<TModel> : TreeDataGridCore.Models.ColumnOptions<TModel>, ICellOptions, ICellColumnLayoutOptions
 {
+    // Declare the portable API on the native contract without creating a second
+    // policy object. A Core-typed reference and a native reference share storage.
+    /// <summary>Gets or sets the nullable per-column resize policy.</summary>
+    public new bool? CanUserResizeColumn
+    {
+        get => base.CanUserResizeColumn;
+        set => base.CanUserResizeColumn = value;
+    }
+
+    /// <summary>Gets or sets the nullable per-column sorting policy.</summary>
+    public new bool? CanUserSortColumn
+    {
+        get => base.CanUserSortColumn;
+        set => base.CanUserSortColumn = value;
+    }
+
+    /// <summary>Gets or sets the ascending comparison without wrapping its delegate.</summary>
+    public new Comparison<TModel?>? CompareAscending
+    {
+        get => base.CompareAscending;
+        set => base.CompareAscending = value;
+    }
+
+    /// <summary>Gets or sets the descending comparison without wrapping its delegate.</summary>
+    public new Comparison<TModel?>? CompareDescending
+    {
+        get => base.CompareDescending;
+        set => base.CompareDescending = value;
+    }
+
     public new GridLength MinWidth
     {
         get => new(base.MinWidth.Value, (GridUnitType)base.MinWidth.GridUnitType);

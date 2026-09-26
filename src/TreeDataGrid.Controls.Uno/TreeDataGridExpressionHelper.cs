@@ -1,5 +1,6 @@
 using System;
 using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 using System.Reflection;
 
 namespace Uno.Controls;
@@ -20,7 +21,7 @@ internal static class TreeDataGridExpressionHelper
             var value = Expression.Parameter(typeof(TValue), "value");
             var assign = Expression.Assign(member, Expression.Convert(value, member.Type));
             return Expression.Lambda<Action<TModel, TValue>>(assign, expression.Parameters[0], value)
-                .Compile(preferInterpretation: true);
+                .Compile(preferInterpretation: !RuntimeFeature.IsDynamicCodeCompiled);
         }
         return null;
     }

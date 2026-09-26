@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 using Microsoft.UI.Xaml;
 using Uno.Controls.Presentation;
 using Uno.Experimental.Data;
@@ -24,6 +25,27 @@ public abstract class ColumnBase<TModel> : CellColumnBase<TModel>, IColumn<TMode
         => Options = options;
 
     public new ColumnOptions<TModel> Options { get; }
+
+    /// <summary>Gets or sets the header using the existing notifying layout state.</summary>
+    public new object? Header
+    {
+        get => base.Header;
+        set => base.Header = value;
+    }
+
+    /// <summary>Gets or sets caller-owned column metadata.</summary>
+    public new object? Tag
+    {
+        get => base.Tag;
+        set => base.Tag = value;
+    }
+
+    /// <summary>Gets or sets the sort indicator; this does not sort the source.</summary>
+    public new ListSortDirection? SortDirection
+    {
+        get => base.SortDirection;
+        set => base.SortDirection = value;
+    }
     public abstract Comparison<TModel?>? GetComparison(ListSortDirection direction);
 
     // Reimplement at this level: the older CellColumnBase accepts factories with
@@ -48,7 +70,7 @@ public abstract class ColumnBase<TModel, TValue> : ColumnBase<TModel> where TMod
     public ColumnBase(object? header, Expression<Func<TModel, TValue?>> getter,
         Action<TModel, TValue?>? setter, GridLength? width, ColumnOptions<TModel> options)
         : this(header,
-            (getter ?? throw new ArgumentNullException(nameof(getter))).Compile(preferInterpretation: true),
+            (getter ?? throw new ArgumentNullException(nameof(getter))).Compile(preferInterpretation: !RuntimeFeature.IsDynamicCodeCompiled),
             setter is null ? TypedBinding<TModel>.OneWay(getter) : TypedBinding<TModel>.TwoWay(getter, setter),
             width, options) { }
 

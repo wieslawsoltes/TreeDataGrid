@@ -23,4 +23,7 @@ public class CheckBoxColumn<TModel> : ValueCellColumn<TModel, bool?> where TMode
         BeginEditGestures = Options.BeginEditGestures;
     }
     public CheckBoxColumnOptions<TModel> Options { get; }
+
+    /// <summary>Gets whether this column represents nullable Boolean values.</summary>
+    public new bool IsThreeState => base.IsThreeState;
 }
