@@ -1,0 +1,43 @@
+name: Uno binding reassignment comparison
+
+on:
+  push:
+    branches: [codex/uno-core-port]
+    paths: [.github/workflows/uno-binding-reassignment-comparison.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.201
+      - name: Compare exact source revisions and public assignment workloads
+        run: >-
+          python3 -u build/compare-binding-reassignment.py
+          --baseline c392b11d531b9255beddfa7d1faa907fe1dd943f
+          --candidate "$GITHUB_SHA"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uno-binding-reassignment-comparison
+          path: artifacts/binding-reassignment
+          retention-days: 14
+          if-no-files-found: error
+      - name: Require unchanged product checkout
+        if: always()
+        run: git diff --exit-code && git diff --cached --exit-code
