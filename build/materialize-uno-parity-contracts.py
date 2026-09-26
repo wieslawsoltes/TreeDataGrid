@@ -177,6 +177,24 @@ def main() -> None:
         raise ValueError('Unexpected expression-chain compilation sites')
     visitor = visitor.replace('Compile(preferInterpretation: true)',
         'Compile(preferInterpretation: !RuntimeFeature.IsDynamicCodeCompiled)')
+    # Root identity links contain no accessor or reduction callback. Preserve all
+    # other expression compilation/traversal, including value-type edge cases.
+    for owner in ('node.Expression', 'node.Object'):
+        visitor = replace_once(visitor,
+            '                var link = Expression.Lambda<Func<TIn, object>>(' + owner + ', _rootExpression.Parameters);\n'
+            '                _links.Add(link.Compile(preferInterpretation: !RuntimeFeature.IsDynamicCodeCompiled));',
+            '                _links.Add(CreateLink(' + owner + '));')
+    visitor = replace_once(visitor, '        protected override Expression VisitBinary(BinaryExpression node)',
+        '        private Func<TIn, object> CreateLink(Expression owner)\n'
+        '        {\n'
+        '            // A reference root is already the owner. Do not compile an\n'
+        '            // identity DynamicMethod or interpreter for every new chain.\n'
+        '            if (ReferenceEquals(owner, _rootExpression.Parameters[0]) && !owner.Type.IsValueType)\n'
+        '                return static root => root!;\n'
+        '            return Expression.Lambda<Func<TIn, object>>(owner, _rootExpression.Parameters)\n'
+        '                .Compile(preferInterpretation: !RuntimeFeature.IsDynamicCodeCompiled);\n'
+        '        }\n\n'
+        '        protected override Expression VisitBinary(BinaryExpression node)')
     put('src/TreeDataGrid.Controls.Uno/Experimental/Data/Core/Parsers/ExpressionChainVisitor.cs',
         HEADER + visitor.replace('namespace Avalonia.Data.Core.Parsers', 'namespace Uno.Data.Core.Parsers'))
     observable = (ROOT / 'src/Avalonia.Controls.TreeDataGrid/Experimental/Data/Core/LightweightObservableBase.cs').read_text(encoding='utf-8-sig')

@@ -40,6 +40,16 @@ namespace Uno.Data.Core.Parsers
             return visitor._links.ToArray();
         }
 
+        private Func<TIn, object> CreateLink(Expression owner)
+        {
+            // A reference root is already the owner. Do not compile an
+            // identity DynamicMethod or interpreter for every new chain.
+            if (ReferenceEquals(owner, _rootExpression.Parameters[0]) && !owner.Type.IsValueType)
+                return static root => root!;
+            return Expression.Lambda<Func<TIn, object>>(owner, _rootExpression.Parameters)
+                .Compile(preferInterpretation: !RuntimeFeature.IsDynamicCodeCompiled);
+        }
+
         protected override Expression VisitBinary(BinaryExpression node)
         {
             var result = base.VisitBinary(node);
@@ -56,8 +66,7 @@ namespace Uno.Data.Core.Parsers
                 node.Expression == _head &&
                 node.Expression.Type.IsValueType == false)
             {
-                var link = Expression.Lambda<Func<TIn, object>>(node.Expression, _rootExpression.Parameters);
-                _links.Add(link.Compile(preferInterpretation: !RuntimeFeature.IsDynamicCodeCompiled));
+                _links.Add(CreateLink(node.Expression));
                 _head = node;
             }
 
@@ -72,8 +81,7 @@ namespace Uno.Data.Core.Parsers
                 node.Object == _head &&
                 node.Type.IsValueType == false)
             {
-                var link = Expression.Lambda<Func<TIn, object>>(node.Object, _rootExpression.Parameters);
-                _links.Add(link.Compile(preferInterpretation: !RuntimeFeature.IsDynamicCodeCompiled));
+                _links.Add(CreateLink(node.Object));
                 _head = node;
             }
 

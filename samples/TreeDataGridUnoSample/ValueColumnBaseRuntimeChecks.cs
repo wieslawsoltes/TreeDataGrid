@@ -35,6 +35,8 @@ internal static class ValueColumnBaseRuntimeChecks
         presentationOptions.Columns.Add("ValueBase.Text", _ =>
         {
             var result = new TextValueColumn(textOptions);
+            Check(ReferenceEquals(result.Binding.Read, result.ValueSelector),
+                "A standard text member path compiled two independent readers.");
             views.Add(result);
             textView = result;
             return result;
@@ -42,6 +44,8 @@ internal static class ValueColumnBaseRuntimeChecks
         presentationOptions.Columns.Add("ValueBase.Check", _ =>
         {
             var result = new CheckValueColumn();
+            Check(ReferenceEquals(result.Binding.Read, result.ValueSelector),
+                "A nullable Boolean member path compiled two independent readers.");
             views.Add(result);
             return result;
         });
@@ -56,6 +60,17 @@ internal static class ValueColumnBaseRuntimeChecks
             Check(ReferenceEquals(grid.Presentation!.Model, source), "A custom value column copied the shared Core source.");
             Check(textView is not null && ReferenceEquals(textView.Options, textOptions), "Column options lost caller identity.");
             VerifyVisibleRows();
+            using (var independent = new TextValueColumn(new()))
+            {
+                Check(ReferenceEquals(textView!.Binding.Links![0], independent.Binding.Links![0]) &&
+                    ReferenceEquals(independent.Binding.Links[0](items[0]), items[0]),
+                    "Independent columns did not share a stateless root identity link.");
+                var selector = independent.ValueSelector;
+                independent.Binding.Read = static _ => "Changed descriptor";
+                Check(ReferenceEquals(selector, independent.ValueSelector) && selector(items[0]) == items[0].Detail.Name,
+                    "Mutable binding metadata replaced the captured sort selector.");
+            }
+            Console.WriteLine("UNO_RUNTIME_COLUMN_CONSTRUCTION_PASSED: one standard reader, nullable values, stateless root identity and independent descriptor mutation");
             var first = grid.TryGetCell(0, 0) ?? throw new InvalidOperationException("No first value-column control was realized.");
             Check(grid.BeginEdit(0, 0), "The derived value-column TextCell did not enter native editing.");
             grid.EditingCell!.EditingText = "Edited through typed value base";

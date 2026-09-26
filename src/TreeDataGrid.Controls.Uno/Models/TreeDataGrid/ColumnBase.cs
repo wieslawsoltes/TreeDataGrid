@@ -69,10 +69,46 @@ public abstract class ColumnBase<TModel, TValue> : ColumnBase<TModel> where TMod
 
     public ColumnBase(object? header, Expression<Func<TModel, TValue?>> getter,
         Action<TModel, TValue?>? setter, GridLength? width, ColumnOptions<TModel> options)
-        : this(header,
-            (getter ?? throw new ArgumentNullException(nameof(getter))).Compile(preferInterpretation: !RuntimeFeature.IsDynamicCodeCompiled),
-            setter is null ? TypedBinding<TModel>.OneWay(getter) : TypedBinding<TModel>.TwoWay(getter, setter),
-            width, options) { }
+        : this(header, CreateExpressionBinding(getter, setter), width, options) { }
+
+    private ColumnBase(object? header,
+        (Func<TModel, TValue?> Read, TypedBinding<TModel, TValue?> Binding) expression,
+        GridLength? width, ColumnOptions<TModel> options)
+        : this(header, expression.Read, expression.Binding, width, options) { }
+
+    private static (Func<TModel, TValue?> Read, TypedBinding<TModel, TValue?> Binding) CreateExpressionBinding(
+        Expression<Func<TModel, TValue?>> getter, Action<TModel, TValue?>? setter)
+    {
+        ArgumentNullException.ThrowIfNull(getter);
+        // Only ordinary member paths have a compilation that is safe to share.
+        // Extension nodes may execute stateful Reduce callbacks; preserve the
+        // original selector-then-binding compilation order for all other shapes.
+        var share = IsParameterMemberPath(getter.Body, getter.Parameters[0]);
+        var selector = share ? null : getter.Compile(preferInterpretation: !RuntimeFeature.IsDynamicCodeCompiled);
+        var binding = setter is null ? TypedBinding<TModel>.OneWay(getter) : TypedBinding<TModel>.TwoWay(getter, setter);
+        // Capture the delegate, not a lookup through the mutable descriptor.
+        // A later Binding.Read change must not alter this column's sort selector.
+        return (selector ?? binding.Read!, binding);
+    }
+
+    private static bool IsParameterMemberPath(Expression expression, ParameterExpression parameter)
+    {
+        while (true)
+        {
+            switch (expression)
+            {
+                case MemberExpression { Expression: { } owner }:
+                    expression = owner;
+                    break;
+                case UnaryExpression { Method: null, NodeType: ExpressionType.Convert or
+                    ExpressionType.ConvertChecked or ExpressionType.TypeAs } conversion:
+                    expression = conversion.Operand;
+                    break;
+                default:
+                    return ReferenceEquals(expression, parameter);
+            }
+        }
+    }
 
     public ColumnBase(object? header, Func<TModel, TValue?> valueSelector,
         TypedBinding<TModel, TValue?> binding, GridLength? width, ColumnOptions<TModel>? options)
