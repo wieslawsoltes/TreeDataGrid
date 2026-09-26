@@ -26,10 +26,10 @@ jobs:
           dotnet-version: |
             8.0.x
             10.0.201
-      # The initial CompositeFormat candidate regressed decimal/string controls.
-      # Keep that run, and compare refined direct dispatch against the SAME
-      # pre-change baseline with the unchanged ten-workload harness.
-      - name: Compare refined numeric dispatch and unchanged controls
+      # Both earlier source candidates and their adverse controls are preserved.
+      # This revision removes the duplicated fallback hop; the original baseline,
+      # complete ten-workload harness, runtime options and collector are unchanged.
+      - name: Compare single-dispatch formatting and all control paths
         run: >-
           python3 -u build/compare-numeric-formatting.py
           --baseline 603b461eaf16339232628b1490a9847e7fb1cca4
