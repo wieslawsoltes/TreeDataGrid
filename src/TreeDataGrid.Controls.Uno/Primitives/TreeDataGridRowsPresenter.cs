@@ -45,6 +45,7 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
     private double _viewportHeight;
     private int _pooledCells;
     private int _revision;
+    private int _styleRefreshVersion;
     private int _resetDepth;
     private bool _settingPresentation;
     private bool _detached;
@@ -149,8 +150,28 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
     }
     internal void RefreshStyles()
     {
-        foreach (var row in _realized.Values) row.Style = Owner?.RowStyle;
-        foreach (var row in _pool) row.Style = Owner?.RowStyle;
+        var request = unchecked(++_styleRefreshVersion);
+        var revision = _revision;
+        var generation = PresenterGeneration;
+        // Configuration changes may invoke dependency-property callbacks which
+        // replace the source and synchronously realize a different row set.
+        // Snapshot both owner lists before the first callback; ordinary scrolling
+        // and native measure paths do not allocate these arrays.
+        var realized = _realized.Values.ToArray();
+        var pooled = _pool.ToArray();
+        var style = Owner?.RowStyle;
+        foreach (var row in realized)
+        {
+            if (!ReferenceEquals(row.Parent, this)) continue;
+            row.Style = style;
+            if (request != _styleRefreshVersion || revision != _revision || generation != PresenterGeneration) return;
+        }
+        foreach (var row in pooled)
+        {
+            if (!ReferenceEquals(row.Parent, this)) continue;
+            row.Style = style;
+            if (request != _styleRefreshVersion || revision != _revision || generation != PresenterGeneration) return;
+        }
         InvalidateRowMeasurements();
         InvalidateMeasure();
     }
@@ -158,10 +179,23 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
     {
         if (ReferenceEquals(_presentation, presentation) && ReferenceEquals(Items, presentation?.Rows) && ReferenceEquals(Columns, presentation?.Columns))
         {
-            ++_revision;
+            var refreshRevision = ++_revision;
+            var generation = PresenterGeneration;
             _geometry = geometry;
-            foreach (var row in _realized.Values) row.CellsPresenter?.SynchronizeColumns();
-            foreach (var row in _pool) row.CellsPresenter?.SynchronizeColumns();
+            var realized = _realized.Values.ToArray();
+            var pooled = _pool.ToArray();
+            foreach (var row in realized)
+            {
+                if (!ReferenceEquals(row.Parent, this)) continue;
+                row.CellsPresenter?.SynchronizeColumns();
+                if (refreshRevision != _revision || generation != PresenterGeneration) return;
+            }
+            foreach (var row in pooled)
+            {
+                if (!ReferenceEquals(row.Parent, this)) continue;
+                row.CellsPresenter?.SynchronizeColumns();
+                if (refreshRevision != _revision || generation != PresenterGeneration) return;
+            }
             InvalidateRowMeasurements();
             InvalidateMeasure();
             return;

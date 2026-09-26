@@ -440,10 +440,11 @@ namespace Uno.Controls
             target.MinWidth = source.MinWidth;
             target.MaxWidth = source.MaxWidth;
             target.BeginEditGestures = source.BeginEditGestures;
-            var ascending = source.CompareAscending;
-            var descending = source.CompareDescending;
-            target.CompareAscending = ascending is null ? null : (a, b) => ascending(a, b);
-            target.CompareDescending = descending is null ? null : (a, b) => descending(a, b);
+            // Match the reference factory, not just CreateCommonOptions:
+            // initially absent callbacks remain absent, while an installed
+            // comparison reads the caller's current callback on invocation.
+            target.CompareAscending = source.CompareAscending is null ? null : (a, b) => source.CompareAscending!(a, b);
+            target.CompareDescending = source.CompareDescending is null ? null : (a, b) => source.CompareDescending!(a, b);
         }
 
         // UI options derive from Core options for source compatibility, but the
