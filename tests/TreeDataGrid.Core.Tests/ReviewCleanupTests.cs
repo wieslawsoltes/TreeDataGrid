@@ -98,8 +98,8 @@ public sealed class ReviewCleanupTests
         rows.Dispose();
         Assert.All(old, item => Assert.Equal(1, item.Disposals));
         Assert.NotNull(current); Assert.Same(current, Assert.Single(rows));
-        Assert.Equal(0, current.Disposals);
-        rows.Dispose(); Assert.Equal(1, current.Disposals);
+        Assert.Equal(0, current!.Disposals);
+        rows.Dispose(); Assert.Equal(1, current!.Disposals);
     }
 
     private sealed class Rows(TreeDataGridItemsSourceView<Node> items, Comparison<Node>? comparison)

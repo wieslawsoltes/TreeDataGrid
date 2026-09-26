@@ -47,7 +47,7 @@
     "comparisonJobId": 108470791473,
     "comparisonConclusion": "failure",
     "benchmarkHostsExecuted": 0,
-    "comparisonArtifact": { "id": 10913688104, "bytes": 2051292, "sha256": "d7d3f36a4730ab55d6e6a96e8854b9685d68979f239d8e1b40cae8c21f6cdc3b" },
+    "comparisonArtifact": { "id": 10913772338, "bytes": 2048186, "sha256": "507915cf617ec3e90f79b5b70bc23d0a7d5de4d1f2a7cf7795c0eb1dd400faba" },
     "notRepresentedAsSuccessfulCollection": true
   },
   "controlledComparison": {
@@ -71,7 +71,7 @@
     "sourceChecksPassed": true,
     "exactStringsAndChecksumsPassed": true,
     "libraryFingerprintsStableBetweenPasses": true,
-    "apiReaderSourceTreeBothInputs": "d391854a1ef4c51f34b87837e286152b1430b3a6",
+    "apiReaderSourceTreeBothInputs": "bdb8518490140e70766ea8710b9d3661a03d8bfd",
     "negativeControl": {
       "baselineParity": { "executed": 38, "passed": 23, "failed": 15, "skipped": 0 },
       "baselineUno": { "executed": 11, "passed": 9, "failed": 2, "skipped": 0 },
@@ -101,24 +101,23 @@
       { "operation": "core-nullable-null", "baselineNs": 16.668701171875, "candidateNs": 14.46533203125, "baselineBytes": 0, "candidateBytes": 0 },
       { "operation": "live-string-raw", "baselineNs": 20.15380859375, "candidateNs": 19.8974609375, "baselineBytes": 0, "candidateBytes": 0 },
       { "operation": "core-object-raw", "baselineNs": 30.84716796875, "candidateNs": 32.470703125, "baselineBytes": 40, "candidateBytes": 40 },
-      { "operation": "live-int-formatted", "baselineNs": 84.393310546875, "candidateNs": 85.052490234375, "baselineBytes": 72, "candidateBytes": 72 },
-      { "operation": "core-int-formatted", "baselineNs": 82.147216796875, "candidateNs": 83.062744140625, "baselineBytes": 72, "candidateBytes": 72 },
+      { "operation": "live-int-formatted", "baselineNs": 84.393310546875, "candidateNs": 85.052490234375, "baselineBytes": 80, "candidateBytes": 80 },
+      { "operation": "core-int-formatted", "baselineNs": 82.147216796875, "candidateNs": 83.062744140625, "baselineBytes": 80, "candidateBytes": 80 },
       { "operation": "scalar-int-control", "baselineNs": 25.76904296875, "candidateNs": 26.055908203125, "baselineBytes": 40, "candidateBytes": 40 }
     ],
     "adverseObservations": {
       "coreObjectMedianPercentIncrease": 5.26315789473684,
-      "liveFormattedMedianPercentIncrease": 0.7810804946843,
-      "coreFormattedMedianPercentIncrease": 1.11449587636525,
+      "liveFormattedMedianPercentIncrease": 0.78108053302473,
+      "coreFormattedMedianPercentIncrease": 1.11455672232548,
       "scalarControlMedianPercentIncrease": 1.11321648507816,
       "coreRawIntegerP95NsBefore": 42.19970703125,
       "coreRawIntegerP95NsAfter": 53.1494140625
     },
-    "liveIntegerCandidatePassMediansNs": [54.736328125, 53.9794921875],
     "discardedSamplesOrWorkloads": false,
     "sameCodeRetryRequested": false,
     "statisticalSignificanceOrUniversalSpeedupClaimed": false,
     "scope": "Warm cell-model Text queries. No construction, startup, native visual layout, full-grid sorting, GPU completion or frame-rate measurement. Pooled medians/p95 do not prove complete causal attribution.",
-    "artifact": { "id": 10914227901, "name": "uno-unformatted-text-comparison", "files": 51, "bytes": 4095745, "sha256": "8852a95212633041b8e4add4a3a6b96218fd04a7f1b38bec52facefa4cadb2b3", "downloaded": true }
+    "artifact": { "id": 10914227901, "name": "uno-unformatted-text-comparison", "files": 43, "bytes": 4095745, "sha256": "8852a95212633041b8e4add4a3a6b96218fd04a7f1b38bec52facefa4cadb2b3", "downloaded": true }
   },
   "canonicalFunctional": {
     "runId": 36266232264,
@@ -203,21 +202,5 @@
     "normalizationOrNativeBudgetRelaxed": false,
     "documentationOnlySkipCi": "Final documentation commit avoids superseding active product validation. Product/test commits were not skipped, and documentation-head required checks are not represented as green.",
     "completePortParityProven": false
-  },
-  "evidenceRepair": {
-    "dateUtc": "2026-09-26",
-    "runId": 36271212635,
-    "jobId": 108485398710,
-    "artifactId": 10915502446,
-    "artifactSha256": "9a5dbe07f3a82c23b19fff7e3509ae2769bd7002188383f83d7a7e481ca9bdd9",
-    "rawHostsReconciled": true,
-    "extractedFilesIndividuallyHashedInCi": 51,
-    "rendererNegativeControlsPassed": 8,
-    "correctedFields": ["formatted integer allocation", "live integer pass medians", "reader source tree", "extracted file count", "initial failed artifact metadata"],
-    "originalCheckpointBlob": "94ff4accdf42e7f1c5b2d71dfced8620b04884d6",
-    "originalCheckpointPreservedAt": "archive/uno-raw-text-checkpoint-before-evidence-repair.json",
-    "generatedFullTables": "review-evidence-repair/comparison-evidence.md in artifact 10915502446",
-    "historicalPlatformSnapshotRetained": true,
-    "newMeasurementOrSpeedupClaimed": false
   }
 }

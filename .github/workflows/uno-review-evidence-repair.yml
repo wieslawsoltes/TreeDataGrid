@@ -7,6 +7,9 @@ on:
       - .github/workflows/uno-review-evidence-repair.yml
       - build/render-uno-comparison-evidence.py
       - build/test-uno-evidence-render.py
+      - build/check-uno-evidence-record.py
+      - build/test-uno-evidence-record.py
+      - docs/uno-raw-text-checkpoint-b38ca0f7.json
   workflow_dispatch:
 
 permissions:
@@ -21,8 +24,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Verify evidence renderer negative controls
-        run: python3 build/test-uno-evidence-render.py -v
+      - name: Verify evidence renderer and committed-record negative controls
+        run: |
+          python3 build/test-uno-evidence-render.py -v
+          python3 build/test-uno-evidence-record.py -v
       - uses: actions/download-artifact@v4
         with:
           name: uno-unformatted-text-comparison
@@ -54,6 +59,12 @@ jobs:
             --output artifacts/review-evidence-repair \
             --checkpoint docs/uno-raw-text-checkpoint-b38ca0f7.json \
             --artifact-metadata artifacts/artifact-provenance.json
+      - name: Require committed metrics to match raw evidence
+        run: |
+          python3 build/check-uno-evidence-record.py \
+            --checkpoint docs/uno-raw-text-checkpoint-b38ca0f7.json \
+            --derived artifacts/review-evidence-repair/comparison-evidence.json \
+            --metadata artifacts/artifact-provenance.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:

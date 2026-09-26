@@ -39,6 +39,13 @@ def main() -> int:
         run('gate-tests', ['python3', 'build/test-uno-api-regression.py', '-v'], root)
         run('preservation-evidence-tests', ['python3', 'build/test-uno-review-preservation.py', '-v'], root)
         subprocess.run(['git', 'merge-base', '--is-ancestor', BASELINE, 'HEAD'], cwd=root, check=True)
+        reader_trees = {name: subprocess.check_output(['git', 'rev-parse', ref + ':tools/TreeDataGrid.ApiAudit'], cwd=root, text=True).strip()
+                        for name, ref in (('baseline', BASELINE), ('candidate', 'HEAD'))}
+        # Comparing both assemblies with a changed reader could conceal a change
+        # in normalization. Reader changes require an explicit baseline review.
+        if len(set(reader_trees.values())) != 1:
+            raise ValueError('API reader changed; review the reader and preservation baseline explicitly')
+        results['unchangedReaderSourceTrees'] = reader_trees
         with tempfile.TemporaryDirectory(prefix='tdg-reviewed-baseline-') as temp:
             worktree = Path(temp) / 'source'
             subprocess.run(['git', 'worktree', 'add', '--detach', str(worktree), BASELINE], cwd=root, check=True)
