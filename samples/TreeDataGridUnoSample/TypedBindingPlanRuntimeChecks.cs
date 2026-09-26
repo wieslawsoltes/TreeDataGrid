@@ -7,10 +7,11 @@ using UI = Uno.Controls.Models.TreeDataGrid;
 namespace TreeDataGridUnoSample;
 
 /// <summary>Public instruction snapshots consumed by actual native and trimmed cells.</summary>
-internal static class TypedBindingPlanRuntimeChecks
+internal static partial class TypedBindingPlanRuntimeChecks
 {
     internal static void Run()
     {
+        VerifySameAssignments();
         var a = new Model { Number = 17 }; var b = new Model { Number = 29 };
         var descriptor = TypedBinding<Model>.TwoWay(x => x.Number, (x, v) => x.Number = v);
         using var ea = descriptor.Instance(a); using var eb = descriptor.Instance(b);

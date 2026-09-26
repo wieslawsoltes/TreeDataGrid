@@ -19,24 +19,46 @@ public partial class TypedBinding<TIn, TOut> where TIn : class
     private Optional<TOut> _fallbackValue;
     private ValueColumn<TIn, TOut>? _expressionColumn;
     private Func<TIn, object?>[]? _expressionLinks;
-    // Cells capture descriptors, not live settings. Version the scalar settings
-    // without invoking application equality; arrays additionally need an element
-    // identity check because callers can change Links in place.
+    // Cells capture descriptors, not live settings. Version every scalar assignment
+    // even when its immutable instruction identity stays the same. Arrays also need
+    // an element identity check because callers can change Links in place.
     internal int CellRevision { get; private set; }
     public Func<TIn, TOut>? Read
     {
         get => _read;
-        set { _read = value; _expressionColumn = null; unchecked { ++CellRevision; } }
+        set
+        {
+            // Keep the cold setter cheap; no instruction exists to invalidate yet.
+            // Reference identity, not delegate equality, defines a reusable plan.
+            if (_expressionColumn is not null && !ReferenceEquals(_read, value))
+                _expressionColumn = null;
+            _read = value;
+            unchecked { ++CellRevision; }
+        }
     }
     public Action<TIn, TOut>? Write
     {
         get => _write;
-        set { _write = value; _expressionColumn = null; unchecked { ++CellRevision; } }
+        set
+        {
+            if (_expressionColumn is not null && !ReferenceEquals(_write, value))
+                _expressionColumn = null;
+            _write = value;
+            unchecked { ++CellRevision; }
+        }
     }
     public Func<TIn, object>[]? Links
     {
         get => _links;
-        set { _links = value; _expressionLinks = null; unchecked { ++CellRevision; } }
+        set
+        {
+            if (_expressionLinks is not null && !ReferenceEquals(_links, value))
+                _expressionLinks = null;
+            _links = value;
+            // Reassigning the same array is NOT proof that its contents are unchanged.
+            // GetPlan still validates every element against the owned snapshot.
+            unchecked { ++CellRevision; }
+        }
     }
     public BindingMode Mode { get; set; }
     public Optional<TOut> FallbackValue
