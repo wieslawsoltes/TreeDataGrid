@@ -26,10 +26,10 @@ jobs:
           dotnet-version: |
             8.0.x
             10.0.201
-      # Retain all three earlier candidates and their complete measurements.
-      # This source revision restores string/null fast-path ordering before the
-      # numeric type query; baseline, ten workloads and collector remain unchanged.
-      - name: Compare string-first formatting and complete numeric controls
+      # The previous exact candidate allocated an additional box for Nullable<T>.
+      # Retain all earlier reports. Verify all ten unchanged public workloads
+      # against the original pre-numeric baseline; do not omit control regressions.
+      - name: Compare nullable-safe dispatch and all unchanged formatting controls
         run: >-
           python3 -u build/compare-numeric-formatting.py
           --baseline 603b461eaf16339232628b1490a9847e7fb1cca4

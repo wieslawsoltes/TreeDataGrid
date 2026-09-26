@@ -15,11 +15,14 @@ internal static class CellTextFormatting
         culture ??= CultureInfo.CurrentCulture;
         if (format == "{0}" && culture.GetType() == typeof(CultureInfo))
         {
-            // Preserve the established string/null shortcuts before querying
-            // the generic type. Numeric JIT instantiations eliminate these tests.
+            // A reference-string specialization needs no runtime value test.
+            // Do not test arbitrary value types with `is string` or `is null`:
+            // nullable values may box during those tests before fallback boxes
+            // them again. Unknown value types enter composite formatting once.
+            if (typeof(T) == typeof(string)) return (string?)(object?)value ?? string.Empty;
+            if (typeof(T).IsValueType) return FormatIdentityValue(culture, value);
             if (value is string text) return text;
             if (value is null) return string.Empty;
-            if (typeof(T).IsValueType) return FormatIdentityValue(culture, value);
         }
         return string.Format(culture, format, value);
     }
