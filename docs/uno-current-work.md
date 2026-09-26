@@ -1,177 +1,70 @@
 # Current Uno completion checklist
 
-Updated 2026-09-26 UTC. Tested implementation **081f62ac**; product **18323cb8**.
-**Full API and performance parity are not established. macOS validation remains queued.**
+2026-09-26. Implementation **aa112e51** on `codex/uno-core-port`, PR #26.
+**Draft; full API and performance parity remain open. No merge or release.**
 
-[Binding reassignment review](uno-binding-reassignment-review-2026-09-26.md) ·
-[Exact execution checkpoint](uno-ci-checkpoint-081f62ac.json) ·
-[Previous checklist preserved unchanged](archive/uno-current-work-before-081f62ac.md)
+[Public expander lifetime review](uno-public-expander-lifetime-2026-09-26.md) ·
+[Previous checkpoint preserved](archive/uno-current-work-before-aa112e51.md) ·
+[Previous binding optimization](uno-binding-reassignment-review-2026-09-26.md)
 
-## Actual branch history and ownership
+## Implemented in this continuation
 
-PR #26 remains draft on `codex/uno-core-port`, based on master `3ca47316`.
-The actual shared Core assembly owns sources, rows, hierarchy and selection.
-No duplicate Core state, merge or public release was introduced.
+The public `ExpanderCell<TModel>` now handles disposal inside row event accessors,
+observable subscription calls and initial value callbacks. Retirement immediately
+rejects further delivery, while cleanup waits until constructor callbacks return
+and all returned leases are captured. Construction stops before subsequent stages.
+Independent cleanup preserves original/ordered errors and cannot run twice.
 
-This continuation starts at `c392b11d531b9255beddfa7d1faa907fe1dd943f`, not the stale
-`93af6508` checkpoint. Earlier committed work is preserved and revalidated:
+Disposed expansion writes throw `ObjectDisposedException` instead of mutating a
+still-live shared Core row. Edit/visibility reads return false after reentrant
+retirement. Borrowed Core rows and observable sources are never disposed by the cell.
+The same native control can recover with a new public model over the same Core row,
+including native text editing, expansion and isolation from old sources.
 
-| Earlier commit | Previously implemented work | Raw declared gap |
-| --- | --- | ---: |
-| `361dd48b` | Recover nineteen portable declarations and JIT accessor continuation | 806 |
-| `920e2f9e` | Nine generic presenter declarations; safe member-reader/root-link reuse | 797 |
-| `c392b11d` | Seven specialized-cell declarations; independent-expression instruction caching | 790 |
+Nineteen shared unit/runtime cases were added. The unchanged runtime fails twelve;
+the candidate passes all nineteen. Earlier assertions, public signatures, Core,
+renderer and performance budgets are unchanged. Three private lifetime flags were
+added; no performance improvement or cross-thread safety is claimed.
 
-These are catch-up records, not newly authored declarations in this continuation.
-The recovery distinguishes original local evidence from remote execution. The new
-runtime change does not change the exported declaration inventory.
+## Verified local results
 
-New product: `18323cb8adeafc4f931efdd030d7ec50282fab52`.
-Tested implementation plus diagnostic: `081f62ac02065d4db7ee697a0ad69b2060cdacf1`.
-Tested tree: `a217acd1c3e33b62ec778db993308f60bb3cdcd0`.
-CI merge: `0e08e0a4d568a4e822ec09a3b95a029f319b3e2b`, with the same tree.
-Tree identity was verified through the Git commit API, not local reconstruction.
+**2,009 .NET cases passed, zero failed/skipped:** 228 Core, 970 Uno, 536 Avalonia,
+234 paired-framework and 41 sample-state. **65/65 registered native suites** pass,
+as do focused public-expander execution and the sequential native smoke run.
+No native suite registration or paired-framework test was added.
 
-## Implemented instruction reuse
+The production API reader still reports 1,845 reference / 1,888 target declarations,
+1,055 exact, **790 missing/different** and 833 additional/different. All dependencies
+resolve, normalization collisions are zero, and strict self-comparison has no
+differences. Core dependency matches are not independent UI-port coverage.
 
-TypedBinding Read and Write assignments preserve an existing immutable instruction
-only when the assigned delegate is reference-identical. Equal-but-distinct delegates
-still invalidate it. The Links setter preserves a same-array snapshot, but GetPlan
-still checks every element against the owned snapshot. In-place mutation and null
-entries cannot bypass validation; different arrays retain immediate invalidation.
+Local tests use an offline recovered SDK/cache; SDK metadata selects available
+8.0.31 reference/apphost packs instead of unavailable 8.0.25. Repository dependency
+pins remain unchanged. SourceLink warnings and initial restore failures are retained.
+The review details local input verification and the native-runner path adjustment.
+These local results are not substituted for canonical CI.
 
-Every assignment still advances CellRevision, including same/null assignments with
-no cached plan. Public modes, required reader/writer/link rules, fallback semantics,
-root ownership, observation and cleanup are unchanged. Expressions retain independent
-mutable state and disposal. No global cache, new runtime field, native measurement
-shortcut or renderer change was added. Concurrent descriptor/array mutation is not
-made safe by this UI-thread/reentrant ownership policy.
+## GitHub validation snapshot
 
-Authored coverage: **eighteen Uno unit cases and one composite native-consumer
-scenario**, zero new paired-framework cases and zero registered native suites.
-The focused scenario uses actual native TextCell models and independent roots,
-writes, validation, repair and cleanup. Its enclosing value-column-base suite
-retains loaded rendering, editing, sorting and virtualization assertions. No
-preexisting test assertion changed. No executed failing-baseline claim is made.
+Implementation: `aa112e51a7fdb06c3090f2b6fe64b9ebc7b4c5a0`.
+Tree: `1c494e35d67f91837cb3609e780b37af813bbf79`.
 
-## Completed functional validation
+Current [functional run](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36255768340)
+and [platform run](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36255768332)
+have not completed at this documentation snapshot. Trimming, contract reproducibility,
+reference packs and dependency snapshot passed. The previous implementation's
+platform run `36242946789` now has all six jobs passing, including macOS; it is not
+represented as current-head execution.
 
-[Functional run 36242946920](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36242946920),
-job `108406964357`, passed all fifteen stages on unchanged committed sources:
-**228 Core + 951 Uno + 536 Avalonia + 41 sample-state + 234 paired-framework =
-1,990 .NET cases**, zero failures/skips; **65/65 native suites**; sequential native
-execution; both native sample builds with zero warnings/errors; and five Activity
-Monitor sections plus lifetime checks. Existing audit-reader and Python-integrity
-checks also pass. Inventory-generation success is not cross-framework compatibility.
+The new [native performance run](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36255768337)
+completed both builds and four hosts but failed the unchanged **1.10** budget.
+Artifact `10910721852` retains the raw measurements. No performance budget was
+relaxed, retry requested or before/after speedup inferred from unrelated runs.
 
-Report artifact `10906287213` retains full TRX, logs and raw API inventories.
-Source artifact `10906881911` preserves the exact validation input.
+Only the documentation-only follow-up uses `[skip ci]` to avoid replacing active
+product checks under existing concurrency rules. The implementation was not skipped;
+this does not make documentation-head checks green or satisfy merge requirements.
 
-## Platform results and documentation CI boundary
-
-[Platform run 36242946789](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36242946789)
-has **five completed successful jobs out of six**. Windows and Ubuntu builds/tests,
-Linux native/NuGet consumers, Windows App SDK builds/package publication, and the
-published-browser build/pack/publish/execution job all passed.
-
-The new `UNO_RUNTIME_BINDING_REASSIGNMENT_PASSED` marker was inspected in sequential
-native and native NuGet-consumer logs. Browser execution is established by the
-completed execution step; its individual new marker was not independently extracted
-from the browser artifact. Native artifact: `10906213502`; browser: `10906124211`.
-The zero-warning statement above concerns the two functional native sample builds,
-not a blanket claim about all platform steps.
-
-**macOS job `108406988193` is still queued and has no executed steps.** It is not
-reported as passed, failed, skipped or replaced by earlier-revision evidence. No
-retry or cancellation was requested. Therefore the full platform workflow has not
-completed successfully at this checkpoint.
-
-The existing Uno pull-request workflow cancels an older run when a newer run for
-the same PR starts. The final four-path documentation-only commit uses `[skip ci]`
-to avoid replacing this queued product-validation run. Product and test commits
-were not skipped. No workflow definition, branch protection, acceptance assertion
-or performance threshold is changed. This does not make new-head checks green;
-GitHub may leave skipped required checks pending. No merge is requested. See
-[GitHub's workflow-skip behavior](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/skip-workflow-runs).
-
-Repository Build, trimmed binding, contract reproducibility, dependency snapshot
-and reference-pack workflows passed on the tested implementation. Native Windows
-publication is not Windows OS runtime acceptance; browser automation is not physical
-input, universal-browser, IME or external screen-reader acceptance. The earlier
-intermittent allocation observation remains unexplained.
-
-## Controlled allocation gain and adverse timing controls
-
-[Comparison run 36242946975](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36242946975)
-uses exact baseline/candidate revisions and one identical external public harness
-in ABBA process order. Four hosts completed twelve workloads, with thirty measured
-batches per workload/revision. Tiered compilation and ReadyToRun were disabled
-identically for both sides. This is not default-runtime or native-frame acceptance.
-
-Reassigning all three identical inputs reduces expression-creation allocation
-**528 to 280 bytes (-46.97%)** and the pooled median **129.69 to 89.48 ns (-31.01%)**.
-The observed-expression and native TextCell-model paths save the same 248 bytes,
-with medians decreasing 10.99% and 10.81%. Repeated single reader/writer/link
-assignments also allocate less. Stable, genuinely changed, transient and direct
-controls show unchanged allocation medians.
-
-**Adverse observations are retained:** stable-control median increases **13.12%**,
-mutated links **4.09%**, transient descriptors **1.91%**, and direct construction
-**3.26%**. Replaced-link p95 increases from 181.57 to 219.78 ns. These results are
-not dismissed as proven noise or described as confidence intervals. The narrow
-allocation benefit is retained with explicit timing tradeoffs, not a universal
-speedup or complete causal claim. No samples/workloads were discarded and no
-comparison retry was requested.
-
-Artifact `10905764930` preserves all raw samples, fingerprints, p95 and per-pass
-medians. The review includes all twelve workloads. The managed diagnostic is not
-native-control layout, full-grid sorting, startup, GPU completion or frame rate.
-
-## Current API audit: unchanged by this patch
-
-| Scope | Reference | Target | Exact | Missing/different | Additional/different |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Combined inputs | 1,845 | 1,888 | 1,055 | 790 | 833 |
-| Identical Core dependency | 590 | 590 | 590 | 0 | 0 |
-| Independent UI assemblies | 1,255 | 1,298 | 465 | 790 | 833 |
-
-The 790 differences comprise 208 changed declarations at the same identity,
-43 absent exported type identities, 316 members of absent types, eighty members
-not declared on matched types and 143 overload/parameter-identity differences.
-Shared Core matches are not independently ported UI contracts. Dependencies resolve,
-normalization collisions are zero and no raw difference is waived. Supplemental
-metadata: 13,465/15,880 entries, 3,887 exact, 9,578 missing-or-different and 11,993
-additional-or-different. Strict self-comparison matches all 1,888 declared and
-15,880 supplemental records with zero differences. Counts are not feature-completion
-percentages, ABI guarantees or automatically accepted native/Core mappings.
-
-## Independent native performance remains failed
-
-[Run 36242946887](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36242946887)
-completed both builds and all four measured hosts but failed the unchanged **1.10**
-timing/allocation gate. Artifact `10906717819` preserves its raw measurements.
-
-| Workload | Uno/Avalonia time | Uno/Avalonia allocation |
-| --- | ---: | ---: |
-| Horizontal scroll | 2.340 | 0.695 |
-| Vertical scroll | 1.925 | 1.957 |
-| Distant diagonal scroll | 3.697 | 1.917 |
-| Visible-row replacement | 1.451 | 2.668 |
-| Visible-column resize | 1.638 | 1.516 |
-| Sorting | 1.458 | 0.620 |
-
-These are synchronous UI/layout and settlement measurements, not GPU completion,
-frame rate or a controlled before/after native gain from this patch. Do not combine
-the independent gate with the managed diagnostic into an extra speedup claim.
-
-Remaining: actual API/signature/inheritance/native-type contracts; measured native
-text/layout, lifecycle and sorting costs; hierarchy/variable-height workloads;
-broader callback and intermittent-allocation investigation; physical input/drag,
-Unicode/IME, external accessibility and cross-head lifecycle/scaling. Full parity
-is not established. No original assertion, Core rule, normalization policy, trimming
-diagnostic, rendering option or performance budget was weakened.
-
-Local execution tools returned ClientError. Tests and benchmarks ran in GitHub
-Actions. Completed logs, artifact metadata and repository tree identities were
-inspected; no local compilation, archive extraction, independently reconstructed
-source tree or locally recomputed archive digest is claimed in this continuation.
+Remaining acceptance includes API/native-type/Core/inheritance contracts, native
+text/layout and sorting costs, hierarchy/variable-height workloads, physical input,
+IME, external accessibility and cross-platform runtime behavior.
