@@ -1,0 +1,18 @@
+<Project Sdk="Uno.Sdk">
+  <PropertyGroup>
+    <TreeDataGridUnoTargetFrameworks Condition="'$(TreeDataGridUnoTargetFrameworks)' == '' and '$(OS)' == 'Windows_NT'">net10.0;net10.0-desktop;net10.0-windows10.0.26100</TreeDataGridUnoTargetFrameworks>
+    <TreeDataGridUnoTargetFrameworks Condition="'$(TreeDataGridUnoTargetFrameworks)' == ''">net10.0;net10.0-desktop</TreeDataGridUnoTargetFrameworks>
+    <TargetFrameworks>$(TreeDataGridUnoTargetFrameworks)</TargetFrameworks>
+    <RootNamespace>Uno.Controls</RootNamespace>
+    <PackageId>TreeDataGrid.Controls.Uno</PackageId>
+    <AssemblyName>TreeDataGrid.Controls.Uno</AssemblyName>
+    <IsPackable>true</IsPackable>
+    <GenerateLibraryLayout>true</GenerateLibraryLayout>
+    <Description>Uno Platform presentation of framework-neutral TreeDataGrid Core sources.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../TreeDataGrid.Core/TreeDataGrid.Core.csproj" />
+    <InternalsVisibleTo Include="TreeDataGrid.Uno.Tests" />
+    <None Include="../../THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+</Project>

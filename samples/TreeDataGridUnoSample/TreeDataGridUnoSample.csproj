@@ -1,0 +1,53 @@
+<Project Sdk="Uno.Sdk">
+  <PropertyGroup>
+    <TreeDataGridUnoSampleTargetFrameworks Condition="'$(TreeDataGridUnoSampleTargetFrameworks)' == '' and '$(OS)' == 'Windows_NT'">net10.0-desktop;net10.0-browserwasm;net10.0-windows10.0.26100</TreeDataGridUnoSampleTargetFrameworks>
+    <TreeDataGridUnoSampleTargetFrameworks Condition="'$(TreeDataGridUnoSampleTargetFrameworks)' == ''">net10.0-desktop;net10.0-browserwasm</TreeDataGridUnoSampleTargetFrameworks>
+    <TargetFrameworks>$(TreeDataGridUnoSampleTargetFrameworks)</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+    <UnoSingleProject>true</UnoSingleProject>
+    <IsPackable>false</IsPackable>
+    <ApplicationTitle>TreeDataGrid Uno Core Sample</ApplicationTitle>
+    <ApplicationId>com.wieslawsoltes.treedatagridunosample</ApplicationId>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+    <UnoFeatures>SkiaRenderer</UnoFeatures>
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
+    <DefineConstants>$(DefineConstants);TREEDATAGRID_UNO_SAMPLE</DefineConstants>
+  </PropertyGroup>
+  <!-- Application projects do not inherit Uno.UI's private __SKIA__ symbol.
+       Select the decoder path from this project's actual desktop target. -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-desktop'">
+    <DefineConstants>$(DefineConstants);TREEDATAGRID_SKIA</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <ApplicationManifest>Platforms/Windows/app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../TreeDataGridUnoShared/SampleRunContext.cs" Link="Infrastructure/SampleRunContext.cs" />
+    <Compile Include="../TreeDataGridUnoShared/ObservableSampleModel.cs" Link="Infrastructure/ObservableSampleModel.cs" />
+    <ProjectReference Include="../../src/TreeDataGrid.Controls.Uno/TreeDataGrid.Controls.Uno.csproj" Condition="'$(TreeDataGridUnoPackageVersion)' == ''" />
+    <PackageReference Include="TreeDataGrid.Controls.Uno" Version="$(TreeDataGridUnoPackageVersion)" Condition="'$(TreeDataGridUnoPackageVersion)' != ''" />
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />
+    <PackageReference Include="SkiaSharp" Version="3.119.2" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'" />
+    <PackageReference Include="Bogus" Version="34.0.2" />
+    <Compile Include="../TreeDataGridDemo/Models/Country.cs" Link="Models/Country.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/Countries.cs" Link="Models/Countries.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/Person.cs" Link="Models/Person.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/DragDropItem.cs" Link="Models/DragDropItem.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/TemplateColumnItem.cs" Link="Models/TemplateColumnItem.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/OnThisDay.cs" Link="Models/OnThisDay.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/OnThisDayJsonSerializerContext.cs" Link="Models/OnThisDayJsonSerializerContext.cs" />
+    <Content Include="../TreeDataGridDemo/Assets/file.png" Link="Assets/file.png" />
+    <Content Include="../TreeDataGridDemo/Assets/folder.png" Link="Assets/folder.png" />
+    <Compile Include="../TreeDataGridDemo/Models/FileTreeNodeModel.cs" Link="Models/FileTreeNodeModel.cs" />
+    <Compile Include="../TreeDataGridDemo/ViewModels/PeopleXamlPageViewModel.cs" Link="Models/PeopleXamlPageViewModel.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.12" />
+    <!-- Native generated metadata and typed registrations replace only the
+         optional unbounded reflection fallback. Trimming remains enabled. -->
+    <RuntimeHostConfigurationOption Include="TreeDataGrid.Binding.ReflectionEnabled" Value="false" Trim="true" />
+  </ItemGroup>
+</Project>

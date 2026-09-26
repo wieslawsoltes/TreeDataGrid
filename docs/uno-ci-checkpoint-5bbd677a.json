@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "dateUtc": "2026-09-25",
+  "repository": "wieslawsoltes/TreeDataGrid",
+  "pullRequest": 26,
+  "branch": "codex/uno-core-port",
+  "startingCommit": "06cacc070c5cb596717934eee95ecca4cf7971b1",
+  "recoveredDocumentationCommit": "8f4b19606e41b7a5425d79341ab8905bdacb624e",
+  "productCommit": "16b7aad1a8772ae2abea728ced47bfe8e9405ff0",
+  "productTree": "36b69183e0dddffc4637ab8b97f48f2d28ba15c1",
+  "testedCommit": "5bbd677a61c29b503b3bce75a9e0745c64a0ac6e",
+  "testedTree": "3e959d60aa10176c85f461873b6dbacd702a54cf",
+  "testedMerge": "9a7f7f150ef750626892c8e8e4722d016ef78afe",
+  "mergeTreeMatchesTestedTree": true,
+  "testedCommitDifferenceFromProduct": "Comparison workflow only; identical product source.",
+  "authoredCoverage": {
+    "newDotnetCases": 0,
+    "newRegisteredNativeSuites": 0,
+    "newNativeChecks": 2,
+    "containingSuite": "cell-lifecycle",
+    "newExportedApiShapes": 0,
+    "warmedObservationCycles": 4096,
+    "warmedObservationAllocatedBytes": 0,
+    "headerRealizations": 256,
+    "headerAttachmentsPerModel": 128,
+    "marker": "UNO_RUNTIME_OBSERVER_ALLOCATION_PASSED"
+  },
+  "validation": {
+    "runId": 36127567558,
+    "jobId": 108047173228,
+    "conclusion": "success",
+    "unchangedCheckout": true,
+    "stagesPassed": 15,
+    "dotnetTests": {
+      "core": 228,
+      "uno": 784,
+      "avalonia": 536,
+      "sampleState": 41,
+      "directFrameworkParity": 151,
+      "total": 1740,
+      "failed": 0,
+      "skipped": 0
+    },
+    "nativeSuites": {
+      "registered": 65,
+      "passed": 65
+    },
+    "newMarkerInIsolatedAndSequentialLogs": true,
+    "nativeSampleBuildWarnings": 0,
+    "nativeSampleBuildErrors": 0,
+    "activityMonitor": "five sections and lifetime passed",
+    "pythonAuditTests": 12,
+    "metadataSemanticChecks": 39,
+    "normalizationChecks": 57,
+    "artifactId": 10860058378,
+    "artifactSha256": "1e12aa56e961fa9bf2ab4be36673f5317c6ef2829d909ef110c7aa014487eaca"
+  },
+  "sourceArtifact": {
+    "artifactId": 10860142559,
+    "sha256": "1f573dcd95e11ff8d6b5e4d96aa8e9782091fc4b4e0e88224360d3b143c45df4",
+    "extractedGitTreeVerified": true
+  },
+  "controlledComparison": {
+    "runId": 36127563554,
+    "jobId": 108047071981,
+    "collectionSucceeded": true,
+    "artifactId": 10860148409,
+    "artifactSha256": "899adf87569ebe9c2a503610c75f3c018f5979a4dc0d9085054cf3deebcc8012",
+    "baselineCommit": "06cacc070c5cb596717934eee95ecca4cf7971b1",
+    "candidateCommit": "16b7aad1a8772ae2abea728ced47bfe8e9405ff0",
+    "revisionOrder": [
+      "baseline",
+      "candidate",
+      "candidate",
+      "baseline"
+    ],
+    "frameworkHosts": 16,
+    "unoSamplesPerOperationPerRevision": 100,
+    "identicalUnoFrameSequencesVerified": true,
+    "unoHostsCompared": 8,
+    "framesPerHost": 150,
+    "timingsMixed": true,
+    "statisticalSignificanceClaimed": false,
+    "universalSpeedupClaimed": false,
+    "allOriginalPassBudgetsMet": false,
+    "artifactSummaryPath": "before-after.json"
+  },
+  "independentPerformanceGate": {
+    "runId": 36127567515,
+    "conclusion": "failure",
+    "buildsAndHostsSucceeded": true,
+    "ratioBudget": 1.1,
+    "budgetMet": false,
+    "artifactId": 10860617646,
+    "artifactSha256": "adad0e229dd0b8b0ccc41714ba3535a3a1bf796228e27610e4423eb52f33961c",
+    "scope": "Synchronous UI-thread source/layout work and verified layout-settlement latency. Not GPU completion, frame rate, input latency, accessibility, variable-height or all-feature parity.",
+    "ratios": [
+      {
+        "operation": "distant-diagonal-scroll",
+        "timingRatio": 3.940351198936317,
+        "allocationRatio": 1.9282573147692454
+      },
+      {
+        "operation": "replace-visible-row",
+        "timingRatio": 1.6392498961485964,
+        "allocationRatio": 2.6677908937605395
+      },
+      {
+        "operation": "resize-visible-column",
+        "timingRatio": 1.7762946018751224,
+        "allocationRatio": 1.5160611329733686
+      },
+      {
+        "operation": "scroll-x",
+        "timingRatio": 7.272019539001678,
+        "allocationRatio": 1.0634441087613293
+      },
+      {
+        "operation": "scroll-y",
+        "timingRatio": 2.4243622901769863,
+        "allocationRatio": 1.9566068515497552
+      },
+      {
+        "operation": "sort",
+        "timingRatio": 2.2803301820452306,
+        "allocationRatio": 0.619731823627971
+      }
+    ]
+  },
+  "otherCompletedChecks": {
+    "repositoryBuild": 36127567470,
+    "contractReproducibility": 36127567534,
+    "publishedTrimmedBindingContract": 36127567556,
+    "referencePacks": 36127567476,
+    "dependencySnapshot": 36127567488
+  },
+  "api": {
+    "baselineShapes": 1845,
+    "targetShapes": 1833,
+    "exactNormalizedMatches": 1010,
+    "missingOrDifferent": 835,
+    "additionalOrDifferent": 823,
+    "unresolvedBaselineTypes": 0,
+    "unresolvedTargetTypes": 0,
+    "supplementalMetadata": {
+      "baselineEntries": 13465,
+      "targetEntries": 15732,
+      "exactMatches": 3822,
+      "missingOrDifferent": 9643,
+      "additionalOrDifferent": 11910
+    },
+    "rawDifferencesPreserved": true,
+    "completeApiParityProven": false
+  },
+  "acceptance": {
+    "draft": true,
+    "merged": false,
+    "publicRelease": false,
+    "allPortWorkComplete": false,
+    "coreOwnershipChanged": false,
+    "assertionsWeakened": false,
+    "trimmingDiagnosticsRelaxed": false,
+    "rendererSettingsChanged": false,
+    "performanceThresholdChanged": false
+  },
+  "localValidation": {
+    "dotnetSdkAvailable": false,
+    "dotnetAndNativeExecution": "GitHub Actions on committed input; source snapshot and raw artifacts inspected locally."
+  },
+  "platform": {
+    "runId": 36127567483,
+    "conclusion": "success",
+    "completedSuccessfulJobs": 6,
+    "windowsLinuxMacOsBuildsAndTests": "success",
+    "linuxNativePackageConsumers": "success",
+    "windowsAppSdkBuildAndPublication": "success",
+    "browserJobId": 108047181959,
+    "browserBuildPublishExecute": "success",
+    "browserVersion": "143.0.7499.4",
+    "browserResults": {
+      "showcase": true,
+      "monitor": true,
+      "inputScale1": true,
+      "inputScale2": true
+    },
+    "newObserverMarkerInPublishedBrowser": true,
+    "artifactId": 10860474221,
+    "artifactSha256": "502500baa181d3da5ca32212a32c3b4c207e2c525e9f0f53b335492b349da900",
+    "documentationPushedAfterPlatformCompletion": true,
+    "scope": "Windows App SDK publication is not Windows OS runtime execution. Pinned Chromium/browser-dispatched tests are not physical input, all-browser, IME, external accessibility or universal DPI acceptance."
+  }
+}

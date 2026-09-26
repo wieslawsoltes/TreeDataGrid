@@ -10,6 +10,7 @@
     <InternalsVisibleTo Include="Avalonia.Controls.TreeDataGrid" />
     <InternalsVisibleTo Include="TreeDataGrid.Avalonia" />
     <InternalsVisibleTo Include="TreeDataGrid.Core.Tests" />
+    <None Include="../../THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="" />
   </ItemGroup>
   <Import Project="../../build/FrameworkNeutral.targets" />
 </Project>

@@ -1,0 +1,182 @@
+{
+  "schemaVersion": 1,
+  "dateUtc": "2026-09-25",
+  "repository": "wieslawsoltes/TreeDataGrid",
+  "pullRequest": 26,
+  "branch": "codex/uno-core-port",
+  "baseCommit": "3ca47316d724e5e040ab0281a880e8df999b25fc",
+  "startingCommit": "01ecd1f5c8cd1a25e892c1a81734df8cabf22f0e",
+  "testedCommit": "f8ff3b7cf345d42752ac19963b54f4f929ab3885",
+  "testedTree": "b0941c6d337049b09bee2532fc43ad8ac5f0880a",
+  "testedMerge": "9c5e85e1da07e76f6cf7253e3b55739c27c90675",
+  "mergeTreeMatchesProductTree": true,
+  "implementationCommits": [
+    "550b8203eaaa7af50d5440a1991788c0798484c4",
+    "8c5eccb244847bfd63e0bc0e9cd22adb0456ca23",
+    "f8ff3b7cf345d42752ac19963b54f4f929ab3885"
+  ],
+  "authoredCoverage": {
+    "newUnoUnitCases": 14,
+    "newDirectFrameworkCases": 9,
+    "newDotnetCasesTotal": 23,
+    "newNativeScenarios": 1,
+    "newRegisteredNativeSuites": 0,
+    "containingSuite": "builtin-column-comparison",
+    "markers": [
+      "UNO_RUNTIME_LEGACY_TYPED_COLUMN_PROJECTION_PASSED",
+      "UNO_RUNTIME_TYPED_COLUMN_CONTRACT_PASSED"
+    ],
+    "sourceTestAndSampleFilesChanged": 11,
+    "priorTypedAndIncomingAutomationWorkRecountedAsNew": false,
+    "focusedWarmedLookupIterations": 4096,
+    "focusedWarmedLookupAllocatedBytes": 0
+  },
+  "intermediateFailures": [
+    {
+      "commit": "01ecd1f5c8cd1a25e892c1a81734df8cabf22f0e",
+      "issues": [
+        "Typed interface reimplementation bypassed an explicit legacy factory.",
+        "Unmeasured configured pixel columns produced a zero list-width estimate.",
+        "Direct-framework Auto tests compared ignored numeric payloads rather than native sizing units."
+      ]
+    },
+    {
+      "commit": "8c5eccb244847bfd63e0bc0e9cd22adb0456ca23",
+      "issue": "A new identity test exposed variant interface dispatch selecting the typed facade through native IColumns. Product fixed in f8ff3b7c; the failing assertion was preserved."
+    }
+  ],
+  "validation": {
+    "runId": 36143814796,
+    "jobId": 108099839407,
+    "conclusion": "success",
+    "requiredStages": 15,
+    "passedStages": 15,
+    "unchangedCheckout": true,
+    "dotnetTests": {
+      "core": 228,
+      "uno": 810,
+      "avalonia": 536,
+      "sampleState": 41,
+      "directFrameworkParity": 171,
+      "total": 1786,
+      "failed": 0,
+      "skipped": 0
+    },
+    "nativeSuites": { "registered": 65, "passed": 65 },
+    "sequentialNative": "passed",
+    "nativeSampleBuildWarnings": 0,
+    "nativeSampleBuildErrors": 0,
+    "activityMonitor": "five sections and lifetime checks passed",
+    "pythonAuditTests": 12,
+    "metadataSemanticChecks": 39,
+    "normalizationChecks": 57,
+    "artifactId": 10868642526,
+    "artifactSha256": "d4a84795935eb224c6cfe57ecc97da9581a3c32a4363fe2f8983b357fb318b6f"
+  },
+  "platform": {
+    "runId": 36143814749,
+    "conclusion": "success",
+    "completedSuccessfulJobs": 6,
+    "windowsLinuxMacOsBuildsAndTests": "success",
+    "windowsAppSdkBuildAndPublication": "success",
+    "linuxNativePackageConsumers": "success",
+    "linuxNativeJobId": 108100159876,
+    "nativeArtifactId": 10868268081,
+    "nativeArtifactSha256": "4851634159b82812e3c2b4126670c0ae66c3850ba9a8f48e68070aaf12cdf4a2",
+    "legacyFactoryMarkerInNativePackageConsumer": true,
+    "browserJobId": 108100159702,
+    "browserBuildPublishExecute": "success",
+    "browserResults": {
+      "showcase": "passed",
+      "activityMonitor": "passed",
+      "inputScale1": "passed",
+      "inputScale2": "passed"
+    },
+    "browserArtifactId": 10869228311,
+    "browserArtifactSha256": "b7963614f6e04b2be95186c7ec018e551771458da3ba81f437034c18e1963495",
+    "documentationPreparedAfterProductPlatformCompletion": true,
+    "scope": "Windows App SDK build/publication is not Windows OS runtime execution. Browser-driver routes are not physical-device, universal browser, IME, external screen-reader or universal DPI acceptance."
+  },
+  "otherCompletedChecks": {
+    "repositoryBuild": 36143814765,
+    "contractReproducibility": 36143814846,
+    "publishedTrimmedBindingContract": 36143814856,
+    "referencePacks": 36143814852,
+    "dependencySnapshot": 36143814771
+  },
+  "api": {
+    "baselineShapes": 1845,
+    "targetShapes": 1839,
+    "exactNormalizedMatches": 1011,
+    "missingOrDifferent": 834,
+    "additionalOrDifferent": 828,
+    "unresolvedBaselineTypes": 0,
+    "unresolvedTargetTypes": 0,
+    "strictSelfComparison": "passed",
+    "supplementalMetadata": {
+      "baselineEntries": 13465,
+      "targetEntries": 15787,
+      "exactMatches": 3838,
+      "missingOrDifferent": 9627,
+      "additionalOrDifferent": 11949
+    },
+    "rawDifferencesPreserved": true,
+    "automaticCoreEquivalencesAccepted": 0,
+    "countsAreCompletionPercentages": false,
+    "completeApiParityProven": false,
+    "allThirdPartyBinaryCompatibilityProven": false
+  },
+  "performance": {
+    "runId": 36143814751,
+    "jobId": 108099839086,
+    "conclusion": "failure",
+    "buildsAndHostsSucceeded": true,
+    "pairedHosts": 4,
+    "order": "AB/BA alternating",
+    "validMeasuredFrames": true,
+    "unchangedRatioBudget": 1.1,
+    "budgetMet": false,
+    "artifactId": 10868586955,
+    "artifactSha256": "1abe9e479363ac8a1bc856b174c12fe41b2abd7764278a62555e8df97e5962f0",
+    "controlledBeforeAfterExperiment": false,
+    "wholeGridSpeedupClaimed": false,
+    "scope": "Synchronous UI-thread source/layout work and verified settlement; not GPU completion, frame rate, physical input, variable-height or all-feature parity.",
+    "medianComparisons": [
+      { "operation": "scroll-x", "avaloniaMilliseconds": 0.53155, "unoMilliseconds": 2.70585, "timingRatio": 5.090490076192268, "avaloniaAllocatedBytes": 21184, "unoAllocatedBytes": 22528, "allocationRatio": 1.0634441087613293 },
+      { "operation": "scroll-y", "avaloniaMilliseconds": 1.28570, "unoMilliseconds": 2.72845, "timingRatio": 2.1221513572373025, "avaloniaAllocatedBytes": 98080, "unoAllocatedBytes": 191904, "allocationRatio": 1.9566068515497552 },
+      { "operation": "distant-diagonal-scroll", "avaloniaMilliseconds": 2.64200, "unoMilliseconds": 9.40840, "timingRatio": 3.56109008327025, "avaloniaAllocatedBytes": 503912, "unoAllocatedBytes": 971672, "allocationRatio": 1.9282573147692454 },
+      { "operation": "replace-visible-row", "avaloniaMilliseconds": 2.59405, "unoMilliseconds": 3.92030, "timingRatio": 1.5112661668048033, "avaloniaAllocatedBytes": 37952, "unoAllocatedBytes": 101248, "allocationRatio": 2.6677908937605395 },
+      { "operation": "resize-visible-column", "avaloniaMilliseconds": 4.84590, "unoMilliseconds": 8.28055, "timingRatio": 1.7087744278668564, "avaloniaAllocatedBytes": 87416, "unoAllocatedBytes": 132528, "allocationRatio": 1.5160611329733686 },
+      { "operation": "sort", "avaloniaMilliseconds": 43.68275, "unoMilliseconds": 71.76715, "timingRatio": 1.6429173987443557, "avaloniaAllocatedBytes": 1675936, "unoAllocatedBytes": 1038616, "allocationRatio": 0.6197229488476887 }
+    ],
+    "rawP95AndSettlementPreservedInArtifact": true
+  },
+  "acceptance": {
+    "draft": true,
+    "merged": false,
+    "publicRelease": false,
+    "allPortWorkComplete": false,
+    "coreOwnershipChanged": false,
+    "trimmingDiagnosticsRelaxed": false,
+    "rendererSettingsChanged": false,
+    "performanceThresholdChanged": false,
+    "originalExplicitFactoryWidthAndNativeIdentityAssertionsPreserved": true,
+    "crossFrameworkAutoAssertionCorrection": "Compare all native sizing flags and unit enum. Auto's ignored numeric payload differs; exact pixel/star weights remain asserted. Nine additional direct-framework initial-width cases exercise all built-in kinds and units.",
+    "remaining": [
+      "Genuine member/signature/inheritance/attribute contracts and explicit tested Core/native mappings",
+      "Broader custom-source and mixed-callback review",
+      "Unchanged timing/allocation budgets and hierarchy/variable-height workloads",
+      "Physical input/drag, Unicode/IME, external accessibility and cross-head lifecycle/scaling acceptance"
+    ]
+  },
+  "localValidation": {
+    "executionAvailable": false,
+    "failure": "Local execution tools returned ClientError.",
+    "localCompilationClaimed": false,
+    "localArchiveExtractionClaimed": false,
+    "localByteForByteVerificationClaimed": false,
+    "dotnetAndNativeEvidence": "GitHub Actions on unchanged committed input; remote job logs and artifact metadata inspected.",
+    "gitTreeVerification": "Repository API",
+    "previousChecklistPreservedBlob": "8d8c70c80d1436e0eb5e60b79894bef29d2f8424"
+  }
+}

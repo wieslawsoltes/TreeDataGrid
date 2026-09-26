@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Avalonia.Controls.Models;
-using Avalonia.Media.Imaging;
-
-namespace TreeDataGridDemo.Models
+﻿namespace TreeDataGridDemo.Models
 {
     internal class OnThisDay
     {
@@ -21,47 +12,14 @@ namespace TreeDataGridDemo.Models
         public OnThisDayArticle[]? Pages { get; set; }
     }
 
-    internal class OnThisDayArticle : NotifyingBase
+    // Shared feed data; image loading lives in a platform-specific partial.
+    internal partial class OnThisDayArticle
     {
-        private bool _loadedImage;
-        private Bitmap? _image;
-
         public string? Type { get; set; }
         public OnThisDayTitles? Titles { get; set; }
         public OnThisDayImage? Thumbnail { get; set; }
         public string? Description { get; set; }
         public string? Extract { get; set; }
-
-        public Bitmap? Image
-        {
-            get
-            {
-                if (_image is null && !_loadedImage)
-                {
-                    _ = LoadImageAsync();
-                }
-
-                return _image;
-            }
-            private set => RaiseAndSetIfChanged(ref _image, value);
-        }
-
-        private async Task LoadImageAsync()
-        {
-            _loadedImage = true;
-
-            if (Thumbnail?.Source is null)
-                return;
-
-            try
-            {
-                // Load the image from the url.
-                var bytes = await WikipediaHttpClient.Shared.GetByteArrayAsync(Thumbnail!.Source);
-                var s = new MemoryStream(bytes);
-                Image = new Bitmap(s);
-            }
-            catch { }
-        }
     }
 
     internal class OnThisDayTitles

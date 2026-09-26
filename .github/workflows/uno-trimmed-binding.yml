@@ -1,0 +1,35 @@
+name: Uno trimmed binding contract
+
+on:
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  trimmed-binding:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.201
+      - name: Publish the real library consumer with trimming enabled
+        run: |
+          dotnet publish tests/TreeDataGrid.Uno.TrimTests/TreeDataGrid.Uno.TrimTests.csproj \
+            -c Release -r linux-x64 --self-contained true \
+            -p:TreeDataGridUnoTargetFrameworks=net10.0 -o artifacts/trimmed-binding
+      - name: Execute the trimmed binary
+        run: artifacts/trimmed-binding/TreeDataGrid.Uno.TrimTests
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uno-trimmed-binding
+          path: artifacts/trimmed-binding
+          retention-days: 7
+      - name: Verify unchanged checkout
+        if: always()
+        run: git diff --exit-code && git diff --cached --exit-code

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <RoslynPath>$(MSBuildSDKsPath)/../Roslyn/bincore</RoslynPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CodeAnalysis" HintPath="$(RoslynPath)/Microsoft.CodeAnalysis.dll" Private="true" />
+    <Reference Include="Microsoft.CodeAnalysis.CSharp" HintPath="$(RoslynPath)/Microsoft.CodeAnalysis.CSharp.dll" Private="true" />
+  </ItemGroup>
+</Project>

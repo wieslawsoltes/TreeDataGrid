@@ -1,0 +1,66 @@
+name: Uno contract reproducibility
+on:
+  push:
+    branches: [master, codex/uno-core-port]
+    paths:
+      - build/materialize-uno-parity-contracts.py
+      - build/uno-parity-inputs/**
+      - src/TreeDataGrid.Core/**
+      - src/TreeDataGrid.Controls.Uno/**
+      - src/Avalonia.Controls.TreeDataGrid/**
+      - tests/TreeDataGrid.Parity.Tests/**
+      - tools/TreeDataGrid.ApiAudit/**
+      - .github/workflows/uno-contract-materialization.yml
+  pull_request:
+    paths:
+      - build/materialize-uno-parity-contracts.py
+      - build/uno-parity-inputs/**
+      - src/TreeDataGrid.Core/**
+      - src/TreeDataGrid.Controls.Uno/**
+      - src/Avalonia.Controls.TreeDataGrid/**
+      - tests/TreeDataGrid.Parity.Tests/**
+      - tools/TreeDataGrid.ApiAudit/**
+      - .github/workflows/uno-contract-materialization.yml
+permissions:
+  contents: read
+concurrency:
+  group: uno-contract-reproducibility-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify-committed-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.201
+      - name: Verify hash-pinned inputs and exact generated sources offline
+        run: python3 build/materialize-uno-parity-contracts.py --check
+      - name: Compile and compare the actual framework contracts
+        run: dotnet test tests/TreeDataGrid.Parity.Tests/TreeDataGrid.Parity.Tests.csproj -c Release -p:TreeDataGridUnoTargetFrameworks=net10.0 --logger trx --results-directory artifacts/contract-reproducibility-tests
+      - name: Exercise the compiled metadata reader including nonfinite constants
+        run: dotnet run --project tools/TreeDataGrid.ApiAudit -c Release -- --self-test
+      - name: Require unchanged product sources
+        if: always()
+        run: git diff --exit-code && git diff --cached --exit-code
+      - name: Record exact validation input
+        if: always()
+        run: |
+          mkdir -p artifacts
+          git rev-parse HEAD > artifacts/validated-revision.txt
+          git rev-parse HEAD^{tree} > artifacts/validated-tree.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uno-contract-reproducibility
+          path: artifacts
+          if-no-files-found: error
+          retention-days: 14

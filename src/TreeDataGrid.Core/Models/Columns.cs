@@ -233,8 +233,9 @@ namespace TreeDataGridCore.Models
                 _setExpanded = Expression.Lambda<Action<TModel, bool>>(Expression.Assign(isExpandedSelector.Body, value), isExpandedSelector.Parameters[0], value).Compile();
             }
         }
-        public bool? GetModelIsExpanded(TModel model) => _getExpanded?.Invoke(model);
-        Utils.PropertyPathObserver<TModel>? IModelExpansionObserver<TModel>.ExpansionObserver => _expandedObserver;
+        public virtual bool? GetModelIsExpanded(TModel model) => _getExpanded?.Invoke(model);
+        IDisposable? IModelExpansionObserver<TModel>.SubscribeToExpansion(TModel model, Action changed) =>
+            _expandedObserver?.Subscribe(model, changed);
         public IColumn<TModel> Inner { get; }
         public string Id => Inner.Id;
         public object? Header => Inner.Header;
@@ -244,9 +245,9 @@ namespace TreeDataGridCore.Models
         public ListSortDirection? SortDirection { get => Inner.SortDirection; set => Inner.SortDirection = value; }
         public object? Tag { get => Inner.Tag; set => Inner.Tag = value; }
         public event PropertyChangedEventHandler? PropertyChanged { add => Inner.PropertyChanged += value; remove => Inner.PropertyChanged -= value; }
-        public bool HasChildren(TModel model) => _hasChildren?.Invoke(model) ?? System.Linq.Enumerable.Any(_children(model) ?? Array.Empty<TModel>());
+        public virtual bool HasChildren(TModel model) => _hasChildren?.Invoke(model) ?? System.Linq.Enumerable.Any(_children(model) ?? Array.Empty<TModel>());
         public IEnumerable<TModel>? GetChildModels(TModel model) => _children(model);
-        public void SetModelIsExpanded(IExpanderRow<TModel> row) => _setExpanded?.Invoke(row.Model, row.IsExpanded);
+        public virtual void SetModelIsExpanded(IExpanderRow<TModel> row) => _setExpanded?.Invoke(row.Model, row.IsExpanded);
         public Comparison<TModel?>? GetComparison(ListSortDirection direction) => Inner.GetComparison(direction);
         public TResult Accept<TResult>(IColumnVisitor<TModel, TResult> visitor) => visitor.Visit(this);
     }

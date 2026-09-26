@@ -1,0 +1,55 @@
+name: Uno remaining contract inspection
+
+on:
+  push:
+    branches: [codex/uno-core-port]
+    paths: [.github/workflows/uno-contract-inspection.yml]
+  workflow_dispatch:
+    inputs:
+      artifact:
+        description: Completed uno-validation-report artifact ID
+        required: true
+        default: '10810336124'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read preserved audit without rebuilding or accepting equivalences
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_ID: ${{ inputs.artifact || '10810336124' }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/$REPOSITORY/actions/artifacts/$ARTIFACT_ID/zip" > "$RUNNER_TEMP/uno-audit.zip"
+          python3 -u - <<'PY'
+          import json, os, zipfile
+          with zipfile.ZipFile(os.path.join(os.environ['RUNNER_TEMP'], 'uno-audit.zip')) as archive:
+              names = [name for name in archive.namelist() if name.endswith('.json') and any(word in name.lower() for word in ('review', 'diff', 'comparison', 'api'))]
+              print('PRESERVED_JSON_FILES=' + json.dumps(names))
+              for name in names:
+                  if 'inventory' in name or 'metadata' in name or 'self' in name:
+                      continue
+                  value = json.loads(archive.read(name))
+                  print('\nFILE=' + name)
+                  if isinstance(value, dict):
+                      print('KEYS=' + json.dumps(list(value)))
+                      for key, content in value.items():
+                          if isinstance(content, list):
+                              print('ARRAY=' + key + ';COUNT=' + str(len(content)))
+                              for entry in content:
+                                  text = json.dumps(entry, ensure_ascii=False)
+                                  if any(owner in text for owner in ('TreeDataGridColumnHeader', 'TreeDataGridColumnResizer', 'TreeDataGridRow', 'TreeDataGridCell', 'ColumnBase', 'ColumnOptions', 'CheckBoxColumn')) and not (isinstance(entry, dict) and entry.get('category') == 'exact-declared-shape'):
+                                      print(text)
+                          elif not isinstance(content, dict):
+                              print(key + '=' + json.dumps(content))
+                  else:
+                      print(json.dumps(value, ensure_ascii=False)[:24000])
+          PY

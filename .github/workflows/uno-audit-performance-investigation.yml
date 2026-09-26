@@ -1,0 +1,99 @@
+name: Uno API and performance investigation
+
+# Diagnostic sampling only. Uninstrumented acceptance remains in the existing
+# paired workflow with its unchanged 1.10 timing/allocation budget.
+on:
+  push:
+    branches: [codex/uno-core-port]
+    paths: [.github/workflows/uno-audit-performance-investigation.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  baseline-profile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      PARITY_COLUMNS: 64
+      PARITY_ITERATIONS: 100
+      DOTNET_EventPipeThreadSamplingRate: 1
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 889bfde669e430e507d8aeb16826e131cbf42226
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.201
+      - name: Prepare pinned tracing and native environment
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb fonts-dejavu-core libfontconfig1 libx11-6 libxrandr2 libxi6 libxcursor1 libgl1
+          dotnet tool install dotnet-trace --tool-path "$RUNNER_TEMP/trace-tools" --version 10.0.745401
+          mkdir -p artifacts/review-profile
+          git rev-parse HEAD > artifacts/review-profile/revision.txt
+          dotnet --info > artifacts/review-profile/dotnet-info.txt
+      - name: Build original matched benchmark sources
+        run: |
+          dotnet build benchmarks/TreeDataGrid.Parity.Avalonia/TreeDataGrid.Parity.Avalonia.csproj -c Release -f net10.0
+          dotnet build benchmarks/TreeDataGrid.Parity.Uno/TreeDataGrid.Parity.Uno.csproj -c Release -f net10.0-desktop
+      - name: Record both frameworks without changing their sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PARITY_REVISION="$(git rev-parse HEAD)"
+          for framework in Avalonia Uno; do
+            target=net10.0
+            if [ "$framework" = Uno ]; then target=net10.0-desktop; fi
+            export PARITY_OUTPUT="$PWD/artifacts/review-profile/$framework-measurements.json"
+            dll="benchmarks/TreeDataGrid.Parity.$framework/bin/Release/$target/TreeDataGrid.Parity.$framework.dll"
+            xvfb-run -a -s '-screen 0 1280x800x24' timeout 240 "$RUNNER_TEMP/trace-tools/dotnet-trace" collect \
+              --profile dotnet-sampled-thread-time,dotnet-common --show-child-io \
+              --output "artifacts/review-profile/$framework.nettrace" -- dotnet exec "$dll" \
+              > "artifacts/review-profile/$framework-runtime.log" 2>&1
+            for mode in exclusive inclusive; do
+              extra=()
+              if [ "$mode" = inclusive ]; then extra=(--inclusive); fi
+              "$RUNNER_TEMP/trace-tools/dotnet-trace" report "artifacts/review-profile/$framework.nettrace" topN -n 100 --verbose "${extra[@]}" \
+                > "artifacts/review-profile/$framework-$mode.txt"
+              echo "::group::$framework $mode (sampled residence includes startup/waits)"
+              cat "artifacts/review-profile/$framework-$mode.txt"
+              echo '::endgroup::'
+            done
+            "$RUNNER_TEMP/trace-tools/dotnet-trace" convert "artifacts/review-profile/$framework.nettrace" --format Speedscope \
+              --output "artifacts/review-profile/$framework"
+          done
+      - name: Verify complete measurement collection
+        run: |
+          python3 - <<'PY'
+          import json, math
+          from pathlib import Path
+          root = Path('artifacts/review-profile')
+          reports = [json.loads((root / (name + '-measurements.json')).read_text()) for name in ('Avalonia', 'Uno')]
+          for name, report in zip(('Avalonia', 'Uno'), reports):
+              assert report['framework'] == name
+              assert report['revision'] == '889bfde669e430e507d8aeb16826e131cbf42226'
+              assert len(report['measurements']) == 600
+              for sample in report['measurements']:
+                  assert sample['Frame']['Error'] is None
+                  for metric in ('SynchronousUiMilliseconds', 'SynchronousUiAllocatedBytes', 'SettledMilliseconds'):
+                      assert math.isfinite(sample[metric]) and sample[metric] >= 0
+          for key in ('workload', 'revision', 'runtime', 'architecture', 'os', 'serverGc'):
+              assert reports[0][key] == reports[1][key], key
+          print('UNO_REVIEW_BASELINE_PROFILE_VALIDATED: 600 operations per framework; diagnostic, not timing acceptance')
+          PY
+          git diff --exit-code
+          git diff --cached --exit-code
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uno-api-performance-baseline-profile
+          path: artifacts/review-profile
+          retention-days: 14
+          if-no-files-found: error

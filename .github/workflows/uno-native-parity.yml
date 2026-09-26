@@ -1,0 +1,52 @@
+name: Uno paired native performance
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'src/**'
+      - 'benchmarks/TreeDataGrid.Parity.*/**'
+      - 'build/run-native-parity.py'
+      - '.github/workflows/uno-native-parity.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: uno-native-parity-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  paired-native-layout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.201
+      - name: Install matched native environment
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb fonts-dejavu-core libfontconfig1 libx11-6 libxrandr2 libxi6 libxcursor1 libgl1
+      - name: Measure original Avalonia and Uno on this runner
+        run: python3 -u build/run-native-parity.py --pairs 2 --columns 64 --iterations 25 --max-ratio 1.10
+      - name: Preserve raw measurements and failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-parity
+          path: artifacts/native-parity
+          if-no-files-found: error
+          retention-days: 14
+      - name: Require unchanged sources
+        if: always()
+        run: git diff --exit-code && git diff --cached --exit-code

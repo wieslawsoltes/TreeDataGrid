@@ -1,9 +1,14 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
+#if TREEDATAGRID_UNO_SAMPLE
+using SampleModelBase = TreeDataGridUnoShared.ObservableSampleModel;
+#else
 using ReactiveUI;
+using SampleModelBase = ReactiveUI.ReactiveObject;
+#endif
 
 namespace TreeDataGridDemo.Models
 {
-    internal class Person : ReactiveObject
+    internal partial class Person : SampleModelBase
     {
         private string? _name;
         private string? _title;
@@ -42,7 +47,6 @@ namespace TreeDataGridDemo.Models
         }
 
         public bool HasChildren => Children.Count > 0;
-
         public ObservableCollection<Person> Children { get; } = new();
     }
 }

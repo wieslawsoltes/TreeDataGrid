@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-23",
+  "repository": "wieslawsoltes/TreeDataGrid",
+  "pullRequest": 26,
+  "branch": "codex/uno-core-port",
+  "base": "3ca47316d724e5e040ab0281a880e8df999b25fc",
+  "startingHead": "b6965095a8927cdc02aab1dac22985acf15da457",
+  "testedProduct": "9e03ce28f082580bab71df633046622844d0ce58",
+  "testedTree": "ed5d18b28986fe2a1ef4ad5a57dad42e4ebbac72",
+  "testedMerge": "ca0c590f1756c3e022d992d180e00f3857cd36b0",
+  "validation": {
+    "run": 35854319565,
+    "artifact": 10747056977,
+    "outcomes": {"core":0,"uno":0,"avalonia":0,"sample-state":0,"native":0,"native-smoke":0,"activity":0,"activity-smoke":0,"isolated-suites":0,"avalonia-api-build":0,"api-audit":0,"api-self-check":0},
+    "unitTests": {"core":210,"uno":399,"avalonia":536,"sampleState":36,"total":1181,"failed":0,"skipped":0},
+    "nativeSuites": {"registered":41,"passed":41},
+    "sequentialPassed": true,
+    "activityMonitorPassed": true
+  },
+  "platform": {
+    "run": 35854319634,
+    "conclusion": "success",
+    "desktopMatrix": ["Windows","Linux","macOS"],
+    "windowsAppSdkConsumersPassed": true,
+    "linuxNativeConsumersPassed": true,
+    "browser": {"job":107159091907,"artifact":10747410472,"publishedConsumers":["showcase","monitor"],"execution":"Chromium 143.0.7499.4","passed":true,"completeBrowserParityProven":false}
+  },
+  "trimmedBinding": {"run":35854319598,"conclusion":"success"},
+  "build": {"run":35854319615,"conclusion":"success"},
+  "performance": {
+    "run": 35854319556,
+    "artifact": 10746788587,
+    "conclusion": "failure",
+    "budget": 1.10,
+    "budgetMet": false,
+    "pairs": 2,
+    "columns": 64,
+    "iterations": 25,
+    "scope": "Synchronous UI work and verified layout settlement; not GPU completion, frame rate, physical input or all-feature performance.",
+    "comparisons": [
+      {"operation":"scroll-x","avaloniaMedianMs":0.5433,"unoMedianMs":2.6874,"unoOverAvalonia":4.946438431805633,"avaloniaP95Ms":0.973,"unoP95Ms":4.6258,"avaloniaMedianAllocatedBytes":21184,"unoMedianAllocatedBytes":26040,"settledMedianMs":{"avalonia":0.69955,"uno":2.9217},"settledP95Ms":{"avalonia":1.1852,"uno":4.9467}},
+      {"operation":"scroll-y","avaloniaMedianMs":1.1379,"unoMedianMs":2.71655,"unoOverAvalonia":2.3873363212936107,"avaloniaP95Ms":1.6668,"unoP95Ms":4.1837,"avaloniaMedianAllocatedBytes":98080,"unoMedianAllocatedBytes":196608,"settledMedianMs":{"avalonia":1.3025,"uno":3.02415},"settledP95Ms":{"avalonia":1.8832,"uno":4.5624}},
+      {"operation":"distant-diagonal-scroll","avaloniaMedianMs":2.7258,"unoMedianMs":10.81135,"unoOverAvalonia":3.966303470540759,"avaloniaP95Ms":4.8296,"unoP95Ms":27.5889,"avaloniaMedianAllocatedBytes":503912,"unoMedianAllocatedBytes":995904,"settledMedianMs":{"avalonia":2.786,"uno":10.9502},"settledP95Ms":{"avalonia":4.9155,"uno":27.7577}},
+      {"operation":"replace-visible-row","avaloniaMedianMs":2.6313,"unoMedianMs":3.64775,"unoOverAvalonia":1.3862919469463764,"avaloniaP95Ms":3.7447,"unoP95Ms":5.8911,"avaloniaMedianAllocatedBytes":37952,"unoMedianAllocatedBytes":102816,"settledMedianMs":{"avalonia":3.06895,"uno":4.4657},"settledP95Ms":{"avalonia":4.3921,"uno":6.4957}},
+      {"operation":"resize-visible-column","avaloniaMedianMs":4.8069,"unoMedianMs":8.6132,"unoOverAvalonia":1.7918408953795584,"avaloniaP95Ms":7.1035,"unoP95Ms":11.7086,"avaloniaMedianAllocatedBytes":87416,"unoMedianAllocatedBytes":132528,"settledMedianMs":{"avalonia":5.23185,"uno":9.40545},"settledP95Ms":{"avalonia":7.7065,"uno":12.8271}},
+      {"operation":"sort","avaloniaMedianMs":42.9732,"unoMedianMs":67.1239,"unoOverAvalonia":1.5619944523563523,"avaloniaP95Ms":70.1608,"unoP95Ms":110.3372,"avaloniaMedianAllocatedBytes":1675960,"unoMedianAllocatedBytes":1062136,"settledMedianMs":{"avalonia":43.12215,"uno":67.3193},"settledP95Ms":{"avalonia":70.3459,"uno":110.8148}}
+    ]
+  },
+  "apiAudit": {
+    "baselineShapes":1748,"targetShapes":1592,"exactNormalizedMatches":864,"missingOrDifferent":884,"additionalOrDifferent":728,
+    "differenceCategories":{"declaration-changed-at-same-identity":201,"exported-type-not-found-at-identity":55,"member-not-declared-on-matched-type":117,"member-of-absent-exported-type":381,"overload-or-parameter-identity-difference":130},
+    "unresolvedBaselineTypes":0,"unresolvedTargetTypes":0,"strictSelfComparisonPassed":true,
+    "completeApiParityProven":false
+  },
+  "newTests": {"unitCases":26,"nativeSuites":1,"widthBaselineFailedCases":11,"nestedAllocationBaselineFailedCases":2},
+  "commits": ["9a8091634a0093ecd928f6f58e6d64c64cd20b1a","6904590fdd1570c5d0388416d33bb666a972c01d","4771e51f6a5f7e263919abb2d5ebcda9e44594e1","cf094b0a6210756f72bf129980106407a8934cd7","4a772d8ab030bced9be832ee22a200f932ee3d14","9e03ce28f082580bab71df633046622844d0ce58"],
+  "completeApiParityProven":false,
+  "completePerformanceParityProven":false,
+  "merged":false,
+  "publicPackagesReleased":false,
+  "localSourceTreeVerified":true,
+  "remaining":["Public contract implementations and reviewed Core/native/inherited equivalence decisions","Unchanged paired native time/allocation budget","Broader browser engines, physical input, IME, drag/drop, accessibility and DPI acceptance","Variable-height mixed-mutation and repeated multi-head performance/reliability"]
+}

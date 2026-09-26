@@ -1,0 +1,263 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Globalization;
+using System.Linq;
+using Microsoft.UI.Xaml;
+using TreeDataGridCore.Models;
+using BeginEditGestures = Uno.Controls.Models.TreeDataGrid.BeginEditGestures;
+using ICell = Uno.Controls.Models.TreeDataGrid.ICell;
+
+namespace Uno.Controls.Presentation;
+
+public enum CellKind { Text, CheckBox, Template, Expander }
+
+/// <summary>Immutable Uno text presentation, separate from framework-neutral column definitions.</summary>
+public sealed record TextCellOptions
+{
+    public TextAlignment TextAlignment { get; init; } = TextAlignment.Left;
+    public TextWrapping TextWrapping { get; init; } = TextWrapping.NoWrap;
+    public TextTrimming TextTrimming { get; init; } = TextTrimming.CharacterEllipsis;
+    public TextAlignment Alignment { get => TextAlignment; init => TextAlignment = value; }
+    public TextWrapping Wrapping { get => TextWrapping; init => TextWrapping = value; }
+    public TextTrimming Trimming { get => TextTrimming; init => TextTrimming = value; }
+    public string StringFormat { get; init; } = "{0}";
+    public CultureInfo Culture { get; init; } = CultureInfo.CurrentCulture;
+    public bool IsTextSearchEnabled { get; init; }
+}
+
+/// <summary>A view-owned column over a shared Core definition.</summary>
+public abstract partial class CellColumn : NotifyingBase, IDisposable
+{
+    private double _measuredWidth;
+    internal bool HasWidthMeasurement { get; private set; }
+    protected double MeasuredWidth => _measuredWidth;
+    protected CellColumn(IColumn model) => Model = model;
+    public IColumn Model { get; private set; }
+    internal void AttachModel(IColumn model) => Model = model;
+    public virtual double MinimumWidth => 30;
+    public virtual double MaximumWidth => double.PositiveInfinity;
+    public virtual bool RequiresUnconstrainedWidthMeasurement => Model.Width.IsAuto;
+    internal double AutoWidth => _measuredWidth;
+    internal virtual void ResetWidthMeasurement()
+    {
+        _measuredWidth = 0;
+        HasWidthMeasurement = false;
+    }
+    internal virtual bool RecordWidth(double width, int rowIndex = -1)
+    {
+        if (!double.IsFinite(width) || width < 0) return false;
+        var changed = !HasWidthMeasurement || width > _measuredWidth;
+        HasWidthMeasurement = true;
+        _measuredWidth = Math.Max(_measuredWidth, width);
+        return changed;
+    }
+    public virtual CellKind Kind => CellKind.Text;
+    public virtual CellKind ContentKind => Kind;
+    internal virtual CellColumn? InnerColumn => null;
+    public virtual bool IsThreeState => false;
+    public virtual bool? CanUserResize => null;
+    public virtual bool? CanUserSort => null;
+    /// <summary>Whether descending header activation restores the shared source's original order.</summary>
+    public virtual bool AllowTriStateSorting => false;
+    public Microsoft.UI.Xaml.Controls.DataTemplateSelector? HeaderTemplateSelector { get; init; }
+    public DataTemplate? HeaderTemplate { get; init; }
+    public BeginEditGestures BeginEditGestures { get; init; } = BeginEditGestures.Default;
+    public BeginEditGestures EditGestures { get => BeginEditGestures; init => BeginEditGestures = value; }
+    /// <summary>Optional model-to-text selector for template-column incremental search.</summary>
+    public Func<object?, string?>? TextSearchValueSelector { get; init; }
+    public virtual bool IsTextSearchEnabled => TextSearchValueSelector is not null;
+    public virtual string? GetSearchText(object? model) => TextSearchValueSelector?.Invoke(model);
+    public virtual string FormatValue(object? value) => TextOptions is { } options
+        ? CellTextFormatting.Format(options.Culture, options.StringFormat, value) : value?.ToString() ?? string.Empty;
+    public virtual TextCellOptions? TextOptions => null;
+    public virtual DataTemplate? GetCellTemplate(Microsoft.UI.Xaml.Controls.Control anchor) => null;
+    public virtual DataTemplate? GetCellEditingTemplate(Microsoft.UI.Xaml.Controls.Control anchor) => null;
+    public abstract CellValue CreateCell(IRow row);
+    internal virtual ICell CreateCellModel(IRow row)
+    {
+        var cell = CreateCell(row);
+        try { ConfigureCell(cell); return cell; }
+        catch { cell.Dispose(); throw; }
+    }
+    internal virtual bool SupportsRetainedCellReuse => false;
+    internal virtual bool TryReuseCell(CellValue value, IRow row) => value.TryRetarget(row);
+    internal virtual void ConfigureCell(CellValue value) => value.Kind = Kind;
+    public virtual void Dispose() { }
+}
+
+/// <summary>A realized view value. The Core source never owns this object.</summary>
+public abstract class CellValue : NotifyingBase, ICell, IDisposable
+{
+    /// <summary>The native presentation kind assigned by the owning view column.</summary>
+    public CellKind Kind { get; internal set; }
+    public virtual CellKind ContentKind => Kind;
+    public virtual ICell PresentationModel => this;
+    public virtual bool CanWrite => CanEdit;
+    public virtual bool? IsThreeState => null;
+    public virtual object? EditTarget => null;
+    public virtual DataTemplate? GetCellTemplate(Microsoft.UI.Xaml.Controls.Control anchor) => null;
+    public virtual DataTemplate? GetCellEditingTemplate(Microsoft.UI.Xaml.Controls.Control anchor) => null;
+    public abstract object? Value { get; }
+    public abstract bool CanEdit { get; }
+    public virtual string? DisplayText => null;
+    public virtual TextCellOptions? TextOptions => null;
+    public virtual BeginEditGestures EditGestures { get; internal set; } = BeginEditGestures.Default;
+    public virtual Exception? Error => null;
+    public abstract void Write(object? value);
+    public virtual void Dispose() { }
+    internal virtual bool TryRetarget(IRow row) => false;
+    internal virtual bool TrySuspend() => false;
+}
+
+public partial class ValueCellColumn<TModel, TValue> : CellColumn, ICellColumn<TModel> where TModel : class
+{
+    private readonly ValueColumn<TModel, TValue> _column;
+    private readonly ColumnOptions<TModel> _options;
+    private readonly CellKind _kind;
+    public ValueCellColumn(ValueColumn<TModel, TValue> column, CellKind kind, TextCellOptions? textOptions = null,
+        ColumnOptions<TModel>? viewOptions = null) : base(column)
+    {
+        _options = viewOptions ?? column.Options;
+        if (_options.MinWidth.IsStar || _options.MaxWidth?.IsStar == true)
+            throw new ArgumentException("Column minimum and maximum widths must use pixels or Auto.", nameof(column));
+        _column = column;
+        _kind = kind;
+        TextOptions = textOptions;
+        // Public view comparison follows the reference's construction-time
+        // policy. Actual source sorting remains owned by the Core definition.
+        _allowPublicSort = _options.CanUserSortColumn != false;
+        _publicAscending = _options.CompareAscending;
+        _publicDescending = _options.CompareDescending;
+    }
+    public override TextCellOptions? TextOptions { get; }
+    public override CellKind Kind => _kind;
+    public override bool? CanUserResize => _options.CanUserResizeColumn;
+    public override bool? CanUserSort => _options.CanUserSortColumn;
+    public override bool AllowTriStateSorting =>
+        _options is global::Uno.Controls.Models.TreeDataGrid.ColumnOptions<TModel> native && native.AllowTriStateSorting;
+    public override bool IsThreeState => _column is CheckBoxColumn<TModel> check && check.IsThreeState;
+    public override double MinimumWidth => _options.MinWidth.IsAuto ? MeasuredWidth : _options.MinWidth.Value;
+    public override double MaximumWidth => _options.MaxWidth is { } maximum ? maximum.IsAuto ? MeasuredWidth : maximum.Value : double.PositiveInfinity;
+    public override bool RequiresUnconstrainedWidthMeasurement => base.RequiresUnconstrainedWidthMeasurement ||
+        _options.MinWidth.IsAuto || _options.MaxWidth?.IsAuto == true;
+    internal override bool RecordWidth(double width, int rowIndex = -1)
+    {
+        if (!double.IsFinite(width) || width < 0) return false;
+        if (!_options.MinWidth.IsAuto) width = Math.Max(width, _options.MinWidth.Value);
+        if (_options.MaxWidth is { IsAuto: false } maximum) width = Math.Min(width, maximum.Value);
+        return base.RecordWidth(width, rowIndex);
+    }
+    public override bool IsTextSearchEnabled => base.IsTextSearchEnabled || TextOptions?.IsTextSearchEnabled == true;
+    public override string? GetSearchText(object? model) => TextSearchValueSelector is not null
+        ? base.GetSearchText(model) : model is TModel typed ? FormatValue(_column.GetValue(typed)) : null;
+    public override CellValue CreateCell(IRow row)
+    {
+        var binding = CaptureBindingSnapshot();
+        CellValue cell = Kind == CellKind.Text
+            ? new TextBoundCell<TModel, TValue>(_column, row, TextOptions, binding)
+            : new BoundCell<TModel, TValue>(_column, row, canPool: true, TextOptions?.Culture, binding);
+        cell.EditGestures = Kind == CellKind.CheckBox ? BeginEditGestures.None : EditGestures;
+        cell.Kind = Kind;
+        return cell;
+    }
+    ICell ICellColumn<TModel>.CreateCell(IRow<TModel> row) => CreateCell(row);
+    public bool TryReuseCell(ICell cell, IRow<TModel> row) => cell is BoundCell<TModel, TValue> bound &&
+        bound.UsesColumn(_column) && bound.TryRetarget(row);
+}
+
+internal sealed class TextBoundCell<TModel, TValue> : BoundCell<TModel, TValue>, Uno.Controls.Models.TreeDataGrid.ITextCell where TModel : class
+{
+    private readonly TextCellOptions? _options;
+    public override TextCellOptions? TextOptions => _options;
+    public TextBoundCell(ValueColumn<TModel, TValue> column, IRow row, TextCellOptions? options,
+        ColumnBindingSnapshot<TModel, TValue>? bindingSnapshot = null)
+        : base(column, row, canPool: true, options?.Culture, bindingSnapshot) => _options = options;
+    public string? Text
+    {
+        get => _options is { } options ? CellTextFormatting.Format(options.Culture, options.StringFormat, Value) : Value?.ToString();
+        set => Write(value);
+    }
+    public TextTrimming TextTrimming => _options?.TextTrimming ?? TextTrimming.CharacterEllipsis;
+    public TextWrapping TextWrapping => _options?.TextWrapping ?? TextWrapping.NoWrap;
+    public TextAlignment TextAlignment => _options?.TextAlignment ?? TextAlignment.Left;
+}
+
+internal sealed class ExpanderCellColumn<TModel> : CellColumn where TModel : class
+{
+    private readonly HierarchicalExpanderColumn<TModel> _model;
+    private readonly CellColumn _inner;
+    private bool _disposed;
+    public ExpanderCellColumn(HierarchicalExpanderColumn<TModel> model, CellColumn inner) : base(model)
+    {
+        _model = model;
+        _inner = inner;
+        HeaderTemplate = inner.HeaderTemplate;
+        HeaderTemplateSelector = inner.HeaderTemplateSelector;
+        EditGestures = inner.EditGestures;
+    }
+    public override CellKind Kind => CellKind.Expander;
+    public override object? Header { get => _inner.Header; set => _inner.Header = value; }
+    public override CellKind ContentKind => _inner.ContentKind;
+    public override bool IsThreeState => _inner.IsThreeState;
+    public override bool? CanUserResize => _inner.CanUserResize;
+    public override bool? CanUserSort => _inner.CanUserSort;
+    public override bool AllowTriStateSorting => _inner.AllowTriStateSorting;
+    public override TextCellOptions? TextOptions => _inner.TextOptions;
+    public override bool IsTextSearchEnabled => _inner.IsTextSearchEnabled;
+    public override string? GetSearchText(object? model) => _inner.GetSearchText(model);
+    public override string FormatValue(object? value) => _inner.FormatValue(value);
+    public override DataTemplate? GetCellTemplate(Microsoft.UI.Xaml.Controls.Control anchor) => _inner.GetCellTemplate(anchor);
+    public override DataTemplate? GetCellEditingTemplate(Microsoft.UI.Xaml.Controls.Control anchor) => _inner.GetCellEditingTemplate(anchor);
+    public CellColumn Inner => _inner;
+    internal override CellColumn InnerColumn => _inner;
+    public override double MinimumWidth => _inner.MinimumWidth;
+    public override double MaximumWidth => _inner.MaximumWidth;
+    public override bool RequiresUnconstrainedWidthMeasurement => _inner.RequiresUnconstrainedWidthMeasurement;
+    internal override bool RecordWidth(double width, int rowIndex = -1) => _inner.RecordWidth(width, rowIndex) | base.RecordWidth(width, rowIndex);
+    internal override void ResetWidthMeasurement() { _inner.ResetWidthMeasurement(); base.ResetWidthMeasurement(); }
+    internal override bool SetActualWidth(double width) => _inner.SetActualWidth(width) | base.SetActualWidth(width);
+    internal override void ModelChanged(PropertyChangedEventArgs e) { _inner.ModelChanged(e); base.ModelChanged(e); }
+    public override CellValue CreateCell(IRow row)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        var expanderRow = (IExpanderRow<TModel>)row;
+        var inner = _inner.CreateCell(row);
+        try
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            _inner.ConfigureCell(inner);
+            ObjectDisposedException.ThrowIf(_disposed, this);
+        }
+        catch (Exception error)
+        {
+            try { inner.Dispose(); }
+            catch (Exception cleanup) { throw new AggregateException(error, cleanup); }
+            throw;
+        }
+        // Ownership transfers at construction. The expander releases the inner
+        // value even if installing a subscription or reading metadata fails.
+        return new ExpanderCellValue<TModel>(_model, inner, expanderRow);
+    }
+    public override void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        _inner.Dispose();
+    }
+}
+
+public abstract class ExpanderCellValue : CellValue, Uno.Controls.Models.TreeDataGrid.IExpanderCell
+{
+    public abstract CellValue Inner { get; }
+    internal virtual bool HasContent => true;
+    public virtual object? Content => Inner;
+    public abstract IRow Row { get; }
+    public override CellKind ContentKind => Inner.ContentKind;
+    public override bool CanWrite => Inner.CanWrite;
+    public override bool? IsThreeState => Inner.IsThreeState;
+    public override object? EditTarget => Inner.EditTarget;
+    public abstract bool IsExpanded { get; set; }
+    public abstract bool ShowExpander { get; }
+}

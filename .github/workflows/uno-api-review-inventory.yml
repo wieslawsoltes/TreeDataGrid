@@ -1,0 +1,60 @@
+name: Uno API review inventory
+
+on:
+  push:
+    branches: [codex/uno-core-port]
+    paths: [.github/workflows/uno-api-review-inventory.yml]
+  workflow_dispatch:
+    inputs:
+      validation_run:
+        description: Completed Uno validation report run to inspect
+        type: string
+        default: '36197904479'
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: uno-validation-report
+          run-id: ${{ inputs.validation_run || '36197904479' }}
+          github-token: ${{ github.token }}
+          path: report
+      - name: Print unresolved declarations with verified inherited-candidate context
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          reports = []
+          for path in Path('report').rglob('classified-differences.json'):
+              differences = json.loads(path.read_text())
+              if differences:
+                  reports.append((path, differences))
+          if len(reports) != 1:
+              raise RuntimeError(f'Expected one nonempty cross-framework inventory, found {[str(p) for p, _ in reports]}')
+          path, differences = reports[0]
+          summary = json.loads(path.with_name('summary.json').read_text())
+          scopes = json.loads(path.with_name('scope-accounting.json').read_text())
+          if len(differences) != summary['missingOrDifferent']:
+              raise RuntimeError('Declared difference count does not reconcile')
+          inherited = {r['Baseline']['Identity'] for r in scopes['InheritedMemberReviews']}
+          print('AUDIT_INPUT=' + str(path))
+          print('AUDIT_SUMMARY=' + json.dumps(summary, separators=(',', ':')))
+          for category in ('member-not-declared-on-matched-type', 'overload-or-parameter-identity-difference', 'declaration-changed-at-same-identity'):
+              print('\nCATEGORY=' + category)
+              for row in differences:
+                  if row['Category'] != category:
+                      continue
+                  baseline = row['Baseline']
+                  print(json.dumps({'identity': baseline['Identity'], 'baseline': baseline['Raw'],
+                                    'hasInheritedCandidate': baseline['Identity'] in inherited,
+                                    'candidates': row.get('Candidates', [])}, separators=(',', ':')))
+          print('No raw difference is waived by this diagnostic.')
+          PY

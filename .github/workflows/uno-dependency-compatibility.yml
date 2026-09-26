@@ -1,0 +1,106 @@
+name: Uno dependency compatibility
+
+# Dependency experiments are isolated from the product checkout and its parity
+# evidence. Nothing in this workflow can update a reference or publish packages.
+on:
+  push:
+    branches: [codex/uno-core-port]
+    paths: [.github/workflows/uno-dependency-compatibility.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      TreeDataGridUnoSampleTargetFrameworks: net10.0-desktop
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.201
+      - name: Install native runtime
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb libfontconfig1 libx11-6 libxrandr2 libxi6 libxcursor1 libgl1
+      - name: Resolve and exercise candidate in a separate checkout
+        shell: bash
+        run: |
+          python3 -u - <<'PY'
+          import json, os, pathlib, re, shutil, subprocess, tarfile, tempfile, urllib.request
+          root = pathlib.Path.cwd()
+          output = root / 'artifacts/dependency-compatibility'
+          output.mkdir(parents=True, exist_ok=True)
+          revision = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+          request = urllib.request.Request('https://api.nuget.org/v3-flatcontainer/uno.sdk/index.json', headers={'User-Agent': 'TreeDataGrid-Dependency-Validation'})
+          with urllib.request.urlopen(request, timeout=60) as response:
+              versions = json.load(response)['versions']
+          def key(value):
+              main, _, suffix = value.partition('-')
+              return tuple(map(int, main.split('.'))) + (int(not suffix), tuple((1, int(x)) if x.isdigit() else (0, x) for x in suffix.split('.')))
+          candidates = sorted((value for value in versions if value.startswith('6.')), key=key)
+          stable = [value for value in candidates if '-' not in value]
+          preview = [value for value in candidates if '-' in value]
+          candidate = preview[-1] if preview and (not stable or key(preview[-1]) > key(stable[-1])) else stable[-1]
+          manifest = {'baseRevision': revision, 'selectedSdk': candidate, 'latestStable': stable[-1] if stable else None,
+                      'latestPreview': preview[-1] if preview else None, 'recentVersions': candidates[-20:], 'outcomes': {}}
+          (output / 'candidate.json').write_text(json.dumps(manifest, indent=2))
+          print('UNO_DEPENDENCY_CANDIDATE=' + json.dumps(manifest), flush=True)
+          with tempfile.TemporaryDirectory(prefix='treedatagrid-sdk-') as workspace:
+              workspace = pathlib.Path(workspace)
+              archive = workspace / 'source.tar'
+              with archive.open('wb') as stream:
+                  subprocess.run(['git', 'archive', 'HEAD'], stdout=stream, check=True)
+              source = workspace / 'source'
+              source.mkdir()
+              with tarfile.open(archive) as stream:
+                  stream.extractall(source, filter='data')
+              changed = []
+              for project in source.rglob('*.csproj'):
+                  text = project.read_text()
+                  if 'Uno.Sdk/6.6.33' in text:
+                      project.write_text(text.replace('Uno.Sdk/6.6.33', 'Uno.Sdk/' + candidate))
+                      changed.append(str(project.relative_to(source)))
+              if not changed: raise RuntimeError('No expected SDK inputs found')
+              manifest['changedSdkInputs'] = changed
+              def run(name, command, timeout=480):
+                  with (output / (name + '.log')).open('w') as log:
+                      try:
+                          code = subprocess.run(command, cwd=source, stdout=log, stderr=subprocess.STDOUT, timeout=timeout).returncode
+                      except subprocess.TimeoutExpired:
+                          code = 124
+                  manifest['outcomes'][name] = code
+                  (output / 'candidate.json').write_text(json.dumps(manifest, indent=2))
+                  print(name + '=' + str(code), flush=True)
+                  print('\n'.join((output / (name + '.log')).read_text(errors='replace').splitlines()[-50:]), flush=True)
+                  return code
+              build = run('build', ['dotnet', 'build', 'samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj', '-c', 'Release', '-f', 'net10.0-desktop'])
+              for assets in source.rglob('project.assets.json'):
+                  data = json.loads(assets.read_text())
+                  manifest.setdefault('resolvedUnoPackages', {})[str(assets.relative_to(source))] = sorted(name for name in data.get('libraries', {}) if name.lower().startswith('uno.'))
+              (output / 'candidate.json').write_text(json.dumps(manifest, indent=2))
+              if build == 0:
+                  run('recovery', ['python3', 'build/run-uno-native-suites.py', '--jobs', '1', '--suite', 'native-layout-recovery', '--output', str(output / 'recovery')])
+                  run('sequential', ['xvfb-run', '-a', '-s', '-screen 0 1280x800x24', 'dotnet', 'samples/TreeDataGridUnoSample/bin/Release/net10.0-desktop/TreeDataGridUnoSample.dll', '--smoke'], timeout=180)
+              print('UNO_DEPENDENCY_RESULT=' + json.dumps(manifest), flush=True)
+              assert set(manifest['outcomes']) == {'build', 'recovery', 'sequential'} and all(code == 0 for code in manifest['outcomes'].values()), manifest
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uno-dependency-compatibility
+          path: artifacts/dependency-compatibility
+          if-no-files-found: error
+          retention-days: 7
+      - name: Verify product checkout was not modified
+        if: always()
+        run: git diff --exit-code && git diff --cached --exit-code

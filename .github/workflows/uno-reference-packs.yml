@@ -1,0 +1,37 @@
+name: Uno reference packs
+
+# Public SDK files only. This supplements the existing NuGet snapshot so an
+# offline validator can build the actual net8 Core instead of retargeting it.
+on:
+  pull_request:
+    paths: [.github/workflows/uno-reference-packs.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  reference-packs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.201
+      - name: Snapshot installed reference packs and net8 runtime
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          dotnet --info > artifacts/dotnet-info.txt
+          root="$(dirname "$(readlink -f "$(command -v dotnet)")")"
+          cd "$root"
+          # No home directory, configuration, tokens, fonts or workload caches.
+          tar -czf "$GITHUB_WORKSPACE/artifacts/reference-packs.tar.gz" packs/Microsoft.NETCore.App.Ref packs/Microsoft.AspNetCore.App.Ref packs/Microsoft.NETCore.App.Host.linux-x64 shared/Microsoft.NETCore.App/8.*
+          cd "$GITHUB_WORKSPACE/artifacts"
+          sha256sum reference-packs.tar.gz > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uno-reference-packs
+          path: artifacts
+          if-no-files-found: error
+          retention-days: 7
