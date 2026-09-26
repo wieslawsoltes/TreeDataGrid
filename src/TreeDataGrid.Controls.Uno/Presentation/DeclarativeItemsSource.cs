@@ -10,11 +10,12 @@ namespace Uno.Controls.Presentation;
 /// A type-erasure boundary, not a second collection model. Preserve the caller's
 /// IList, mutations, notifications and model identity for the actual Core source.
 /// </summary>
-internal sealed class DeclarativeItemsSource : IList<object>, IList, INotifyCollectionChanged
+internal sealed class DeclarativeItemsSource : IList<object>, IList, INotifyCollectionChanged, IDisposable
 {
     private readonly IList _items;
     private NotifyCollectionChangedEventHandler? _changed;
     private Subscription? _subscription;
+    private bool _disposed;
 
     internal DeclarativeItemsSource(IEnumerable items)
     {
@@ -29,17 +30,25 @@ internal sealed class DeclarativeItemsSource : IList<object>, IList, INotifyColl
         add
         {
             if (value is null) return;
+            ObjectDisposedException.ThrowIf(_disposed, this);
             _changed += value;
             if (_subscription is null && _items is INotifyCollectionChanged observable)
             {
                 var subscription = new Subscription(this, observable);
                 _subscription = subscription;
                 try { subscription.Attach(); }
-                catch
+                catch (Exception error)
                 {
-                    if (ReferenceEquals(_subscription, subscription)) _subscription = null;
-                    _changed -= value;
-                    subscription.Dispose();
+                    // A remove/re-add callback can already own a newer relay,
+                    // including another registration of this same delegate.
+                    // Roll back only the registration in the failed generation.
+                    if (ReferenceEquals(_subscription, subscription))
+                    {
+                        _subscription = null;
+                        _changed -= value;
+                    }
+                    try { subscription.Dispose(); }
+                    catch (Exception cleanup) { throw new AggregateException(error, cleanup); }
                     throw;
                 }
                 // A synchronous event from a custom add accessor may remove the
@@ -60,28 +69,48 @@ internal sealed class DeclarativeItemsSource : IList<object>, IList, INotifyColl
         }
     }
 
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        _changed = null;
+        var subscription = _subscription;
+        _subscription = null;
+        subscription?.Dispose();
+    }
+
     private sealed class Subscription(DeclarativeItemsSource owner, INotifyCollectionChanged source) : IDisposable
     {
         private readonly WeakReference<DeclarativeItemsSource> _owner = new(owner);
         private INotifyCollectionChanged? _source = source;
         private bool _attaching;
-        private bool _attached;
+        // Even a throwing event add may already have stored the handler.
+        // Claim the rollback before entering application-controlled accessors.
+        private bool _attachmentAttempted;
 
         public void Attach()
         {
             var current = _source;
             if (current is null) return;
             _attaching = true;
-            try
+            _attachmentAttempted = true;
+            Exception? failure = null;
+            try { current.CollectionChanged += OnChanged; }
+            catch (Exception error) { failure = error; }
+            finally { _attaching = false; }
+            // Disposal during add retires delivery immediately, but the add
+            // accessor may attach afterwards. Release once after it returns.
+            if (_source is null)
             {
-                current.CollectionChanged += OnChanged;
-                _attached = true;
+                try { Detach(current); }
+                catch (Exception cleanup)
+                {
+                    if (failure is not null) throw new AggregateException(failure, cleanup);
+                    throw;
+                }
             }
-            finally
-            {
-                _attaching = false;
-                if (_source is null) current.CollectionChanged -= OnChanged;
-            }
+            if (failure is not null)
+                System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(failure).Throw();
         }
 
         private void OnChanged(object? sender, NotifyCollectionChangedEventArgs args)
@@ -101,8 +130,14 @@ internal sealed class DeclarativeItemsSource : IList<object>, IList, INotifyColl
         {
             var current = _source;
             _source = null;
-            if (current is not null && !_attaching && _attached)
-                current.CollectionChanged -= OnChanged;
+            if (current is not null && !_attaching) Detach(current);
+        }
+
+        private void Detach(INotifyCollectionChanged source)
+        {
+            if (!_attachmentAttempted) return;
+            _attachmentAttempted = false;
+            source.CollectionChanged -= OnChanged;
         }
     }
 

@@ -78,9 +78,12 @@ def main() -> int:
             }), flush=True)
     run('parity-review-tests', ['python3', 'build/test-uno-parity-audit.py'])
     run('parity-review', ['python3', 'build/audit-uno-parity.py'], prerequisite='api-audit')
+    run('browser-validator-tests', ['python3', 'build/test-uno-browser-validation.py'])
+    run('review-tool-tests', ['python3', 'build/test-uno-review-validation.py'])
+    run('review-evidence', ['python3', 'build/validate-uno-review.py'])
     Path('artifacts/validation-outcomes.json').write_text(json.dumps(outcomes, indent=2) + '\n')
     print('UNO_VALIDATION_OUTCOMES=' + json.dumps(outcomes), flush=True)
-    return 0 if len(outcomes) == 15 and all(value == 0 for value in outcomes.values()) else 1
+    return 0 if len(outcomes) == 18 and all(value == 0 for value in outcomes.values()) else 1
 
 
 if __name__ == '__main__':

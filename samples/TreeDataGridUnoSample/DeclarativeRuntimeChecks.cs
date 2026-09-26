@@ -43,6 +43,7 @@ internal static class DeclarativeRuntimeChecks
     internal static async Task RunAsync(MainPage page)
     {
         var grid = page.Grid;
+        await DeclarativeOwnershipRuntimeChecks.RunAsync(grid);
         page.ShowScenario(9);
         await Task.Delay(200);
         Check(grid.Model is null && grid.ItemsSource is not null && grid.Presentation?.Model is HierarchicalTreeDataGridSource<object>,

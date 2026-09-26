@@ -29,7 +29,10 @@ def review(baseline: dict, target: dict, differences: list[dict], summary: dict)
             if shape in indexed and indexed[shape] != entry:
                 raise ValueError('Ambiguous normalized API declaration: ' + shape)
             indexed[shape] = entry
-        if surface.get('UnresolvedTypes'):
+        unresolved = surface.get('UnresolvedTypes')
+        if not isinstance(unresolved, list) or any(not isinstance(item, str) for item in unresolved):
+            raise ValueError('Missing or malformed metadata dependency inventory')
+        if unresolved:
             raise ValueError('Resolve metadata dependencies before classifying parity')
         return indexed
 

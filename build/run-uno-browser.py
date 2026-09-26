@@ -59,6 +59,7 @@ def run_sample(browser: Any, name: str, root: Path, output: Path, timeout: int,
     context = None
     page = None
     state = None
+    validating = True
     report: dict[str, Any] = {'name': name, 'publishedRoot': str(root), 'passed': False}
     try:
         context = browser.new_context(viewport={'width': 1280, 'height': 800}, device_scale_factor=input_scale or 1)
@@ -77,8 +78,15 @@ def run_sample(browser: Any, name: str, root: Path, output: Path, timeout: int,
         page.on('pageerror', page_error)
         page.on('crash', lambda _: failures.append('Browser page crashed.'))
         page.on('response', response_received)
-        page.on('requestfailed', lambda request: messages.append(
-            {'type': 'requestfailed', 'url': request.url, 'error': request.failure}))
+        def request_failed(request: Any) -> None:
+            messages.append({'type': 'requestfailed', 'url': request.url, 'error': request.failure})
+            # A transport failure need not produce an HTTP response at all.
+            # Do not let a later application-success flag hide a broken local
+            # published asset. Optional remote sample content stays diagnostic.
+            if validating and request.url.startswith(origin + '/'):
+                failures.append(f'Local request failed: {request.url}: {request.failure}')
+
+        page.on('requestfailed', request_failed)
         query = '/?smoke=1&offline=1&demo=1'
         if input_scale is not None:
             query += '&browser-input=1'
@@ -97,6 +105,7 @@ def run_sample(browser: Any, name: str, root: Path, output: Path, timeout: int,
     except Exception as error:
         failures.append(str(error))
     finally:
+        validating = False  # Context shutdown deliberately aborts outstanding work.
         if page is not None:
             try:
                 page.screenshot(path=str(output / 'final.png'), full_page=True, timeout=10_000)

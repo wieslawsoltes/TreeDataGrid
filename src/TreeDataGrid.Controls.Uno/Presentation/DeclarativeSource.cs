@@ -21,6 +21,10 @@ internal sealed class DeclarativeSource : IDisposable
         var projected = new DeclarativeItemsSource(items);
         var sample = projected.FirstOrDefault(x => x is not null);
         var context = new DeclarativeSourceContext(sample, sample?.GetType() ?? GetItemType(items));
+        // The generated source owns the projection relay, not the caller's
+        // IList. Core selection can outlive row disposal through weak listeners;
+        // explicit relay retirement must not depend on a future GC or event.
+        context.Own(projected);
         ITreeDataGridSource? source = null;
         try
         {
@@ -39,14 +43,30 @@ internal sealed class DeclarativeSource : IDisposable
             }
             return new(source, context);
         }
-        catch { (source as IDisposable)?.Dispose(); context.Dispose(); throw; }
+        catch (Exception error)
+        {
+            Release(source as IDisposable, context, error);
+            throw; // Release preserves and throws the original or combined failure.
+        }
     }
     public void Dispose()
     {
         if (_disposed) return;
         _disposed = true;
-        try { (Source as IDisposable)?.Dispose(); }
-        finally { _context.Dispose(); }
+        Release(Source as IDisposable, _context);
+    }
+
+    private static void Release(IDisposable? source, DeclarativeSourceContext context, Exception? primary = null)
+    {
+        List<Exception>? errors = primary is null ? null : new() { primary };
+        try { source?.Dispose(); }
+        catch (Exception error) { (errors ??= new()).Add(error); }
+        // A failed Core teardown must never skip native accessor retirement.
+        try { context.Dispose(); }
+        catch (Exception error) { (errors ??= new()).Add(error); }
+        if (errors is { Count: 1 })
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(errors[0]).Throw();
+        if (errors is not null) throw new AggregateException(errors);
     }
     private static Type? GetItemType(IEnumerable items)
     {
@@ -63,15 +83,37 @@ internal sealed class DeclarativeSource : IDisposable
 internal sealed class DeclarativeSourceContext(object? sample, Type? declaredType) : IDisposable
 {
     private readonly List<IDisposable> _resources = new();
+    private bool _disposed;
     internal object? Sample { get; } = sample;
     internal Type? ModelType { get; } = sample?.GetType() ?? declaredType;
-    internal T Own<T>(T resource) where T : IDisposable { _resources.Add(resource); return resource; }
+    // Ownership transfers at entry. A resource created by a reentrant factory
+    // after retirement is released, never appended to an already-drained list.
+    internal T Own<T>(T resource) where T : IDisposable
+    {
+        ArgumentNullException.ThrowIfNull(resource);
+        if (_disposed)
+        {
+            var retired = new ObjectDisposedException(nameof(DeclarativeSourceContext));
+            try { resource.Dispose(); }
+            catch (Exception cleanup) { throw new AggregateException(retired, cleanup); }
+            throw retired;
+        }
+        _resources.Add(resource);
+        return resource;
+    }
     public void Dispose()
     {
-        List<Exception>? errors = null;
-        foreach (var resource in _resources)
-            try { resource.Dispose(); } catch (Exception error) { (errors ??= new()).Add(error); }
+        if (_disposed) return;
+        // Snapshot before publication: allocation failure leaves ownership
+        // intact and retryable; no callback can run between these assignments.
+        var resources = _resources.ToArray();
+        _disposed = true;
         _resources.Clear();
+        List<Exception>? errors = null;
+        foreach (var resource in resources)
+            try { resource.Dispose(); } catch (Exception error) { (errors ??= new()).Add(error); }
+        if (errors is { Count: 1 })
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(errors[0]).Throw();
         if (errors is not null) throw new AggregateException(errors);
     }
 }

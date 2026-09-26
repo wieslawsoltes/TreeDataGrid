@@ -92,6 +92,16 @@ class ReviewTests(unittest.TestCase):
         result = run([owner, member], [owner])
         self.assertEqual(1, result['reviewCategories']['member-not-declared-on-matched-type'])
 
+    def test_missing_or_malformed_dependency_inventory_is_not_assumed_resolved(self):
+        valid = {'Inputs': [], 'Entries': [], 'UnresolvedTypes': []}
+        counts = {'baselineShapes': 0, 'targetShapes': 0, 'exactNormalizedMatches': 0,
+                  'missingOrDifferent': 0, 'additionalOrDifferent': 0}
+        for bad in ({'Inputs': [], 'Entries': []},
+                    *[dict(valid, UnresolvedTypes=value) for value in (None, False, '', {}, [None])]):
+            for left, right in ((bad, valid), (valid, bad)):
+                with self.subTest(left=left, right=right), self.assertRaisesRegex(ValueError, 'dependency inventory'):
+                    audit.review(left, right, [], counts)
+
     def test_unresolved_metadata_is_rejected(self):
         surface = {'Inputs': [], 'Entries': [], 'UnresolvedTypes': ['Missing.Dependency']}
         with self.assertRaisesRegex(ValueError, 'dependencies'):
