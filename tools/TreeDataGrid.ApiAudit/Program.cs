@@ -26,6 +26,7 @@ try
     var normalizationChecks = ApiNameNormalizer.RunChecks();
     var surfaceChecks = ApiSurfaceChecks.Run();
     var signatureChecks = ApiSignatureChecks.Run();
+    var interfaceOrderingChecks = ApiInterfaceOrderingChecks.Run();
     if (args.Length == 1) return 0;
     var baselinePath = Path.GetFullPath(args[0]);
     var targetPath = Path.GetFullPath(args[1]);
@@ -58,11 +59,13 @@ try
     var accounting = ApiAuditAccounting.Write(baseline, target, Path.GetFileNameWithoutExtension(corePath), output, jsonOptions);
     var report = new
     {
-        schemaVersion = 6,
+        schemaVersion = 7,
         mode = "declared-public-and-protected-metadata-shapes",
         namespaceMappings = Surface.NamespaceMappings,
         namespaceNormalization = "Explicit qualified-name roots only; quoted constants/defaults/attribute values are preserved; Core mappings are not inferred",
         namespaceNormalizationChecks = normalizationChecks,
+        declaredInterfaceOrdering = "Base class first; direct interface displays sorted by normalized name, then raw name. Raw names and all interfaces are retained; ordered signature metadata is unchanged.",
+        declaredInterfaceOrderingChecks = interfaceOrderingChecks,
         fullMetadataReaderChecks = surfaceChecks,
         signatureMetadataChecks = signatureChecks,
         baselineShapes = left.Count,
@@ -219,7 +222,14 @@ internal sealed record Surface(InputAssembly[] Inputs, ApiEntry[] Entries, strin
             {
                 var bases = new List<string>();
                 if (type.BaseType is { } parent) bases.Add(parent.ToDisplayString(Format));
-                bases.AddRange(type.Interfaces.Select(contract => contract.ToDisplayString(Format)).Order(StringComparer.Ordinal));
+                // The declared interface list has always been canonicalized as
+                // an unordered list. Sort by the comparison spelling first:
+                // mapping Avalonia/Uno after a raw-name sort can reverse its
+                // position relative to System and manufacture a difference.
+                // Do not parse comma-delimited display strings (generic arguments
+                // contain commas), discard interfaces or change raw type names.
+                bases.AddRange(type.Interfaces.Select(contract => contract.ToDisplayString(Format))
+                    .OrderBy(Normalize, StringComparer.Ordinal).ThenBy(value => value, StringComparer.Ordinal));
                 text += " | bases=" + string.Join(",", bases);
             }
             if (symbol is IFieldSymbol { HasConstantValue: true } field)
