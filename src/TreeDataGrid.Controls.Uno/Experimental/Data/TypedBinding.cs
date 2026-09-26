@@ -1,5 +1,6 @@
 using System;
 using Uno.Data;
+using TreeDataGridCore.Models;
 using Uno.Experimental.Data.Core;
 
 namespace Uno.Experimental.Data;
@@ -16,6 +17,8 @@ public partial class TypedBinding<TIn, TOut> where TIn : class
     private Action<TIn, TOut>? _write;
     private Func<TIn, object>[]? _links;
     private Optional<TOut> _fallbackValue;
+    private ValueColumn<TIn, TOut>? _expressionColumn;
+    private Func<TIn, object?>[]? _expressionLinks;
     // Cells capture descriptors, not live settings. Version the scalar settings
     // without invoking application equality; arrays additionally need an element
     // identity check because callers can change Links in place.
@@ -23,17 +26,17 @@ public partial class TypedBinding<TIn, TOut> where TIn : class
     public Func<TIn, TOut>? Read
     {
         get => _read;
-        set { _read = value; unchecked { ++CellRevision; } }
+        set { _read = value; _expressionColumn = null; unchecked { ++CellRevision; } }
     }
     public Action<TIn, TOut>? Write
     {
         get => _write;
-        set { _write = value; unchecked { ++CellRevision; } }
+        set { _write = value; _expressionColumn = null; unchecked { ++CellRevision; } }
     }
     public Func<TIn, object>[]? Links
     {
         get => _links;
-        set { _links = value; unchecked { ++CellRevision; } }
+        set { _links = value; _expressionLinks = null; unchecked { ++CellRevision; } }
     }
     public BindingMode Mode { get; set; }
     public Optional<TOut> FallbackValue
@@ -46,17 +49,33 @@ public partial class TypedBinding<TIn, TOut> where TIn : class
     public TypedBindingExpression<TIn, TOut> Instance(TIn? source, BindingMode mode = BindingMode.OneWay)
     {
         Validate(mode);
-        return new(new ConstantRoot(source), Read!, Write,
-            mode == BindingMode.OneTime ? Array.Empty<Func<TIn, object>>() : Links!, FallbackValue);
+        return new(new ConstantRoot(source), GetPlan(mode), FallbackValue);
     }
 
     internal TypedBindingExpression<TIn, TOut> InstanceForCell(TIn? source, BindingMode mode = BindingMode.OneWay,
         Optional<TOut>? fallback = null)
     {
         Validate(mode);
-        return TypedBindingExpression<TIn, TOut>.CreateForCell(source, Read!, Write,
-            mode == BindingMode.OneTime ? Array.Empty<Func<TIn, object>>() : Links!, fallback ?? FallbackValue);
+        return TypedBindingExpression<TIn, TOut>.CreateForCell(source, GetPlan(mode), fallback ?? FallbackValue);
     }
+    private (ValueColumn<TIn, TOut> Column, Func<TIn, object?>[] Links) GetPlan(BindingMode mode)
+    {
+        // Instruction storage is reused directly, without an extra plan object.
+        // The tuple is a value type; it never owns a root or an observation.
+        Func<TIn, object?>[] links;
+        if (mode == BindingMode.OneTime)
+            links = Array.Empty<Func<TIn, object?>>();
+        else if (_expressionLinks is { } cached && TypedBindingPlan<TIn, TOut>.MatchesLinks(Links!, cached))
+            links = cached;
+        else
+            links = TypedBindingPlan<TIn, TOut>.CopyLinks(Links!);
+        // Validate/copy links before publishing any new instruction snapshot.
+        var column = _expressionColumn ?? ValueColumn<TIn, TOut>.FromDelegate(null, Read!, setter: Write);
+        if (mode != BindingMode.OneTime) _expressionLinks = links;
+        _expressionColumn = column;
+        return (column, links);
+    }
+
     private void Validate(BindingMode mode)
     {
         if (mode is < BindingMode.Default or > BindingMode.OneWayToSource)

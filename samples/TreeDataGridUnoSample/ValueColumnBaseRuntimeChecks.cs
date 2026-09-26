@@ -18,6 +18,7 @@ internal static class ValueColumnBaseRuntimeChecks
 {
     internal static async Task RunAsync(global::Uno.Controls.TreeDataGrid grid)
     {
+        TypedBindingPlanRuntimeChecks.Run();
         var previousOptions = grid.PresentationOptions;
         grid.Model = null;
         var items = new ObservableCollection<Item>(Enumerable.Range(0, 200).Select(i => new Item($"Value row {i:D3}")));

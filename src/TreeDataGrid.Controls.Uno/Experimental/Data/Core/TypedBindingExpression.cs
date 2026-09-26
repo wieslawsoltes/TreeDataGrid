@@ -36,6 +36,8 @@ public class TypedBindingExpression<TIn, TOut> : LightweightObservableBase<Bindi
     private TypedBindingExpression(Func<TIn, TOut> read, Action<TIn, TOut>? write,
         Func<TIn, object>[] links, Optional<TOut> fallbackValue)
     {
+        // Direct public construction still owns its own instructions. Do not add
+        // an otherwise unused plan allocation to the uncached constructor path.
         ArgumentNullException.ThrowIfNull(read);
         ArgumentNullException.ThrowIfNull(links);
         _links = new Func<TIn, object?>[links.Length];
@@ -46,11 +48,23 @@ public class TypedBindingExpression<TIn, TOut> : LightweightObservableBase<Bindi
         _changed = ValueChanged;
     }
 
+    internal TypedBindingExpression(IObservable<TIn?> root, (ValueColumn<TIn, TOut> Column, Func<TIn, object?>[] Links) plan,
+        Optional<TOut> fallbackValue) : this(plan, fallbackValue)
+    { _rootSource = root ?? throw new ArgumentNullException(nameof(root)); }
+
+    private TypedBindingExpression((ValueColumn<TIn, TOut> Column, Func<TIn, object?>[] Links) plan, Optional<TOut> fallbackValue)
+    {
+        _links = plan.Links;
+        _column = plan.Column;
+        _fallback = fallbackValue;
+        _changed = ValueChanged;
+    }
+
     public string Description => $"TypedBinding<{typeof(TIn).Name}, {typeof(TOut).Name}>";
     internal bool IsActive => _active && !_disposed;
     internal static TypedBindingExpression<TIn, TOut> CreateForCell(TIn? root,
-        Func<TIn, TOut> read, Action<TIn, TOut>? write, Func<TIn, object>[] links, Optional<TOut> fallback) =>
-        new(read, write, links, fallback) { _root = root is null ? null : new(root) };
+        (ValueColumn<TIn, TOut> Column, Func<TIn, object?>[] Links) plan, Optional<TOut> fallback) =>
+        new(plan, fallback) { _root = root is null ? null : new(root) };
 
     /// <summary>Receives target values. Source errors are followed by a source refresh, as in the reference subject contract.</summary>
     public void OnNext(BindingValue<TOut> value)

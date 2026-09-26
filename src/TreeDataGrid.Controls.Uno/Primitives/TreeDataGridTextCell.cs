@@ -6,7 +6,7 @@ using ITextCell = Uno.Controls.Models.TreeDataGrid.ITextCell;
 namespace Uno.Controls.Primitives;
 
 /// <summary>A text cell with the same scalar customization surface as Avalonia.</summary>
-public class TreeDataGridTextCell : TreeDataGridCell
+public partial class TreeDataGridTextCell : TreeDataGridCell
 {
     public static readonly DependencyProperty ValueProperty = DependencyProperty.Register(
         nameof(Value), typeof(string), typeof(TreeDataGridTextCell), new PropertyMetadata(null, ValueChanged));

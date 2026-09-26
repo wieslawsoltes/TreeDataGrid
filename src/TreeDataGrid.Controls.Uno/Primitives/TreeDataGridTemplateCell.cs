@@ -4,7 +4,7 @@ using Uno.Controls.Presentation;
 
 namespace Uno.Controls.Primitives;
 
-public class TreeDataGridTemplateCell : TreeDataGridCell
+public partial class TreeDataGridTemplateCell : TreeDataGridCell
 {
     public static readonly DependencyProperty ContentProperty = DependencyProperty.Register(
         nameof(Content), typeof(object), typeof(TreeDataGridTemplateCell), new PropertyMetadata(null));

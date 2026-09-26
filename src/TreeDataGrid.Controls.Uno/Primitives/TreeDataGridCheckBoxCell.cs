@@ -4,7 +4,7 @@ using Uno.Controls.Presentation;
 
 namespace Uno.Controls.Primitives;
 
-public class TreeDataGridCheckBoxCell : TreeDataGridCell
+public partial class TreeDataGridCheckBoxCell : TreeDataGridCell
 {
     protected override Microsoft.UI.Xaml.Automation.Peers.AutomationPeer OnCreateAutomationPeer() =>
         new global::Uno.Controls.Automation.Peers.TreeDataGridCheckBoxCellAutomationPeer(this);
