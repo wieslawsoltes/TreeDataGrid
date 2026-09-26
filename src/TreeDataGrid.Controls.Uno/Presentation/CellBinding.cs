@@ -23,9 +23,9 @@ internal sealed partial class CellBinding<TModel, TValue> : IDisposable where TM
     // Only additional nested owners require storage; no model enters a static cache.
     private object? _rootOwner;
     private readonly object?[] _owners;
-    // Create only the notification delegates an actual owner needs. Each handler
-    // is still stable for the binding's entire lifetime once first attached.
-    private PropertyChangedEventHandler? _propertyChanged;
+    // Preserve the branch-free property-observer attachment used by ordinary
+    // row models. Only collection observation is initialized on first demand.
+    private readonly PropertyChangedEventHandler _propertyChanged;
     private NotifyCollectionChangedEventHandler? _collectionChanged;
     private readonly Action _changed;
     private TModel? _model;
@@ -42,6 +42,7 @@ internal sealed partial class CellBinding<TModel, TValue> : IDisposable where TM
         _retainValueOnError = retainValueOnError;
         _accessors = GetOwnerAccessors(column);
         _owners = _accessors.Length == 1 ? Array.Empty<object?>() : new object?[_accessors.Length - 1];
+        _propertyChanged = OnPropertyChanged;
     }
 
     public TValue? Value { get; private set; }

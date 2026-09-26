@@ -15,14 +15,17 @@ public sealed class LazyBindingDelegateTests
     [InlineData(1)]
     [InlineData(2)]
     [InlineData(3)]
-    public void Only_handlers_required_by_actual_owners_are_created(int kind)
+    public void Collection_handler_is_created_only_for_collection_owners(int kind)
     {
         using var binding = Create();
-        Assert.Null(Handler(binding, "_propertyChanged"));
+        // Property observation retains its original eager, readonly handler;
+        // this narrowed candidate changes only collection-handler allocation.
+        var property = Handler(binding, "_propertyChanged");
+        Assert.NotNull(property);
         Assert.Null(Handler(binding, "_collectionChanged"));
         var model = Model(kind);
         binding.Retarget(model);
-        Assert.Equal(kind is 1 or 3, Handler(binding, "_propertyChanged") is not null);
+        Assert.Same(property, Handler(binding, "_propertyChanged"));
         Assert.Equal(kind is 2 or 3, Handler(binding, "_collectionChanged") is not null);
         Assert.Equal(model.Name, binding.Value);
         binding.Dispose();

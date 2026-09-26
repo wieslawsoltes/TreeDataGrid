@@ -43,9 +43,8 @@ internal sealed partial class CellBinding<TModel, TValue>
             // Dispose/Suspend/Retarget refresh processes its newer generation.
             if (owner is INotifyPropertyChanged property)
             {
-                var handler = _propertyChanged ??= OnPropertyChanged;
                 propertyAttempted = true;
-                property.PropertyChanged += handler;
+                property.PropertyChanged += _propertyChanged;
             }
             if (owner is INotifyCollectionChanged collection)
             {
