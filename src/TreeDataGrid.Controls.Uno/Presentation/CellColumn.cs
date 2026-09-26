@@ -69,8 +69,8 @@ public abstract partial class CellColumn : NotifyingBase, IDisposable
     public Func<object?, string?>? TextSearchValueSelector { get; init; }
     public virtual string? GetSearchText(object? model) => TextSearchValueSelector?.Invoke(model);
     public virtual bool IsTextSearchEnabled => TextSearchValueSelector is not null;
-    public virtual string FormatValue(object? value) => TextOptions is { } options
-        ? CellTextFormatting.Format(options.Culture, options.StringFormat, value) : value?.ToString() ?? string.Empty;
+    public virtual string FormatValue(object? value) => TextOptions is { StringFormat: { } format } options
+        ? CellTextFormatting.Format(options.Culture, format, value) : value?.ToString() ?? string.Empty;
     public virtual TextCellOptions? TextOptions => null;
     public virtual DataTemplate? GetCellTemplate(Microsoft.UI.Xaml.Controls.Control anchor) => null;
     public virtual DataTemplate? GetCellEditingTemplate(Microsoft.UI.Xaml.Controls.Control anchor) => null;
@@ -176,7 +176,10 @@ internal sealed class TextBoundCell<TModel, TValue> : BoundCell<TModel, TValue>,
         : base(column, row, canPool: true, options?.Culture, bindingSnapshot) => _options = options;
     public string? Text
     {
-        get => _options is { } options ? CellTextFormatting.Format(options.Culture, options.StringFormat, TypedValue) : Value?.ToString();
+        // Null format follows the scalar/reference contract, including null
+        // values and parameterless ToString. Reading a copy avoids an object box.
+        get => _options is { StringFormat: { } format } options
+            ? CellTextFormatting.Format(options.Culture, format, TypedValue) : TypedValue?.ToString();
         set => Write(value);
     }
     public TextTrimming TextTrimming => _options?.TextTrimming ?? TextTrimming.CharacterEllipsis;

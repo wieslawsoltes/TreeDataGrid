@@ -13,6 +13,22 @@ public abstract class TreeDataGridColumn : ColumnCreateOptions
 {
     public object? Header { get; set; }
 
+    // Declare the native definition's portable policies on the same owner as
+    // the reference API. ColumnCreateOptions still owns the one policy store;
+    // base-typed configuration and XAML/derived-definition access cannot diverge.
+    /// <summary>Gets or sets the nullable per-column resize policy.</summary>
+    public new bool? CanUserResize { get => base.CanUserResize; set => base.CanUserResize = value; }
+    /// <summary>Gets or sets the nullable per-column sorting policy.</summary>
+    public new bool? CanUserSortColumn { get => base.CanUserSortColumn; set => base.CanUserSortColumn = value; }
+    /// <summary>Gets or sets whether header sorting can return to source order.</summary>
+    public new bool AllowTriStateSorting { get => base.AllowTriStateSorting; set => base.AllowTriStateSorting = value; }
+    /// <summary>Gets or sets the caller's ascending comparison without changing delegate identity.</summary>
+    public new Comparison<object?>? CompareAscending { get => base.CompareAscending; set => base.CompareAscending = value; }
+    /// <summary>Gets or sets the caller's descending comparison without changing delegate identity.</summary>
+    public new Comparison<object?>? CompareDescending { get => base.CompareDescending; set => base.CompareDescending = value; }
+    /// <summary>Gets or sets the native gestures which begin editing.</summary>
+    public new BeginEditGestures BeginEditGestures { get => base.BeginEditGestures; set => base.BeginEditGestures = value; }
+
     /// <summary>Creates the reference-compatible common options for a derived column.</summary>
     /// <remarks>Scalar policies are captured; configured comparison callbacks retain the definition's live comparison policy.</remarks>
     protected ColumnOptions<object> CreateCommonOptions() => new()

@@ -75,8 +75,10 @@ public class TextColumn<TModel, TValue> : ValueCellColumn<TModel, TValue?>, ITex
         }
         public string? Text
         {
+            // Read the same binding value by value: ToString runs on a copy,
+            // without boxing numeric values through the public object API.
             get => column.Options.StringFormat is { } format
-                ? CellTextFormatting.Format(column.Options.Culture, format, TypedValue) : Value?.ToString();
+                ? CellTextFormatting.Format(column.Options.Culture, format, TypedValue) : TypedValue?.ToString();
             set => Write(value);
         }
         public TextTrimming TextTrimming => column.Options.TextTrimming;

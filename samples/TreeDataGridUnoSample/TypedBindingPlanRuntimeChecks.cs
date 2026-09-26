@@ -11,6 +11,7 @@ internal static partial class TypedBindingPlanRuntimeChecks
 {
     internal static void Run()
     {
+        VerifyUnformattedTextAndPolicies();
         VerifyScalarSubscriptions();
         VerifyNumericFormatting();
         VerifySameAssignments();
