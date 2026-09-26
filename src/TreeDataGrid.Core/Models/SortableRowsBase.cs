@@ -143,16 +143,31 @@ namespace TreeDataGridCore.Models
             return _unsortedRows;
         }
 
-        private void ResetRows()
+        private void ResetRows(NotifyCollectionChangedEventArgs change)
         {
-            if (_unsortedRows is not null)
-            {
-                foreach (var row in _unsortedRows)
-                    row.Dispose();
-            }
-
+            var retiredRows = _unsortedRows;
+            // The replacement state must be visible before a row invokes
+            // application cleanup. Nested resets cannot revisit these owners,
+            // and rows materialized by a callback are not erased on return.
             _unsortedRows = null;
             _sortedIndexes = null;
+            List<Exception>? failures = null;
+            if (retiredRows is not null)
+            {
+                foreach (var row in retiredRows)
+                {
+                    try { row.Dispose(); }
+                    catch (Exception error) { (failures ??= new()).Add(error); }
+                }
+            }
+            // Reset has committed even if cleanup failed. Keep observers from
+            // retaining the retired projection, without swallowing either error.
+            try { CollectionChanged?.Invoke(this, change); }
+            catch (Exception error) { (failures ??= new()).Add(error); }
+            if (failures is { Count: 1 })
+                System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(failures[0]).Throw();
+            if (failures is not null)
+                throw new AggregateException(failures);
         }
 
         private List<TRow> MoveRows(int oldIndex, int newIndex, int count)
@@ -275,8 +290,7 @@ namespace TreeDataGridCore.Models
                             e.OldStartingIndex));
                     break;
                 case NotifyCollectionChangedAction.Reset:
-                    ResetRows();
-                    CollectionChanged?.Invoke(this, e);
+                    ResetRows(e);
                     break;
                 default:
                     throw new NotSupportedException();
@@ -380,8 +394,7 @@ namespace TreeDataGridCore.Models
                     CollectionChanged?.Invoke(this, CollectionExtensions.ResetEvent);
                     break;
                 case NotifyCollectionChangedAction.Reset:
-                    ResetRows();
-                    CollectionChanged?.Invoke(this, e);
+                    ResetRows(e);
                     break;
                 default:
                     throw new NotSupportedException();

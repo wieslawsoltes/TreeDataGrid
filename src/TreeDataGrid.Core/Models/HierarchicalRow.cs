@@ -119,31 +119,27 @@ namespace TreeDataGridCore.Models
             if (_isDisposed)
                 return;
 
-            // External observers can synchronously call back while unsubscribing.
-            // Retire ownership before releasing anything, including child rows:
-            // SortableRowsBase.Dispose publishes a Reset notification.
+            // Retire before application-controlled cleanup. Each independent
+            // owner must be released even when an earlier accessor throws.
             _isDisposed = true;
             var childrenSubscription = _childrenPropertySubscription;
             var childRows = _childRows;
             _childrenPropertySubscription = null;
             _childRows = null;
             _childModels = null;
-            UnsubscribeFromModelChanges();
-            try
-            {
-                _isExpandedSubscription?.Dispose();
-            }
-            finally
-            {
-                try
-                {
-                    childrenSubscription?.Dispose();
-                }
-                finally
-                {
-                    childRows?.Dispose();
-                }
-            }
+            List<Exception>? failures = null;
+            try { UnsubscribeFromModelChanges(); }
+            catch (Exception error) { (failures ??= new()).Add(error); }
+            try { _isExpandedSubscription?.Dispose(); }
+            catch (Exception error) { (failures ??= new()).Add(error); }
+            try { childrenSubscription?.Dispose(); }
+            catch (Exception error) { (failures ??= new()).Add(error); }
+            try { childRows?.Dispose(); }
+            catch (Exception error) { (failures ??= new()).Add(error); }
+            if (failures is { Count: 1 })
+                System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(failures[0]).Throw();
+            if (failures is not null)
+                throw new AggregateException(failures);
         }
 
         private void OnModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -319,11 +315,12 @@ namespace TreeDataGridCore.Models
 
         private void UnsubscribeFromModelChanges()
         {
-            if (_modelNotifications is not null)
-            {
-                _modelNotifications.PropertyChanged -= OnModelPropertyChanged;
-                _modelNotifications = null;
-            }
+            var notifications = _modelNotifications;
+            _modelNotifications = null;
+            // A removal callback may establish a new observation. Do not erase
+            // that new generation after the old accessor returns or throws.
+            if (notifications is not null)
+                notifications.PropertyChanged -= OnModelPropertyChanged;
         }
 
         private void UpdateModelChangeSubscription()
@@ -351,8 +348,9 @@ namespace TreeDataGridCore.Models
             }
             else
             {
-                _childrenPropertySubscription?.Dispose();
+                var subscription = _childrenPropertySubscription;
                 _childrenPropertySubscription = null;
+                subscription?.Dispose();
             }
         }
 
