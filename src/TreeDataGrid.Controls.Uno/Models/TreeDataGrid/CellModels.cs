@@ -53,7 +53,7 @@ public partial class TextCell<T> : NotifyingBase, ITextCell, IDisposable, IEdita
         _writer = writer;
         _options = options;
         IsReadOnly = isReadOnly;
-        _subscription = binding.Subscribe(new CellObserver<T>(Receive, ErrorReceived));
+        AttachSubscription(binding, new RawObserver(this));
     }
     public bool CanEdit => !IsReadOnly;
     public bool IsReadOnly { get; }
@@ -205,7 +205,7 @@ public partial class CheckBoxCell : NotifyingBase, ICell, IDisposable, IBoundCel
         _writer = writer;
         IsReadOnly = isReadOnly;
         IsThreeState = isThreeState;
-        _subscription = binding.Subscribe(new CellObserver<bool?>(Receive, ErrorReceived));
+        AttachSubscription(binding, new RawObserver(this));
     }
     public bool CanEdit => false;
     public bool SingleTapEdit => false;

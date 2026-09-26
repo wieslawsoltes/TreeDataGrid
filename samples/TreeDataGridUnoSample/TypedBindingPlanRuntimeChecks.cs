@@ -11,6 +11,7 @@ internal static partial class TypedBindingPlanRuntimeChecks
 {
     internal static void Run()
     {
+        VerifyScalarSubscriptions();
         VerifyNumericFormatting();
         VerifySameAssignments();
         var a = new Model { Number = 17 }; var b = new Model { Number = 29 };

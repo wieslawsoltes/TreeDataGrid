@@ -20,8 +20,7 @@ public partial class TextCell<T>
         _writer = writer is null ? null : new BindingCellWriter<T>(writer);
         _options = options;
         IsReadOnly = isReadOnly;
-        var subscription = binding.Subscribe(new TypedObserver(this));
-        if (_disposed) subscription.Dispose(); else _subscription = subscription;
+        AttachSubscription(binding, new TypedObserver(this));
     }
 
     private sealed class TypedObserver(TextCell<T> owner) : IObserver<BindingValue<T>>
@@ -63,8 +62,7 @@ public partial class CheckBoxCell
         _writer = writer is null ? null : new BindingCellWriter<bool?>(writer);
         IsReadOnly = isReadOnly;
         IsThreeState = isThreeState;
-        var subscription = binding.Subscribe(new TypedObserver(this));
-        if (_disposed) subscription.Dispose(); else _subscription = subscription;
+        AttachSubscription(binding, new TypedObserver(this));
     }
 
     private sealed class TypedObserver(CheckBoxCell owner) : IObserver<BindingValue<bool?>>
