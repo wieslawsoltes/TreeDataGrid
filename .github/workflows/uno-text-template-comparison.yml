@@ -1,0 +1,48 @@
+name: Uno native text template comparison
+
+on:
+  push:
+    branches: [codex/uno-core-port]
+    paths: [.github/workflows/uno-text-template-comparison.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.201
+      - name: Install matched native dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb fonts-dejavu-core libfontconfig1 libx11-6 libxrandr2 libxi6 libxcursor1 libgl1
+      - name: Execute exact revisions in ABBA order with unchanged framework workloads
+        run: >-
+          python3 -u build/compare-native-text-template.py
+          --baseline 79cf4279c88a69dcd4af90621066a250fe84634f
+          --candidate "$GITHUB_SHA"
+      - name: Preserve all samples, including negative original-gate outcomes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-text-template-comparison
+          path: artifacts/text-template-native-comparison
+          retention-days: 14
+          if-no-files-found: error
+      - name: Require unchanged validation sources
+        if: always()
+        run: git diff --exit-code && git diff --cached --exit-code
