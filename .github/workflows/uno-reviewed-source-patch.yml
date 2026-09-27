@@ -1,7 +1,6 @@
 name: Materialize reviewed native source edits
 
-# Temporary development helper. Creates content-addressed blobs only: no branch,
-# tag, PR, policy, or test-result write. The normal connector publishes the tree.
+# Temporary development helper. Creates blobs only, never updates a Git ref.
 on:
   push:
     branches: [codex/uno-core-port]
@@ -20,7 +19,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Apply exact reviewed substitutions to content-addressed blobs
+      - name: Materialize exact reviewed edits without changing a branch
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -29,6 +28,7 @@ jobs:
           repo = 'wieslawsoltes/TreeDataGrid'
           if os.environ['GITHUB_REPOSITORY'] != repo:
               raise RuntimeError('Repository mismatch')
+          def lines(*values): return '\n'.join(values)
           edits = [
             ('src/TreeDataGrid.Controls.Uno/Presentation/RowGeometry.cs', '9470ea5f989fc6d19312b5777530c87e6025e9e3', [
               ('internal sealed class RowGeometry', 'internal sealed partial class RowGeometry'),
@@ -36,43 +36,34 @@ jobs:
             ('src/TreeDataGrid.Controls.Uno/Primitives/RealizedStackElements.cs', 'ba7a1dd955b03d6dfccf95be9db363ee7a8772ad', [
               ('internal class RealizedStackElements', 'internal partial class RealizedStackElements')]),
             ('src/TreeDataGrid.Controls.Uno/Primitives/TreeDataGridPresenterBase.cs', 'a9b22a15a7cae8c2a9172b48fd2ae508cac2ac71', [
-              ('''                    case NotifyCollectionChangedAction.Replace:
-                                  _realizedElements.ItemsReplaced(e.OldStartingIndex, e.OldItems!.Count, _recycleElementOnItemRemoved);
-                                  RecycleSpecialElementInRange(ref _focusedElement, ref _focusedIndex, e.OldStartingIndex, e.OldItems.Count);
-                                  RecycleSpecialElementInRange(ref _scrollToElement, ref _scrollToIndex, e.OldStartingIndex, e.OldItems.Count);
-                                  break;'''.replace('                                  ', '                        '),
-               '''                    case NotifyCollectionChangedAction.Replace:
-                                  ReplaceItems(e);
-                                  break;'''.replace('                                  ', '                        ')),
+              (lines('                    case NotifyCollectionChangedAction.Replace:',
+                     '                        _realizedElements.ItemsReplaced(e.OldStartingIndex, e.OldItems!.Count, _recycleElementOnItemRemoved);',
+                     '                        RecycleSpecialElementInRange(ref _focusedElement, ref _focusedIndex, e.OldStartingIndex, e.OldItems.Count);',
+                     '                        RecycleSpecialElementInRange(ref _scrollToElement, ref _scrollToIndex, e.OldStartingIndex, e.OldItems.Count);',
+                     '                        break;'),
+               lines('                    case NotifyCollectionChangedAction.Replace:',
+                     '                        ReplaceItems(e);',
+                     '                        break;')),
               ('            catch { _pendingReset = true; throw; }',
                '            catch (RetiredLayoutException) { _pendingReset = true; }\n            catch { _pendingReset = true; throw; }'),
-              ('''            if (element is { } value)
-                              RecycleElementOnItemRemoved(value);
-
-                          element = null;
-                          elementIndex = -1;'''.replace('                              ', '                ').replace('                          ', '            '),
-               '''            var retired = element;
-                          element = null;
-                          elementIndex = -1;
-                          // Detach ownership before invoking application cleanup callbacks.
-                          if (retired is not null) RecycleElementOnItemRemoved(retired);'''.replace('                          ', '            '))]),
+              (lines('            if (element is { } value)',
+                     '                RecycleElementOnItemRemoved(value);', '',
+                     '            element = null;', '            elementIndex = -1;'),
+               lines('            var retired = element;', '            element = null;', '            elementIndex = -1;',
+                     '            // Detach ownership before invoking application cleanup callbacks.',
+                     '            if (retired is not null) RecycleElementOnItemRemoved(retired);'))]),
             ('src/TreeDataGrid.Controls.Uno/Primitives/TreeDataGridRowsPresenter.Layout.cs', '8046372e7055dfbba6808c6a7fd9f3ce51bde125', [
-              ('''            case NotifyCollectionChangedAction.Replace when e.NewStartingIndex >= 0:
-                          _rows.Invalidate(e.NewStartingIndex, e.NewItems!.Count);
-                          break;'''.replace('                          ', '                '),
-               '''            case NotifyCollectionChangedAction.Replace when e.NewStartingIndex >= 0 &&
-                      e.OldStartingIndex == e.NewStartingIndex && e.OldItems is not null && e.NewItems is not null:
-                          var oldCount = e.OldItems.Count;
-                          var newCount = e.NewItems.Count;
-                          _rows.Replace(e.OldStartingIndex, oldCount, newCount);
-                          if (oldCount != newCount && anchor.Row >= e.OldStartingIndex)
-                          {
-                              if (anchor.Row >= e.OldStartingIndex + oldCount)
-                                  anchor.Row += newCount - oldCount;
-                              else
-                                  anchor = (e.OldStartingIndex + Math.Min(anchor.Row - e.OldStartingIndex, Math.Max(0, newCount - 1)), 0);
-                          }
-                          break;'''.replace('                                  ', '                        ').replace('                              ', '                    ').replace('                          ', '                '))])
+              (lines('            case NotifyCollectionChangedAction.Replace when e.NewStartingIndex >= 0:',
+                     '                _rows.Invalidate(e.NewStartingIndex, e.NewItems!.Count);', '                break;'),
+               lines('            case NotifyCollectionChangedAction.Replace when e.NewStartingIndex >= 0 &&',
+                     '                e.OldStartingIndex == e.NewStartingIndex && e.OldItems is not null && e.NewItems is not null:',
+                     '                var oldCount = e.OldItems.Count;', '                var newCount = e.NewItems.Count;',
+                     '                _rows.Replace(e.OldStartingIndex, oldCount, newCount);',
+                     '                if (oldCount != newCount && anchor.Row >= e.OldStartingIndex)',
+                     '                {', '                    if (anchor.Row >= e.OldStartingIndex + oldCount)',
+                     '                        anchor.Row += newCount - oldCount;', '                    else',
+                     '                        anchor = (e.OldStartingIndex + Math.Min(anchor.Row - e.OldStartingIndex, Math.Max(0, newCount - 1)), 0);',
+                     '                }', '                break;'))])
           ]
           def blob_hash(data):
               return hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
@@ -82,27 +73,22 @@ jobs:
               raw = pathlib.Path(name).read_bytes()
               if blob_hash(raw) != expected:
                   raise RuntimeError(f'Unreviewed source input: {name}')
-              text = raw.decode('utf-8')
-              original = text
+              text = original = raw.decode('utf-8')
               for before, after in substitutions:
                   if text.count(before) != 1:
                       raise RuntimeError(f'Expected exactly one occurrence in {name}: {before!r}')
                   text = text.replace(before, after, 1)
               if text == original:
                   raise RuntimeError('Empty edit')
-              data = text.encode('utf-8')
-              prepared.append((name, expected, data))
+              prepared.append((name, expected, text.encode('utf-8')))
               patch.extend(difflib.unified_diff(original.splitlines(True), text.splitlines(True), 'a/' + name, 'b/' + name))
-          # Verify every input before publishing any blob. Never update a Git ref.
           manifest = {'parent': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(), 'files': []}
           for name, previous, data in prepared:
               request = urllib.request.Request(f'https://api.github.com/repos/{repo}/git/blobs',
                   data=json.dumps({'content': data.decode('utf-8'), 'encoding': 'utf-8'}).encode(),
                   headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json'}, method='POST')
-              with urllib.request.urlopen(request, timeout=30) as response:
-                  result = json.load(response)
-              if result['sha'] != blob_hash(data):
-                  raise RuntimeError('Published blob hash mismatch')
+              with urllib.request.urlopen(request, timeout=30) as response: result = json.load(response)
+              if result['sha'] != blob_hash(data): raise RuntimeError('Published blob hash mismatch')
               manifest['files'].append({'path': name, 'before': previous, 'sha': result['sha']})
           output = pathlib.Path('artifacts/reviewed-edits')
           output.mkdir(parents=True, exist_ok=True)
