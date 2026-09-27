@@ -1,0 +1,137 @@
+name: Uno browser engine parity
+
+on:
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: uno-browser-engines-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  consumers:
+    name: Publish one identical trimmed consumer bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TreeDataGridUnoSampleTargetFrameworks: net10.0-browserwasm
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.201
+      - name: Test browser drivers and evidence verdicts
+        run: python3 -m unittest discover -s build -p 'test-uno-browser*.py'
+      - name: Install browser workload
+        run: dotnet workload install wasm-tools
+      - name: Pack the actual shared Core and native controls
+        run: |
+          dotnet pack src/TreeDataGrid.Core/TreeDataGrid.Core.csproj -c Release -p:PackageVersion=12.0.0.7-ci.${{ github.run_id }} -o artifacts/engine-pack
+          dotnet pack src/TreeDataGrid.Controls.Uno/TreeDataGrid.Controls.Uno.csproj -c Release -p:PackageVersion=12.0.0.7-ci.${{ github.run_id }} -o artifacts/engine-pack
+      - name: Publish both trimmed NuGet consumers once
+        run: |
+          dotnet publish samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj -c Release -f net10.0-browserwasm -p:TreeDataGridUnoPackageVersion=12.0.0.7-ci.${{ github.run_id }} -p:RestoreAdditionalProjectSources="$GITHUB_WORKSPACE/artifacts/engine-pack" -o artifacts/engine-consumers/showcase
+          dotnet publish samples/TreeDataGridUnoActivityMonitor/TreeDataGridUnoActivityMonitor.csproj -c Release -f net10.0-browserwasm -p:TreeDataGridUnoPackageVersion=12.0.0.7-ci.${{ github.run_id }} -p:RestoreAdditionalProjectSources="$GITHUB_WORKSPACE/artifacts/engine-pack" -o artifacts/engine-consumers/monitor
+      - name: Fingerprint every published file and exact revision
+        run: |
+          python3 build/uno_browser_artifacts.py create --bundle artifacts/engine-consumers
+          git diff --exit-code
+          git diff --cached --exit-code
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uno-identical-browser-consumers
+          path: artifacts/engine-consumers
+          include-hidden-files: true
+          if-no-files-found: error
+
+  engine:
+    name: Native consumers and input (${{ matrix.engine }})
+    needs: consumers
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: uno-identical-browser-consumers
+          path: artifacts/engine-consumers
+      - name: Install the pinned selected engine without fallback
+        run: |
+          python3 -m pip install playwright==1.57.0
+          python3 -m playwright install --with-deps ${{ matrix.engine }}
+      - name: Verify exact consumer inputs
+        run: python3 build/uno_browser_artifacts.py verify --bundle artifacts/engine-consumers --output artifacts/engine-results/consumer-identity.json
+      - name: Run native assertions and real browser-dispatched input at DPR 1 and 2
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 build/run-uno-browser.py --browser ${{ matrix.engine }} --showcase artifacts/engine-consumers/showcase --monitor artifacts/engine-consumers/monitor --output artifacts/engine-results 2>&1 | tee artifacts/engine-results/driver.log
+      - name: Require an unchanged published bundle and checkout
+        if: always()
+        run: |
+          python3 build/uno_browser_artifacts.py verify --bundle artifacts/engine-consumers
+          git diff --exit-code
+          git diff --cached --exit-code
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uno-browser-engine-${{ matrix.engine }}
+          path: artifacts/engine-results
+          if-no-files-found: error
+
+  verdict:
+    name: Require all three engines and identical consumers
+    needs: [consumers, engine]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: uno-identical-browser-consumers
+          path: artifacts/engine-consumers
+      - uses: actions/download-artifact@v4
+        with:
+          name: uno-browser-engine-chromium
+          path: artifacts/engine-results/chromium
+      - uses: actions/download-artifact@v4
+        with:
+          name: uno-browser-engine-firefox
+          path: artifacts/engine-results/firefox
+      - uses: actions/download-artifact@v4
+        with:
+          name: uno-browser-engine-webkit
+          path: artifacts/engine-results/webkit
+      - name: Join actual complete engine reports
+        run: python3 build/uno_browser_artifacts.py matrix --bundle artifacts/engine-consumers --reports artifacts/engine-results --output artifacts/engine-results/matrix.json
+      - name: Require every preceding job to succeed
+        if: always()
+        env:
+          CONSUMERS: ${{ needs.consumers.result }}
+          ENGINES: ${{ needs.engine.result }}
+        run: test "$CONSUMERS" = success && test "$ENGINES" = success
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uno-browser-engine-parity-evidence
+          path: artifacts/engine-results
+          if-no-files-found: error

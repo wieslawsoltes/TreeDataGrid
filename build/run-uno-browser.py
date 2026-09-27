@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Execute the published, trimmed package consumers in a real browser.
+"""Execute published trimmed package consumers in Chromium, Firefox or WebKit.
 
-Requires the pinned Playwright dependency and its Chromium installation. Static
-hosting is loopback-only. No source files or generated application files change.
-A successful publish, canvas appearance or success log alone is not acceptance:
-the application's completed result, page errors and HTTP failures are checked.
-The independent input route also requires actual mouse/keyboard driver actions.
+Install the pinned Playwright dependency and selected engine. Static hosting is
+loopback-only. Application sources and published files are never modified. A
+successful publish, canvas appearance or success log alone is not acceptance:
+completed application assertions, actual input, page errors and asset failures
+are checked. Playwright WebKit/Firefox are not branded Safari/Firefox acceptance.
 """
 from __future__ import annotations
 
@@ -18,6 +18,8 @@ import subprocess
 import threading
 from typing import Any
 from urllib.parse import urlsplit
+
+ENGINES = ('chromium', 'firefox', 'webkit')
 
 
 class StaticHandler(SimpleHTTPRequestHandler):
@@ -40,11 +42,21 @@ class StaticHandler(SimpleHTTPRequestHandler):
 
 def web_root(publish_directory: Path) -> Path:
     publish_directory = publish_directory.resolve()
-    candidates = (publish_directory / 'wwwroot', publish_directory)
-    for candidate in candidates:
+    for candidate in (publish_directory / 'wwwroot', publish_directory):
         if (candidate / 'index.html').is_file():
             return candidate
     raise FileNotFoundError(f'No published index.html under {publish_directory}')
+
+
+def launch_browser(playwright: Any, engine: str, executable: str | None = None) -> Any:
+    if engine not in ENGINES:
+        raise ValueError(f'Unsupported browser engine: {engine}')
+    if executable is not None and engine != 'chromium':
+        raise ValueError('Custom executables are supported only for Chromium.')
+    options: dict[str, Any] = {'headless': True}
+    if executable is not None:
+        options['executable_path'] = executable
+    return getattr(playwright, engine).launch(**options)
 
 
 def run_sample(browser: Any, name: str, root: Path, output: Path, timeout: int,
@@ -75,17 +87,14 @@ def run_sample(browser: Any, name: str, root: Path, output: Path, timeout: int,
             if response.url.startswith(origin + '/') and response.status >= 400:
                 failures.append(f'HTTP {response.status}: {response.url}')
 
-        page.on('pageerror', page_error)
-        page.on('crash', lambda _: failures.append('Browser page crashed.'))
-        page.on('response', response_received)
         def request_failed(request: Any) -> None:
             messages.append({'type': 'requestfailed', 'url': request.url, 'error': request.failure})
-            # A transport failure need not produce an HTTP response at all.
-            # Do not let a later application-success flag hide a broken local
-            # published asset. Optional remote sample content stays diagnostic.
             if validating and request.url.startswith(origin + '/'):
                 failures.append(f'Local request failed: {request.url}: {request.failure}')
 
+        page.on('pageerror', page_error)
+        page.on('crash', lambda _: failures.append('Browser page crashed.'))
+        page.on('response', response_received)
         page.on('requestfailed', request_failed)
         query = '/?smoke=1&offline=1&demo=1'
         if input_scale is not None:
@@ -102,10 +111,14 @@ def run_sample(browser: Any, name: str, root: Path, output: Path, timeout: int,
         report['canvasCount'] = page.locator('canvas').count()
         report['crossOriginIsolated'] = page.evaluate('globalThis.crossOriginIsolated')
         report['userAgent'] = page.evaluate('navigator.userAgent')
+        if report['canvasCount'] < 1:
+            failures.append('No native rendering canvas was created.')
+        if report['crossOriginIsolated'] is not True:
+            failures.append('The published consumer is not cross-origin isolated.')
     except Exception as error:
         failures.append(str(error))
     finally:
-        validating = False  # Context shutdown deliberately aborts outstanding work.
+        validating = False
         if page is not None:
             try:
                 page.screenshot(path=str(output / 'final.png'), full_page=True, timeout=10_000)
@@ -135,14 +148,18 @@ def main() -> int:
     parser.add_argument('--monitor', type=Path, required=True)
     parser.add_argument('--output', type=Path, default=Path('artifacts/browser-runtime'))
     parser.add_argument('--timeout', type=int, default=180, help='Per-navigation/validation timeout in seconds.')
+    parser.add_argument('--browser', choices=ENGINES, default='chromium')
     parser.add_argument('--executable', type=str, default=None, help='Optional installed Chromium executable.')
     args = parser.parse_args()
     if not 10 <= args.timeout <= 600:
         parser.error('--timeout must be between 10 and 600 seconds.')
+    if args.executable and args.browser != 'chromium':
+        parser.error('--executable can only be used with --browser chromium.')
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
     summary: dict[str, Any] = {
-        'scope': 'Published trimmed consumers, Chromium assertions and browser-dispatched pointer/keyboard input at device scale factors 1 and 2. Not physical hardware, all-browser, IME or external screen-reader acceptance.',
+        'scope': 'Published trimmed consumers and browser-dispatched pointer/keyboard input at device scale factors 1 and 2. Selected Playwright engine only; not physical hardware, branded-browser, OS IME or external screen-reader acceptance.',
+        'browserEngine': args.browser,
         'completeBrowserParityProven': False,
         'passed': False,
         'results': [],
@@ -152,7 +169,7 @@ def main() -> int:
         roots = {'showcase': web_root(args.showcase), 'monitor': web_root(args.monitor)}
         from playwright.sync_api import sync_playwright
         with sync_playwright() as playwright:
-            browser = playwright.chromium.launch(headless=True, executable_path=args.executable)
+            browser = launch_browser(playwright, args.browser, args.executable)
             try:
                 summary['browserVersion'] = browser.version
                 for name, root in roots.items():
