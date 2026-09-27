@@ -69,6 +69,7 @@ public partial class TreeDataGridCell : Control
     }
     protected override void OnApplyTemplate()
     {
+        _compositionObserver?.Detach();
         CancelEdit();
         if (_editor is not null) _editor.KeyDown -= OnEditorKeyDown;
         _editor = null;

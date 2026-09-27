@@ -23,6 +23,8 @@ namespace TreeDataGridUnoSample;
 /// </summary>
 internal static class BrowserInputRuntimeChecks
 {
+    private const string EditedName = "Browser edited — Zażółć gęślą jaźń 日本語 🌲 👩‍💻";
+
     internal static async Task RunAsync(MainPage page)
     {
         var previous = page.Content;
@@ -64,8 +66,10 @@ internal static class BrowserInputRuntimeChecks
             await Until(() => source.RowSelection!.SelectedIndex == new Core.IndexPath(2));
             Emit("begin-edit");
             await Until(() => grid.EditingCell is { IsEditing: true, RowIndex: 2 });
-            Emit("commit-edit", text: "Browser edited");
-            await Until(() => items[2].Name == "Browser edited" && grid.EditingCell is null);
+            Emit("commit-edit", text: EditedName);
+            await Until(() => items[2].Name == EditedName && grid.EditingCell is null);
+
+            Console.WriteLine("UNO_BROWSER_UNICODE_EDIT_PASSED: browser-committed Polish, Japanese, supplementary scalar and extended grapheme text retained exactly in the Core model");
 
             Emit("select-cancel-row", grid.TryGetCell(0, 3));
             await Until(() => source.RowSelection!.SelectedIndex == new Core.IndexPath(3));
@@ -142,7 +146,7 @@ internal static class BrowserInputRuntimeChecks
             header = grid.ColumnHeadersPresenter!.TryGetElement(0)!;
             Emit("sort-column", header, fractionX: 0.25);
             await Until(() => source.IsSorted && ReferenceEquals(source.Rows[0].Model, items[2]));
-            Check(items[2].Name == "Browser edited", "Header sorting lost the committed model value.");
+            Check(items[2].Name == EditedName, "Header sorting lost the committed model value.");
 
             Emit("sort-column-descending", grid.ColumnHeadersPresenter!.TryGetElement(0), fractionX: 0.25);
             await Until(() => source.Columns[0].SortDirection == ListSortDirection.Descending && ReferenceEquals(source.Rows[0].Model, items[99]));

@@ -31,7 +31,7 @@ jobs:
         with:
           dotnet-version: 10.0.201
       - name: Test browser drivers and evidence verdicts
-        run: python3 -m unittest discover -s build -p 'test-uno-browser*.py'
+        run: python3 build/run-uno-browser-tests.py
       - name: Install browser workload
         run: dotnet workload install wasm-tools
       - name: Pack the actual shared Core and native controls

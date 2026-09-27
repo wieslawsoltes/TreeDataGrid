@@ -59,6 +59,45 @@ internal static class TextSearchRuntimeChecks
             try { grid.Input("b"); }
             finally { grid.SelectionChanging -= Replace; }
             Check(grid.Presentation is null && source.RowSelection!.Count == 0, "Text search mutated the retired source after a user callback.");
+            // Reentrant committed input is newer user intent, even when it keeps
+            // the same source/selection and does not emit a collection change.
+            grid.Model = source;
+            source.RowSelection.Clear();
+            void NestedInput(object? sender, CancelEventArgs e)
+            {
+                grid.SelectionChanging -= NestedInput;
+                grid.Input("b");
+            }
+            grid.SelectionChanging += NestedInput;
+            try { grid.Input("a"); }
+            finally { grid.SelectionChanging -= NestedInput; }
+            Check(source.RowSelection.SelectedIndex == new IndexPath(2),
+                "An older search resumed after a nested text input and overwrote the newer selection.");
+            grid.Input("e");
+            Check(source.RowSelection.SelectedIndex == new IndexPath(2),
+                "A retired search overwrote the latest accepted prefix.");
+
+            grid.Model = null;
+            items.Clear();
+            items.Add(new Item("🌲 Pine"));
+            items.Add(new Item("🌲 Spruce"));
+            items.Add(new Item("日本語"));
+            items.Add(new Item("👩‍💻 Developer"));
+            grid.Model = source;
+            source.RowSelection.Clear();
+            grid.Input("🌲");
+            Check(source.RowSelection.SelectedIndex == new IndexPath(0), "A supplementary scalar was truncated.");
+            grid.Input("🌲");
+            Check(source.RowSelection.SelectedIndex == new IndexPath(1), "Supplementary scalar cycling failed.");
+            grid.Model = null;
+            grid.Model = source;
+            grid.Input("日本");
+            Check(source.RowSelection.SelectedIndex == new IndexPath(2), "A multi-scalar committed string was truncated.");
+            grid.Model = null;
+            grid.Model = source;
+            grid.Input("👩‍💻");
+            Check(source.RowSelection.SelectedIndex == new IndexPath(3), "An extended grapheme could not select its row.");
+            Console.WriteLine("UNO_RUNTIME_UNICODE_SEARCH_PASSED: supplementary scalars, grapheme clusters, committed strings, reentrant input precedence and accepted-prefix ownership");
             Console.WriteLine("UNO_RUNTIME_TEXT_SEARCH_PASSED: committed-text prefix/cycling, failed match, timeout, virtualized row, cancellation, cell-selection exclusion and source replacement; OS delivery is a separate gate");
         }
         finally

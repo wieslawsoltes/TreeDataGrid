@@ -15,6 +15,7 @@ public partial class TreeDataGridCell
     {
         if (_unrealizing) return;
         _unrealizing = true;
+        _compositionObserver?.Detach();
         // Retire in-flight getters even when a caller later realizes the same
         // model at the same indexes. Model identity is not a lifetime token.
         unchecked { ++RealizationVersion; }

@@ -9,6 +9,7 @@ internal static class NativeTreeDataGridCapabilities
     // Windows' ApiInformation consumes WinRT names, not CLR assembly identities.
     private const string ControlType = "Microsoft.UI.Xaml.Controls.Control";
     private const string ElementType = "Microsoft.UI.Xaml.UIElement";
+    private const string TextBoxType = "Microsoft.UI.Xaml.Controls.TextBox";
     private const string AnchorType = "Microsoft.UI.Xaml.Controls.IScrollAnchorProvider";
 #else
     // Uno's implementation resolves managed metadata. A constant, qualified
@@ -16,6 +17,7 @@ internal static class NativeTreeDataGridCapabilities
     // an opaque Type.AssemblyQualifiedName computed at runtime.
     private const string ControlType = "Microsoft.UI.Xaml.Controls.Control, Uno.UI";
     private const string ElementType = "Microsoft.UI.Xaml.UIElement, Uno.UI";
+    private const string TextBoxType = "Microsoft.UI.Xaml.Controls.TextBox, Uno.UI";
     private const string AnchorType = "Microsoft.UI.Xaml.Controls.IScrollAnchorProvider, Uno.UI";
 #endif
 
@@ -25,6 +27,9 @@ internal static class NativeTreeDataGridCapabilities
         ApiInformation.IsPropertyPresent(ControlType, "IsTextScaleFactorEnabledProperty");
     internal static bool CharacterReceived { get; } =
         ApiInformation.IsEventPresent(ElementType, "CharacterReceived");
+    internal static bool TextComposition { get; } =
+        ApiInformation.IsEventPresent(TextBoxType, "TextCompositionStarted") &&
+        ApiInformation.IsEventPresent(TextBoxType, "TextCompositionEnded");
     internal static bool ScrollAnchoring { get; } =
         ApiInformation.IsMethodPresent(AnchorType, "RegisterAnchorCandidate") &&
         ApiInformation.IsMethodPresent(AnchorType, "UnregisterAnchorCandidate");

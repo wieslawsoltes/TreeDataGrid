@@ -21,6 +21,7 @@ public partial class TreeDataGrid
     protected override void OnLostFocus(RoutedEventArgs e)
     {
         base.OnLostFocus(e);
+        if (!ContainsFocus(this, FocusedElement)) ResetTextSearch();
         _presenter?.ReleaseFocusRetention();
         _headers?.ReleaseFocusRetention();
     }

@@ -190,6 +190,7 @@ public partial class TreeDataGrid
         base.OnKeyDown(e);
         if (!IsOwnInput(e.OriginalSource as DependencyObject)) return;
         var revision = _presentationRevision;
+        if (EditingCell?.GetEditingTarget().IsTextComposing == true) return;
         if (!e.Handled && e.Key == VirtualKey.Escape && EditingCell is { } cancelling)
         {
             var realization = cancelling.RealizationVersion;

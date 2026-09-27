@@ -82,6 +82,7 @@ public partial class TreeDataGridCell
             // old session is cancelled in finally, without touching the new one.
             if (!IsCurrent() || _edit is not null) return false;
             _edit = session;
+            ObserveComposition(editor);
             IsEditing = true;
             if (!IsCurrentEdit()) return false;
             HasValidationError = false;
@@ -109,6 +110,7 @@ public partial class TreeDataGridCell
                 if (FocusManager.FindFirstFocusableElement(editContent) is Control control)
                 {
                     if (!IsCurrentEdit()) return false;
+                    ObserveComposition(control as TextBox);
                     control.Focus(FocusState.Programmatic);
                 }
             }

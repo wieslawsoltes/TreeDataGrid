@@ -47,7 +47,9 @@ def drive(page: Any, messages: list[dict[str, Any]], timeout: int) -> list[str]:
             if not isinstance(value, str) or len(value) > 1024:
                 raise ValueError('Invalid fixture editor text.')
             page.keyboard.press('Control+A')
-            page.keyboard.type(value)
+            # Committed text, not invented virtual keys for non-ASCII scalars.
+            # This covers Unicode writeback; it is not an OS IME simulation.
+            page.keyboard.insert_text(value)
             page.keyboard.press('Enter' if expected == 'commit-edit' else 'Escape')
         else:
             x, y = float(step['x']), float(step['y'])

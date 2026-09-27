@@ -36,7 +36,7 @@ public partial class TreeDataGridCell
     protected override void OnLostFocus(RoutedEventArgs e)
     {
         base.OnLostFocus(e);
-        if (!IsEditing || XamlRoot is null) return;
+        if (!IsEditing || IsTextComposing || XamlRoot is null) return;
         for (var current = FocusManager.GetFocusedElement(XamlRoot) as DependencyObject;
             current is not null; current = VisualTreeHelper.GetParent(current))
             if (ReferenceEquals(current, this)) return;
@@ -103,6 +103,7 @@ public partial class TreeDataGridCell
     {
         var realization = RealizationVersion;
         if (_edit is not null) return false;
+        _compositionObserver?.Detach();
         // Clear a template-bound editor while still editing: the text cell's
         // Value facade must not write this cleanup value to the model. Each
         // native setter is a reentrancy boundary, not an atomic block.
@@ -123,6 +124,7 @@ public partial class TreeDataGridCell
     }
     private void OnEditorKeyDown(object sender, KeyRoutedEventArgs e)
     {
+        if (e.Handled || !ReferenceEquals(sender, _editor) || _edit is null || IsTextComposing) return;
         var realization = RealizationVersion;
         if (e.Key == VirtualKey.Escape) { CancelEdit(); ReturnFocus(realization); e.Handled = true; }
         else if (e.Key == VirtualKey.Enter) { if (CommitEdit()) ReturnFocus(realization); e.Handled = true; }
