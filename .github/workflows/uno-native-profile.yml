@@ -1,5 +1,6 @@
 name: Uno native stack profile
 
+# Current native implementation: retain the same diagnostic workload and tracing policy.
 # Profiling changes timings. Acceptance remains in the uninstrumented AB/BA
 # workflow with its unchanged 1.10 budget; these are diagnostic stack samples.
 on:
