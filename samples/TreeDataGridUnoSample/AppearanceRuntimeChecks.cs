@@ -33,6 +33,7 @@ internal static class AppearanceRuntimeChecks
 
     internal static async Task RunAsync(MainPage page)
     {
+        await TextTemplateParityView.RunAsync(page);
         await ReviewPresenterRuntimeChecks.RunAsync(page);
         var content = page.Content;
         using var source = new FlatTreeDataGridSource<Item>([new("Bravo measuring text"), new("Alpha measuring text")]);
