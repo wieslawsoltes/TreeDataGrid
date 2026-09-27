@@ -55,10 +55,9 @@ public class TemplateColumn<TModel> : ValueCellColumn<TModel, TModel>, ITextSear
     }
     public TemplateColumnOptions<TModel> Options { get; }
 
-    /// <summary>Creates a native template cell over the caller's actual shared Core row.</summary>
-    /// <remarks>The existing untyped virtual factory remains the customization point.</remarks>
-    public ICell CreateCell(TreeDataGridCore.Models.IRow<TModel> row) =>
-        CreateCell((TreeDataGridCore.Models.IRow)row);
+    /// <summary>Creates a native cell over the caller's actual shared Core row.</summary>
+    /// <remarks>Preserves the existing typed virtual slot and disposable CellValue result.</remarks>
+    public override CellValue CreateCell(TreeDataGridCore.Models.IRow<TModel> row) => base.CreateCell(row);
 
     /// <summary>Retargets a compatible template cell using its existing binding owner.</summary>
     public new bool TryReuseCell(ICell cell, TreeDataGridCore.Models.IRow<TModel> row) =>
@@ -88,5 +87,4 @@ public class TemplateColumn<TModel> : ValueCellColumn<TModel, TModel>, ITextSear
         throw new KeyNotFoundException($"No data template resource with key '{key}' was found for column '{Header}'.");
     }
     string? ITextSearchableColumn<TModel>.SelectValue(TModel model) => GetSearchText(model);
-
 }

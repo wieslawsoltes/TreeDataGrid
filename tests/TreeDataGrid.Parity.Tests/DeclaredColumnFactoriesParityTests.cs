@@ -72,22 +72,25 @@ public sealed class DeclaredColumnFactoriesParityTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public void Core_row_factories_are_declared_without_bypassing_virtual_dispatch(bool template)
+    public void Core_row_factories_preserve_the_existing_native_slot_and_untyped_customization(bool template)
     {
         var referenceType = template ? typeof(A.TemplateColumn<Model>) : typeof(A.CheckBoxColumn<Model>);
         var nativeType = template ? typeof(U.TemplateColumn<Model>) : typeof(U.CheckBoxColumn<Model>);
         var expected = referenceType.GetMethod("CreateCell", Declared, null, [typeof(C.IRow<Model>)], null)!;
         var actual = nativeType.GetMethod("CreateCell", Declared, null, [typeof(C.IRow<Model>)], null);
         Assert.NotNull(actual);
-        Assert.Equal(expected.IsVirtual, actual!.IsVirtual);
-        Assert.Equal(typeof(U.ICell), actual.ReturnType);
+        Assert.Equal(expected.GetParameters().Select(p => p.Name), actual!.GetParameters().Select(p => p.Name));
+        // The already published Uno factory is virtual and returns CellValue.
+        // Keep that source/binary contract; it remains a raw reference adaptation.
+        Assert.True(actual.IsVirtual);
+        Assert.Equal(typeof(CellValue), actual.ReturnType);
+        Assert.Equal(nativeType.BaseType, actual.GetBaseDefinition().DeclaringType);
         using var source = new FlatTreeDataGridSource<Model>([new Model { Number = 10, Flag = true }]);
         var row = source.Rows[0];
         if (template)
         {
             using var column = new DerivedTemplateColumn();
-            var cell = column.CreateCell(row);
-            using var lease = (IDisposable)cell;
+            using var cell = ((U.TemplateColumn<Model>)column).CreateCell(row);
             Assert.Equal(1, column.Calls);
             Assert.Same(row, column.LastRow);
             Assert.Same(row.Model, cell.Value);
@@ -95,8 +98,7 @@ public sealed class DeclaredColumnFactoriesParityTests
         else
         {
             using var column = new DerivedCheckBoxColumn();
-            var cell = column.CreateCell(row);
-            using var lease = (IDisposable)cell;
+            using var cell = ((U.CheckBoxColumn<Model>)column).CreateCell(row);
             Assert.Equal(1, column.Calls);
             Assert.Same(row, column.LastRow);
             Assert.Equal(true, cell.Value);

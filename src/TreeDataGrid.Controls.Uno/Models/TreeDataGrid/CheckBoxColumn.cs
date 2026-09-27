@@ -25,9 +25,8 @@ public class CheckBoxColumn<TModel> : ValueCellColumn<TModel, bool?> where TMode
     public CheckBoxColumnOptions<TModel> Options { get; }
 
     /// <summary>Creates a native cell over the caller's actual shared Core row.</summary>
-    /// <remarks>Dispatch remains virtual through the existing untyped factory.</remarks>
-    public ICell CreateCell(TreeDataGridCore.Models.IRow<TModel> row) =>
-        CreateCell((TreeDataGridCore.Models.IRow)row);
+    /// <remarks>Preserves the existing typed virtual slot and disposable CellValue result.</remarks>
+    public override CellValue CreateCell(TreeDataGridCore.Models.IRow<TModel> row) => base.CreateCell(row);
 
     /// <summary>Retargets a compatible native cell using the existing binding owner.</summary>
     public new bool TryReuseCell(ICell cell, TreeDataGridCore.Models.IRow<TModel> row) =>
