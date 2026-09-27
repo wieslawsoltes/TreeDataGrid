@@ -3,7 +3,10 @@ name: Uno native text template comparison
 on:
   push:
     branches: [codex/uno-core-port]
-    paths: [.github/workflows/uno-text-template-comparison.yml]
+    paths:
+      - .github/workflows/uno-text-template-comparison.yml
+      - build/compare-native-text-template.py
+      - build/verify-flat-text-template.py
   workflow_dispatch:
 
 permissions:
@@ -31,16 +34,19 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq xvfb fonts-dejavu-core libfontconfig1 libx11-6 libxrandr2 libxi6 libxcursor1 libgl1
       - name: Execute exact revisions in ABBA order with unchanged framework workloads
-        run: >-
-          python3 -u build/compare-native-text-template.py
-          --baseline 79cf4279c88a69dcd4af90621066a250fe84634f
-          --candidate "$GITHUB_SHA"
-      - name: Preserve all samples, including negative original-gate outcomes
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/text-template-driver
+          python3 -u build/compare-native-text-template.py --baseline 79cf4279c88a69dcd4af90621066a250fe84634f --candidate "$GITHUB_SHA" 2>&1 | tee artifacts/text-template-driver/execution.log
+      - name: Preserve every result, including preflight and negative original-gate outcomes
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: native-text-template-comparison
-          path: artifacts/text-template-native-comparison
+          path: |
+            artifacts/text-template-native-comparison
+            artifacts/text-template-driver
           retention-days: 14
           if-no-files-found: error
       - name: Require unchanged validation sources

@@ -27,14 +27,14 @@ def verify(root: Path) -> dict:
     ):
         if block.count(old) != 1: raise ValueError('Nonunique reviewed template transformation.')
         block = block.replace(old, new, 1)
-    expected = (text[:start] + block + text[end:]).encode()
+    # The committed transport also omitted exactly the terminal LF. Account for
+    # that explicit byte-only difference, without normalizing interior whitespace,
+    # reserializing another template or allowing any other unreviewed change.
+    expected = (text[:start] + block + text[end:]).encode().removesuffix(b'\n')
     actual = (root / PATH).read_bytes()
-    # XML artifacts in the preceding head have no final newline. Do not silently
-    # normalize the rest of the file or reserialize unrelated templates.
-    if actual != expected: raise ValueError('Candidate theme differs from the exact three reviewed substitutions.')
+    if actual != expected: raise ValueError('Candidate theme differs from the exact reviewed substitutions and terminal-LF omission.')
     changed = subprocess.check_output(['git', '-C', str(root), 'diff', '--name-only', BASELINE, 'HEAD', '--', 'src'], text=True).splitlines()
     if changed != [PATH]: raise ValueError('This experiment must not change another runtime source: ' + repr(changed))
-
     baseline = ET.fromstring(before)
     reference = ET.parse(root / 'samples/TreeDataGridUnoSample/TextTemplateParityView.xaml').getroot()
     original_template = next(element for element in baseline.iter(XAML + 'ControlTemplate')
@@ -51,7 +51,7 @@ def verify(root: Path) -> dict:
         raise ValueError('The compiled visual reference does not preserve the original template structure.')
     return {'baseline': BASELINE, 'originalThemeBlob': expected_hash,
             'candidateThemeSha256': hashlib.sha256(actual).hexdigest(),
-            'runtimePaths': changed, 'referenceTemplateMatches': True}
+            'terminalLfOmitted': True, 'runtimePaths': changed, 'referenceTemplateMatches': True}
 
 
 if __name__ == '__main__':
