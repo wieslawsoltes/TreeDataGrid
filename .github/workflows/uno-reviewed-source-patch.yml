@@ -1,0 +1,64 @@
+name: Materialize reviewed parity sources
+on:
+  push:
+    branches: [codex/uno-core-port]
+    paths: [.github/workflows/uno-reviewed-source-patch.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  materialize:
+    if: github.repository == 'wieslawsoltes/TreeDataGrid' && github.ref == 'refs/heads/codex/uno-core-port'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Verify reviewed patch and publish content-addressed blobs only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import base64, hashlib, json, os, pathlib, subprocess, urllib.request, zlib
+          repo = 'wieslawsoltes/TreeDataGrid'
+          expected_tree = 'ed94decf99e6cd6e415766125dcdfa745dddfd60'
+          expected_patch = '0f6a2e96e728c138609f52bf74cfe23075d4601b27d5b05aef576d8c59e91f02'
+          base = 'd45db0ef383685b1a477467ffb6f578f212527fb'
+          def api(path, data=None):
+              request = urllib.request.Request(f'https://api.github.com/repos/{repo}/{path}',
+                  data=None if data is None else json.dumps(data).encode(),
+                  headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json'})
+              with urllib.request.urlopen(request, timeout=30) as response: return json.load(response)
+          def git(*args): return subprocess.check_output(['git', *args], text=True).strip()
+          output = pathlib.Path('artifacts/reviewed-patch'); output.mkdir(parents=True, exist_ok=True)
+          encoded = base64.b64decode(api('git/blobs/4fdaa8593c637dc1d3a6364c07cc96d8ec5be344')['content']).decode('ascii')
+          (output / 'received-payload.txt').write_text(encoded)
+          patch = zlib.decompress(base64.b64decode(encoded, validate=True))
+          if hashlib.sha256(patch).hexdigest() != expected_patch: raise RuntimeError('Reviewed patch transport hash mismatch')
+          patch_file = output / 'reviewed.patch'; patch_file.write_bytes(patch)
+          git('read-tree', base)
+          subprocess.run(['git', 'apply', '--cached', '--check', str(patch_file)], check=True)
+          subprocess.run(['git', 'apply', '--cached', str(patch_file)], check=True)
+          if git('write-tree') != expected_tree: raise RuntimeError('Locally validated source tree mismatch')
+          names = git('diff', '--cached', '--name-only', base).splitlines()
+          manifest = {'base': base, 'parent': git('rev-parse', 'HEAD'), 'tree': expected_tree, 'patchSha256': expected_patch, 'files': []}
+          for name in names:
+              content = subprocess.check_output(['git', 'show', ':' + name])
+              expected = git('rev-parse', ':' + name)
+              result = api('git/blobs', {'content': content.decode('utf-8'), 'encoding': 'utf-8'})
+              if result['sha'] != expected: raise RuntimeError('Published blob hash mismatch: ' + name)
+              manifest['files'].append({'path': name, 'mode': '100644', 'type': 'blob', 'sha': expected})
+          (output / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
+          print('VERIFIED_PARITY_TREE=' + json.dumps(manifest), flush=True)
+          print('No branch or tag was updated by this workflow.')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reviewed-parity-source-blobs
+          path: artifacts/reviewed-patch
+          if-no-files-found: error
