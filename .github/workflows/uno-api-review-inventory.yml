@@ -27,7 +27,7 @@ jobs:
           run-id: ${{ inputs.validation_run || '36271915158' }}
           github-token: ${{ github.token }}
           path: report
-      - name: Print unresolved declarations with verified inherited-candidate context
+      - name: Summarize canonical declaration gaps
         run: |
           python3 - <<'PY'
           import json
@@ -39,15 +39,13 @@ jobs:
           if len(differences) != summary['missingOrDifferent']:
               raise RuntimeError('Declared difference count does not reconcile')
           inherited = {r['Baseline']['Identity'] for r in scopes['InheritedMemberReviews']}
-          print('AUDIT_INPUT=' + str(path))
-          print('AUDIT_SUMMARY=' + json.dumps(summary, separators=(',', ':')))
           for category in sorted({row['Category'] for row in differences}):
               rows = [row for row in differences if row['Category'] == category]
-              print('\nCATEGORY=' + category + ' COUNT=' + str(len(rows)))
+              print('CATEGORY=' + category + ' COUNT=' + str(len(rows)))
+              if len(rows) not in (43, 74):
+                  continue
               for row in rows:
                   baseline = row['Baseline']
-                  print(json.dumps({'identity': baseline['Identity'], 'baseline': baseline['Raw'],
-                                    'hasInheritedCandidate': baseline['Identity'] in inherited,
-                                    'candidates': row.get('Candidates', [])}, separators=(',', ':')))
-          print('No raw difference is waived by this diagnostic.')
+                  print(('INHERITED ' if baseline['Identity'] in inherited else 'ABSENT ') + baseline['Raw'])
+          print('Diagnostic only: no raw difference is waived.')
           PY
