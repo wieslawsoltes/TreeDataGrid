@@ -54,6 +54,16 @@ public class TemplateColumn<TModel> : ValueCellColumn<TModel, TModel>, ITextSear
         BeginEditGestures = options.BeginEditGestures;
     }
     public TemplateColumnOptions<TModel> Options { get; }
+
+    /// <summary>Creates a native template cell over the caller's actual shared Core row.</summary>
+    /// <remarks>The existing untyped virtual factory remains the customization point.</remarks>
+    public ICell CreateCell(TreeDataGridCore.Models.IRow<TModel> row) =>
+        CreateCell((TreeDataGridCore.Models.IRow)row);
+
+    /// <summary>Retargets a compatible template cell using its existing binding owner.</summary>
+    public new bool TryReuseCell(ICell cell, TreeDataGridCore.Models.IRow<TModel> row) =>
+        base.TryReuseCell(cell, row);
+
     // Unlike value-column comparers, the reference template contract returns
     // the current explicit delegate, even when CanUserSortColumn is false.
     // That flag remains a separate source/UI policy, not an implicit comparator.

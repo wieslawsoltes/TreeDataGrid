@@ -13,6 +13,13 @@ public abstract class TreeDataGridColumn : ColumnCreateOptions
 {
     public object? Header { get; set; }
 
+    /// <summary>Gets or sets the requested width in the existing shared policy store.</summary>
+    public new GridLength Width { get => base.Width; set => base.Width = value; }
+    /// <summary>Gets or sets the minimum width without introducing a second layout policy.</summary>
+    public new GridLength MinWidth { get => base.MinWidth; set => base.MinWidth = value; }
+    /// <summary>Gets or sets the optional maximum width in the existing policy store.</summary>
+    public new GridLength? MaxWidth { get => base.MaxWidth; set => base.MaxWidth = value; }
+
     // Declare the native definition's portable policies on the same owner as
     // the reference API. ColumnCreateOptions still owns the one policy store;
     // base-typed configuration and XAML/derived-definition access cannot diverge.

@@ -32,6 +32,10 @@ public class TextColumn<TModel, TValue> : ValueCellColumn<TModel, TValue?>, ITex
     }
     public TextColumnOptions<TModel> Options { get; }
 
+    /// <summary>Retargets a compatible native text cell without replacing its binding owner.</summary>
+    public new bool TryReuseCell(ICell cell, TreeDataGridCore.Models.IRow<TModel> row) =>
+        base.TryReuseCell(cell, row);
+
     public override TextCellOptions TextOptions
     {
         get
