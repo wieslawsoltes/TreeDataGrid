@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-using TreeDataGridCore;
 using Uno.Controls.Presentation;
 using Uno.Controls.Primitives;
+using IndexPath = TreeDataGridCore.IndexPath;
 using C = TreeDataGridCore.Models;
 using U = Uno.Controls.Models.TreeDataGrid;
 
@@ -188,7 +188,13 @@ internal static class RangeReplacementRuntimeChecks
         public int Subscriptions { get; private set; }
         public RangeRows(IEnumerable<Item> items)
         {
-            foreach (var item in items) { _rows.Add(new Row(item)); AllItems.Add(item); }
+            foreach (var item in items)
+            {
+                var row = new Row(item);
+                row.UpdateModelIndex(_rows.Count);
+                _rows.Add(row);
+                AllItems.Add(item);
+            }
         }
         public int Count => _rows.Count;
         public C.IRow this[int index] => _rows[index];
@@ -203,6 +209,7 @@ internal static class RangeReplacementRuntimeChecks
             var removed = _rows.GetRange(index, oldCount).ToArray();
             _rows.RemoveRange(index, oldCount);
             _rows.InsertRange(index, added);
+            for (var i = index; i < _rows.Count; ++i) _rows[i].UpdateModelIndex(i);
             AllItems.AddRange(added.Select(row => row.Model));
             _changed?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace,
                 (IList)added, (IList)removed, index));
@@ -230,6 +237,8 @@ internal static class RangeReplacementRuntimeChecks
     {
         public Item Model { get; } = model;
         object? C.IRow.Model => Model;
+        public int ModelIndex { get; private set; }
+        public void UpdateModelIndex(int index) => ModelIndex = index;
         public object? Header => Model.Name;
         public TreeDataGridCore.GridLength Height { get; set; } = TreeDataGridCore.GridLength.Auto;
     }
