@@ -26,60 +26,22 @@ jobs:
           python3 - <<'PY'
           import difflib, hashlib, json, os, pathlib, subprocess, urllib.request
           repo = 'wieslawsoltes/TreeDataGrid'
-          if os.environ['GITHUB_REPOSITORY'] != repo:
-              raise RuntimeError('Repository mismatch')
-          def lines(*values): return '\n'.join(values)
+          if os.environ['GITHUB_REPOSITORY'] != repo: raise RuntimeError('Repository mismatch')
           edits = [
-            ('src/TreeDataGrid.Controls.Uno/Presentation/RowGeometry.cs', '9470ea5f989fc6d19312b5777530c87e6025e9e3', [
-              ('internal sealed class RowGeometry', 'internal sealed partial class RowGeometry'),
-              ('private readonly Dictionary<int, double> _tree = new();', 'private Dictionary<int, double> _tree = new();')]),
-            ('src/TreeDataGrid.Controls.Uno/Primitives/RealizedStackElements.cs', 'ba7a1dd955b03d6dfccf95be9db363ee7a8772ad', [
-              ('internal class RealizedStackElements', 'internal partial class RealizedStackElements')]),
-            ('src/TreeDataGrid.Controls.Uno/Primitives/TreeDataGridPresenterBase.cs', 'a9b22a15a7cae8c2a9172b48fd2ae508cac2ac71', [
-              (lines('                    case NotifyCollectionChangedAction.Replace:',
-                     '                        _realizedElements.ItemsReplaced(e.OldStartingIndex, e.OldItems!.Count, _recycleElementOnItemRemoved);',
-                     '                        RecycleSpecialElementInRange(ref _focusedElement, ref _focusedIndex, e.OldStartingIndex, e.OldItems.Count);',
-                     '                        RecycleSpecialElementInRange(ref _scrollToElement, ref _scrollToIndex, e.OldStartingIndex, e.OldItems.Count);',
-                     '                        break;'),
-               lines('                    case NotifyCollectionChangedAction.Replace:',
-                     '                        ReplaceItems(e);',
-                     '                        break;')),
-              ('            catch { _pendingReset = true; throw; }',
-               '            catch (RetiredLayoutException) { _pendingReset = true; }\n            catch { _pendingReset = true; throw; }'),
-              (lines('            if (element is { } value)',
-                     '                RecycleElementOnItemRemoved(value);', '',
-                     '            element = null;', '            elementIndex = -1;'),
-               lines('            var retired = element;', '            element = null;', '            elementIndex = -1;',
-                     '            // Detach ownership before invoking application cleanup callbacks.',
-                     '            if (retired is not null) RecycleElementOnItemRemoved(retired);'))]),
-            ('src/TreeDataGrid.Controls.Uno/Primitives/TreeDataGridRowsPresenter.Layout.cs', '8046372e7055dfbba6808c6a7fd9f3ce51bde125', [
-              (lines('            case NotifyCollectionChangedAction.Replace when e.NewStartingIndex >= 0:',
-                     '                _rows.Invalidate(e.NewStartingIndex, e.NewItems!.Count);', '                break;'),
-               lines('            case NotifyCollectionChangedAction.Replace when e.NewStartingIndex >= 0 &&',
-                     '                e.OldStartingIndex == e.NewStartingIndex && e.OldItems is not null && e.NewItems is not null:',
-                     '                var oldCount = e.OldItems.Count;', '                var newCount = e.NewItems.Count;',
-                     '                _rows.Replace(e.OldStartingIndex, oldCount, newCount);',
-                     '                if (oldCount != newCount && anchor.Row >= e.OldStartingIndex)',
-                     '                {', '                    if (anchor.Row >= e.OldStartingIndex + oldCount)',
-                     '                        anchor.Row += newCount - oldCount;', '                    else',
-                     '                        anchor = (e.OldStartingIndex + Math.Min(anchor.Row - e.OldStartingIndex, Math.Max(0, newCount - 1)), 0);',
-                     '                }', '                break;'))])
+            ('samples/TreeDataGridUnoSample/GenericPresenterRuntimeChecks.cs', 'ed9a4c7ceaff3ebc627eb97142822e10dda2cae6', [
+              ('        var previous = page.Content;',
+               '        await RangeReplacementRuntimeChecks.RunAsync(page);\n        var previous = page.Content;')])
           ]
-          def blob_hash(data):
-              return hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
-          prepared = []
-          patch = []
+          def blob_hash(data): return hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
+          prepared, patch = [], []
           for name, expected, substitutions in edits:
               raw = pathlib.Path(name).read_bytes()
-              if blob_hash(raw) != expected:
-                  raise RuntimeError(f'Unreviewed source input: {name}')
+              if blob_hash(raw) != expected: raise RuntimeError(f'Unreviewed source input: {name}')
               text = original = raw.decode('utf-8')
               for before, after in substitutions:
-                  if text.count(before) != 1:
-                      raise RuntimeError(f'Expected exactly one occurrence in {name}: {before!r}')
+                  if text.count(before) != 1: raise RuntimeError(f'Nonunique edit in {name}')
                   text = text.replace(before, after, 1)
-              if text == original:
-                  raise RuntimeError('Empty edit')
+              if text == original: raise RuntimeError('Empty edit')
               prepared.append((name, expected, text.encode('utf-8')))
               patch.extend(difflib.unified_diff(original.splitlines(True), text.splitlines(True), 'a/' + name, 'b/' + name))
           manifest = {'parent': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(), 'files': []}
@@ -90,8 +52,7 @@ jobs:
               with urllib.request.urlopen(request, timeout=30) as response: result = json.load(response)
               if result['sha'] != blob_hash(data): raise RuntimeError('Published blob hash mismatch')
               manifest['files'].append({'path': name, 'before': previous, 'sha': result['sha']})
-          output = pathlib.Path('artifacts/reviewed-edits')
-          output.mkdir(parents=True, exist_ok=True)
+          output = pathlib.Path('artifacts/reviewed-edits'); output.mkdir(parents=True, exist_ok=True)
           (output / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
           (output / 'changes.diff').write_text(''.join(patch))
           print('REVIEWED_NATIVE_BLOBS=' + json.dumps(manifest), flush=True)
