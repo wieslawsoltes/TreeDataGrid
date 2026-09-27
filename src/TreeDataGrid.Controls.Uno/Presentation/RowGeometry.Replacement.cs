@@ -7,9 +7,9 @@ internal sealed partial class RowGeometry
 {
     /// <summary>Replaces a contiguous range, preserving measured prefix and suffix rows.</summary>
     /// <remarks>
-    /// Uniform replacements require no per-row storage. Unequal sparse replacements
-    /// prepare both indexes before publication, so invalid extents cannot leave a
-    /// partially shifted height map. Equal-size replacements retain Invalidate's fast path.
+    /// Uniform replacements require no per-row storage. Partial multirow replacements
+    /// prepare both sparse indexes before publication, including equal-count changes.
+    /// Single-row and whole-range equal-count replacements retain Invalidate's fast path.
     /// </remarks>
     public void Replace(int index, int oldCount, int newCount)
     {
@@ -20,7 +20,9 @@ internal sealed partial class RowGeometry
         var nextCount = Count - oldCount + newCount;
         if (!double.IsFinite(nextCount * Estimate))
             throw new ArgumentOutOfRangeException(nameof(newCount), "The resulting row extent must be finite.");
-        if (oldCount == newCount)
+        // Partial multirow invalidation can overflow before a later large
+        // measurement is removed. Validate its final state before publishing.
+        if (oldCount == newCount && (oldCount <= 1 || oldCount == Count))
         {
             Invalidate(index, oldCount);
             return;

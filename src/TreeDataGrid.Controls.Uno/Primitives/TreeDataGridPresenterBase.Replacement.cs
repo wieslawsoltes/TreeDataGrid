@@ -89,7 +89,7 @@ public abstract partial class TreeDataGridPresenterBase<TItem>
         }
         else if (capturedIndex >= oldEnd && oldCount != newCount)
         {
-            var target = checked(capturedIndex + newCount - oldCount);
+            var target = global::Uno.Controls.Presentation.RowIndexMath.ShiftSuffix(capturedIndex, oldCount, newCount);
             if ((ReferenceEquals(_focusedElement, captured) && _focusedIndex == target) ||
                 (ReferenceEquals(_scrollToElement, captured) && _scrollToIndex == target))
                 elementIndex = target;
