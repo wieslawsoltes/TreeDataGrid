@@ -1,0 +1,329 @@
+{
+  "schemaVersion": 1,
+  "dateUtc": "2026-09-27",
+  "repository": "wieslawsoltes/TreeDataGrid",
+  "pullRequest": 26,
+  "startingCommit": "91c3128013ea628e3bfab406d727f18625774737",
+  "recoveryCommit": "9e3de136b6cb99cc13aa65ba2f20c14496e5b2e5",
+  "testedCommit": "b861826818b3e9bc53ce1888e202275141e51511",
+  "testedTree": "46cea6719c24f32a5464664684fb82badb07eee6",
+  "ciMerge": "c6ee890afa7239cd6d6eaebf562e4d49cda55389",
+  "sourceRecovery": {
+    "sourceArtifact": 10926284194,
+    "sourceSha256": "5195f542a1730b62b1c294c382e64402d051523daf07d8c4d3ffb790fd697287",
+    "patchArtifact": 10927116011,
+    "patchSha256": "0f6a2e96e728c138609f52bf74cfe23075d4601b27d5b05aef576d8c59e91f02",
+    "recoveredTree": "ed94decf99e6cd6e415766125dcdfa745dddfd60",
+    "independentlyReconstructedTreesMatch": true,
+    "temporaryWriteEnabledWorkflowRemoved": true,
+    "patchArtifactSha256": "7603a274cc8da8025a067cd4a99d2062fae4f423087e3ca204a45f73f50ca7b5"
+  },
+  "coverage": {
+    "recoveredUnoCases": 36,
+    "newGeometryCases": 3,
+    "newIndexCases": 6,
+    "finalTotal": 2257,
+    "unchangedAssertionsWeakened": false,
+    "nativeSuitesAdded": 0,
+    "browserDriverTestMethodsExecuted": 36,
+    "baselineGeometryProof": {
+      "passed": 1,
+      "failed": 2,
+      "total": 3,
+      "runtimeChangesInBaseline": false
+    }
+  },
+  "canonical": {
+    "runId": 36306250769,
+    "jobId": 108583500045,
+    "stages": {
+      "core": 0,
+      "uno": 0,
+      "avalonia": 0,
+      "sample-state": 0,
+      "contract-parity": 0,
+      "native": 0,
+      "native-smoke": 0,
+      "activity": 0,
+      "activity-smoke": 0,
+      "isolated-suites": 0,
+      "avalonia-api-build": 0,
+      "api-audit": 0,
+      "api-self-check": 0,
+      "parity-review-tests": 0,
+      "parity-review": 0,
+      "browser-validator-tests": 0,
+      "review-tool-tests": 0,
+      "review-regressions": 0,
+      "review-evidence": 0
+    },
+    "dotnetCases": {
+      "core": 250,
+      "uno": 1111,
+      "avalonia": 536,
+      "sample-state": 41,
+      "contract-parity": 319
+    },
+    "failed": 0,
+    "skipped": 0,
+    "nativeSuites": {
+      "registered": 65,
+      "passed": 65
+    },
+    "artifact": 10927920624,
+    "artifactSha256": "ea2125a32ea99d4ddee4b01504870142f80452a963292f5763522a2b596fd719",
+    "rawArtifactHashIndependentlyVerified": true,
+    "rangeAndUnicodeMarkersInIsolatedAndSequential": true,
+    "status": "completed",
+    "conclusion": "success",
+    "unchangedSourceCheck": "passed"
+  },
+  "api": {
+    "baselineShapes": 1845,
+    "targetShapes": 1903,
+    "exactNormalizedMatches": 1064,
+    "missingOrDifferent": 781,
+    "additionalOrDifferent": 839,
+    "unresolvedBaselineTypes": [],
+    "unresolvedTargetTypes": [],
+    "supplementalMetadata": {
+      "BaselineEntries": 13465,
+      "TargetEntries": 15944,
+      "ExactMatches": 3890,
+      "MissingOrDifferent": 9575,
+      "AdditionalOrDifferent": 12054
+    },
+    "scopeAccounting": {
+      "SharedCore": {
+        "Baseline": 590,
+        "Target": 590,
+        "Exact": 590,
+        "MissingOrDifferent": 0,
+        "AdditionalOrDifferent": 0
+      },
+      "UiAssemblies": {
+        "Baseline": 1255,
+        "Target": 1313,
+        "Exact": 474,
+        "MissingOrDifferent": 781,
+        "AdditionalOrDifferent": 839
+      },
+      "SharedCoreBytesIdentical": true,
+      "ScopeCountsAreAdditive": true,
+      "normalizationCollisions": 0,
+      "inheritedCandidateDifferences": 104
+    }
+  },
+  "localDeclarationPreservation": {
+    "referenceFloor": "23f033eef3d1a6243f130d14b62ccc9e82bf7359",
+    "passed": true,
+    "removed": [],
+    "rewritten": [],
+    "lostMatches": [],
+    "newMatches": [
+      "public System.Boolean UI.Controls.Models.TreeDataGrid.CheckBoxColumn<TModel>.TryReuseCell(UI.Controls.Models.TreeDataGrid.ICell cell, TreeDataGridCore.Models.IRow<TModel> row)",
+      "public System.Boolean UI.Controls.Models.TreeDataGrid.TemplateColumn<TModel>.TryReuseCell(UI.Controls.Models.TreeDataGrid.ICell cell, TreeDataGridCore.Models.IRow<TModel> row)",
+      "public System.Boolean UI.Controls.Models.TreeDataGrid.TextColumn<TModel, TValue>.TryReuseCell(UI.Controls.Models.TreeDataGrid.ICell cell, TreeDataGridCore.Models.IRow<TModel> row)"
+    ],
+    "note": "Three new matches belong to earlier committed column reuse declarations, not newly authored in this continuation."
+  },
+  "nativePerformance": {
+    "runId": 36306250796,
+    "artifact": 10927641839,
+    "artifactSha256": "35e8a4f99691e7989893e132153b3e2d0de2ea7c3ed5bd739c41661074f2eab4",
+    "outcomes": {
+      "build-Avalonia": 0,
+      "build-Uno": 0,
+      "00-Avalonia": 0,
+      "00-Uno": 0,
+      "01-Uno": 0,
+      "01-Avalonia": 0
+    },
+    "budget": 1.1,
+    "budgetMet": false,
+    "scope": "Synchronous UI-thread source/layout work and verified layout-settlement latency. Not GPU completion, frame rate, input latency, accessibility, variable-height or all-feature parity.",
+    "controlledBeforeAfter": false,
+    "ratios": [
+      {
+        "operation": "distant-diagonal-scroll",
+        "time": 3.521376019089282,
+        "allocation": 1.917374529634981
+      },
+      {
+        "operation": "replace-visible-row",
+        "time": 1.5867637326273991,
+        "allocation": 2.6677908937605395
+      },
+      {
+        "operation": "resize-visible-column",
+        "time": 1.4720070614604925,
+        "allocation": 1.517708428662945
+      },
+      {
+        "operation": "scroll-x",
+        "time": 2.127484064491939,
+        "allocation": 0.6952416918429003
+      },
+      {
+        "operation": "scroll-y",
+        "time": 2.30879854117452,
+        "allocation": 1.9566068515497552
+      },
+      {
+        "operation": "sort",
+        "time": 1.4695319874799198,
+        "allocation": 0.6198177469938756
+      }
+    ],
+    "allRawMeasurementsRetained": true
+  },
+  "localEnvironment": {
+    "toolchain": "Archived public SDK 10.0.201, .NET 10.0.12, x64 Debian 13",
+    "offlineChanges": [
+      "SDK reference/apphost pack metadata 8.0.25 -> installed 8.0.31",
+      "MSBuildEnableWorkloadResolver=false for desktop offline build",
+      "Offline package feed configuration; no vulnerability-feed access",
+      "Generated-output path compatibility symlink (untracked build output only)"
+    ],
+    "completeLocalSuitesMatchCanonical": true,
+    "firstAttempt": "Workload resolver not found; retried after environment-only adjustment",
+    "interruptedAttempt": "First all-suite wrapper exceeded shell tool lifetime; complete fresh 65-suite run retained separately",
+    "canonicalUsesUnmodifiedCommittedSources": true
+  },
+  "platformSnapshot": {
+    "runId": 36306250790,
+    "passedJobs": 5,
+    "totalJobs": 6,
+    "windowsTests": "success",
+    "ubuntuTests": "success",
+    "windowsAppSdkPublication": "success",
+    "linuxNativeAndNuGet": "success",
+    "browserPublicationAndExecution": "success",
+    "macOS": {
+      "jobId": 108583524591,
+      "status": "queued",
+      "executedSteps": 0
+    },
+    "fullPlatformPassClaimed": false
+  },
+  "engineMatrixSnapshot": {
+    "runId": 36306250857,
+    "verdict": "failure",
+    "bundlePublication": "success",
+    "consumerIdentity": {
+      "files": 686,
+      "manifestSha256": "7597ff44d7f1f441214a0feb9c7294e66db658d343b411c4fc1ef79e48aca3fe",
+      "revision": "c6ee890afa7239cd6d6eaebf562e4d49cda55389"
+    },
+    "passedCases": 10,
+    "totalCases": 12,
+    "engines": {
+      "chromium": {
+        "version": "143.0.7499.4",
+        "passed": true,
+        "cases": [
+          {
+            "name": "showcase",
+            "passed": true,
+            "failures": []
+          },
+          {
+            "name": "monitor",
+            "passed": true,
+            "failures": []
+          },
+          {
+            "name": "showcase-input-scale-1",
+            "passed": true,
+            "failures": []
+          },
+          {
+            "name": "showcase-input-scale-2",
+            "passed": true,
+            "failures": []
+          }
+        ]
+      },
+      "firefox": {
+        "version": "144.0.2",
+        "passed": false,
+        "cases": [
+          {
+            "name": "showcase",
+            "passed": false,
+            "failures": [
+              "Page.wait_for_function: Timeout 180000ms exceeded."
+            ]
+          },
+          {
+            "name": "monitor",
+            "passed": true,
+            "failures": []
+          },
+          {
+            "name": "showcase-input-scale-1",
+            "passed": true,
+            "failures": []
+          },
+          {
+            "name": "showcase-input-scale-2",
+            "passed": false,
+            "failures": [
+              "Application commit-edit phase timed out after 30 seconds; editing row remained 2. Full original exception is retained in the archived summary and console logs."
+            ]
+          }
+        ]
+      },
+      "webkit": {
+        "version": "26.0",
+        "passed": true,
+        "cases": [
+          {
+            "name": "showcase",
+            "passed": true,
+            "failures": []
+          },
+          {
+            "name": "monitor",
+            "passed": true,
+            "failures": []
+          },
+          {
+            "name": "showcase-input-scale-1",
+            "passed": true,
+            "failures": []
+          },
+          {
+            "name": "showcase-input-scale-2",
+            "passed": true,
+            "failures": []
+          }
+        ]
+      }
+    },
+    "retryRequested": false,
+    "timeoutsChanged": false,
+    "noFailedRouteWaived": true,
+    "aggregateCorrectlyRejectsPartialSuccess": true,
+    "artifact": 10927637813,
+    "artifactSha256": "ee9dd422a075353bf88b78c37dd13e1f1ab511222fb44405033de2471f34c388",
+    "hashIndependentlyVerified": true,
+    "rangeAndUnicodeMarkersVerifiedInChromiumAndWebkit": true,
+    "exactUnicodeWritebackVerifiedAtBothScalesInChromiumAndWebkit": true,
+    "diagnosticInference": "Firefox insertText in pinned Playwright uses commitCompositionWith; terminating-key ordering is an investigation lead, not a proven cause of the DPR 2 failure. Showcase progress stops after horizontal-recycling marker before its 180-second timeout. Neither failure was retried or declared fixed."
+  },
+  "boundaries": {
+    "completeApiParityProven": false,
+    "completePerformanceParityProven": false,
+    "physicalImeTested": false,
+    "externalScreenReaderTested": false,
+    "brandedSafariOrFirefoxClaimed": false,
+    "merged": false,
+    "released": false
+  },
+  "documentationCommit": {
+    "changesOnlyDocumentation": true,
+    "skipCi": true,
+    "reason": "Do not supersede the queued product macOS job. Product/test checks were not skipped; the documentation head is not represented as independently certified or merge-ready."
+  }
+}
