@@ -18,6 +18,7 @@ internal static class GenericPresenterRuntimeChecks
 {
     public static async Task RunAsync(MainPage page)
     {
+        await RangeReplacementRuntimeChecks.RunAsync(page);
         var previous = page.Content;
         var items = new ObservableCollection<Item>(Enumerable.Range(0, 200).Select(i => new Item($"Item {i}", 24 + i % 3 * 8)));
         var factory = new Factory();

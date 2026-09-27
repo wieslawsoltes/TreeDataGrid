@@ -8,10 +8,10 @@ namespace Uno.Controls.Presentation;
 /// O(1); measured prefix queries and height changes are O(log row count).
 /// Unknown rows require no per-row storage and no source/model is retained.
 /// </summary>
-internal sealed class RowGeometry
+internal sealed partial class RowGeometry
 {
     private Dictionary<int, double> _heights = new();
-    private readonly Dictionary<int, double> _tree = new();
+    private Dictionary<int, double> _tree = new();
     public int Count { get; private set; }
     public double Estimate { get; private set; } = 28;
     public int MeasuredCount => _heights.Count;

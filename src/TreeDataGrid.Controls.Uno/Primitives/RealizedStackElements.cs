@@ -10,7 +10,7 @@ namespace Uno.Controls.Primitives
     /// <summary>
     /// Stores the realized element state for a <see cref="TreeDataGridPresenterBase{TItem}"/>.
     /// </summary>
-    internal class RealizedStackElements
+    internal partial class RealizedStackElements
     {
         private readonly bool _traceEnabled;
         private int _firstIndex;

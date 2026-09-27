@@ -89,8 +89,18 @@ public partial class TreeDataGridRowsPresenter
                 _rows.Move(e.OldStartingIndex, e.NewStartingIndex, e.OldItems!.Count);
                 if (anchor.Row >= 0) anchor.Row = RowGeometry.MapMove(anchor.Row, e.OldStartingIndex, e.NewStartingIndex, e.OldItems.Count);
                 break;
-            case NotifyCollectionChangedAction.Replace when e.NewStartingIndex >= 0:
-                _rows.Invalidate(e.NewStartingIndex, e.NewItems!.Count);
+            case NotifyCollectionChangedAction.Replace when e.NewStartingIndex >= 0 &&
+                e.OldStartingIndex == e.NewStartingIndex && e.OldItems is not null && e.NewItems is not null:
+                var oldCount = e.OldItems.Count;
+                var newCount = e.NewItems.Count;
+                _rows.Replace(e.OldStartingIndex, oldCount, newCount);
+                if (oldCount != newCount && anchor.Row >= e.OldStartingIndex)
+                {
+                    if (anchor.Row >= e.OldStartingIndex + oldCount)
+                        anchor.Row += newCount - oldCount;
+                    else
+                        anchor = (e.OldStartingIndex + Math.Min(anchor.Row - e.OldStartingIndex, Math.Max(0, newCount - 1)), 0);
+                }
                 break;
             default:
                 // Reset/sort preserves the viewport's display position, not the

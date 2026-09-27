@@ -1021,9 +1021,7 @@ namespace Uno.Controls.Primitives
                         UpdateSpecialElementForRemove(ref _scrollToElement, ref _scrollToIndex, e.OldStartingIndex, e.OldItems.Count);
                         break;
                     case NotifyCollectionChangedAction.Replace:
-                        _realizedElements.ItemsReplaced(e.OldStartingIndex, e.OldItems!.Count, _recycleElementOnItemRemoved);
-                        RecycleSpecialElementInRange(ref _focusedElement, ref _focusedIndex, e.OldStartingIndex, e.OldItems.Count);
-                        RecycleSpecialElementInRange(ref _scrollToElement, ref _scrollToIndex, e.OldStartingIndex, e.OldItems.Count);
+                        ReplaceItems(e);
                         break;
                     case NotifyCollectionChangedAction.Move:
                         _realizedElements.ItemsMoved(e.OldStartingIndex, e.NewStartingIndex, e.OldItems!.Count, _updateElementIndex, _recycleElementOnItemRemoved);
@@ -1037,6 +1035,7 @@ namespace Uno.Controls.Primitives
                         break;
                 }
             }
+            catch (RetiredLayoutException) { _pendingReset = true; }
             catch { _pendingReset = true; throw; }
             finally
             {

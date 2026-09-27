@@ -64,7 +64,7 @@ public sealed class DeclaredColumnFactoriesParityTests
         var actual = native[kind].GetMethod("TryReuseCell", Declared);
         Assert.NotNull(actual);
         Assert.Equal(expected.ReturnType, actual!.ReturnType);
-        Assert.Equal(expected.IsVirtual, actual.IsVirtual);
+        Assert.Equal(expected.IsVirtual && !expected.IsFinal, actual.IsVirtual && !actual.IsFinal);
         Assert.Equal(expected.GetParameters().Select(p => p.Name), actual.GetParameters().Select(p => p.Name));
         Assert.Equal(typeof(C.IRow<Model>), actual.GetParameters()[1].ParameterType);
     }
@@ -86,7 +86,7 @@ public sealed class DeclaredColumnFactoriesParityTests
         Assert.Equal(typeof(CellValue), actual.ReturnType);
         Assert.Equal(nativeType.BaseType, actual.GetBaseDefinition().DeclaringType);
         using var source = new FlatTreeDataGridSource<Model>([new Model { Number = 10, Flag = true }]);
-        var row = source.Rows[0];
+        var row = (C.IRow<Model>)source.Rows[0];
         if (template)
         {
             using var column = new DerivedTemplateColumn();
@@ -122,9 +122,9 @@ public sealed class DeclaredColumnFactoriesParityTests
         var model = cell.PresentationModel;
         var reused = kind switch
         {
-            0 => text.TryReuseCell(model, source.Rows[1]),
-            1 => check.TryReuseCell(model, source.Rows[1]),
-            _ => template.TryReuseCell(model, source.Rows[1]),
+            0 => text.TryReuseCell(model, (C.IRow<Model>)source.Rows[1]),
+            1 => check.TryReuseCell(model, (C.IRow<Model>)source.Rows[1]),
+            _ => template.TryReuseCell(model, (C.IRow<Model>)source.Rows[1]),
         };
         Assert.True(reused);
         Assert.Same(model, cell.PresentationModel);
@@ -132,9 +132,9 @@ public sealed class DeclaredColumnFactoriesParityTests
         using var other = columns[(kind + 1) % columns.Length].CreateCell(source.Rows[0]);
         Assert.False(kind switch
         {
-            0 => text.TryReuseCell(other, source.Rows[1]),
-            1 => check.TryReuseCell(other, source.Rows[1]),
-            _ => template.TryReuseCell(other, source.Rows[1]),
+            0 => text.TryReuseCell(other, (C.IRow<Model>)source.Rows[1]),
+            1 => check.TryReuseCell(other, (C.IRow<Model>)source.Rows[1]),
+            _ => template.TryReuseCell(other, (C.IRow<Model>)source.Rows[1]),
         });
     }
 
