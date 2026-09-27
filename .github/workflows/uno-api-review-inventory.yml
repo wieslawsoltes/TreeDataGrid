@@ -32,14 +32,8 @@ jobs:
           python3 - <<'PY'
           import json
           from pathlib import Path
-          reports = []
-          for path in Path('report').rglob('classified-differences.json'):
-              differences = json.loads(path.read_text())
-              if differences:
-                  reports.append((path, differences))
-          if len(reports) != 1:
-              raise RuntimeError(f'Expected one nonempty cross-framework inventory, found {[str(p) for p, _ in reports]}')
-          path, differences = reports[0]
+          path = Path('report/api-audit/classified-differences.json')
+          differences = json.loads(path.read_text())
           summary = json.loads(path.with_name('summary.json').read_text())
           scopes = json.loads(path.with_name('scope-accounting.json').read_text())
           if len(differences) != summary['missingOrDifferent']:
@@ -48,10 +42,9 @@ jobs:
           print('AUDIT_INPUT=' + str(path))
           print('AUDIT_SUMMARY=' + json.dumps(summary, separators=(',', ':')))
           for category in sorted({row['Category'] for row in differences}):
-              print('\nCATEGORY=' + category)
-              for row in differences:
-                  if row['Category'] != category:
-                      continue
+              rows = [row for row in differences if row['Category'] == category]
+              print('\nCATEGORY=' + category + ' COUNT=' + str(len(rows)))
+              for row in rows:
                   baseline = row['Baseline']
                   print(json.dumps({'identity': baseline['Identity'], 'baseline': baseline['Raw'],
                                     'hasInheritedCandidate': baseline['Identity'] in inherited,
