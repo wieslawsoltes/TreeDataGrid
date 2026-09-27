@@ -9,7 +9,7 @@ on:
       validation_run:
         description: Completed Uno validation report run to inspect
         type: string
-        default: '36197904479'
+        default: '36271915158'
         required: true
 
 permissions:
@@ -24,7 +24,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: uno-validation-report
-          run-id: ${{ inputs.validation_run || '36197904479' }}
+          run-id: ${{ inputs.validation_run || '36271915158' }}
           github-token: ${{ github.token }}
           path: report
       - name: Print unresolved declarations with verified inherited-candidate context
@@ -47,7 +47,7 @@ jobs:
           inherited = {r['Baseline']['Identity'] for r in scopes['InheritedMemberReviews']}
           print('AUDIT_INPUT=' + str(path))
           print('AUDIT_SUMMARY=' + json.dumps(summary, separators=(',', ':')))
-          for category in ('member-not-declared-on-matched-type', 'overload-or-parameter-identity-difference', 'declaration-changed-at-same-identity'):
+          for category in sorted({row['Category'] for row in differences}):
               print('\nCATEGORY=' + category)
               for row in differences:
                   if row['Category'] != category:
