@@ -1,6 +1,4 @@
 name: Materialize reviewed native source edits
-
-# Temporary development helper. Creates blobs only, never updates a Git ref.
 on:
   push:
     branches: [codex/uno-core-port]
@@ -27,10 +25,31 @@ jobs:
           import difflib, hashlib, json, os, pathlib, subprocess, urllib.request
           repo = 'wieslawsoltes/TreeDataGrid'
           if os.environ['GITHUB_REPOSITORY'] != repo: raise RuntimeError('Repository mismatch')
+          def lines(*values): return '\n'.join(values)
           edits = [
             ('samples/TreeDataGridUnoSample/GenericPresenterRuntimeChecks.cs', 'ed9a4c7ceaff3ebc627eb97142822e10dda2cae6', [
               ('        var previous = page.Content;',
-               '        await RangeReplacementRuntimeChecks.RunAsync(page);\n        var previous = page.Content;')])
+               '        await RangeReplacementRuntimeChecks.RunAsync(page);\n        var previous = page.Content;')]),
+            ('src/TreeDataGrid.Controls.Uno/Primitives/TreeDataGridPresenterBase.cs', 'a9b22a15a7cae8c2a9172b48fd2ae508cac2ac71', [
+              (lines('                    case NotifyCollectionChangedAction.Replace:',
+                     '                        _realizedElements.ItemsReplaced(e.OldStartingIndex, e.OldItems!.Count, _recycleElementOnItemRemoved);',
+                     '                        RecycleSpecialElementInRange(ref _focusedElement, ref _focusedIndex, e.OldStartingIndex, e.OldItems.Count);',
+                     '                        RecycleSpecialElementInRange(ref _scrollToElement, ref _scrollToIndex, e.OldStartingIndex, e.OldItems.Count);',
+                     '                        break;'),
+               lines('                    case NotifyCollectionChangedAction.Replace:',
+                     '                        ReplaceItems(e);', '                        break;')),
+              ('            catch { _pendingReset = true; throw; }',
+               '            catch (RetiredLayoutException) { _pendingReset = true; }\n            catch { _pendingReset = true; throw; }')]),
+            ('tests/TreeDataGrid.Parity.Tests/DeclaredColumnFactoriesParityTests.cs', 'bacf51ece7a4b11a8816e7f513339a2f12305434', [
+              ('        var row = source.Rows[0];', '        var row = (C.IRow<Model>)source.Rows[0];'),
+              ('        Assert.Equal(expected.IsVirtual, actual.IsVirtual);',
+               '        Assert.Equal(expected.IsVirtual && !expected.IsFinal, actual.IsVirtual && !actual.IsFinal);'),
+              ('text.TryReuseCell(model, source.Rows[1])', 'text.TryReuseCell(model, (C.IRow<Model>)source.Rows[1])'),
+              ('check.TryReuseCell(model, source.Rows[1])', 'check.TryReuseCell(model, (C.IRow<Model>)source.Rows[1])'),
+              ('template.TryReuseCell(model, source.Rows[1])', 'template.TryReuseCell(model, (C.IRow<Model>)source.Rows[1])'),
+              ('text.TryReuseCell(other, source.Rows[1])', 'text.TryReuseCell(other, (C.IRow<Model>)source.Rows[1])'),
+              ('check.TryReuseCell(other, source.Rows[1])', 'check.TryReuseCell(other, (C.IRow<Model>)source.Rows[1])'),
+              ('template.TryReuseCell(other, source.Rows[1])', 'template.TryReuseCell(other, (C.IRow<Model>)source.Rows[1])')])
           ]
           def blob_hash(data): return hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
           prepared, patch = [], []
@@ -39,7 +58,7 @@ jobs:
               if blob_hash(raw) != expected: raise RuntimeError(f'Unreviewed source input: {name}')
               text = original = raw.decode('utf-8')
               for before, after in substitutions:
-                  if text.count(before) != 1: raise RuntimeError(f'Nonunique edit in {name}')
+                  if text.count(before) != 1: raise RuntimeError(f'Nonunique edit in {name}: {before!r}')
                   text = text.replace(before, after, 1)
               if text == original: raise RuntimeError('Empty edit')
               prepared.append((name, expected, text.encode('utf-8')))
