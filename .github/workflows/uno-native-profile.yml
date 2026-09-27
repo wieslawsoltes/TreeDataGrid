@@ -1,8 +1,7 @@
 name: Uno native stack profile
 
-# Current native implementation: retain the same diagnostic workload and tracing policy.
-# Profiling changes timings. Acceptance remains in the uninstrumented AB/BA
-# workflow with its unchanged 1.10 budget; these are diagnostic stack samples.
+# Profile the exact pre-optimization source, not a moving branch.
+# Tracing changes timings; acceptance remains the uninstrumented 1.10 gate.
 on:
   push:
     branches: [codex/uno-core-port]
@@ -25,6 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: dcd4dc340429317454ee63d4fbac7defdcb9f834
           persist-credentials: false
       - uses: actions/setup-dotnet@v4
         with:
@@ -86,6 +86,7 @@ jobs:
                       assert math.isfinite(sample[metric]) and sample[metric] >= 0
           for key in ('workload', 'revision', 'runtime', 'architecture', 'os', 'serverGc'):
               assert reports[0][key] == reports[1][key], key
+          assert reports[0]['revision'] == 'dcd4dc340429317454ee63d4fbac7defdcb9f834'
           (output / 'SCOPE.txt').write_text('Sampled stack residence includes waits and startup; it is not CPU-only attribution. Profiled timings are not acceptance benchmarks. Both hosts completed all 600 checked operations.\n')
           print('NATIVE_PROFILE_WORKLOADS_VALIDATED')
           PY
