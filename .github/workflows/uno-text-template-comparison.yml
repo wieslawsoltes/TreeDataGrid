@@ -7,6 +7,7 @@ on:
       - .github/workflows/uno-text-template-comparison.yml
       - build/compare-native-text-template.py
       - build/verify-flat-text-template.py
+      - build/test-flat-text-template.py
   workflow_dispatch:
 
 permissions:
@@ -33,6 +34,8 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq xvfb fonts-dejavu-core libfontconfig1 libx11-6 libxrandr2 libxi6 libxcursor1 libgl1
+      - name: Check the narrowly corrected visual reference
+        run: python3 build/test-flat-text-template.py
       - name: Execute exact revisions in ABBA order with unchanged framework workloads
         shell: bash
         run: |

@@ -3,8 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:p="using:Uno.Controls.Primitives">
   <UserControl.Resources>
-    <!-- Frozen structural reference: the text template at 79cf4279. Its brushes
-         are deliberately translucent to detect reordered/merged overlays. -->
+    <!-- Preserve the pre-flattening Border/Grid layout and every visual setter.
+         Attach its state groups to the template root so the reference actually
+         exercises them; Uno's GoToState does not search descendant groups.
+         verify-flat-text-template.py checks this single explicit correction. -->
     <SolidColorBrush x:Key="TreeDataGridSelectedCellBackgroundBrush" Color="#708025DC" />
     <SolidColorBrush x:Key="TreeDataGridSelectedCellForegroundBrush" Color="#FFE2F4B1" />
     <SolidColorBrush x:Key="TreeDataGridCurrentCellBorderBrush" Color="#803098D0" />
@@ -13,35 +15,35 @@
       <Border x:Name="CellBorder" DataContext="{x:Null}" Background="{TemplateBinding Background}"
               BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
               CornerRadius="{TemplateBinding CornerRadius}">
+        <VisualStateManager.VisualStateGroups>
+          <VisualStateGroup x:Name="SelectionStates">
+            <VisualState x:Name="Unselected" />
+            <VisualState x:Name="Selected">
+              <VisualState.Setters>
+                <Setter Target="SelectionBackground.Opacity" Value="1" />
+                <Setter Target="PART_Text.Foreground" Value="{ThemeResource TreeDataGridSelectedCellForegroundBrush}" />
+              </VisualState.Setters>
+            </VisualState>
+            <VisualState x:Name="RowSelected">
+              <VisualState.Setters>
+                <Setter Target="PART_Text.Foreground" Value="{ThemeResource TreeDataGridSelectedCellForegroundBrush}" />
+              </VisualState.Setters>
+            </VisualState>
+          </VisualStateGroup>
+          <VisualStateGroup x:Name="CurrentStates">
+            <VisualState x:Name="NotCurrent" />
+            <VisualState x:Name="Current">
+              <VisualState.Setters><Setter Target="CurrentBorder.Opacity" Value="1" /></VisualState.Setters>
+            </VisualState>
+          </VisualStateGroup>
+          <VisualStateGroup x:Name="ValidationStates">
+            <VisualState x:Name="Valid" />
+            <VisualState x:Name="Invalid">
+              <VisualState.Setters><Setter Target="ValidationBorder.Opacity" Value="1" /></VisualState.Setters>
+            </VisualState>
+          </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
         <Grid>
-          <VisualStateManager.VisualStateGroups>
-            <VisualStateGroup x:Name="SelectionStates">
-              <VisualState x:Name="Unselected" />
-              <VisualState x:Name="Selected">
-                <VisualState.Setters>
-                  <Setter Target="SelectionBackground.Opacity" Value="1" />
-                  <Setter Target="PART_Text.Foreground" Value="{ThemeResource TreeDataGridSelectedCellForegroundBrush}" />
-                </VisualState.Setters>
-              </VisualState>
-              <VisualState x:Name="RowSelected">
-                <VisualState.Setters>
-                  <Setter Target="PART_Text.Foreground" Value="{ThemeResource TreeDataGridSelectedCellForegroundBrush}" />
-                </VisualState.Setters>
-              </VisualState>
-            </VisualStateGroup>
-            <VisualStateGroup x:Name="CurrentStates">
-              <VisualState x:Name="NotCurrent" />
-              <VisualState x:Name="Current">
-                <VisualState.Setters><Setter Target="CurrentBorder.Opacity" Value="1" /></VisualState.Setters>
-              </VisualState>
-            </VisualStateGroup>
-            <VisualStateGroup x:Name="ValidationStates">
-              <VisualState x:Name="Valid" />
-              <VisualState x:Name="Invalid">
-                <VisualState.Setters><Setter Target="ValidationBorder.Opacity" Value="1" /></VisualState.Setters>
-              </VisualState>
-            </VisualStateGroup>
-          </VisualStateManager.VisualStateGroups>
           <Border x:Name="SelectionBackground" Background="{ThemeResource TreeDataGridSelectedCellBackgroundBrush}" Opacity="0" />
           <TextBlock x:Name="PART_Text" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
                      TextTrimming="CharacterEllipsis" Foreground="{TemplateBinding Foreground}" />

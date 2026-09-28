@@ -12,7 +12,7 @@ using Windows.Foundation;
 
 namespace TreeDataGridUnoSample;
 
-/// <summary>Compare the default native text visual to its frozen pre-flattening template.</summary>
+/// <summary>Compare active native states with the pre-flattening visual layout.</summary>
 public sealed partial class TextTemplateParityView : UserControl
 {
     public TextTemplateParityView() => InitializeComponent();
@@ -33,10 +33,15 @@ public sealed partial class TextTemplateParityView : UserControl
 
     private async Task VerifyAsync()
     {
-        var text = "Zażółć gęślą jaźń — 日本語 🌲 and a longer wrapping line";
+        const string text = "Zażółć gęślą jaźń — 日本語 🌲 and a longer wrapping line";
         var background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(180, 25, 61, 93));
         var border = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(170, 129, 173, 42));
         var foreground = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(230, 188, 221, 241));
+        Reference.ApplyTemplate();
+        Candidate.ApplyTemplate();
+        Check(Find<FrameworkElement>(Reference, "CellBorder") is Border &&
+            Find<FrameworkElement>(Candidate, "CellBorder") is Grid,
+            "The reference/candidate do not exercise distinct nested/flat roots.");
         var comparedStates = 0;
         var pixelStates = 0;
         foreach (var theme in new[] { ElementTheme.Light, ElementTheme.Dark })
@@ -60,7 +65,7 @@ public sealed partial class TextTemplateParityView : UserControl
                 cell.IsSelected = (state & 1) != 0;
                 cell.IsCurrent = state >= 2;
                 Check(VisualStateManager.GoToState(cell, state == 3 ? "Invalid" : "Valid", false),
-                    "The default text validation visual state was removed.");
+                    $"Validation state is not attached to {cell.Name}'s native template root.");
             }
             UpdateLayout();
             await Task.Delay(10);
@@ -75,19 +80,28 @@ public sealed partial class TextTemplateParityView : UserControl
             {
                 var expected = Find<Border>(Reference, name);
                 var actual = Find<Border>(Candidate, name);
-                Check(expected.Opacity == actual.Opacity && Bounds(expected, Reference) == Bounds(actual, Candidate),
-                    "The flattened template changed independent overlay ordering or layout: " + name);
+                var opacity = name switch
+                {
+                    "SelectionBackground" => (state & 1) != 0 ? 1d : 0d,
+                    "CurrentBorder" => state >= 2 ? 1d : 0d,
+                    _ => state == 3 ? 1d : 0d,
+                };
+                Check(expected.Opacity == opacity && actual.Opacity == opacity,
+                    "An intended visual state is inactive: " + name);
+                Check(Bounds(expected, Reference) == Bounds(actual, Candidate),
+                    "The flattened template changed independent overlay layout: " + name);
             }
             Check(Find<FrameworkElement>(Candidate, "CellBorder").ReadLocalValue(DataContextProperty) is null,
                 "The default template's isolated data context was removed.");
             ++comparedStates;
 #if !__WASM__
-            // Compare actual rendered pixels, not just geometry, within the same
-            // renderer/process. No tolerance, downsampling or hidden mismatch mask.
             var expectedPixels = await CaptureAsync(Reference);
             var actualPixels = await CaptureAsync(Candidate);
             Check(expectedPixels.Width == actualPixels.Width && expectedPixels.Height == actualPixels.Height,
                 "Native template raster dimensions differ.");
+            Check(expectedPixels.Width > 0 && expectedPixels.Height > 0 &&
+                expectedPixels.Pixels.Length == checked(expectedPixels.Width * expectedPixels.Height * 4),
+                "Native reference raster is missing or incomplete.");
             Check(expectedPixels.Pixels.AsSpan().SequenceEqual(actualPixels.Pixels),
                 $"Native text template pixels differ: theme={theme}, border={thick}, state={state}; " +
                 $"reference={Convert.ToHexString(SHA256.HashData(expectedPixels.Pixels))}; " +
@@ -97,8 +111,8 @@ public sealed partial class TextTemplateParityView : UserControl
         }
         var expectedCount = ShowcaseRuntimeChecks.Descendants(Reference).Count();
         var actualCount = ShowcaseRuntimeChecks.Descendants(Candidate).Count();
-        Check(actualCount <= expectedCount, "The default text template acquired additional visual children.");
-        Console.WriteLine($"UNO_RUNTIME_TEXT_TEMPLATE_PARITY_PASSED: states={comparedStates}; exactNativePixelStates={pixelStates}; referenceVisuals={expectedCount}; candidateVisuals={actualCount}; border/padding, text, independent translucent overlays, live themes and width/font changes");
+        Check(actualCount == expectedCount - 1, "Flattening did not remove exactly one visual layer.");
+        Console.WriteLine($"UNO_RUNTIME_TEXT_TEMPLATE_PARITY_PASSED: states={comparedStates}; exactNativePixelStates={pixelStates}; referenceVisuals={expectedCount}; candidateVisuals={actualCount}; active states, border/padding, text, independent translucent overlays, themes and width/font changes; reference state groups explicitly moved to its root");
     }
 
     private static Rect Bounds(FrameworkElement element, UIElement relative) =>

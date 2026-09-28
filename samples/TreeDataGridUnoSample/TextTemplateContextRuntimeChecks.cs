@@ -41,8 +41,11 @@ internal static class TextTemplateContextRuntimeChecks
             var original = grid.TryGetCell(0, 0) ?? throw new InvalidOperationException("Text fixture did not realize its first cell.");
             foreach (var cell in grid.RowsPresenter!.RealizedCells)
             {
-                var border = ShowcaseRuntimeChecks.Descendants(cell).OfType<Border>().First(x => x.Name == "CellBorder");
-                Check(border.DataContext is null, "The private scalar template did not isolate unused inherited context.");
+                // The named private root may be a Grid or a Border; DataContext
+                // isolation, rather than a redundant visual layer, is the contract.
+                var border = ShowcaseRuntimeChecks.Descendants(cell).OfType<FrameworkElement>().Single(x => x.Name == "CellBorder");
+                Check(border.ReadLocalValue(FrameworkElement.DataContextProperty) is null && border.DataContext is null,
+                    "The private scalar template did not locally isolate unused inherited context.");
                 observers.Add((border, border.RegisterPropertyChangedCallback(FrameworkElement.DataContextProperty,
                     (_, _) => ++templateContextChanges)));
                 observers.Add((cell, cell.RegisterPropertyChangedCallback(FrameworkElement.DataContextProperty,
