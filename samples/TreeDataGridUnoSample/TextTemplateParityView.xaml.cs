@@ -18,6 +18,7 @@ public sealed partial class TextTemplateParityView : UserControl
 
     internal static async Task RunAsync(MainPage page)
     {
+        await NativeTextAssignmentRuntimeChecks.RunAsync(page);
         var previous = page.Content;
         var view = new TextTemplateParityView();
         try
