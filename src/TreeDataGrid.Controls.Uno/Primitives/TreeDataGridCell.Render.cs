@@ -1,6 +1,4 @@
-using System;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 
 namespace Uno.Controls.Primitives;
 
@@ -23,15 +21,7 @@ public partial class TreeDataGridCell
             {
                 var value = DisplayText;
                 if (!Current() || !ReferenceEquals(_text, text)) return;
-                var next = value ?? string.Empty;
-                // Preserve the original local-value ownership and string identity.
-                // Equal text from a binding/style is not a local value we own;
-                // a different string instance must still reach the native setter.
-                // Do not cache DisplayText: custom getters and culture stay live.
-                var unchanged = ReferenceEquals(text.ReadLocalValue(TextBlock.TextProperty), next) &&
-                    text.GetBindingExpression(TextBlock.TextProperty) is null && ReferenceEquals(text.Text, next);
-                if (!Current() || !ReferenceEquals(_text, text)) return;
-                if (!unchanged) text.Text = next;
+                text.Text = value ?? string.Empty;
                 if (!Current()) return;
             }
             if (!usesInner && _check is { } check && _kind == Presentation.CellKind.CheckBox)

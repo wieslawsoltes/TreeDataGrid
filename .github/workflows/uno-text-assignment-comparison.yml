@@ -1,10 +1,16 @@
 name: Uno native text assignment comparison
 
+# The measured candidate was withdrawn after a resize regression. Keep the
+# original exact-source experiment reproducible; do not remeasure a docs head
+# or silently substitute the retained runtime for the historical candidate.
 on:
-  push:
-    branches: [codex/uno-core-port]
-    paths: [.github/workflows/uno-text-assignment-comparison.yml]
   workflow_dispatch:
+    inputs:
+      candidate:
+        description: Exact candidate commit; the collector verifies every changed path
+        type: string
+        default: c7ae9344e6afc77432ab4f449306d29da22c3efa
+        required: true
 
 permissions:
   contents: read
@@ -33,7 +39,9 @@ jobs:
       - name: Exercise collector negative controls
         run: python3 build/test-native-text-assignment-comparison.py
       - name: Compare exact active-state native revisions in ABBA order
-        run: python3 -u build/compare-native-text-assignment.py --candidate "$GITHUB_SHA"
+        env:
+          CANDIDATE: ${{ inputs.candidate }}
+        run: python3 -u build/compare-native-text-assignment.py --candidate "$CANDIDATE"
       - name: Preserve all measured outcomes and source identity
         if: always()
         run: |
