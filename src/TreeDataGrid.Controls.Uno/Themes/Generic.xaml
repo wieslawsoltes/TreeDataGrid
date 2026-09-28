@@ -388,7 +388,6 @@
           <Border x:Name="CellBorder" DataContext="{x:Null}" Background="{TemplateBinding Background}"
                   BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
                   CornerRadius="{TemplateBinding CornerRadius}">
-            <Grid>
               <VisualStateManager.VisualStateGroups>
                 <VisualStateGroup x:Name="SelectionStates">
                   <VisualState x:Name="Unselected" />
@@ -417,6 +416,7 @@
                   </VisualState>
                 </VisualStateGroup>
               </VisualStateManager.VisualStateGroups>
+            <Grid>
               <Border x:Name="SelectionBackground" Background="{ThemeResource TreeDataGridSelectedCellBackgroundBrush}" Opacity="0" />
               <TextBlock x:Name="PART_Text" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
                          TextTrimming="CharacterEllipsis" Foreground="{TemplateBinding Foreground}" />
