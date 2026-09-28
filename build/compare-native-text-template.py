@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare exact native revisions in ABBA order without relaxing the existing gate."""
+"""Compare exact active-state native revisions without relaxing the existing gate."""
 from __future__ import annotations
 import argparse
 import hashlib
@@ -15,7 +15,7 @@ import tempfile
 
 OPERATIONS = ('distant-diagonal-scroll', 'replace-visible-row', 'resize-visible-column', 'scroll-x', 'scroll-y', 'sort')
 METRICS = ('SynchronousUiMilliseconds', 'SynchronousUiAllocatedBytes', 'SettledMilliseconds')
-BASELINE = '79cf4279c88a69dcd4af90621066a250fe84634f'
+BASELINE = 'f1fb840ac12aca8851fd5d55589b80ece72bf6fc'
 
 
 def main() -> int:
@@ -35,13 +35,22 @@ def main() -> int:
     unchanged = ('benchmarks/TreeDataGrid.Parity.*', 'build/run-native-parity.py')
     if git('diff', '--name-only', revisions['baseline'], revisions['candidate'], '--', *unchanged):
         raise ValueError('The benchmark or acceptance collector changed between inputs.')
-    subprocess.run(['python3', str(root / 'build/verify-flat-text-template.py')], cwd=root, check=True)
-    manifest = {'schemaVersion': 1, 'revisions': revisions,
+    # The first historical comparison mixed inactive old states with active flat
+    # states. Retain that result, but require equivalent active states in this run.
+    verification = subprocess.check_output(['python3', str(root / 'build/verify-flat-text-template.py'),
+                                            '--baseline', revisions['baseline']], cwd=root, text=True)
+    print(verification, end='', flush=True)
+    prefix = 'UNO_TEXT_TEMPLATE_INPUT='
+    records = [json.loads(line[len(prefix):]) for line in verification.splitlines() if line.startswith(prefix)]
+    if len(records) != 1 or records[0].get('baseline') != revisions['baseline'] or records[0].get('bothMeasuredTemplatesHaveRootStates') is not True:
+        raise ValueError('No exact active-state input verification was returned.')
+    manifest = {'schemaVersion': 2, 'revisions': revisions,
         'order': ['baseline', 'candidate', 'candidate', 'baseline'],
         'runnerBlob': git('rev-parse', revisions['baseline'] + ':build/run-native-parity.py'),
+        'inputVerification': records[0],
         'runtimeEnvironmentOverrides': {},
         'independentRatioBudgetUnchanged': 1.1,
-        'scope': 'Exact native controls; ABBA revision order, AB/BA framework order within each revision pass. Raw negative budget outcomes are retained. Not frame-rate/GPU completion, confidence intervals or all-feature acceptance.'}
+        'scope': 'Exact native controls with equivalent active visual states; ABBA revision order and AB/BA framework order within each pass. Historical inactive-state comparison is preserved separately. Not frame-rate/GPU completion, confidence intervals or all-feature acceptance.'}
     (output / 'input.json').write_text(json.dumps(manifest, indent=2) + '\n')
     worktrees = []
     reports = {label: [] for label in revisions}

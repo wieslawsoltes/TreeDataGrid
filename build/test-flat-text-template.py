@@ -1,4 +1,4 @@
-"""The visual reference may only move existing state groups, not change rendering."""
+"""Only state attachment may change in the nested control or visual reference."""
 from copy import deepcopy
 import importlib.util
 from pathlib import Path
@@ -16,6 +16,7 @@ class ReferenceTemplateTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.before = subprocess.check_output(['git', '-C', str(ROOT), 'show', verifier.BASELINE + ':' + verifier.PATH])
+        cls.control = subprocess.check_output(['git', '-C', str(ROOT), 'show', verifier.ACTIVE_BASELINE + ':' + verifier.PATH])
         cls.reference = ET.parse(ROOT / 'samples/TreeDataGridUnoSample/TextTemplateParityView.xaml').getroot()
 
     def template(self, document):
@@ -56,6 +57,20 @@ class ReferenceTemplateTests(unittest.TestCase):
         grid.remove(last)
         grid.insert(0, last)
         with self.assertRaises(ValueError): verifier.verify_reference(self.before, document)
+
+    def test_exact_active_state_runtime_control_is_accepted(self):
+        verifier.verify_control(self.before, self.control)
+
+    def test_original_inactive_runtime_is_not_an_equivalent_control(self):
+        with self.assertRaises(ValueError): verifier.verify_control(self.before, self.before)
+
+    def test_unrelated_runtime_bytes_cannot_change(self):
+        self.assertIn(b'Opacity="0.1"', self.control)
+        changed = self.control.replace(b'Opacity="0.1"', b'Opacity="0.2"', 1)
+        with self.assertRaises(ValueError): verifier.verify_control(self.before, changed)
+
+    def test_wrong_baseline_revision_is_rejected_before_any_measurement(self):
+        with self.assertRaises(ValueError): verifier.verify(ROOT, verifier.BASELINE)
 
 
 if __name__ == '__main__': unittest.main()

@@ -7,7 +7,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Uno.Controls.Primitives;
 using Windows.Foundation;
 
 namespace TreeDataGridUnoSample;
@@ -74,8 +73,16 @@ public sealed partial class TextTemplateParityView : UserControl
             var expectedText = Find<TextBlock>(Reference, "PART_Text");
             var actualText = Find<TextBlock>(Candidate, "PART_Text");
             Check(expectedText.Text == actualText.Text && actualText.Text == text, "The default text payload changed.");
-            Check(Bounds(expectedText, Reference) == Bounds(actualText, Candidate),
-                "The flattened template changed text padding, border reservation or alignment.");
+            var expectedBounds = Bounds(expectedText, Reference);
+            var actualBounds = Bounds(actualText, Candidate);
+            Console.WriteLine($"UNO_TEMPLATE_GEOMETRY: theme={theme}; thick={thick}; state={state}; " +
+                $"reference={Describe(expectedBounds)}; candidate={Describe(actualBounds)}; " +
+                $"desired={expectedText.DesiredSize}/{actualText.DesiredSize}; " +
+                $"font={expectedText.FontSize:R}/{actualText.FontSize:R}; " +
+                $"margin={expectedText.Margin}/{actualText.Margin}");
+            Check(expectedBounds == actualBounds,
+                $"The flattened template changed text padding, border reservation or alignment: theme={theme}, thick={thick}, state={state}; " +
+                $"reference={Describe(expectedBounds)}; candidate={Describe(actualBounds)}.");
             foreach (var name in new[] { "SelectionBackground", "CurrentBorder", "ValidationBorder" })
             {
                 var expected = Find<Border>(Reference, name);
@@ -94,6 +101,8 @@ public sealed partial class TextTemplateParityView : UserControl
             Check(Find<FrameworkElement>(Candidate, "CellBorder").ReadLocalValue(DataContextProperty) is null,
                 "The default template's isolated data context was removed.");
             ++comparedStates;
+            // Exact native raster comparison is additional to geometry, not a
+            // substitute or a tolerance allowing a failing geometry check.
 #if !__WASM__
             var expectedPixels = await CaptureAsync(Reference);
             var actualPixels = await CaptureAsync(Candidate);
@@ -115,12 +124,11 @@ public sealed partial class TextTemplateParityView : UserControl
         Console.WriteLine($"UNO_RUNTIME_TEXT_TEMPLATE_PARITY_PASSED: states={comparedStates}; exactNativePixelStates={pixelStates}; referenceVisuals={expectedCount}; candidateVisuals={actualCount}; active states, border/padding, text, independent translucent overlays, themes and width/font changes; reference state groups explicitly moved to its root");
     }
 
+    private static string Describe(Rect value) => $"[{value.X:R},{value.Y:R},{value.Width:R},{value.Height:R}]";
     private static Rect Bounds(FrameworkElement element, UIElement relative) =>
         element.TransformToVisual(relative).TransformBounds(new Rect(0, 0, element.ActualWidth, element.ActualHeight));
-
     private static T Find<T>(DependencyObject owner, string name) where T : FrameworkElement =>
         ShowcaseRuntimeChecks.Descendants(owner).OfType<T>().Single(element => element.Name == name);
-
 #if !__WASM__
     private static async Task<(int Width, int Height, byte[] Pixels)> CaptureAsync(UIElement element)
     {
@@ -129,7 +137,6 @@ public sealed partial class TextTemplateParityView : UserControl
         return (bitmap.PixelWidth, bitmap.PixelHeight, (await bitmap.GetPixelsAsync()).ToArray());
     }
 #endif
-
     private static void Check(bool condition, string message)
     {
         if (!condition) throw new InvalidOperationException(message);
