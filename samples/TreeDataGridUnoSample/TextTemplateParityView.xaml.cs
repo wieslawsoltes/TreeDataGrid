@@ -11,7 +11,7 @@ using Windows.Foundation;
 
 namespace TreeDataGridUnoSample;
 
-/// <summary>Compare active native states with the pre-flattening visual layout.</summary>
+/// <summary>Compare active native states with the pinned Border/Grid reference layout.</summary>
 public sealed partial class TextTemplateParityView : UserControl
 {
     public TextTemplateParityView() => InitializeComponent();
@@ -38,9 +38,12 @@ public sealed partial class TextTemplateParityView : UserControl
         var foreground = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(230, 188, 221, 241));
         Reference.ApplyTemplate();
         Candidate.ApplyTemplate();
+        // The flat Grid candidate changed two-stage border/alignment rounding.
+        // Keep the native Border/Grid contract rather than masking a pixel shift
+        // with a tolerance or a per-example positioning correction.
         Check(Find<FrameworkElement>(Reference, "CellBorder") is Border &&
-            Find<FrameworkElement>(Candidate, "CellBorder") is Grid,
-            "The reference/candidate do not exercise distinct nested/flat roots.");
+            Find<FrameworkElement>(Candidate, "CellBorder") is Border,
+            "The retained template does not preserve the reference border layout.");
         var comparedStates = 0;
         var pixelStates = 0;
         foreach (var theme in new[] { ElementTheme.Light, ElementTheme.Dark })
@@ -69,7 +72,7 @@ public sealed partial class TextTemplateParityView : UserControl
             UpdateLayout();
             await Task.Delay(10);
             Check(Reference.DesiredSize == Candidate.DesiredSize && Reference.ActualWidth == Candidate.ActualWidth &&
-                Reference.ActualHeight == Candidate.ActualHeight, "The flattened template changed native cell size.");
+                Reference.ActualHeight == Candidate.ActualHeight, "The native template changed cell size.");
             var expectedText = Find<TextBlock>(Reference, "PART_Text");
             var actualText = Find<TextBlock>(Candidate, "PART_Text");
             Check(expectedText.Text == actualText.Text && actualText.Text == text, "The default text payload changed.");
@@ -81,7 +84,7 @@ public sealed partial class TextTemplateParityView : UserControl
                 $"font={expectedText.FontSize:R}/{actualText.FontSize:R}; " +
                 $"margin={expectedText.Margin}/{actualText.Margin}");
             Check(expectedBounds == actualBounds,
-                $"The flattened template changed text padding, border reservation or alignment: theme={theme}, thick={thick}, state={state}; " +
+                $"The native template changed text padding, border reservation or alignment: theme={theme}, thick={thick}, state={state}; " +
                 $"reference={Describe(expectedBounds)}; candidate={Describe(actualBounds)}.");
             foreach (var name in new[] { "SelectionBackground", "CurrentBorder", "ValidationBorder" })
             {
@@ -96,7 +99,7 @@ public sealed partial class TextTemplateParityView : UserControl
                 Check(expected.Opacity == opacity && actual.Opacity == opacity,
                     "An intended visual state is inactive: " + name);
                 Check(Bounds(expected, Reference) == Bounds(actual, Candidate),
-                    "The flattened template changed independent overlay layout: " + name);
+                    "The native template changed independent overlay layout: " + name);
             }
             Check(Find<FrameworkElement>(Candidate, "CellBorder").ReadLocalValue(DataContextProperty) is null,
                 "The default template's isolated data context was removed.");
@@ -120,8 +123,8 @@ public sealed partial class TextTemplateParityView : UserControl
         }
         var expectedCount = ShowcaseRuntimeChecks.Descendants(Reference).Count();
         var actualCount = ShowcaseRuntimeChecks.Descendants(Candidate).Count();
-        Check(actualCount == expectedCount - 1, "Flattening did not remove exactly one visual layer.");
-        Console.WriteLine($"UNO_RUNTIME_TEXT_TEMPLATE_PARITY_PASSED: states={comparedStates}; exactNativePixelStates={pixelStates}; referenceVisuals={expectedCount}; candidateVisuals={actualCount}; active states, border/padding, text, independent translucent overlays, themes and width/font changes; reference state groups explicitly moved to its root");
+        Check(actualCount == expectedCount, "The retained template changed the reference visual topology.");
+        Console.WriteLine($"UNO_RUNTIME_TEXT_TEMPLATE_PARITY_PASSED: states={comparedStates}; exactNativePixelStates={pixelStates}; referenceVisuals={expectedCount}; candidateVisuals={actualCount}; active states, border/padding, text, independent translucent overlays, themes and width/font changes; rejected flattening not retained");
     }
 
     private static string Describe(Rect value) => $"[{value.X:R},{value.Y:R},{value.Width:R},{value.Height:R}]";

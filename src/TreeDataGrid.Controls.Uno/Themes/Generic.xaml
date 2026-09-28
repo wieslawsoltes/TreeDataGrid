@@ -385,7 +385,7 @@
           <!-- The scalar text template uses only TemplateBindings. Isolate its
                private visual/state graph from row DataContext churn while the
                public row and cell retain their ordinary inherited contexts. -->
-          <Grid x:Name="CellBorder" DataContext="{x:Null}" Background="{TemplateBinding Background}"
+          <Border x:Name="CellBorder" DataContext="{x:Null}" Background="{TemplateBinding Background}"
                   BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
                   CornerRadius="{TemplateBinding CornerRadius}">
               <VisualStateManager.VisualStateGroups>
@@ -416,6 +416,7 @@
                   </VisualState>
                 </VisualStateGroup>
               </VisualStateManager.VisualStateGroups>
+            <Grid>
               <Border x:Name="SelectionBackground" Background="{ThemeResource TreeDataGridSelectedCellBackgroundBrush}" Opacity="0" />
               <TextBlock x:Name="PART_Text" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
                          TextTrimming="CharacterEllipsis" Foreground="{TemplateBinding Foreground}" />
@@ -425,7 +426,8 @@
                       BorderThickness="1" Opacity="0" IsHitTestVisible="False" />
               <Border x:Name="ValidationBorder" BorderBrush="{ThemeResource TreeDataGridValidationBorderBrush}"
                       BorderThickness="1" Opacity="0" IsHitTestVisible="False" />
-          </Grid>
+            </Grid>
+          </Border>
         </ControlTemplate>
       </Setter.Value>
     </Setter>
