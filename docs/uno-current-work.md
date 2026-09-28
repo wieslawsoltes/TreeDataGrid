@@ -1,123 +1,188 @@
 # Current Uno completion checklist
 
-Updated 2026-09-27 UTC. Tested implementation **b8618268**.
-**Full API/performance parity is not established. Firefox's new matrix is failed;
-macOS remains queued. Canonical functional validation passes.**
+Updated 2026-09-28 UTC. Retained tested implementation **0cc1ca9b**.
+**Full API and native-performance parity remain open. No new whole-grid speedup is claimed.**
 
-[Recovery and implementation review](uno-unicode-range-recovery-2026-09-27.md) ·
-[Exact checkpoint](uno-ci-checkpoint-b8618268.json) ·
-[Previous checklist preserved unchanged](archive/uno-current-work-before-b8618268.md)
+[Native rendering and performance review](uno-native-render-performance-review-2026-09-28.md) ·
+[Exact execution checkpoint](uno-ci-checkpoint-0cc1ca9b.json) ·
+[Previous checklist preserved unchanged](archive/uno-current-work-before-0cc1ca9b.md)
 
-## Recovered and newly implemented work
+## Exact state and retained work
 
-The branch began at `91c3128013ea628e3bfab406d727f18625774737`, whose sample still
-failed to compile. A prepared Unicode/composition patch existed as verified Git
-blobs but was not yet part of the product branch. Recovery commit
-`9e3de136b6cb99cc13aa65ba2f20c14496e5b2e5` publishes its exact reviewed tree and
-removes the temporary write-enabled materialization workflow. Both input archives,
-the patch and reconstructed source trees were independently checked locally.
+PR #26 remains draft on `codex/uno-core-port`, based on master `3ca47316`.
+Shared Core continues to own sources, rows, hierarchy and selection. No merge,
+public release, copied Core state, native renderer switch or acceptance waiver.
 
-Recovered changes include the FocusManager import; actual discovery of hyphenated
-browser-test modules with empty/skip/error rejection; committed Unicode browser
-input; scalar-safe surrogate handling and grapheme/reentrant search; and native
-composition-aware editor key/focus lifetime. Composition observers are scoped to
-actual editor sessions and reject stale deferred callbacks. This does not certify
-physical OS IME or external accessibility.
+This continuation starts at `183584c6f9b8d809baaea921e01977becf5e1a3f`, six commits
+beyond the previous documented `dcd4dc34` checkpoint. Those earlier profiling,
+flattening and appearance-test changes were inspected, not recounted as new work.
 
-New product commit `b861826818b3e9bc53ce1888e202275141e51511` makes partial multirow
-equal-count geometry replacement transactional and widens retained suffix-index
-arithmetic before its final checked conversion. Two tests reproduce actual original
-runtime failures: mutation before an overflow exception, and rejection of a finite
-final extent. The same three geometry tests then pass. Six index tests include
-near-limit cases and 4,096 independent arbitrary-precision oracle comparisons.
-Single-row, uniform and whole-range geometry fast paths remain unchanged.
+| Commit | Current continuation |
+| --- | --- |
+| `fc4cd6bc` | Restore exact active-state Border/Grid geometry after the flattened template fails |
+| `0e2b1f74` | Test a guarded same-string native assignment and add ownership/reentrancy coverage |
+| `c7ae9344` | Compare exact baseline/candidate native sources in ABBA order |
+| `0cc1ca9b` | Withdraw assignment guard after adverse resize/sort results; retain tests and evidence |
 
-The tested tree is `46cea6719c24f32a5464664684fb82badb07eee6`. CI merge
-`c6ee890afa7239cd6d6eaebf562e4d49cda55389` has that identical tree. Newly authored
-coverage is nine Uno cases; thirty-six additional Uno cases and browser/native
-coverage are recovered work, not counted twice. No registered native suite was
-added. Earlier column declarations and count-changing replacement are also preserved,
-not represented as newly authored in this recovery.
+Retained tree: `b61a6c7a0b319a7d79b266fcbd6f2b4a159059be`.
+CI merge: `e9eef4e63023704ab8df61fe96ab792a6df39066`, with that exact tree verified
+through the Git commit API. No local source-tree reconstruction is claimed.
 
-## Canonical execution and local reproduction
+Generic.xaml is restored to exact blob `ac49036259c2a8acb5a889ba00a8938e7c89c7db`
+from the reviewed active-state reference `f1fb840a`. Root visual states and isolated
+data context remain. The flattened template moved thick-border text from
+`[10,37,267,27]` to `[10,36,267,27]` in the original failing run; no tolerance or
+special-case offset was substituted for correct native layout.
 
-[Canonical run 36306250769](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36306250769)
-passes all **nineteen stages** on unchanged committed source. Actual main TRX totals:
-**250 Core + 1,111 Uno + 536 original Avalonia + 41 sample-state + 319 paired-framework
-= 2,257 tests**, zero failed or skipped. All **65/65 native suites**, sequential
-native execution, both native builds with zero warnings/errors, and Activity
-Monitor's five sections/lifetime checks pass. The range-replacement and Unicode
-search markers occur in isolated and sequential native logs.
+The measured render guard is not retained. `TreeDataGridCell.Render.cs` again has
+exact original blob `09939e28cce4968c5407634af91c8ce5108fda1b`. The complete diff
+between `fc4cd6bc` and `0cc1ca9b` has no runtime-library source file. Relative to
+this continuation's starting head, Generic.xaml is the only runtime source change.
+Original Avalonia, shared Core, bindings, editing and API declarations are unchanged.
 
-Thirty-six Python browser-driver test methods now actually execute. The old
-hyphenated-file discovery issue is not represented as preexisting test coverage.
-The downloaded canonical report, recovery artifacts and native performance report
-were independently hashed. Report artifact `10927920624` preserves all raw evidence.
+## Retained native and collector coverage
 
-Local complete test/native results agree, but local builds used documented offline
-SDK/reference-pack adjustments. The initial resolver failure and interrupted shell
-wrapper remain preserved; a complete fresh native run passes all 65 suites.
-Canonical CI succeeds independently without these local environment changes.
+One new composite native fixture compares the actual cell renderer with direct
+native TextBlock assignment. Nine scenarios cover local-value priority, string
+identity, 4,096 repeated live getter evaluations, OneWay/OneTime binding ownership,
+original exceptions, reentrant getter/property callbacks and null/empty text. It
+runs in the existing appearance suite; no new registered suite or xUnit case is
+claimed. Four Python test methods validate the exact-source comparison collector
+and its negative controls.
 
-## Platform and engine results are separate
+The existing appearance fixture preserves all exact geometry/state and raster
+assertions across sixteen configurations: Light/Dark, thin/asymmetric thick borders,
+font size, wrapping/trimming and independent selection/current/validation overlays.
+Only the withdrawn optimization's one-fewer-visual/Grid-root requirements become
+the original equal-topology/Border-root requirements. No semantic geometry/pixel
+assertion was weakened. Native rendering logs show sixteen exact byte comparisons
+and eight visuals on both sides. WASM does not claim native raster-API execution.
 
-[Platform run 36306250790](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36306250790)
-has **five successful jobs out of six**: Ubuntu and Windows builds/tests, Linux
-native/NuGet consumers, Windows App SDK build/publication, and actual published
-Chromium consumers. macOS job `108583524591` is still queued with no executed steps;
-it is not reported as passed or replaced with older evidence.
+## Completed canonical and native validation
 
-[Three-engine run 36306250857](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36306250857)
-publishes one hash-identified consumer bundle for all engines. Chromium
-143.0.7499.4 and WebKit 26.0 each pass all four routes, including fifteen real
-browser-input stages at DPR 1/2 and exact Unicode writeback. Their published showcase
-logs also confirm range-replacement and Unicode-search checks.
+[Canonical run 36407211011](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36407211011),
+job `108878716071`, passes **all nineteen stages** on unchanged committed input:
 
-Firefox 144.0.2 passes the monitor and complete DPR 1 input route. Its showcase
-hits the existing 180-second timeout; its DPR 2 input route fails the thirty-second
-commit-edit assertion. The aggregate correctly fails with **10/12 routes passed**.
-Both failures and traces remain in artifact `10927637813`; no retry, timeout increase,
-engine fallback or relaxed assertion was applied. Composition/terminating-key
-ordering is an investigation lead, not a proven root cause or fixed failure.
+| Assembly | Passed |
+| --- | ---: |
+| Core | 250 |
+| Uno | 1,111 |
+| Original Avalonia | 536 |
+| Sample state | 41 |
+| Paired framework | 319 |
+| **Total .NET cases** | **2,257; zero failed/skipped** |
 
-Native Windows publication is not Windows runtime execution. Engine tests do not
-prove branded-browser, physical keyboard/IME, external screen-reader or all-DPI
-acceptance. The documentation-only follow-up uses `[skip ci]` to avoid superseding
-queued product macOS validation, not to make new-head checks green. No merge is
-requested and no product/test commit or acceptance rule was skipped.
+**65/65 native suites**, sequential execution, both native sample builds with zero
+warnings/errors, Activity Monitor's five sections/lifetime, production API reader,
+strict self-comparison and compiled declaration preservation pass. Existing earlier
+review regression fixtures and the removed-export negative control remain enforced;
+they are not newly authored cases here.
 
-## API preservation passes, but 781 differences remain
+Report artifact `10962893012` retains raw inventories, TRX and full logs; source
+artifact `10962737790` preserves input. Returned metadata hashes are in the checkpoint.
+The report was downloaded; no local extraction or independently recomputed hash is
+claimed.
 
-The unchanged compiled auditor reports 1,845 reference / 1,903 target declarations,
-1,064 exact matches, **781 missing-or-different** and 839 additional-or-different.
-The shared Core dependency contributes 590 identical records. Independent UI totals
-are 1,255 / 1,313 / 474 exact / 781 missing / 839 additional. Dependencies resolve,
-normalization collisions are zero and strict self-comparison is clean.
+Linux native job `108878921434` explicitly logs the new
+`UNO_RUNTIME_NATIVE_TEXT_ASSIGNMENT_PASSED` marker with nine cases in both sequential
+and NuGet-consumer execution. Both logs also report
+`UNO_RUNTIME_TEXT_TEMPLATE_PARITY_PASSED: states=16; exactNativePixelStates=16; referenceVisuals=8; candidateVisuals=8`.
+Native artifact `10963375323` retains the associated results and rendered samples.
 
-Preservation against the reviewed floor finds no removed export, rewritten old raw
-record or lost reference match. The three resolved matches versus the historical
-784 count are earlier Text/CheckBox/Template TryReuseCell declarations, not new
-exports from this recovery. Native width and typed factory adaptations remain
-explicit differences. Supplemental metadata is 13,465 / 15,944 entries, 3,890 exact,
-9,575 missing-or-different and 12,054 additional-or-different. No waiver is added;
-counts and dependency self-matches are not feature-completion percentages.
+## Platform snapshot: desktop passed; browser execution still pending
 
-## Unchanged performance and remaining acceptance
+[Ordinary platform run 36407211069](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36407211069)
+has **five successful completed jobs**: Windows, macOS and Ubuntu builds/tests,
+Linux X11/native NuGet consumers, and Windows App SDK build/package publication.
+Its browser build, pack and publish stages pass, but actual published-consumer
+execution is still running at this documentation snapshot. It is not counted as
+passed merely because publication succeeds.
 
-[Native run 36306250796](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36306250796)
-completes both builds and all four measured hosts but fails the original **1.10**
-timing/allocation budget. Time/allocation ratios are: horizontal **2.127/0.695**,
-vertical **2.309/1.957**, diagonal **3.521/1.917**, row replacement **1.587/2.668**,
-resize **1.472/1.518**, and sorting **1.470/0.620**. Raw p95 and settlement data remain
-in artifact `10927641839`; these are not frame rate or a controlled before/after
-speedup experiment.
+[Three-engine run 36407210841](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36407210841)
+has passed its driver tests and packing; identical-bundle publication is in progress.
+No completed Chromium/Firefox/WebKit result for this retained revision is inferred
+from prior runs. The earlier Firefox failures are not fixed or waived by this work.
+Build, dependency snapshot, reference packs, reproducibility and trimmed binding
+workflows have separately completed successfully for `0cc1ca9b`.
 
-Remaining work includes unresolved API/native/Core/inheritance contracts, Firefox's
-two execution failures, native text/layout and source-sort costs, broader hierarchy/
-variable-height performance, the earlier intermittent allocation observation,
-physical input/drag, Unicode/IME, external accessibility and cross-head acceptance.
-Staged partial replacement adds bounded scratch storage for correctness, not a
-performance claim. Shared Core ownership, renderer settings, API normalization,
-existing assertions and native performance thresholds were not weakened.
+The final four-path documentation-only commit uses `[skip ci]` to avoid superseding
+active implementation/browser runs under existing PR concurrency rules. No product
+commit, assertion, protection, API gate or native-performance threshold is skipped
+or weakened. New-head required checks are not represented as green; no merge is
+requested. Windows publication is not Windows OS runtime acceptance, and browser
+automation is not physical IME or external screen-reader acceptance.
 
-All authored product changes are pushed. PR #26 remains draft; no merge or release.
+## Controlled performance decision: candidate withdrawn
+
+[Comparison run 36406417272](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36406417272)
+completed all sixteen native processes on one runner, comparing `fc4cd6bc` with
+`c7ae9344` in baseline/candidate/candidate/baseline order. The unchanged AB/BA native
+runner supplies 100 samples per operation/framework/revision. Template and benchmark
+inputs are identical, runtime defaults are inherited, and ordered native frame
+records match within each framework. These are layout/realization records, not
+benchmark pixel comparisons.
+
+| Operation | Baseline UI median ms | Candidate UI median ms | Candidate/baseline |
+| --- | ---: | ---: | ---: |
+| Horizontal scrolling | 0.75310 | 0.57575 | 0.764507 |
+| Vertical scrolling | 1.60805 | 1.51705 | 0.943410 |
+| Distant diagonal scrolling | 5.66675 | 4.64720 | 0.820082 |
+| Visible-row replacement | 1.69550 | 1.58015 | 0.931967 |
+| Visible-column resizing | 1.74825 | 2.45110 | **1.402031** |
+| Sorting | 38.76875 | 40.54200 | **1.045739** |
+
+**Resize median worsens 40.20%, resize p95 2.7714 to 5.1618 ms, and sorting median
+4.57%.** Five operations have unchanged allocation medians; resize's pooled median
+rises 130,272 to 132,672 bytes, with both amounts appearing among the hosts. This is
+not attribution of a specific allocation site.
+
+The unchanged Avalonia controls also vary: horizontal 0.20560 to 0.14530 ms and
+vertical 0.62310 to 0.46070 ms; all six Avalonia pooled UI medians are lower in
+candidate-labelled passes. Baseline Uno horizontal host medians span 0.4719 to
+1.0905 ms. Favorable pooled scroll results therefore do not prove a causal speedup.
+No sample/workload was discarded, no comparison retry selected a favorable outcome,
+and no confidence interval or universal improvement is claimed.
+
+The guard was withdrawn rather than retained with only its favorable results.
+Artifact `10962223411` preserves all samples, per-host medians, p95, settlement,
+source and compiled fingerprints, and every failed independent gate. The manual
+comparison workflow defaults to the exact historical candidate, not the reverted
+runtime or a documentation head. Collection success is not performance acceptance.
+
+## Independent retained-runtime gate and API boundary
+
+[Native gate 36407210902](https://github.com/wieslawsoltes/TreeDataGrid/actions/runs/36407210902)
+completes both builds and all four processes, but still fails the unchanged **1.10**
+timing/allocation threshold:
+
+| Operation | Uno/Avalonia median time | Uno/Avalonia allocation |
+| --- | ---: | ---: |
+| Horizontal scrolling | 2.610 | 0.695 |
+| Vertical scrolling | 2.737 | 1.930 |
+| Distant diagonal scrolling | 4.226 | 1.917 |
+| Visible-row replacement | 1.624 | 2.668 |
+| Visible-column resizing | 1.780 | 1.518 |
+| Sorting | 1.510 | 0.620 |
+
+This independent run is not a controlled before/after comparison with the experiment.
+Absolute timings from different runners are not combined into a product speedup.
+The scope remains synchronous UI/layout and settlement, not GPU completion/frame rate.
+
+The unchanged API inventory remains **1,845 reference / 1,903 target declarations,
+1,064 exact, 781 missing-or-different, 839 additional-or-different**. Shared Core's
+590 identical records are dependency self-matches, not independent UI parity. There
+are no unresolved dependencies or normalization collisions. Strict target
+self-comparison matches all 1,903 declared and 15,944 supplemental records. The
+preservation gate has no lost export, rewritten old raw record or lost reference
+match. Supplemental cross-framework differences remain 9,575/12,054; no waiver.
+
+Remaining work: actual native/Core/inheritance API adaptations, native layout/text/
+retirement/source-sort costs, broader hierarchy and variable-height performance,
+Firefox's unclosed routes, the earlier intermittent allocation observation, physical
+input/drag, OS composition and external accessibility. The present result is a
+correctness restoration and stronger performance evidence, not completion of parity.
+
+Local container/Python execution returned ClientError. Tests and benchmarks ran in
+GitHub Actions. Returned complete logs, artifact metadata and Git object identities
+were inspected; no local compilation, archive extraction, locally recomputed digest
+or independently reconstructed source tree is claimed in this continuation.
