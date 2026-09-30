@@ -355,7 +355,7 @@
               <primitives:TreeDataGridExpanderButton x:Name="PART_Expander" Style="{StaticResource TreeDataGridExpandCollapseChevron}"
                       Foreground="{TemplateBinding Foreground}" VerticalAlignment="Center" />
               <primitives:TreeDataGridCellContentPanel Grid.Column="1">
-                <TextBlock x:Name="PART_Text" Margin="{TemplateBinding Padding}" VerticalAlignment="Stretch" IsHitTestVisible="False"
+                <TextBlock x:Name="PART_Text" Margin="{TemplateBinding Padding}" VerticalAlignment="Center" IsHitTestVisible="False"
                            TextTrimming="CharacterEllipsis"
                            Foreground="{TemplateBinding Foreground}" />
                 <CheckBox x:Name="PART_CheckBox" Margin="{TemplateBinding Padding}" MinWidth="0" IsTabStop="False" VerticalAlignment="Center"
@@ -419,7 +419,7 @@
               </VisualStateManager.VisualStateGroups>
             <primitives:TreeDataGridCellContentPanel>
               <Border x:Name="SelectionBackground" Background="{ThemeResource TreeDataGridSelectedCellBackgroundBrush}" Opacity="0" />
-              <TextBlock x:Name="PART_Text" Margin="{TemplateBinding Padding}" VerticalAlignment="Stretch" IsHitTestVisible="False"
+              <TextBlock x:Name="PART_Text" Margin="{TemplateBinding Padding}" VerticalAlignment="Center" IsHitTestVisible="False"
                          TextTrimming="CharacterEllipsis" Foreground="{TemplateBinding Foreground}" />
               <Grid x:Name="PART_EditorHost" Visibility="Collapsed" />
               <ContentPresenter x:Name="PART_EditingContent" Visibility="Collapsed" />
