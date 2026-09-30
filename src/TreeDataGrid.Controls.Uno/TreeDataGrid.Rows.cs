@@ -12,6 +12,17 @@ public partial class TreeDataGrid
     public static readonly DependencyProperty RowStyleProperty = DependencyProperty.Register(
         nameof(RowStyle), typeof(Style), typeof(TreeDataGrid), new PropertyMetadata(null, RowStyleChanged));
     public Style? RowStyle { get => (Style?)GetValue(RowStyleProperty); set => SetValue(RowStyleProperty, value); }
+    public static readonly DependencyProperty AlternatingRowBackgroundProperty = DependencyProperty.Register(
+        nameof(AlternatingRowBackground), typeof(Brush), typeof(TreeDataGrid), new PropertyMetadata(null, AlternatingRowBackgroundChanged));
+    /// <summary>
+    /// Gets or sets the background of every second displayed row (odd zero-based row indexes).
+    /// This is the native counterpart of an Avalonia <c>TreeDataGridRow:nth-child(2n)</c> style.
+    /// </summary>
+    public Brush? AlternatingRowBackground
+    {
+        get => (Brush?)GetValue(AlternatingRowBackgroundProperty);
+        set => SetValue(AlternatingRowBackgroundProperty, value);
+    }
     public event EventHandler<TreeDataGridRowEventArgs>? RowPrepared;
     public event EventHandler<TreeDataGridRowEventArgs>? RowClearing;
     internal void RaiseRowPrepared(TreeDataGridRow row, int index) => RowPrepared?.Invoke(this, new(row, index));
@@ -22,6 +33,9 @@ public partial class TreeDataGrid
         grid._presenter?.RefreshStyles();
         grid.InvalidateAppearanceMeasurements();
     }
+
+    private static void AlternatingRowBackgroundChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e) =>
+        ((TreeDataGrid)sender)._presenter?.RefreshAlternation();
 
     public TreeDataGridRow? TryGetRow(int rowIndex) => _presenter?.TryGetElement(rowIndex);
     public Control? TryGetCell(int columnIndex, int rowIndex) => TryGetRow(rowIndex)?.TryGetCell(columnIndex);

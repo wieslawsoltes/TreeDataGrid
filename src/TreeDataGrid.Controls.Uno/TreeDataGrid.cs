@@ -288,7 +288,10 @@ public partial class TreeDataGrid : Control
     private void UpdateViewport()
     {
         if (_scroll is null) return;
-        var width = _scroll.ViewportWidth > 0 ? _scroll.ViewportWidth : Math.Max(0, ActualWidth);
+        // Use the same fallback as UpdateColumns. Before the scroll viewer is
+        // arranged, a different width would make the row presenter and the
+        // column solver override each other's star widths indefinitely.
+        var width = _scroll.ViewportWidth > 0 ? _scroll.ViewportWidth : Math.Max(0, ActualWidth - BorderThickness.Left - BorderThickness.Right);
         var height = _scroll.ViewportHeight > 0 ? _scroll.ViewportHeight : Math.Max(0, ActualHeight - 32);
         // The body can reserve space for a vertical scrollbar. Give the header
         // the same horizontal viewport or its smaller maximum scroll offset

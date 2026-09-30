@@ -148,6 +148,14 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
         if (generation != PresenterGeneration || realization != cell.RealizationVersion) return;
         cell.IsCurrent = Owner?.IsCurrentCell(cell.RowIndex, cell.ColumnIndex) == true;
     }
+    internal void RefreshAlternation()
+    {
+        foreach (var row in _realized.Values.ToArray())
+        {
+            if (ReferenceEquals(row.Parent, this))
+                row.UpdateAlternation();
+        }
+    }
     internal void RefreshStyles()
     {
         var request = unchecked(++_styleRefreshVersion);
@@ -525,6 +533,7 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
             finally { Children.Remove(row); }
         }
     }
+    private const int MaxMeasurePasses = 16;
     protected override Size MeasureOverride(Size availableSize)
     {
         if (_resetDepth > 0 || _measuringRows) return DesiredSize;
@@ -533,6 +542,7 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
         {
             var gatherNaturalWidths = true;
             var measuredWidth = Geometry.TotalWidth;
+            var passes = 0;
             bool repeat;
             do
             {
@@ -564,6 +574,13 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
                     return default;
                 }
                 repeat = needsFinalMeasure || widthsChanged || _pendingColumnLayoutInvalidation || _heightsChanged;
+                if (repeat && ++passes >= MaxMeasurePasses)
+                {
+                    // Width/height feedback that has not converged is finished by
+                    // a later layout pass instead of blocking the UI thread.
+                    repeat = false;
+                    InvalidateMeasure();
+                }
                 if (_heightsChanged) { InvalidateMeasureViewport(); RestoreAnchor(passAnchor); }
                 if (needsFinalMeasure || widthsChanged || _pendingColumnLayoutInvalidation)
                     foreach (var row in _realized.Values) row.CellsPresenter?.InvalidateMeasure();

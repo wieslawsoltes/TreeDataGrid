@@ -37,6 +37,7 @@ public class TreeDataGridRow : Control
     internal bool IsRecyclingVisibilityDeferred { get; set; }
     internal ITreeDataGridSelectionInteraction? StandaloneSelection { get; private set; }
     private bool _realizingStandalone;
+    private Microsoft.UI.Xaml.Media.Brush? _alternationBackground;
     private bool _unrealizing;
     public TreeDataGridRow() => DefaultStyleKey = typeof(TreeDataGridRow);
     private TreeDataGridRowAutomationPeer? _automationPeer;
@@ -112,6 +113,7 @@ public class TreeDataGridRow : Control
             StandaloneSelection = selection;
             DataContext = model;
             if (!Current()) return;
+            UpdateAlternation();
             Visibility = Visibility.Visible;
             if (!Current()) return;
             CellsPresenter?.Attach(this);
@@ -148,8 +150,27 @@ public class TreeDataGridRow : Control
         RowIndex = rowIndex;
         CellsPresenter?.UpdateRowIndex(rowIndex);
         if (realization != RealizationVersion || RowIndex != rowIndex) return;
+        if (((previous ^ rowIndex) & 1) != 0) UpdateAlternation();
         OnRowIndexChanged(previous, rowIndex);
         if (realization == RealizationVersion && RowIndex == rowIndex) NotifyAutomationStateChanged();
+    }
+    /// <summary>Applies the owning grid's alternating background for the current row index.</summary>
+    internal void UpdateAlternation()
+    {
+        var brush = Presenter?.Owner?.AlternatingRowBackground;
+        if (brush is not null && RowIndex >= 0 && (RowIndex & 1) == 1)
+        {
+            if (!ReferenceEquals(_alternationBackground, brush))
+            {
+                _alternationBackground = brush;
+                Background = brush;
+            }
+        }
+        else if (_alternationBackground is not null)
+        {
+            _alternationBackground = null;
+            ClearValue(BackgroundProperty);
+        }
     }
     internal void Unrealize(TreeDataGridRowUnrealizeReason reason)
     {
