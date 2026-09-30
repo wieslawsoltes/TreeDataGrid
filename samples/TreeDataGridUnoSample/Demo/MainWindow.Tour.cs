@@ -50,11 +50,23 @@ namespace TreeDataGridUnoSample.Demo
             ((TreeDataGridCellSelectionModel<Country>)countries.Selection!).SetSelectedRange(new CellIndex(1, new IndexPath(1)), 2, 3);
             await Step("countries-cellselect");
             vm.Countries.CellSelection = false;
+            countries.RowSelection!.SelectedIndex = new IndexPath(0);
+            await Task.Delay(300);
+            this.countries.BeginEdit(0, 2);
+            await Step("countries-edit-template");
+            this.countries.CancelEdit();
+            await Task.Delay(300);
+            this.countries.BeginEdit(1, 1);
+            await Step("countries-edit-text");
+            this.countries.CancelEdit();
+            await Task.Delay(300);
 
             tabs.SelectedIndex = 1;
             peopleXamlGrid.RowSelection!.Select(new IndexPath(0));
             peopleXamlGrid.RowSelection.Select(new IndexPath(2));
             await Step("people-select");
+            ((TreeDataGridCore.Models.IExpander)peopleXamlGrid.Source!.Rows[0]).IsExpanded = false;
+            await Step("people-collapse");
 
             tabs.SelectedIndex = 7;
             var dragDrop = (HierarchicalTreeDataGridSource<DragDropItem>)vm.DragDrop.Source;
@@ -62,6 +74,9 @@ namespace TreeDataGridUnoSample.Demo
             await Step("dragdrop-expand");
 
             tabs.SelectedIndex = 5;
+            await Task.Delay(500);
+            ((TreeDataGridCore.Models.IExpander)fileViewer.Source!.Rows[1]).IsExpanded = true;
+            await Step("files-expand");
             vm.Files.FlatList = true;
             await Step("files-flat");
             vm.Files.FlatList = false;

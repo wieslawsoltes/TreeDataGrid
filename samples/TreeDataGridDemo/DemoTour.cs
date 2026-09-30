@@ -46,12 +46,22 @@ namespace TreeDataGridDemo
             countries.CellSelection!.SetSelectedRange(new CellIndex(1, new IndexPath(1)), 2, 3);
             await Step("countries-cellselect");
             vm.Countries.CellSelection = false;
+            var countriesGrid = window.FindControl<TreeDataGrid>("countries")!;
+            countriesGrid.RowSelection!.SelectedIndex = new IndexPath(0);
+            await BeginEditAsync(countriesGrid, 2, 0);
+            await Step("countries-edit-template");
+            await CancelEditAsync(countriesGrid, 2, 0);
+            await BeginEditAsync(countriesGrid, 1, 1);
+            await Step("countries-edit-text");
+            await CancelEditAsync(countriesGrid, 1, 1);
 
             tabs.SelectedIndex = 1;
             var people = window.FindControl<TreeDataGrid>("peopleXamlGrid")!;
             people.RowSelection!.Select(new IndexPath(0));
             people.RowSelection.Select(new IndexPath(2));
             await Step("people-select");
+            ((TreeDataGridCore.Models.IExpander)people.Rows![0]).IsExpanded = false;
+            await Step("people-collapse");
 
             tabs.SelectedIndex = 7;
             var dragDrop = (HierarchicalTreeDataGridSource<Models.DragDropItem>)vm.DragDrop.Source;
@@ -59,6 +69,10 @@ namespace TreeDataGridDemo
             await Step("dragdrop-expand");
 
             tabs.SelectedIndex = 5;
+            var files = window.FindControl<TreeDataGrid>("fileViewer")!;
+            await Task.Delay(500);
+            ((TreeDataGridCore.Models.IExpander)files.Rows![1]).IsExpanded = true;
+            await Step("files-expand");
             vm.Files.FlatList = true;
             await Step("files-flat");
             vm.Files.FlatList = false;
@@ -86,6 +100,21 @@ namespace TreeDataGridDemo
             await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Background);
             Console.WriteLine($"TOUR_STEP {name}");
             await Task.Delay(1200);
+        }
+
+        private static async Task BeginEditAsync(TreeDataGrid grid, int column, int row)
+        {
+            await Task.Delay(300);
+            var cell = grid.TryGetCell(column, row)!;
+            cell.Focus();
+            cell.RaiseEvent(new Avalonia.Input.KeyEventArgs { RoutedEvent = Avalonia.Input.InputElement.KeyDownEvent, Key = Avalonia.Input.Key.F2 });
+        }
+
+        private static async Task CancelEditAsync(TreeDataGrid grid, int column, int row)
+        {
+            var target = (Avalonia.Input.IInputElement?)TopLevel.GetTopLevel(grid)?.FocusManager?.GetFocusedElement() ?? grid.TryGetCell(column, row)!;
+            ((Avalonia.Interactivity.Interactive)target).RaiseEvent(new Avalonia.Input.KeyEventArgs { RoutedEvent = Avalonia.Input.InputElement.KeyDownEvent, Key = Avalonia.Input.Key.Escape });
+            await Task.Delay(300);
         }
 
         private static Control SelectedTabContent(TabControl tabs) => (Control)((TabItem)tabs.SelectedItem!).Content!;

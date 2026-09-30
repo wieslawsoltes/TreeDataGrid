@@ -17,16 +17,12 @@
     <demo:BooleanToVisibilityConverter x:Key="InverseBooleanToVisibility" IsInverted="True" />
     <demo:FolderIconConverter x:Key="FolderIconConverter" />
     <SolidColorBrush x:Key="AlternatingRowBrush" Color="#20808080" />
-    <Style TargetType="TabViewItem">
-      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-      <Setter Property="VerticalContentAlignment" Value="Stretch" />
-    </Style>
     <Style x:Key="RealizedCountStyle" TargetType="TextBlock">
       <Setter Property="Margin" Value="0,4,0,0" />
     </Style>
   </Page.Resources>
 
-  <TabView x:Name="tabs" IsAddTabButtonVisible="False" CanDragTabs="False" CanReorderTabs="False" TabWidthMode="SizeToContent">
+  <TabView x:Name="tabs" VerticalAlignment="Stretch" IsAddTabButtonVisible="False" CanDragTabs="False" CanReorderTabs="False" TabWidthMode="SizeToContent">
     <TabViewItem IsClosable="False" Header="Template Column Reuse">
       <views:TemplateColumnBugPage DataContext="{Binding TemplateColumnBug}" />
     </TabViewItem>
