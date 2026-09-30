@@ -52,6 +52,11 @@ internal static class RowRecyclingVisibilityRuntimeChecks
                 });
                 callbacks.Add((cell, token));
             }
+            var rowCollapses = 0;
+            var rowToken = row.RegisterPropertyChangedCallback(UIElement.VisibilityProperty, (sender, _) =>
+            {
+                if (((TreeDataGridRow)sender).Visibility == Visibility.Collapsed) ++rowCollapses;
+            });
             items[0] = new("Updated row");
             await Settle();
             VerifyFirstRow();
@@ -62,7 +67,9 @@ internal static class RowRecyclingVisibilityRuntimeChecks
                 await Settle();
                 VerifyFirstRow();
                 Check(collapses == 0, $"Row sorting redundantly collapsed {collapses} retained child cells.");
+                Check(rowCollapses == 0, $"Row sorting redundantly collapsed {rowCollapses} retained rows.");
             }
+            row.UnregisterPropertyChangedCallback(UIElement.VisibilityProperty, rowToken);
             grid.Scroll.ChangeView(1600, 0, null, true);
             await Settle();
             Check(collapses > 0, "Horizontal-only recycling incorrectly deferred local cell visibility.");
@@ -70,7 +77,7 @@ internal static class RowRecyclingVisibilityRuntimeChecks
             grid.Model = null;
             Check(factory.Cells.All(cell => cell.Model is null && cell.RowModel is null && cell.Visibility == Visibility.Collapsed),
                 "Source retirement left a visible or bound recycled cell.");
-            Console.WriteLine("UNO_RUNTIME_ROW_RECYCLING_VISIBILITY_PASSED: no child hide/show on row replacement/sorting; retained identity; normal horizontal recycling; source cleanup");
+            Console.WriteLine("UNO_RUNTIME_ROW_RECYCLING_VISIBILITY_PASSED: no row or child hide/show on row replacement/sorting; retained identity; normal horizontal recycling; source cleanup");
 
             void VerifyFirstRow()
             {

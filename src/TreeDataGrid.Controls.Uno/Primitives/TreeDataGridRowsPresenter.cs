@@ -36,6 +36,7 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
     private readonly Dictionary<int, TreeDataGridRow> _realized = new();
     private readonly List<TreeDataGridRow> _pool = new(32);
     private readonly HashSet<TreeDataGridRow> _deferredVisibility = new();
+    private bool _deferResetVisibility;
     private readonly HashSet<TreeDataGridCell> _cells = new();
     private TreeDataGridPresentation? _presentation;
     private ColumnGeometry? _geometry;
@@ -302,8 +303,21 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
         }
         var revision = _revision;
         UpdateRowGeometry(e);
-        base.OnItemsCollectionChanged(sender, e);
-        if (revision != _revision || IsInLayout) return;
+        // A source reset (such as sorting) or replacement is followed by a layout which rebinds the
+        // same visible containers. Hiding each row now and showing it again in that
+        // layout makes the compositor compute damage for every row twice. Rows not
+        // reused are hidden when that layout finishes, before it can render.
+        var previousDeferral = _deferResetVisibility;
+        _deferResetVisibility = e.Action is NotifyCollectionChangedAction.Reset or NotifyCollectionChangedAction.Replace &&
+            sender is not null &&
+            Items is { Count: > 0 } && !IsInLayout && _resetDepth == 0;
+        try { base.OnItemsCollectionChanged(sender, e); }
+        finally { _deferResetVisibility = previousDeferral; }
+        if (revision != _revision || IsInLayout)
+        {
+            if (revision != _revision) FinishDeferredVisibility();
+            return;
+        }
         // Replacement/sort scopes finish when the next layout rebinds retained
         // rows. Closing them here sends EndRebind(false) before reuse and clears
         // retained template state. Do not eagerly realize rows inside Reset:
@@ -312,7 +326,10 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
         // ownership now; surplus recycled rows are finalized after measurement.
         if (sender is null || Items is null || Items.Count == 0 ||
             e.Action is not (NotifyCollectionChangedAction.Replace or NotifyCollectionChangedAction.Reset))
+        {
+            FinishDeferredVisibility();
             FinalizeUnrealize();
+        }
         RefreshSelection();
         foreach (var row in _realized.Values) row.NotifyAutomationStateChanged();
     }
@@ -411,8 +428,9 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
         // compositor damage and property propagation even when the same row is
         // reused in this pass. Do not defer across a dispatcher turn, removal,
         // source reset or a caller's public Unrealize invocation.
-        row.IsRecyclingVisibilityDeferred = reason == TreeDataGridRowUnrealizeReason.Recycle &&
-            IsInLayout && _resetDepth == 0;
+        row.IsRecyclingVisibilityDeferred = _resetDepth == 0 &&
+            ((reason == TreeDataGridRowUnrealizeReason.Recycle && IsInLayout) ||
+             (reason == TreeDataGridRowUnrealizeReason.ItemRemoved && _deferResetVisibility));
         if (row.IsRecyclingVisibilityDeferred) _deferredVisibility.Add(row);
         row.Unrealize(reason);
     }
