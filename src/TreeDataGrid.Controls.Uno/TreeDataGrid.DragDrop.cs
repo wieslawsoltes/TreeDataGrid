@@ -146,6 +146,10 @@ public partial class TreeDataGrid
     {
         if (_rowDrag is not { Source: { } source } session || !session.IsCurrent()) { e.Cancel = true; return; }
         e.AllowedOperations = AutoDragDropRows && !source.IsSorted ? DataPackageOperation.Move : DataPackageOperation.None;
+        // As Avalonia's DoDragDrop, show no content image: without one, the framework drags a
+        // snapshot of the whole grid, the drag source. A RowDragStarted handler may still
+        // supply its own image; the drop position is shown by the grid's drop indicator.
+        e.DragUI.SetContentFromBitmapImage(new Microsoft.UI.Xaml.Media.Imaging.BitmapImage());
         RowDragStarted?.Invoke(this, new(source, session.Indexes, session.Models, e));
         if (e.Cancel || e.AllowedOperations == DataPackageOperation.None || !session.IsCurrent() || !ReferenceEquals(ActiveSource, source))
         { e.Cancel = true; return; }
