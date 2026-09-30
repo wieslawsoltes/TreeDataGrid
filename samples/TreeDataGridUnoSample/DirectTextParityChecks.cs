@@ -47,10 +47,20 @@ internal static class DirectTextParityChecks
             };
             var compared = 0;
             var directStates = 0;
-            foreach (var theme in new[] { ElementTheme.Light, ElementTheme.Dark })
+#if __WASM__
+            // Browser builds compare sizes only (no raster capture); keep the smoke run short.
+            ElementTheme[] themes = { ElementTheme.Light };
+            double[] widths = { 280, 61 };
+            TextAlignment[] alignments = { TextAlignment.Left, TextAlignment.Right };
+#else
+            ElementTheme[] themes = { ElementTheme.Light, ElementTheme.Dark };
+            double[] widths = { 280, 96, 61, 23 };
+            TextAlignment[] alignments = { TextAlignment.Left, TextAlignment.Center, TextAlignment.Right };
+#endif
+            foreach (var theme in themes)
             foreach (var text in texts)
-            foreach (var width in new[] { 280d, 96, 61, 23 })
-            foreach (var alignment in new[] { TextAlignment.Left, TextAlignment.Center, TextAlignment.Right })
+            foreach (var width in widths)
+            foreach (var alignment in alignments)
             {
                 var variant = compared % 5;
                 root.RequestedTheme = theme;

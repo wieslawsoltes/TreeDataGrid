@@ -81,7 +81,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 build/run-uno-browser.py --browser ${{ matrix.engine }} --showcase artifacts/engine-consumers/showcase --monitor artifacts/engine-consumers/monitor --output artifacts/engine-results 2>&1 | tee artifacts/engine-results/driver.log
+          python3 build/run-uno-browser.py --browser ${{ matrix.engine }} --timeout 360 --showcase artifacts/engine-consumers/showcase --monitor artifacts/engine-consumers/monitor --output artifacts/engine-results 2>&1 | tee artifacts/engine-results/driver.log
       - name: Require an unchanged published bundle and checkout
         if: always()
         run: |

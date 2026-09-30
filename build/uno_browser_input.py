@@ -50,6 +50,9 @@ def drive(page: Any, messages: list[dict[str, Any]], timeout: int) -> list[str]:
             # Committed text, not invented virtual keys for non-ASCII scalars.
             # This covers Unicode writeback; it is not an OS IME simulation.
             page.keyboard.insert_text(value)
+            # Let a slower engine deliver the inserted text to the editor before the
+            # committing or cancelling key; the key must not race the text input.
+            time.sleep(0.25)
             page.keyboard.press('Enter' if expected == 'commit-edit' else 'Escape')
         else:
             x, y = float(step['x']), float(step['y'])
