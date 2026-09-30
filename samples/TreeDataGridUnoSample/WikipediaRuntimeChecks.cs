@@ -159,7 +159,7 @@ internal static class WikipediaRuntimeChecks
             if (cell.ColumnIndex == 0)
                 Check(ReferenceEquals(descendants.OfType<Image>().Single().Source, article.Image), "Recycled Wikipedia image belongs to another article.");
             else
-                Check(descendants.OfType<TextBlock>().Any(t => t.Text == (cell.ColumnIndex == 1 ? article.Titles?.Normalized : article.Extract)),
+                Check(descendants.OfType<TextBlock>().Any(t => ShowcaseRuntimeChecks.DisplayedText(t) == (cell.ColumnIndex == 1 ? article.Titles?.Normalized : article.Extract)),
                     "A recycled Wikipedia template retained stale text.");
         }
     }

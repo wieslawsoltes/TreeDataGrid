@@ -71,7 +71,7 @@ internal static class PresentationOptionsRuntimeChecks
     }
 
     private static string? CellText(Uno.Controls.TreeDataGrid grid) => grid.TryGetCell(0, 0) is TreeDataGridCell cell
-        ? ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().FirstOrDefault()?.Text : null;
+        ? ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().Where(ShowcaseRuntimeChecks.IsDisplayed).Select(ShowcaseRuntimeChecks.DisplayedText).FirstOrDefault() : null;
     private static TreeDataGridPresentationOptions<Item> Options(string format)
     {
         var options = new TreeDataGridPresentationOptions<Item>();

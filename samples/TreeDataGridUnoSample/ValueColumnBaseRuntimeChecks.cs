@@ -141,7 +141,7 @@ internal static class ValueColumnBaseRuntimeChecks
             {
                 var model = (Item)source.Rows[cell.RowIndex].Model!;
                 Check(ReferenceEquals(cell.RowModel, model), "A native custom value cell lost Core model identity.");
-                Check(ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().Any(text => text.Text == model.Detail.Name),
+                Check(ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().Any(text => ShowcaseRuntimeChecks.DisplayedText(text) == model.Detail.Name),
                     $"Custom typed display is stale at row {cell.RowIndex}.");
                 ++count;
             }

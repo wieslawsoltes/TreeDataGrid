@@ -110,7 +110,7 @@ internal static class HorizontalRecyclingVisibilityRuntimeChecks
             {
                 Check(cell.Visibility == Visibility.Visible && ReferenceEquals(cell.RowModel, items[cell.RowIndex]),
                     "Retained visibility exposed a wrong Core row or hidden realized cell.");
-                Check(ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().Any(text => text.Text == items[cell.RowIndex].Text),
+                Check(ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().Any(text => ShowcaseRuntimeChecks.DisplayedText(text) == items[cell.RowIndex].Text),
                     "Reused native cell rendered a stale text value.");
             }
         }

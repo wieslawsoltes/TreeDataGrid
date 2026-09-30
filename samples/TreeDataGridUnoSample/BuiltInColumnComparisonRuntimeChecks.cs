@@ -104,7 +104,7 @@ internal static class BuiltInColumnComparisonRuntimeChecks
             {
                 var model = (Item)source.Rows[cell.RowIndex].Model!;
                 Check(ReferenceEquals(cell.RowModel, model), "A sorted native cell references a different Core model.");
-                Check(ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().Any(text => text.Text == "Display: " + model.Name),
+                Check(ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().Any(text => ShowcaseRuntimeChecks.DisplayedText(text) == "Display: " + model.Name),
                     "The public raw selector replaced formatted native display or left obsolete text.");
                 ++count;
             }

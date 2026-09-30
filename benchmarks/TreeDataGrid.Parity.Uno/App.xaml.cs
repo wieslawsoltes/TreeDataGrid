@@ -82,7 +82,22 @@ internal sealed class NativeHost : INativeParityHost
     private static bool ContainsText(DependencyObject root, string expected)
     {
         if (root is TextBlock text && text.Text == expected) return true;
-        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(root); ++i)
+        // Cell text drawn directly by the Skia presenter (the text block is then collapsed).
+        if (root is FrameworkElement { Visibility: Visibility.Visible } element && element.GetType().Name == "TreeDataGridTextPresenter" &&
+            element.GetType().GetProperty("Text")?.GetValue(element) as string == expected) return true;
+        // Verification runs outside the measured intervals, but its garbage is collected
+        // during them: Uno's VisualTreeHelper.GetChild enumerates the children for every
+        // index, so walk panel children directly and use the helper only elsewhere.
+        if (root is Panel panel)
+        {
+            var children = panel.Children;
+            for (var i = 0; i < children.Count; ++i)
+                if (ContainsText(children[i], expected)) return true;
+            return false;
+        }
+        if (root is Border border) return border.Child is { } child && ContainsText(child, expected);
+        var count = VisualTreeHelper.GetChildrenCount(root);
+        for (var i = 0; i < count; ++i)
             if (ContainsText(VisualTreeHelper.GetChild(root, i), expected)) return true;
         return false;
     }

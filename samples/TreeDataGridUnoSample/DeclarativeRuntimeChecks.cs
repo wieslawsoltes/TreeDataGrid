@@ -147,7 +147,7 @@ internal static class DeclarativeRuntimeChecks
             page.ShowScenario(0);
         }
         string? CellText(int column) => grid.TryGetCell(column, 0) is { } cell
-            ? ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().FirstOrDefault()?.Text : null;
+            ? ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().Where(ShowcaseRuntimeChecks.IsDisplayed).Select(ShowcaseRuntimeChecks.DisplayedText).FirstOrDefault() : null;
     }
     private static Binding Bind(string path, bool twoWay = false) => new()
         { Path = new PropertyPath(path), Mode = twoWay ? BindingMode.TwoWay : BindingMode.OneWay };

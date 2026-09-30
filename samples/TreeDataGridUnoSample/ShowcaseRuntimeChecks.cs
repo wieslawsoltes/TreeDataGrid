@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Windows.Foundation;
@@ -100,6 +101,15 @@ internal static class ShowcaseRuntimeChecks
     /// </summary>
     internal static bool IsDisplayed(TextBlock text) =>
         text.Visibility == Visibility.Visible || DirectPresenter(text) is not null;
+
+    /// <summary>
+    /// The text a text block displays: its own text, or, when its direct presenter draws it,
+    /// the presenter's text as exposed to automation.
+    /// </summary>
+    internal static string DisplayedText(TextBlock text) =>
+        text.Visibility != Visibility.Visible && DirectPresenter(text) is { } presenter
+            ? FrameworkElementAutomationPeer.CreatePeerForElement(presenter).GetName()
+            : text.Text;
 
     /// <summary>The top-left corner of a displayed text block's text, relative to an element.</summary>
     internal static Point TextOrigin(TextBlock text, UIElement relative)

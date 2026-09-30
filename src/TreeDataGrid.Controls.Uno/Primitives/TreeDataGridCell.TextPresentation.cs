@@ -29,10 +29,15 @@ public partial class TreeDataGridCell
 
     private void SetDisplayText(TextBlock text, string value)
     {
-        text.Text = value;
 #if !WINDOWS
-        if (_presenter is { } presenter && ReferenceEquals(presenter.Source, text)) presenter.SetText(value);
+        // The presenter assigns the text block's text whenever the block itself displays it.
+        if (_presenter is { } presenter && ReferenceEquals(presenter.Source, text))
+        {
+            presenter.SetText(value);
+            return;
+        }
 #endif
+        text.Text = value;
     }
 
     private void SetTextVisibility(TextBlock text, bool shown)

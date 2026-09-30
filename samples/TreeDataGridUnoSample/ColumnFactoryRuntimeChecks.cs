@@ -117,7 +117,7 @@ internal static class ColumnFactoryRuntimeChecks
         {
             var cell = grid.TryGetCell(column, row) as TreeDataGridCell;
             Check(cell is not null && ReferenceEquals(cell.RowModel, items[row]) &&
-                ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().Any(x => x.Text == items[row].Name),
+                ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().Any(x => ShowcaseRuntimeChecks.DisplayedText(x) == items[row].Name),
                 "A replacement column rendered an obsolete model or native text value.");
         }
         async Task Settle() { await Task.Delay(120); grid.UpdateLayout(); }

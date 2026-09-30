@@ -55,7 +55,7 @@ internal static class RuntimeChecks
         await Task.Delay(300);
         var first = (TrackedCell)grid.RowsPresenter!.RealizedCells.Single(x => x.RowIndex == 0);
         var parent = VisualTreeHelper.GetParent(first);
-        var text = Descendants(first).OfType<TextBlock>().Single(x => x.Text == "Row 000");
+        var text = Descendants(first).OfType<TextBlock>().Single(x => ShowcaseRuntimeChecks.DisplayedText(x) == "Row 000");
         var templateParent = VisualTreeHelper.GetParent(text);
         var loads = first.Loads;
         var unloads = first.Unloads;

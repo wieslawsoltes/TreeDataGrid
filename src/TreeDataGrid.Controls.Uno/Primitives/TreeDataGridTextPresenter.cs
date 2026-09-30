@@ -1,7 +1,9 @@
 #if !WINDOWS
 using System;
+using System.Collections.Generic;
 using HarfBuzzSharp;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using SkiaSharp;
@@ -88,6 +90,10 @@ internal sealed class TreeDataGridTextPresenter : Panel
     private float _widthWithoutTrailingSpaces;
 
     private readonly TextCanvas _canvas = new();
+    // The arranged glyph run depends only on the text, style, font and arranged width.
+    private int _version;
+    private int _arrangedVersion = -1;
+    private double _arrangedWidth = double.NaN;
 
     public TreeDataGridTextPresenter(TextBlock source)
     {
@@ -104,7 +110,12 @@ internal sealed class TreeDataGridTextPresenter : Panel
 
     public static bool IsEnabled { get; } = GetIsEnabled();
 
+    protected override AutomationPeer OnCreateAutomationPeer() => new PresenterAutomationPeer(this);
+
     public TextBlock Source => _source;
+
+    /// <summary>The displayed text, which the text block holds only while it displays it.</summary>
+    public string Text => _text;
 
     /// <summary>Whether this element, rather than the text block, currently shows the text.</summary>
     public bool IsRendering => _shown && CanRender;
@@ -125,6 +136,7 @@ internal sealed class TreeDataGridTextPresenter : Panel
             _source.UnregisterPropertyChangedCallback(s_sourceProperties[i], _tokens[i]);
         SetBrush(null);
         if (Parent is Panel panel) panel.Children.Remove(this);
+        if (!string.Equals(_source.Text, _text, StringComparison.Ordinal)) _source.Text = _text;
         if (_shown) SetVisibility(_source, Visibility.Visible);
     }
 
@@ -135,22 +147,34 @@ internal sealed class TreeDataGridTextPresenter : Panel
         UpdateVisibility();
     }
 
+    /// <summary>
+    /// Publishes a cell value. While the text block displays the text it is assigned exactly
+    /// as before (local value, string instance, binding replacement and callbacks); while
+    /// this element draws it, the text block is left alone, since assigning its text
+    /// re-creates its inlines and requests a frame, and it is synchronized when it is shown.
+    /// </summary>
     public void SetText(string text)
     {
-        if (string.Equals(_text, text, StringComparison.Ordinal)) return;
+        var changed = !string.Equals(_text, text, StringComparison.Ordinal);
         _text = text;
-        _textSupported = null;
-        // A font that was still loading (for example in the browser) may be ready now.
-        if (_font is null && _styleSupported) UpdateFont();
-        UpdateVisibility();
-        InvalidateMeasure();
+        if (changed)
+        {
+            _textSupported = null;
+            ++_version;
+            // A font that was still loading (for example in the browser) may be ready now.
+            if (_font is null && _styleSupported) UpdateFont();
+        }
+        UpdateVisibility(publish: true);
+        if (changed) InvalidateMeasure();
     }
 
-    private void UpdateVisibility()
+    private void UpdateVisibility(bool publish = false)
     {
         var direct = IsRendering;
+        var native = _shown && !direct;
+        if (native && (publish || !ReferenceEquals(_source.Text, _text))) _source.Text = _text;
         SetVisibility(this, direct ? Visibility.Visible : Visibility.Collapsed);
-        SetVisibility(_source, _shown && !direct ? Visibility.Visible : Visibility.Collapsed);
+        SetVisibility(_source, native ? Visibility.Visible : Visibility.Collapsed);
     }
 
     private static void SetVisibility(UIElement element, Visibility value)
@@ -199,6 +223,7 @@ internal sealed class TreeDataGridTextPresenter : Panel
         var vertical = alignment == VerticalAlignment.Stretch ? VerticalAlignment.Center : alignment;
         if (VerticalAlignment != vertical) VerticalAlignment = vertical;
         _font = null;
+        ++_version;
         if (_styleSupported) UpdateFont();
         UpdateBrush();
         InvalidateMeasure();
@@ -213,6 +238,7 @@ internal sealed class TreeDataGridTextPresenter : Panel
         _font = font;
         _lineHeight = font is null ? 0 : Math.Max((float)source.LineHeight, font.LineHeight);
         _textSupported = null;
+        ++_version;
     }
 
     private void UpdateBrush()
@@ -399,6 +425,9 @@ internal sealed class TreeDataGridTextPresenter : Panel
     protected override Size ArrangeOverride(Size finalSize)
     {
         _canvas.Arrange(new Rect(-Bleed, -Bleed, finalSize.Width + 2 * Bleed, finalSize.Height + 2 * Bleed));
+        if (_arrangedVersion == _version && _arrangedWidth == finalSize.Width) return finalSize;
+        _arrangedVersion = _version;
+        _arrangedWidth = finalSize.Width;
         var font = _font;
         if (font is null || _text.Length == 0)
         {
@@ -459,6 +488,15 @@ internal sealed class TreeDataGridTextPresenter : Panel
             _ => 0,
         };
         return Math.Max(offset, 0);
+    }
+
+    /// <summary>Exposes the displayed text as a text block's peer does.</summary>
+    private sealed class PresenterAutomationPeer(TreeDataGridTextPresenter owner) : FrameworkElementAutomationPeer(owner)
+    {
+        protected override string GetClassNameCore() => nameof(TreeDataGridTextPresenter);
+        protected override AutomationControlType GetAutomationControlTypeCore() => AutomationControlType.Text;
+        protected override string GetNameCore() => owner._text;
+        protected override IList<AutomationPeer>? GetChildrenCore() => null;
     }
 
     private readonly record struct Cluster(int End, int FirstGlyph, int GlyphCount, float Width, bool Whitespace);

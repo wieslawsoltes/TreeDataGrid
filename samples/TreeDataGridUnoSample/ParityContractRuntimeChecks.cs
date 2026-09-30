@@ -129,7 +129,7 @@ internal static class ParityContractRuntimeChecks
     private static CellIndex RejectEnumeration() =>
         throw new InvalidOperationException("An inactive/unobserved hook evaluated its arguments.");
     private static string? RenderedText(FrameworkElement cell) => ShowcaseRuntimeChecks.Descendants(cell)
-        .OfType<TextBlock>().FirstOrDefault(ShowcaseRuntimeChecks.IsDisplayed)?.Text;
+        .OfType<TextBlock>().Where(ShowcaseRuntimeChecks.IsDisplayed).Select(ShowcaseRuntimeChecks.DisplayedText).FirstOrDefault();
     private static async Task Settle(NativeGrid grid) { await Task.Delay(100); grid.UpdateLayout(); }
     private static void Check(bool condition, string message) { if (!condition) throw new InvalidOperationException(message); }
     private sealed partial class TextInputGrid : NativeGrid { internal void Input(string text) => OnTextInput(text); }

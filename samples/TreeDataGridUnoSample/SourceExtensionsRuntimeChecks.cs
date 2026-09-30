@@ -76,7 +76,7 @@ internal static class SourceExtensionsRuntimeChecks
             grid.Resources.Remove("FluentEditing");
         }
         string? CellText(int column) => grid.TryGetCell(column, 0) is { } cell
-            ? ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().FirstOrDefault(ShowcaseRuntimeChecks.IsDisplayed)?.Text : null;
+            ? ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().Where(ShowcaseRuntimeChecks.IsDisplayed).Select(ShowcaseRuntimeChecks.DisplayedText).FirstOrDefault() : null;
     }
 
     private sealed class SearchConverter : IValueConverter

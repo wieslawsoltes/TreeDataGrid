@@ -94,7 +94,8 @@ internal static class CrossColumnRecyclingRuntimeChecks
                 var expected = $"Column {cell.ColumnIndex}: {item.Name}";
                 var text = ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>()
                     .FirstOrDefault(value => value.Name == "PART_Text");
-                Check(text?.Text == expected, $"Cross-column reuse retained wrong format/value: expected '{expected}', actual '{text?.Text}'.");
+                var displayed = text is null ? null : ShowcaseRuntimeChecks.DisplayedText(text);
+                Check(displayed == expected, $"Cross-column reuse retained wrong format/value: expected '{expected}', actual '{displayed}'.");
             }
         }
         async Task Settle() { await Task.Delay(100); grid.UpdateLayout(); }

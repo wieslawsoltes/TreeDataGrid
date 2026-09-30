@@ -52,7 +52,7 @@ internal static class DeclarativeOwnershipRuntimeChecks
             grid.ItemsSource = items;
             await Settle();
             Check(ReferenceEquals(grid.Rows![0].Model, item), "Recovery copied the caller's model.");
-            Check(grid.TryGetCell(0, 0) is { } cell && ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().Any(x => x.Text == item.Name),
+            Check(grid.TryGetCell(0, 0) is { } cell && ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().Any(x => ShowcaseRuntimeChecks.DisplayedText(x) == item.Name),
                 "The recovered declarative model did not render through the native control.");
             Check(grid.BeginEdit(0, 0), "The recovered native cell did not enter editing.");
             grid.EditingCell!.EditingText = "Recovered edit";

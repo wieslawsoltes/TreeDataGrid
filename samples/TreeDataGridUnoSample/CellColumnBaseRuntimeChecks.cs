@@ -92,7 +92,7 @@ internal static class CellColumnBaseRuntimeChecks
             {
                 var model = (Item)source.Rows[cell.RowIndex].Model!;
                 Check(ReferenceEquals(cell.RowModel, model), "A custom column retained a different Core model.");
-                Check(ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().Any(text => text.Text == model.Name),
+                Check(ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().Any(text => ShowcaseRuntimeChecks.DisplayedText(text) == model.Name),
                     "A custom cell retained stale display text.");
             }
         }

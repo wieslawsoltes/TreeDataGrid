@@ -112,7 +112,7 @@ internal static class BuiltInBindingRuntimeChecks
             {
                 var item = (Item)source.Rows[cell.RowIndex].Model!;
                 Check(ReferenceEquals(cell.RowModel, item), "Descriptor cell lost Core row identity.");
-                Check(ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().Any(x => x.Text == "[alias " + item.Detail.Alias + "]"),
+                Check(ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().Any(x => ShowcaseRuntimeChecks.DisplayedText(x) == "[alias " + item.Detail.Alias + "]"),
                     "Rendered descriptor text is stale.");
                 ++checkedCells;
             }
