@@ -111,21 +111,21 @@ the text block in 240 states. Related changes:
 Linux CI, Uno/Avalonia median ratios (2 pairs). Hosted runners differ by up to 2x between
 runs (Avalonia's own diagonal median was 2.6 ms in one run and 1.3 ms in the next):
 
-| Operation | Round start (`952bc9da`) | `f2242215` | `43adafed` | Allocation ratio now |
-| --- | ---: | ---: | ---: | ---: |
-| Visible-row replacement | 0.92 | 0.69 | 0.77 | 0.08 |
-| Visible-column resizing | 0.75 | 0.63 | 1.35 | 0.07 |
-| Sorting | 1.20 | 0.78 | 1.23 | 0.04 |
-| Vertical scrolling | 3.73 | 1.29 | 1.62 | 0.14 |
-| Distant diagonal scrolling | 4.80 | 1.99 | 2.58 | 0.09 |
-| Horizontal scrolling | 3.44 | 2.58 | 2.64 | 0.50 |
+| Operation | Round start (`952bc9da`) | `f2242215` | `43adafed` | `b6c3ba70` | Allocation ratio now |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Visible-row replacement | 0.92 | 0.69 | 0.77 | 0.59 | 0.08 |
+| Visible-column resizing | 0.75 | 0.63 | 1.35 | 0.74 | 0.07 |
+| Sorting | 1.20 | 0.78 | 1.23 | 0.80 | 0.04 |
+| Vertical scrolling | 3.73 | 1.29 | 1.62 | 1.78 | 0.14 |
+| Distant diagonal scrolling | 4.80 | 1.99 | 2.58 | 2.42 | 0.09 |
+| Horizontal scrolling | 3.44 | 2.58 | 2.64 | 2.65 | 0.69 |
 
 Uno's own diagonal median fell from 6.4 ms to 3.4 ms and its vertical median from 1.9 ms
 to 1.3 ms.
 
 ## Remaining gap
 
-Allocations are now 4-25x lower than Avalonia's. Scrolling is still 1.3-2.6x slower, and
+Allocations are now 1.4-25x lower than Avalonia's. Scrolling is still 1.3-2.7x slower, and
 the remaining time is Uno framework work rather than TreeDataGrid's:
 
 - A scroll step changes as little layout as it can: a vertical step moves 3 recycled rows
