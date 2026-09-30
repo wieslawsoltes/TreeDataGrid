@@ -151,8 +151,8 @@ def main() -> int:
     parser.add_argument('--browser', choices=ENGINES, default='chromium')
     parser.add_argument('--executable', type=str, default=None, help='Optional installed Chromium executable.')
     args = parser.parse_args()
-    if not 10 <= args.timeout <= 600:
-        parser.error('--timeout must be between 10 and 600 seconds.')
+    if not 10 <= args.timeout <= 1800:
+        parser.error('--timeout must be between 10 and 1800 seconds.')
     if args.executable and args.browser != 'chromium':
         parser.error('--executable can only be used with --browser chromium.')
     output = args.output.resolve()
