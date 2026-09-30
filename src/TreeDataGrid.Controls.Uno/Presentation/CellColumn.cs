@@ -130,6 +130,10 @@ public partial class ValueCellColumn<TModel, TValue> : CellColumn, ICellColumn<T
         _column = column;
         _kind = kind;
         TextOptions = textOptions;
+        // As Avalonia's ColumnBase, compile the value getter when the column is created, so
+        // the first realization of the column (for example while scrolling horizontally)
+        // does not compile an expression tree.
+        GC.KeepAlive(column.Getter);
         // Public view comparison follows the reference's construction-time
         // policy. Actual source sorting remains owned by the Core definition.
         _allowPublicSort = _options.CanUserSortColumn != false;
