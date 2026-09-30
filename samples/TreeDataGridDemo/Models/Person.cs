@@ -8,7 +8,7 @@ using SampleModelBase = ReactiveUI.ReactiveObject;
 
 namespace TreeDataGridDemo.Models
 {
-    internal partial class Person : SampleModelBase
+    public partial class Person : SampleModelBase
     {
         private string? _name;
         private string? _title;

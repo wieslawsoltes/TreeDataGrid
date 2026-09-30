@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -19,6 +20,14 @@ namespace TreeDataGridUnoSample.Demo
     {
         private readonly DispatcherTimer _realizedCountTimer;
 
+        // These view models are internal, so Uno cannot generate binding accessors for
+        // them. Keep the properties the pages bind to in trimmed browser builds.
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(MainWindowViewModel))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(CountriesPageViewModel))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(WikipediaPageViewModel))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(DragDropPageViewModel))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(TemplateColumnBugPageViewModel))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(TreeDataGridDemo.ViewModels.PeopleXamlPageViewModel))]
         public MainWindow()
         {
             InitializeComponent();

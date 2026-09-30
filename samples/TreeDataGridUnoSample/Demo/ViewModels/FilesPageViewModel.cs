@@ -15,7 +15,7 @@ using GridUnitType = Microsoft.UI.Xaml.GridUnitType;
 
 namespace TreeDataGridUnoSample.Demo.ViewModels
 {
-    public class FilesPageViewModel : NotifyingBase
+    public partial class FilesPageViewModel : NotifyingBase
     {
         private readonly HierarchicalTreeDataGridSource<FileTreeNodeModel>? _treeSource;
         private FlatTreeDataGridSource<FileTreeNodeModel>? _flatSource;

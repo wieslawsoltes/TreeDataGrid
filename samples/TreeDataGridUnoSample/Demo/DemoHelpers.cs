@@ -14,7 +14,7 @@ using Uno.Controls.Primitives;
 namespace TreeDataGridUnoSample.Demo
 {
     /// <summary>Exposes <see cref="Countries.Regions"/>; WinUI XAML has no x:Static.</summary>
-    public sealed class CountryRegions
+    public sealed partial class CountryRegions
     {
         public IReadOnlyList<string> Items => Countries.Regions;
     }

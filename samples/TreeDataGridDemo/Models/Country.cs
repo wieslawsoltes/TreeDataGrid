@@ -1,6 +1,6 @@
 ﻿namespace TreeDataGridDemo.Models
 {
-    internal class Country
+    public partial class Country
     {
         public string? Name { get; set; }
         public string Region { get; private set; }
