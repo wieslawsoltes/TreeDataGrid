@@ -353,8 +353,8 @@
               </Grid.ColumnDefinitions>
               <primitives:TreeDataGridExpanderButton x:Name="PART_Expander" Style="{StaticResource TreeDataGridExpandCollapseChevron}"
                       Foreground="{TemplateBinding Foreground}" VerticalAlignment="Center" />
-              <Grid Grid.Column="1">
-                <TextBlock x:Name="PART_Text" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
+              <primitives:TreeDataGridCellContentPanel Grid.Column="1">
+                <TextBlock x:Name="PART_Text" Margin="{TemplateBinding Padding}" VerticalAlignment="Stretch" IsHitTestVisible="False"
                            TextTrimming="CharacterEllipsis"
                            Foreground="{TemplateBinding Foreground}" />
                 <CheckBox x:Name="PART_CheckBox" Margin="{TemplateBinding Padding}" MinWidth="0" IsTabStop="False" VerticalAlignment="Center"
@@ -362,7 +362,7 @@
                 <ContentPresenter x:Name="PART_Content" Padding="{TemplateBinding Padding}" Foreground="{TemplateBinding Foreground}" />
                 <Grid x:Name="PART_EditorHost" Visibility="Collapsed" />
                 <ContentPresenter x:Name="PART_EditingContent" Visibility="Collapsed" />
-              </Grid>
+              </primitives:TreeDataGridCellContentPanel>
             </Grid>
             <Border x:Name="CurrentBorder" BorderBrush="{ThemeResource TreeDataGridCurrentCellBorderBrush}"
                     BorderThickness="1" Opacity="0" IsHitTestVisible="False" />
@@ -416,9 +416,9 @@
                   </VisualState>
                 </VisualStateGroup>
               </VisualStateManager.VisualStateGroups>
-            <Grid>
+            <primitives:TreeDataGridCellContentPanel>
               <Border x:Name="SelectionBackground" Background="{ThemeResource TreeDataGridSelectedCellBackgroundBrush}" Opacity="0" />
-              <TextBlock x:Name="PART_Text" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
+              <TextBlock x:Name="PART_Text" Margin="{TemplateBinding Padding}" VerticalAlignment="Stretch" IsHitTestVisible="False"
                          TextTrimming="CharacterEllipsis" Foreground="{TemplateBinding Foreground}" />
               <Grid x:Name="PART_EditorHost" Visibility="Collapsed" />
               <ContentPresenter x:Name="PART_EditingContent" Visibility="Collapsed" />
@@ -426,7 +426,7 @@
                       BorderThickness="1" Opacity="0" IsHitTestVisible="False" />
               <Border x:Name="ValidationBorder" BorderBrush="{ThemeResource TreeDataGridValidationBorderBrush}"
                       BorderThickness="1" Opacity="0" IsHitTestVisible="False" />
-            </Grid>
+            </primitives:TreeDataGridCellContentPanel>
           </Border>
         </ControlTemplate>
       </Setter.Value>
