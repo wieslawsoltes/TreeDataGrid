@@ -20,6 +20,9 @@ def main() -> int:
     parser.add_argument('--iterations', type=int, default=25)
     parser.add_argument('--max-ratio', type=float, default=None,
                         help='Optional hard diagnostic budget for both median synchronous time and allocation ratios.')
+    parser.add_argument('--local', action='store_true',
+                        help='Run the hosts on the current desktop session (for example macOS) instead of xvfb, '
+                             'using the platform fallback when DejaVu Sans is not installed.')
     args = parser.parse_args()
     if not 1 <= args.pairs <= 20 or not 8 <= args.columns <= 1000 or not 5 <= args.iterations <= 500:
         parser.error('Invalid pair, column or iteration count.')
@@ -58,8 +61,12 @@ def main() -> int:
     for framework, (project, target) in projects.items():
         execute('build-' + framework, ['dotnet', 'build', project, '-c', 'Release', '-f', target])
     if any(outcomes.values()): return 1
-    font = subprocess.check_output(['fc-match', '-f', '%{family}\n', 'DejaVu Sans'], text=True).strip()
-    if font != 'DejaVu Sans': raise RuntimeError('The benchmark requires the exact DejaVu Sans font, found ' + font)
+    if args.local:
+        font = 'platform fallback for DejaVu Sans'
+    else:
+        font = subprocess.check_output(['fc-match', '-f', '%{family}\n', 'DejaVu Sans'], text=True).strip()
+        if font != 'DejaVu Sans': raise RuntimeError('The benchmark requires the exact DejaVu Sans font, found ' + font)
+    display = [] if args.local else ['xvfb-run', '-a', '-s', '-screen 0 1280x800x24']
     for pair in range(args.pairs):
         order = ['Avalonia', 'Uno'] if pair % 2 == 0 else ['Uno', 'Avalonia']
         pair_reports = []
@@ -69,7 +76,7 @@ def main() -> int:
             report_file.unlink(missing_ok=True)
             env['PARITY_OUTPUT'] = str(report_file)
             project, target = projects[framework]
-            if not execute(name, ['xvfb-run', '-a', '-s', '-screen 0 1280x800x24', 'dotnet', 'run',
+            if not execute(name, display + ['dotnet', 'run',
                                  '--project', project, '-c', 'Release', '-f', target, '--no-build']):
                 return 1
             report = json.loads(report_file.read_text())

@@ -39,8 +39,11 @@ public static class ParityWorkload
         var iterations = ReadCount("PARITY_ITERATIONS", 25, 5, 500);
         const int warmup = 5;
         var measurements = new List<Measurement>(Operations.Length * iterations);
+        // PARITY_OPERATIONS optionally restricts a diagnostic/profiling run to a comma-separated subset.
+        var selected = Environment.GetEnvironmentVariable("PARITY_OPERATIONS")?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         foreach (var operation in Operations)
         {
+            if (selected is { Length: > 0 } && !selected.Contains(operation)) continue;
             var items = new ObservableCollection<BenchRow>(Enumerable.Range(0, RowCount)
                 .Select(index => new BenchRow(index, $"R{index:D5}")));
             using var source = new FlatTreeDataGridSource<BenchRow>(items);
