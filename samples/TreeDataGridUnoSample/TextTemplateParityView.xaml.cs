@@ -83,7 +83,12 @@ public sealed partial class TextTemplateParityView : UserControl
                 $"reference={Describe(expectedBounds)}; candidate={Describe(actualBounds)}; " +
                 $"desired={expectedText.DesiredSize}/{actualText.DesiredSize}; " +
                 $"font={expectedText.FontSize:R}/{actualText.FontSize:R}; " +
-                $"margin={expectedText.Margin}/{actualText.Margin}");
+                $"margin={expectedText.Margin}/{actualText.Margin}; " +
+                $"slot={Microsoft.UI.Xaml.Controls.Primitives.LayoutInformation.GetLayoutSlot(expectedText)}/{Microsoft.UI.Xaml.Controls.Primitives.LayoutInformation.GetLayoutSlot(actualText)}; " +
+                $"actual={expectedText.ActualWidth},{expectedText.ActualHeight}/{actualText.ActualWidth},{actualText.ActualHeight}; " +
+                $"align={expectedText.VerticalAlignment}/{actualText.VerticalAlignment}; " +
+                $"parent={Describe(Bounds((FrameworkElement)VisualTreeHelper.GetParent(expectedText), Reference))}/{Describe(Bounds((FrameworkElement)VisualTreeHelper.GetParent(actualText), Candidate))}; " +
+                $"parentDesired={((UIElement)VisualTreeHelper.GetParent(expectedText)).DesiredSize}/{((UIElement)VisualTreeHelper.GetParent(actualText)).DesiredSize}");
             Check(expectedBounds == actualBounds,
                 $"The native template changed text padding, border reservation or alignment: theme={theme}, thick={thick}, state={state}; " +
                 $"reference={Describe(expectedBounds)}; candidate={Describe(actualBounds)}.");
