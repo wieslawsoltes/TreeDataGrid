@@ -111,6 +111,22 @@ internal sealed class DirectTextFont
     public SKPoint[]? EllipsisOffsets { get; }
     public float EllipsisWidth { get; }
 
+    private const int ShapedTextCapacity = 4096;
+    private readonly Dictionary<string, TreeDataGridTextPresenter.ShapedText> _shapedTexts = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Returns the shaping of a string with this font, shaping it once and sharing the
+    /// result: cells often show repeated values. The cache is bounded and reset when full.
+    /// </summary>
+    public TreeDataGridTextPresenter.ShapedText GetShapedText(string text, Func<string, DirectTextFont, TreeDataGridTextPresenter.ShapedText> shape)
+    {
+        if (_shapedTexts.TryGetValue(text, out var shaped)) return shaped;
+        shaped = shape(text, this);
+        if (_shapedTexts.Count >= ShapedTextCapacity) _shapedTexts.Clear();
+        _shapedTexts[text] = shaped;
+        return shaped;
+    }
+
     public static bool IsAvailable => s_getFont is not null && s_taskResult is not null && s_skFont is not null && s_shapingFont is not null;
 
     /// <summary>A reusable shaping buffer; shaping only happens on the UI thread.</summary>

@@ -80,6 +80,7 @@ internal sealed class TreeDataGridTextPresenter : Panel
     // Shaped text: glyphs and clusters, independent of the available width.
     private string? _shapedText;
     private DirectTextFont? _shapedFont;
+    private ShapedText? _shaped;
     private ushort[] _glyphs = Array.Empty<ushort>();
     private float[] _advances = Array.Empty<float>();
     private SKPoint[] _offsets = Array.Empty<SKPoint>();
@@ -295,75 +296,127 @@ internal sealed class TreeDataGridTextPresenter : Panel
         if (ReferenceEquals(_shapedFont, font) && string.Equals(_shapedText, _text, StringComparison.Ordinal)) return;
         _shapedFont = font;
         _shapedText = _text;
-        _glyphCount = 0;
-        _clusterCount = 0;
-        _width = 0;
-        _widthWithoutTrailingSpaces = 0;
-        var text = _text;
-        if (text.Length == 0) return;
-        if (_clusters.Length < text.Length) _clusters = new Cluster[Math.Max(text.Length, 16)];
-        var buffer = DirectTextFont.Buffer;
-        var scale = font.ScaleX;
-        var start = 0;
-        // UnicodeText shapes each script run separately, in logical order.
-        for (var i = 1; i <= text.Length; ++i)
+        var shaped = _shaped = font.GetShapedText(_text, ShapedText.Create);
+        _glyphs = shaped.Glyphs;
+        _advances = shaped.Advances;
+        _offsets = shaped.Offsets;
+        _clusters = shaped.Clusters;
+        _glyphCount = shaped.Glyphs.Length;
+        _clusterCount = shaped.Clusters.Length;
+        _width = shaped.Width;
+        _widthWithoutTrailingSpaces = shaped.WidthWithoutTrailingSpaces;
+    }
+
+    /// <summary>
+    /// Immutable shaping of one string with one font: glyphs, positions and clusters, which
+    /// do not depend on the available width. Shared by every cell showing the same text.
+    /// </summary>
+    internal sealed class ShapedText
+    {
+        public static readonly ShapedText Empty = new(Array.Empty<ushort>(), Array.Empty<float>(), Array.Empty<SKPoint>(), Array.Empty<Cluster>(), 0, 0);
+        // Scratch buffers; shaping only happens on the UI thread.
+        [ThreadStatic] private static ushort[]? s_glyphs;
+        [ThreadStatic] private static float[]? s_advances;
+        [ThreadStatic] private static SKPoint[]? s_offsets;
+        [ThreadStatic] private static Cluster[]? s_clusters;
+
+        private ShapedText(ushort[] glyphs, float[] advances, SKPoint[] offsets, Cluster[] clusters, float width, float widthWithoutTrailingSpaces)
         {
-            if (i < text.Length && IsLatin(text[i]) == IsLatin(text[i - 1])) continue;
-            buffer.ClearContents();
-            buffer.AddUtf16(text.AsSpan(start, i - start));
-            buffer.GuessSegmentProperties();
-            buffer.Direction = Direction.LeftToRight;
-            font.Shaper.Shape(buffer);
-            var infos = buffer.GetGlyphInfoSpan();
-            var positions = buffer.GetGlyphPositionSpan();
-            EnsureGlyphs(_glyphCount + infos.Length);
-            var clusterStart = _glyphCount;
-            var clusterText = _clusterCount == 0 ? 0 : _clusters[_clusterCount - 1].End;
-            for (var g = 0; g < infos.Length; ++g)
+            Glyphs = glyphs;
+            Advances = advances;
+            Offsets = offsets;
+            Clusters = clusters;
+            Width = width;
+            WidthWithoutTrailingSpaces = widthWithoutTrailingSpaces;
+        }
+
+        public ushort[] Glyphs { get; }
+        public float[] Advances { get; }
+        public SKPoint[] Offsets { get; }
+        public Cluster[] Clusters { get; }
+        public float Width { get; }
+        public float WidthWithoutTrailingSpaces { get; }
+        /// <summary>The last arranged glyph run of this text, and what it was arranged for.</summary>
+        public Frame? Frame { get; set; }
+        public FrameKey FrameKey { get; set; }
+
+        public static ShapedText Create(string text, DirectTextFont font)
+        {
+            if (text.Length == 0) return Empty;
+            var glyphs = s_glyphs ??= new ushort[64];
+            var advances = s_advances ??= new float[64];
+            var offsets = s_offsets ??= new SKPoint[64];
+            var clusters = s_clusters ??= new Cluster[64];
+            var glyphCount = 0;
+            var clusterCount = 0;
+            var buffer = DirectTextFont.Buffer;
+            var scale = font.ScaleX;
+            var start = 0;
+            // UnicodeText shapes each script run separately, in logical order.
+            for (var i = 1; i <= text.Length; ++i)
             {
-                if (g > 0 && infos[g].Cluster != infos[g - 1].Cluster)
+                if (i < text.Length && IsLatin(text[i]) == IsLatin(text[i - 1])) continue;
+                buffer.ClearContents();
+                buffer.AddUtf16(text.AsSpan(start, i - start));
+                buffer.GuessSegmentProperties();
+                buffer.Direction = Direction.LeftToRight;
+                font.Shaper.Shape(buffer);
+                var infos = buffer.GetGlyphInfoSpan();
+                var positions = buffer.GetGlyphPositionSpan();
+                if (glyphs.Length < glyphCount + infos.Length)
                 {
-                    AddCluster(text, clusterText, start + (int)infos[g].Cluster, clusterStart, _glyphCount);
-                    clusterText = start + (int)infos[g].Cluster;
-                    clusterStart = _glyphCount;
+                    var size = Math.Max(glyphCount + infos.Length, glyphs.Length * 2);
+                    Array.Resize(ref glyphs, size);
+                    Array.Resize(ref advances, size);
+                    Array.Resize(ref offsets, size);
+                    s_glyphs = glyphs;
+                    s_advances = advances;
+                    s_offsets = offsets;
                 }
-                _glyphs[_glyphCount] = (ushort)infos[g].Codepoint;
-                _advances[_glyphCount] = positions[g].XAdvance * scale;
-                _offsets[_glyphCount] = new SKPoint(positions[g].XOffset * scale, positions[g].YOffset * scale);
-                ++_glyphCount;
+                var clusterStart = glyphCount;
+                var clusterText = clusterCount == 0 ? 0 : clusters[clusterCount - 1].End;
+                for (var g = 0; g < infos.Length; ++g)
+                {
+                    if (g > 0 && infos[g].Cluster != infos[g - 1].Cluster)
+                    {
+                        AddCluster(text, clusterText, start + (int)infos[g].Cluster, clusterStart, glyphCount);
+                        clusterText = start + (int)infos[g].Cluster;
+                        clusterStart = glyphCount;
+                    }
+                    glyphs[glyphCount] = (ushort)infos[g].Codepoint;
+                    advances[glyphCount] = positions[g].XAdvance * scale;
+                    offsets[glyphCount] = new SKPoint(positions[g].XOffset * scale, positions[g].YOffset * scale);
+                    ++glyphCount;
+                }
+                if (glyphCount > clusterStart) AddCluster(text, clusterText, i, clusterStart, glyphCount);
+                start = i;
             }
-            if (_glyphCount > clusterStart) AddCluster(text, clusterText, i, clusterStart, _glyphCount);
-            start = i;
-        }
-        buffer.ClearContents();
-        float width = 0, trailing = 0;
-        for (var i = 0; i < _clusterCount; ++i)
-        {
-            ref readonly var cluster = ref _clusters[i];
-            width += cluster.Width;
-            trailing = cluster.Whitespace ? trailing + cluster.Width : 0;
-        }
-        _width = width;
-        _widthWithoutTrailingSpaces = trailing == width ? 0 : width - trailing;
-    }
+            buffer.ClearContents();
+            float width = 0, trailing = 0;
+            for (var i = 0; i < clusterCount; ++i)
+            {
+                ref readonly var cluster = ref clusters[i];
+                width += cluster.Width;
+                trailing = cluster.Whitespace ? trailing + cluster.Width : 0;
+            }
+            return new(glyphs.AsSpan(0, glyphCount).ToArray(), advances.AsSpan(0, glyphCount).ToArray(),
+                offsets.AsSpan(0, glyphCount).ToArray(), clusters.AsSpan(0, clusterCount).ToArray(),
+                width, trailing == width ? 0 : width - trailing);
 
-    private void AddCluster(string text, int start, int end, int firstGlyph, int endGlyph)
-    {
-        var whitespace = true;
-        for (var i = start; i < end; ++i) whitespace &= char.IsWhiteSpace(text[i]);
-        float width = 0;
-        for (var g = firstGlyph; g < endGlyph; ++g) width += _advances[g];
-        if (_clusterCount == _clusters.Length) Array.Resize(ref _clusters, _clusters.Length * 2);
-        _clusters[_clusterCount++] = new Cluster(end, firstGlyph, endGlyph - firstGlyph, width, whitespace);
-    }
-
-    private void EnsureGlyphs(int count)
-    {
-        if (_glyphs.Length >= count) return;
-        var size = Math.Max(count, Math.Max(16, _glyphs.Length * 2));
-        Array.Resize(ref _glyphs, size);
-        Array.Resize(ref _advances, size);
-        Array.Resize(ref _offsets, size);
+            void AddCluster(string value, int from, int end, int firstGlyph, int endGlyph)
+            {
+                var whitespace = true;
+                for (var i = from; i < end; ++i) whitespace &= char.IsWhiteSpace(value[i]);
+                float clusterWidth = 0;
+                for (var g = firstGlyph; g < endGlyph; ++g) clusterWidth += advances[g];
+                if (clusterCount == clusters.Length)
+                {
+                    Array.Resize(ref clusters, clusters.Length * 2);
+                    s_clusters = clusters;
+                }
+                clusters[clusterCount++] = new Cluster(end, firstGlyph, endGlyph - firstGlyph, clusterWidth, whitespace);
+            }
+        }
     }
 
     /// <summary>UnicodeText's single-line layout: the visible clusters, ellipsis and width.</summary>
@@ -437,6 +490,14 @@ internal sealed class TreeDataGridTextPresenter : Panel
         Shape(font);
         var padding = _padding;
         var available = Math.Max(0, finalSize.Width - padding.Left - padding.Right);
+        // Cells of one column showing the same value share one immutable glyph run.
+        var shaped = _shaped!;
+        var key = new FrameKey(available, _alignment, _ellipsis, padding.Left, padding.Top);
+        if (shaped.Frame is { } cached && shaped.FrameKey == key)
+        {
+            _canvas.SetFrame(cached);
+            return finalSize;
+        }
         var line = Layout(available);
         var visible = line.Ellipsis ? line.Last + 1 : _clusterCount;
         var glyphs = 0;
@@ -474,7 +535,10 @@ internal sealed class TreeDataGridTextPresenter : Panel
                 points[n++] = new SKPoint(x + ellipsis[g].X, baseline + ellipsis[g].Y);
             }
         }
-        _canvas.SetFrame(new Frame(font.Font, ids, points, (float)(Bleed + padding.Left), (float)(Bleed + padding.Top)));
+        var frame = new Frame(font.Font, ids, points, (float)(Bleed + padding.Left), (float)(Bleed + padding.Top));
+        shaped.Frame = frame;
+        shaped.FrameKey = key;
+        _canvas.SetFrame(frame);
         return finalSize;
     }
 
@@ -499,11 +563,13 @@ internal sealed class TreeDataGridTextPresenter : Panel
         protected override IList<AutomationPeer>? GetChildrenCore() => null;
     }
 
-    private readonly record struct Cluster(int End, int FirstGlyph, int GlyphCount, float Width, bool Whitespace);
+    internal readonly record struct FrameKey(double Available, TextAlignment Alignment, bool Ellipsis, double PaddingLeft, double PaddingTop);
+
+    internal readonly record struct Cluster(int End, int FirstGlyph, int GlyphCount, float Width, bool Whitespace);
 
     private readonly record struct Line(int Last, bool Ellipsis, float Width);
 
-    private sealed class Frame(SKFont font, ushort[] glyphs, SKPoint[] points, float x, float y)
+    internal sealed class Frame(SKFont font, ushort[] glyphs, SKPoint[] points, float x, float y)
     {
         public SKFont Font { get; } = font;
         public ushort[] Glyphs { get; } = glyphs;
