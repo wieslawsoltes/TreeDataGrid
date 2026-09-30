@@ -15,14 +15,17 @@ public class CheckBoxColumn<TModel> : ValueCellColumn<TModel, bool?> where TMode
         : this(new TreeDataGridCore.Models.CheckBoxColumn<TModel>(header, getter, setter, ColumnOptions<TModel>.ToCore(width), options ?? new()), options) { }
     public CheckBoxColumn(TreeDataGridCore.Models.CheckBoxColumn<TModel> column, CheckBoxColumnOptions<TModel>? options = null)
         : this(column, options ?? ColumnOptions<TModel>.CopyCore(column.Options, new CheckBoxColumnOptions<TModel>()), true) { }
+    private readonly TreeDataGridCore.Models.CheckBoxColumn<TModel> _definition;
     private CheckBoxColumn(TreeDataGridCore.Models.CheckBoxColumn<TModel> column, CheckBoxColumnOptions<TModel> options, bool _)
         : base(column, CellKind.CheckBox, viewOptions: options)
     {
+        _definition = column;
         Options = options;
         Header = column.Header;
         BeginEditGestures = Options.BeginEditGestures;
     }
     public CheckBoxColumnOptions<TModel> Options { get; }
+    internal override CellColumn CreatePresentationCopy() => new CheckBoxColumn<TModel>(_definition, Options);
 
     /// <summary>Creates a native cell over the caller's actual shared Core row.</summary>
     /// <remarks>Preserves the existing typed virtual slot and disposable CellValue result.</remarks>

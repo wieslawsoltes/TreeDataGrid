@@ -16,7 +16,7 @@ internal static class ColumnPresentationRegistry
 
     internal static TColumn Register<TColumn>(TColumn column, Func<CellColumn> create) where TColumn : class, IColumn
     {
-        s_columns.Add(column, new(column.PresentationKey, create));
+        s_columns.AddOrUpdate(column, new(column.PresentationKey, create));
         return column;
     }
 

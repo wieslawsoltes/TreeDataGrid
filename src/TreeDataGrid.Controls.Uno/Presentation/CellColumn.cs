@@ -36,6 +36,11 @@ public abstract partial class CellColumn : NotifyingBase, IDisposable
     protected CellColumn(IColumn model) => Model = model;
     public IColumn Model { get; private set; }
     internal void AttachModel(IColumn model) => Model = model;
+    /// <summary>
+    /// Creates the view-owned column used when this column was added to a shared Core source.
+    /// Each view receives its own layout state; the default reuses this instance.
+    /// </summary>
+    internal virtual CellColumn CreatePresentationCopy() => this;
     public virtual double MinimumWidth => 30;
     public virtual double MaximumWidth => double.PositiveInfinity;
     public virtual bool RequiresUnconstrainedWidthMeasurement => Model.Width.IsAuto;

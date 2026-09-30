@@ -46,14 +46,19 @@ public class TemplateColumn<TModel> : ValueCellColumn<TModel, TModel>, ITextSear
         _displayKey = cellTemplateResourceKey ?? throw new ArgumentNullException(nameof(cellTemplateResourceKey));
         _editingKey = cellEditingTemplateResourceKey;
     }
+    private readonly TreeDataGridCore.Models.TemplateColumn<TModel> _definition;
     private TemplateColumn(TreeDataGridCore.Models.TemplateColumn<TModel> column, TemplateColumnOptions<TModel> options)
         : base(column, CellKind.Template, viewOptions: options)
     {
+        _definition = column;
         Options = options;
         Header = column.Header;
         BeginEditGestures = options.BeginEditGestures;
     }
     public TemplateColumnOptions<TModel> Options { get; }
+    internal override CellColumn CreatePresentationCopy() => _displayKey is not null
+        ? new TemplateColumn<TModel>(_definition, _displayKey, _editingKey, Options)
+        : new TemplateColumn<TModel>(_definition, _display!, _editing, Options);
 
     /// <summary>Creates a native cell over the caller's actual shared Core row.</summary>
     /// <remarks>Preserves the existing typed virtual slot and disposable CellValue result.</remarks>

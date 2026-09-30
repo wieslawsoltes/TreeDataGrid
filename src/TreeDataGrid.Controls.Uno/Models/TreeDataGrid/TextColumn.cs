@@ -31,6 +31,7 @@ public class TextColumn<TModel, TValue> : ValueCellColumn<TModel, TValue?>, ITex
         BeginEditGestures = Options.BeginEditGestures;
     }
     public TextColumnOptions<TModel> Options { get; }
+    internal override CellColumn CreatePresentationCopy() => new TextColumn<TModel, TValue>(_definition, Options);
 
     /// <summary>Retargets a compatible native text cell without replacing its binding owner.</summary>
     public new bool TryReuseCell(ICell cell, TreeDataGridCore.Models.IRow<TModel> row) =>
