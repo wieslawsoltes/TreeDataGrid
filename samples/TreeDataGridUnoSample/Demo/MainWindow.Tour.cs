@@ -94,7 +94,10 @@ namespace TreeDataGridUnoSample.Demo
 
             Console.WriteLine("TOUR_DONE");
             await Task.Delay(500);
+#if !__WASM__
+            // Browser hosts have no application exit; the tour simply ends there.
             Application.Current.Exit();
+#endif
         }
 
         private static async Task Step(string name, int settle = 1500)
