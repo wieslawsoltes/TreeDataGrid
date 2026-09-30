@@ -233,7 +233,7 @@
           <Border x:Name="RowBorder" Background="{TemplateBinding Background}"
                   BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
                   CornerRadius="{TemplateBinding CornerRadius}">
-          <Grid>
+            <!-- Visual state groups must be declared on the template root. -->
             <VisualStateManager.VisualStateGroups>
               <VisualStateGroup x:Name="SelectionStates">
                 <VisualState x:Name="Unselected" />
@@ -244,6 +244,7 @@
                 </VisualState>
               </VisualStateGroup>
             </VisualStateManager.VisualStateGroups>
+          <Grid>
             <Border x:Name="RowSelectionBackground" Background="{ThemeResource TreeDataGridSelectedCellBackgroundBrush}" Opacity="0" />
             <primitives:TreeDataGridCellsPresenter x:Name="PART_CellsPresenter"
                         ElementFactory="{TemplateBinding ElementFactory}" Items="{TemplateBinding Columns}" Rows="{TemplateBinding Rows}" />
@@ -306,7 +307,6 @@
           <Border x:Name="CellBorder" Background="{TemplateBinding Background}"
                   BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
                   CornerRadius="{TemplateBinding CornerRadius}">
-          <Grid>
             <VisualStateManager.VisualStateGroups>
               <VisualStateGroup x:Name="SelectionStates">
                 <VisualState x:Name="Unselected" />
@@ -345,6 +345,7 @@
                 </VisualState>
               </VisualStateGroup>
             </VisualStateManager.VisualStateGroups>
+          <Grid>
             <Border x:Name="SelectionBackground" Background="{ThemeResource TreeDataGridSelectedCellBackgroundBrush}" Opacity="0" />
             <Grid>
               <Grid.ColumnDefinitions>
@@ -441,7 +442,6 @@
           <Border x:Name="CellBorder" Background="{TemplateBinding Background}"
                   BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
                   CornerRadius="{TemplateBinding CornerRadius}">
-          <Grid>
             <VisualStateManager.VisualStateGroups>
               <VisualStateGroup x:Name="SelectionStates">
                 <VisualState x:Name="Unselected" />
@@ -470,6 +470,7 @@
                 </VisualState>
               </VisualStateGroup>
             </VisualStateManager.VisualStateGroups>
+          <Grid>
             <Border x:Name="SelectionBackground" Background="{ThemeResource TreeDataGridSelectedCellBackgroundBrush}" Opacity="0" />
             <Grid>
               <Grid.ColumnDefinitions>

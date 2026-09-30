@@ -41,6 +41,13 @@ internal static class SelectionRuntimeChecks
             ReferenceEquals(initialDelta.SelectedItems.Single(), items[1]), "The control did not forward Core row selection deltas.");
         VerifySelection(grid);
         Check(grid.RowsPresenter!.RealizedCells.Count(x => x.IsSelected) == 2, "Row selection did not highlight every visible cell.");
+        // Visual states apply only when declared on the template root; verify the
+        // selected row actually shows its selection background.
+        grid.UpdateLayout();
+        var selectedRow = grid.TryGetRow(1) ?? throw new InvalidOperationException("The selected row is not realized.");
+        Check(ShowcaseRuntimeChecks.Descendants(selectedRow).OfType<Microsoft.UI.Xaml.Controls.Border>()
+                .Single(x => x.Name == "RowSelectionBackground").Opacity == 1,
+            "The selected row did not enter its Selected visual state.");
         grid.MoveSelection(TreeDataGridNavigation.Down, extend: true);
         grid.MoveSelection(TreeDataGridNavigation.Down, extend: true);
         Check(source.RowSelection!.Count == 3, "Extended navigation did not preserve its range anchor.");
