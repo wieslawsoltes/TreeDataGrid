@@ -141,7 +141,8 @@ the remaining time is Uno framework work rather than TreeDataGrid's:
   recycled cell; the Linux CI runner has no accessibility tree.
 
 TreeDataGrid's own code (realization, recycling, bindings, text shaping) is a small share
-of the remaining scroll samples. The API audit's remaining differences mostly stem from the
+of the remaining scroll samples. [Uno performance findings](uno-performance-findings.md)
+lists every issue with TreeDataGrid and Uno references and proposed Uno changes. The API audit's remaining differences mostly stem from the
 documented use of the shared Core `IndexPath`/`IRow` types and from Avalonia-only
 framework overrides.
 
