@@ -54,18 +54,24 @@ Two presentation changes remove framework work rather than TreeDataGrid bookkeep
 - **Cell text is laid out once per value.** Uno's `TextBlock` re-creates its layout during
   arrange whenever the arranged size differs from its measure constraint, which vertical
   centering always caused. `TreeDataGridCellContentPanel` stretches `PART_Text` and places it
-  at the centering offset; the 16-state native pixel comparison is unchanged.
+  at the centering offset. Uno rounds an arrange rectangle's position before adding the
+  margin, so the panel passes the position already rounded the way native centering rounds
+  it; the 16-state native pixel comparison passes on both 1x Linux and 2x macOS.
 
-Paired workload, Uno/Avalonia median ratios on the Linux CI runner (2 pairs):
+Paired workload, Uno/Avalonia median ratios on the Linux CI runner (2 pairs; final
+revision `952bc9da`):
 
-| Operation | Previous gate (`0cc1ca9b`) time / alloc | Now time / alloc |
-| --- | ---: | ---: |
-| Visible-row replacement | 1.62 / 2.67 | 1.04 / 1.35 |
-| Visible-column resizing | 1.78 / 1.52 | 0.80 / 0.79 |
-| Sorting | 1.51 / 0.62 | 1.10 / 0.32 |
-| Vertical scrolling | 2.74 / 1.93 | 3.05 / 1.08 |
-| Distant diagonal scrolling | 4.23 / 1.92 | 3.30 / 1.03 |
-| Horizontal scrolling | 2.61 / 0.70 | 2.89 / 0.71 |
+| Operation | Previous gate (`0cc1ca9b`) time / alloc | Now time / alloc | Now Avalonia / Uno ms |
+| --- | ---: | ---: | ---: |
+| Visible-row replacement | 1.62 / 2.67 | 0.92 / 1.35 | 1.145 / 1.050 |
+| Visible-column resizing | 1.78 / 1.52 | 0.75 / 0.76 | 2.218 / 1.652 |
+| Sorting | 1.51 / 0.62 | 1.20 / 0.32 | 19.943 / 23.907 |
+| Vertical scrolling | 2.74 / 1.93 | 3.73 / 1.08 | 0.508 / 1.895 |
+| Distant diagonal scrolling | 4.23 / 1.92 | 4.80 / 1.03 | 1.326 / 6.368 |
+| Horizontal scrolling | 2.61 / 0.70 | 3.44 / 0.70 | 0.208 / 0.716 |
+
+Hosted-runner Avalonia medians also vary between runs (e.g. sorting 42 ms and 20 ms in two
+runs of this series), so scrolling ratios are compared across runs with caution.
 
 Local macOS medians (4 pairs, 40 iterations; Avalonia's own medians vary up to 2x between
 runs on this machine):
