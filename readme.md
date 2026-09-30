@@ -32,11 +32,11 @@ The clean Uno port is `TreeDataGrid.Controls.Uno`, matching the platform package
 pattern of `TreeDataGrid.Controls.Avalonia`. It uses the same `TreeDataGrid.Core`
 assembly without copying the model layer. The control namespace remains
 `Uno.Controls` (parallel to `Avalonia.Controls`); assign a Core
-source to its `Model` property. The desktop sample offers Countries, editable
-People, template recycling, variable-height Countries, async Wikipedia, file-system
-tree/flat views, and Find Country,
-source-linking shared sample data without referencing Avalonia UI. Wikipedia
-supports live loading and a deterministic offline fixture. Run it from this branch with:
+source to its `Model` or `Source` property. The sample opens the same eight-tab demo as
+`samples/TreeDataGridDemo` (Template Column Reuse, People, Countries, Find Displayed Row,
+BringIntoView, Files, Wikipedia and Drag/Drop) with the same view models and column
+configuration, adapted to WinUI XAML. It runs on desktop and in the browser. Run it from
+this branch with:
 
 ```sh
 dotnet run --project samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj -c Release -f net10.0-desktop

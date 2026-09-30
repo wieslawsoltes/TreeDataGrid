@@ -1,5 +1,14 @@
 # Current Uno completion checklist
 
+Updated 2026-09-30. **Latest round: [demo parity, visual comparison and performance](uno-demo-parity-2026-09-30.md).**
+The Uno sample now mirrors the Avalonia demo tab for tab; the round fixed a star-width
+layout hang, missing row/cell visual states, Core filtering, native columns in Core
+sources, and trimmed-browser bindings, and reduced sort/resize/replacement cost to about
+Avalonia's level on Linux CI. Scrolling remains roughly 3x slower. Full API and
+performance parity remain open.
+
+The previous checkpoint follows unchanged.
+
 Updated 2026-09-28 UTC. Retained tested implementation **0cc1ca9b**.
 **Full API and native-performance parity remain open. No new whole-grid speedup is claimed.**
 

@@ -1,14 +1,18 @@
 # Uno / shared Core showcase
 
-This work-in-progress desktop sample uses `TreeDataGrid.Controls.Uno` with actual
-`TreeDataGrid.Core` sources. It does not reference Avalonia UI. Countries, People,
-template items, Wikipedia feed DTOs, JSON metadata, and the offline file icon are
-source-linked from the existing demo. Platform image implementations are separate
-partials; the shared feed file contains no UI types.
+This sample uses `TreeDataGrid.Controls.Uno` with actual `TreeDataGrid.Core` sources.
+It does not reference Avalonia UI. The default launch opens `Demo/MainWindow`, the Uno
+counterpart of `samples/TreeDataGridDemo/MainWindow.axaml`: the same eight tabs, the same
+view models (ported to Core sources and Uno columns) and the same shared models. Avalonia
+style selectors map to native API: `TreeDataGridRow:nth-child(2n)` is
+`AlternatingRowBackground`, and the bold last column uses `CellPrepared`/`CellClearing`.
 
-Available scenarios: Countries, editable People hierarchy, Templates,
-variable-height Countries, Wikipedia, Files (tree/flat), and Find Country. This is not the complete showcase or
-Activity Monitor yet; see [remaining parity work](../../docs/uno-port-status.md).
+The previous single-page showcase remains the validation harness. It is used for
+`--smoke`, `--suite <name>` and `--harness` runs.
+
+Both demos support `TDG_START_TAB=<index>` to open a tab and `TDG_TOUR=1` to run the same
+scripted walkthrough (tabs, sorting, filtering, selection, editing, expansion). Each tour
+step prints `TOUR_STEP <name>` so an external tool can capture the window for comparison.
 
 ```sh
 dotnet build solutions/TreeDataGrid.Uno.slnx -c Release

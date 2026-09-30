@@ -8,6 +8,7 @@ Core assembly. Baseline master is `3ca47316d724e5e040ab0281a880e8df999b25fc`
 directly to the existing draft PR, not to master. No release or merge is implied.
 
 The latest status, exact tested revisions and CI evidence are in the
+[demo parity report](uno-demo-parity-2026-09-30.md),
 [current completion checklist](uno-current-work.md),
 [2026-09-22 geometry/cells/API report](uno-geometry-observable-validation-2026-09-22.md)
 and [final CI checkpoint](uno-ci-checkpoint-5ed67958.json).
