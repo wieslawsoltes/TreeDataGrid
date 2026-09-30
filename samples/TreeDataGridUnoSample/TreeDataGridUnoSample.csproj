@@ -41,6 +41,7 @@
     <Compile Include="../TreeDataGridDemo/Models/OnThisDayJsonSerializerContext.cs" Link="Models/OnThisDayJsonSerializerContext.cs" />
     <Content Include="../TreeDataGridDemo/Assets/file.png" Link="Assets/file.png" />
     <Content Include="../TreeDataGridDemo/Assets/folder.png" Link="Assets/folder.png" />
+    <Content Include="../TreeDataGridDemo/Assets/folder-open.png" Link="Assets/folder-open.png" />
     <Compile Include="../TreeDataGridDemo/Models/FileTreeNodeModel.cs" Link="Models/FileTreeNodeModel.cs" />
     <Compile Include="../TreeDataGridDemo/ViewModels/PeopleXamlPageViewModel.cs" Link="Models/PeopleXamlPageViewModel.cs" />
   </ItemGroup>

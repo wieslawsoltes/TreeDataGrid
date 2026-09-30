@@ -17,9 +17,28 @@ public partial class App : Application
     {
         UnhandledException += (_, e) => { if (SampleRunContext.HasArgument("--smoke")) SampleRunContext.ReportResult(false, e.Exception.ToString()); };
         InitializeComponent();
+        // Match the Avalonia demo's generated drag/drop data.
+        Bogus.Randomizer.Seed = new Random(0);
     }
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+        // The default launch shows the same demo as the Avalonia sample. The
+        // validation harness page stays available for smoke/suite runs.
+        if (!SampleRunContext.HasArgument("--smoke") && !SampleRunContext.HasArgument("--harness"))
+        {
+            _window = new Window { Content = new Demo.MainWindow(), Title = "TreeDataGridDemo (Uno)" };
+            var demo = (Demo.MainWindow)_window.Content;
+            if (Demo.MainWindow.IsTourEnabled)
+                demo.Loaded += (_, _) => _ = demo.RunTourAsync();
+            demo.Loaded += (_, _) =>
+            {
+                // Match the Avalonia demo's default window size in logical pixels.
+                var scale = demo.XamlRoot?.RasterizationScale ?? 1;
+                _window.AppWindow.Resize(new Windows.Graphics.SizeInt32 { Width = (int)(1350 * scale), Height = (int)(738 * scale) });
+            };
+            _window.Activate();
+            return;
+        }
         var page = new MainPage();
         _window = new Window { Content = page, Title = "TreeDataGrid — Uno / shared Core" };
         _window.Activate();

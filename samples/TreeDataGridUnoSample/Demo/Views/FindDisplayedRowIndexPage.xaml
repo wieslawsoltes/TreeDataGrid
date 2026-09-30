@@ -1,0 +1,101 @@
+<UserControl x:Class="TreeDataGridUnoSample.Demo.Views.FindDisplayedRowIndexPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:tdg="using:Uno.Controls"
+             xmlns:demo="using:TreeDataGridUnoSample.Demo">
+  <UserControl.Resources>
+    <demo:CountryRegions x:Key="CountryRegions" />
+    <SolidColorBrush x:Key="AlternatingRowBrush" Color="#20808080" />
+  </UserControl.Resources>
+  <Grid Margin="8">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="260" />
+      <ColumnDefinition Width="*" />
+    </Grid.ColumnDefinitions>
+    <StackPanel Grid.ColumnSpan="2"
+                Margin="0,0,0,8"
+                Spacing="6">
+      <TextBlock Text="Select a country from the complete model list. The grid finds and brings its current displayed row into view after filtering or sorting."
+                 TextWrapping="Wrap" />
+      <Grid ColumnSpacing="8">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="260" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <TextBlock VerticalAlignment="Center" Text="Filter" />
+        <TextBox x:Name="displayedRowFilterTextBox"
+                 Grid.Column="1"
+                 PlaceholderText="Filter by country or region"
+                 Text="{Binding FilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+        <Button Grid.Column="2"
+                Click="ClearSortClick"
+                Content="Clear sort" />
+      </Grid>
+      <TextBlock Text="Click a sortable column header to reorder the displayed rows."
+                 Opacity="0.7" />
+    </StackPanel>
+
+    <Border Grid.Row="1"
+            Margin="0,0,8,0"
+            Padding="4"
+            BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="4">
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <TextBlock Margin="4"
+                   FontWeight="SemiBold"
+                   Text="All country models" />
+        <ListView x:Name="displayedRowCountryList"
+                  Grid.Row="1"
+                  ItemsSource="{Binding Source.Items}"
+                  SelectionChanged="CountrySelectionChanged">
+          <ListView.ItemTemplate>
+            <DataTemplate>
+              <StackPanel Margin="4,2">
+                <TextBlock Text="{Binding Name}" />
+                <TextBlock FontSize="11"
+                           Opacity="0.65"
+                           Text="{Binding Region}" />
+              </StackPanel>
+            </DataTemplate>
+          </ListView.ItemTemplate>
+        </ListView>
+      </Grid>
+    </Border>
+
+    <Grid Grid.Row="1"
+          Grid.Column="1">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="*" />
+        <RowDefinition Height="Auto" />
+      </Grid.RowDefinitions>
+      <tdg:TreeDataGrid x:Name="displayedRowGrid"
+                        Source="{Binding Source}"
+                        AlternatingRowBackground="{StaticResource AlternatingRowBrush}">
+        <tdg:TreeDataGrid.Resources>
+          <DataTemplate x:Key="RegionCell">
+            <TextBlock Text="{Binding Region}" />
+          </DataTemplate>
+          <DataTemplate x:Key="RegionEditCell">
+            <ComboBox ItemsSource="{Binding Items, Source={StaticResource CountryRegions}}"
+                      SelectedItem="{Binding Region, Mode=TwoWay}" />
+          </DataTemplate>
+        </tdg:TreeDataGrid.Resources>
+      </tdg:TreeDataGrid>
+      <TextBlock x:Name="displayedRowStatus"
+                 Grid.Row="1"
+                 Margin="4,8,4,0"
+                 Text="Select a country to find its displayed row."
+                 TextWrapping="Wrap" />
+    </Grid>
+  </Grid>
+</UserControl>

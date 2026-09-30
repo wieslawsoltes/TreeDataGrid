@@ -1,0 +1,49 @@
+<UserControl x:Class="TreeDataGridUnoSample.Demo.Views.TemplateColumnBugPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:tdg="using:Uno.Controls"
+             xmlns:demo="using:TreeDataGridUnoSample.Demo">
+  <UserControl.Resources>
+    <demo:BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
+
+    <DataTemplate x:Key="IsFlaggedTemplate">
+      <TextBlock Text="✓"
+                 Visibility="{Binding IsFlagged, Converter={StaticResource BooleanToVisibility}}"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="DetailsTemplate">
+      <TextBlock Text="{Binding Details}"
+                 TextTrimming="CharacterEllipsis"
+                 TextAlignment="Left"
+                 HorizontalAlignment="Stretch"
+                 VerticalAlignment="Center"
+                 Margin="12,0"
+                 ToolTipService.ToolTip="{Binding Details}" />
+    </DataTemplate>
+  </UserControl.Resources>
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+    <CheckBox x:Name="IsVisibleCheckBox"
+              IsChecked="True"
+              Margin="0,0,0,8"
+              Content="Show TreeDataGrid" />
+
+    <!--
+      Keep the viewport narrower than the columns' combined minimum width. Scrolling
+      horizontally between the two template columns exercises cross-column cell recycling.
+    -->
+    <tdg:TreeDataGrid x:Name="TemplateColumnGrid"
+                      Grid.Row="1"
+                      Width="260"
+                      HorizontalAlignment="Left"
+                      Source="{Binding Source}"
+                      Visibility="{Binding IsChecked, ElementName=IsVisibleCheckBox, Converter={StaticResource BooleanToVisibility}}"
+                      SelectionMode="SingleRow" />
+  </Grid>
+</UserControl>

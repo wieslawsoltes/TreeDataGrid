@@ -19,6 +19,16 @@ namespace TreeDataGridDemo
                 var mainWindow = new MainWindow();
                 desktop.MainWindow = mainWindow;
 
+                if (int.TryParse(System.Environment.GetEnvironmentVariable("TDG_START_TAB"), out var startTab))
+                {
+                    Avalonia.Controls.NameScopeExtensions.FindControl<Avalonia.Controls.TabControl>(mainWindow, "tabs")!.SelectedIndex = startTab;
+                }
+
+                if (DemoTour.IsEnabled)
+                {
+                    mainWindow.Opened += (_, _) => _ = DemoTour.RunAsync(mainWindow);
+                }
+
                 if (AotSmokeTest.IsEnabled(Program.Arguments))
                 {
                     AotSmokeTest.Attach(mainWindow, desktop);
