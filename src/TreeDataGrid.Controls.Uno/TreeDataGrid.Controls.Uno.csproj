@@ -8,11 +8,14 @@
     <AssemblyName>TreeDataGrid.Controls.Uno</AssemblyName>
     <IsPackable>true</IsPackable>
     <GenerateLibraryLayout>true</GenerateLibraryLayout>
+    <UnoFeatures>Skia</UnoFeatures>
     <Description>Uno Platform presentation of framework-neutral TreeDataGrid Core sources.</Description>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../TreeDataGrid.Core/TreeDataGrid.Core.csproj" />
     <InternalsVisibleTo Include="TreeDataGrid.Uno.Tests" />
+    <!-- Direct cell text rendering shapes with the HarfBuzz font of Uno's Skia text engine. -->
+    <PackageReference Include="HarfBuzzSharp" Version="8.3.1.1" Condition="'$([MSBuild]::GetTargetPlatformIdentifier($(TargetFramework)))' != 'windows'" />
     <None Include="../../THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="" />
   </ItemGroup>
 </Project>

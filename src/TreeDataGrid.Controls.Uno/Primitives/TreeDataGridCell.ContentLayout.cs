@@ -33,7 +33,7 @@ public partial class TreeDataGridCell
         }
         if (_text is { } text)
         {
-            SetContentVisibility(text, !inner && !editing && kind == Presentation.CellKind.Text ? Visibility.Visible : Visibility.Collapsed);
+            SetTextVisibility(text, !inner && !editing && kind == Presentation.CellKind.Text);
             if (!IsContentLayoutCurrent(realization, revision)) return false;
             var alignment = DisplayTextAlignment;
             if (!IsContentLayoutCurrent(realization, revision)) return false;
