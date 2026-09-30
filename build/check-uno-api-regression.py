@@ -13,6 +13,17 @@ import re
 
 POLICIES = ("schemaVersion", "mode", "namespaceMappings", "namespaceNormalization", "declaredInterfaceOrdering")
 FIELDS = ("Assembly", "Kind", "Raw", "Normalized", "Identity", "DeclaringType", "MetadataName")
+# Reference declarations added after explicit review. Only additions from shared
+# TreeDataGrid.Core are accepted; any removal or change still requires a new baseline.
+REVIEWED_REFERENCE_ADDITIONS = frozenset({
+    # Source filtering moved from the Avalonia sources into the shared Core sources.
+    "public System.Boolean TreeDataGridCore.FlatTreeDataGridSource<TModel>.IsFiltered { get; }",
+    "public System.Boolean TreeDataGridCore.HierarchicalTreeDataGridSource<TModel>.IsFiltered { get; }",
+    "public void TreeDataGridCore.FlatTreeDataGridSource<TModel>.Filter(System.Func<TModel, System.Boolean>? predicate)",
+    "public void TreeDataGridCore.FlatTreeDataGridSource<TModel>.RefreshFilter()",
+    "public void TreeDataGridCore.HierarchicalTreeDataGridSource<TModel>.Filter(System.Func<TModel, System.Boolean>? predicate)",
+    "public void TreeDataGridCore.HierarchicalTreeDataGridSource<TModel>.RefreshFilter()",
+})
 
 
 def read_json(path: Path):
@@ -83,7 +94,13 @@ def compare(before: dict, after: dict) -> dict:
         if before["summary"][key] != after["summary"][key]:
             raise ValueError("Changed audit policy requires explicit baseline review: " + key)
     if before["avalonia"] != after["avalonia"]:
-        raise ValueError("Reference declarations changed; explicit baseline review required")
+        old_reference, new_reference = before["avalonia"], after["avalonia"]
+        added = new_reference.keys() - old_reference.keys()
+        if (old_reference.keys() - new_reference.keys() or
+                any(old_reference[key] != new_reference[key] for key in old_reference.keys() & new_reference.keys()) or
+                not added <= REVIEWED_REFERENCE_ADDITIONS or
+                any(new_reference[key]["Assembly"] != "TreeDataGrid.Core" for key in added)):
+            raise ValueError("Reference declarations changed; explicit baseline review required")
     old, new, reference = before["uno"], after["uno"], before["avalonia"]
     removed = sorted(old.keys() - new.keys())
     rewritten = sorted(shape for shape in old.keys() & new.keys() if old[shape] != new[shape])

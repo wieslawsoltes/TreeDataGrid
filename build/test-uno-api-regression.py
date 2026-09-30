@@ -79,6 +79,30 @@ class RegressionGateTests(unittest.TestCase):
         self.mutate('avalonia.json', lambda x: x['Entries'][0].__setitem__('Raw', 'changed'))
         with self.assertRaises(ValueError): self.result()
 
+    def test_reviewed_core_reference_additions_are_accepted(self):
+        name = sorted(gate.REVIEWED_REFERENCE_ADDITIONS)[0]
+        def add(document):
+            document['Entries'].append(dict(entry(name), Assembly='TreeDataGrid.Core'))
+            document['Inputs'].append(dict(Name='TreeDataGrid.Core', Sha256='b' * 64))
+        self.mutate('avalonia.json', add)
+        self.mutate('uno.json', add)
+        self.mutate('summary.json', lambda x: x.update(baselineShapes=3, targetShapes=3, exactNormalizedMatches=3))
+        self.assertTrue(self.result()['declaredRegressionGatePassed'])
+
+    def test_unreviewed_reference_additions_require_review(self):
+        self.mutate('avalonia.json', lambda x: x['Entries'].append(entry('C')))
+        self.mutate('summary.json', lambda x: x.update(baselineShapes=3, missingOrDifferent=1))
+        with self.assertRaises(ValueError): self.result()
+
+    def test_reviewed_addition_cannot_hide_a_reference_removal(self):
+        name = sorted(gate.REVIEWED_REFERENCE_ADDITIONS)[0]
+        def replace(document):
+            document['Entries'][0] = dict(entry(name), Assembly='TreeDataGrid.Core')
+            document['Inputs'].append(dict(Name='TreeDataGrid.Core', Sha256='b' * 64))
+        self.mutate('avalonia.json', replace)
+        self.mutate('summary.json', lambda x: x.update(exactNormalizedMatches=1, missingOrDifferent=1, additionalOrDifferent=1))
+        with self.assertRaises(ValueError): self.result()
+
     def test_missing_or_malformed_dependency_lists_fail_closed(self):
         for bad in (None, 0, '', {}, ['Missing.Assembly']):
             with self.subTest(bad=bad):
