@@ -40,7 +40,7 @@ internal static class ActivityMonitorRuntimeChecks
             await SettleAsync(page);
             var identity = page.Table.RowsPresenter!.RealizedCells.First(x => x.ColumnIndex == 0);
             var parent = VisualTreeHelper.GetParent(identity);
-            var text = Descendants(identity).OfType<TextBlock>().First(x => x.Text == ((MonitorRowBase)identity.RowModel!).Name);
+            var text = Descendants(identity).OfType<TextBlock>().First(x => DisplayedText(x) == ((MonitorRowBase)identity.RowModel!).Name);
             var textParent = VisualTreeHelper.GetParent(text);
             var loads = 0;
             var unloads = 0;
@@ -75,7 +75,7 @@ internal static class ActivityMonitorRuntimeChecks
             Check(!ReferenceEquals(selected, selection.SelectedItem), "Telemetry did not replace row objects.");
             selected = (MonitorRowBase)selection.SelectedItem!;
             var numeric = page.Table.RowsPresenter!.RealizedCells.First(x => x.ColumnIndex == 1);
-            Check(Descendants(numeric).OfType<TextBlock>().Any(x => x.TextAlignment == TextAlignment.Right && x.Text.Length > 0),
+            Check(Descendants(numeric).OfType<TextBlock>().Any(x => x.TextAlignment == TextAlignment.Right && DisplayedText(x).Length > 0),
                 "Numeric text was not right-aligned by the Uno presentation.");
             await CaptureAsync(page, "activity-" + kind.ToString().ToLowerInvariant());
 
@@ -136,6 +136,19 @@ internal static class ActivityMonitorRuntimeChecks
         if (model.RefreshError is { } error) throw new InvalidOperationException("Telemetry capture failed.", error);
     }
     private static async Task SettleAsync(MainPage page) { page.UpdateLayout(); await Task.Delay(100); }
+    /// <summary>
+    /// A text block's displayed text. A cell's PART_Text keeps the text's style while a
+    /// direct Skia presenter beside it draws the text and exposes it to automation.
+    /// </summary>
+    private static string DisplayedText(TextBlock text)
+    {
+        if (text.Visibility == Visibility.Visible || text.Name != "PART_Text" || VisualTreeHelper.GetParent(text) is not Panel panel)
+            return text.Text;
+        foreach (var child in panel.Children)
+            if (child is FrameworkElement { Visibility: Visibility.Visible } element && element.GetType().Name == "TreeDataGridTextPresenter")
+                return Microsoft.UI.Xaml.Automation.Peers.FrameworkElementAutomationPeer.CreatePeerForElement(element).GetName();
+        return text.Text;
+    }
     private static System.Collections.Generic.IEnumerable<DependencyObject> Descendants(DependencyObject root)
     {
         for (var i = 0; i < VisualTreeHelper.GetChildrenCount(root); ++i)

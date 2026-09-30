@@ -20,7 +20,7 @@ internal static class NativeTextAssignmentRuntimeChecks
         var host = new StackPanel();
         host.Children.Add(reference);
         host.Children.Add(candidate);
-        var source = new Source();
+        var source = new NativeTextAssignmentSource();
         string? current = null;
         candidate.Read = () => current;
         long callback = 0;
@@ -61,11 +61,12 @@ internal static class NativeTextAssignmentRuntimeChecks
             foreach (var mode in new[] { BindingMode.OneWay, BindingMode.OneTime })
             {
                 source.Text = first;
-                reference.SetBinding(TextBlock.TextProperty, new Binding { Source = source, Path = new PropertyPath(nameof(Source.Text)), Mode = mode });
-                native.SetBinding(TextBlock.TextProperty, new Binding { Source = source, Path = new PropertyPath(nameof(Source.Text)), Mode = mode });
+                reference.SetBinding(TextBlock.TextProperty, new Binding { Source = source, Path = new PropertyPath(nameof(NativeTextAssignmentSource.Text)), Mode = mode });
+                native.SetBinding(TextBlock.TextProperty, new Binding { Source = source, Path = new PropertyPath(nameof(NativeTextAssignmentSource.Text)), Mode = mode });
                 host.UpdateLayout();
                 Check(reference.Text == native.Text && reference.Text == first,
-                    "The native-binding control did not provide the same starting value.");
+                    $"The native-binding control did not provide the same starting value: mode={mode}, " +
+                    $"reference='{reference.Text}', native='{native.Text}', expected='{first}'.");
                 // An equal effective value from a binding is not proof that the
                 // cell owns that local slot. Compare the original setter itself.
                 Publish(first);
@@ -168,20 +169,26 @@ internal static class NativeTextAssignmentRuntimeChecks
         protected override string? DisplayText { get { ++Reads; return Read?.Invoke(); } }
         internal void Refresh() => RefreshCellPresentation();
     }
-    private sealed class Source : INotifyPropertyChanged
-    {
-        private string _text = string.Empty;
-        private PropertyChangedEventHandler? _changed;
-        internal int Subscribers => _changed?.GetInvocationList().Length ?? 0;
-        public string Text
-        {
-            get => _text;
-            set { _text = value; _changed?.Invoke(this, new(nameof(Text))); }
-        }
-        public event PropertyChangedEventHandler? PropertyChanged { add => _changed += value; remove => _changed -= value; }
-    }
     private static void Check(bool condition, string message)
     {
         if (!condition) throw new InvalidOperationException(message);
     }
+}
+
+/// <summary>
+/// A binding source for the native text assignment check. Uno generates binding accessors
+/// only for public bindable types; trimmed browser builds do not preserve reflection.
+/// </summary>
+[Microsoft.UI.Xaml.Data.Bindable]
+public sealed partial class NativeTextAssignmentSource : INotifyPropertyChanged
+{
+    private string _text = string.Empty;
+    private PropertyChangedEventHandler? _changed;
+    internal int Subscribers => _changed?.GetInvocationList().Length ?? 0;
+    public string Text
+    {
+        get => _text;
+        set { _text = value; _changed?.Invoke(this, new(nameof(Text))); }
+    }
+    public event PropertyChangedEventHandler? PropertyChanged { add => _changed += value; remove => _changed -= value; }
 }
