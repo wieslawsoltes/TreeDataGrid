@@ -88,15 +88,62 @@ runs on this machine):
 At the start of this round the same local Uno medians were 9.59, 2.39, 3.58, 0.82, 2.16 and
 39.3 ms respectively.
 
+## Continuation: direct cell text rendering
+
+The per-value `TextBlock` layout was the largest remaining cost, so text cells now draw
+their text directly with Skia ([design](uno-direct-text-rendering.md)). `PART_Text` stays in
+the templates as the source of the text's appearance and still renders anything outside the
+direct path; the new `direct-text` native suite requires identical sizes and pixels against
+the text block in 240 states. Related changes:
+
+- `PART_Text.Text` is assigned only while the text block displays the text (assigning it
+  requested a frame under the compositor lock); the presenter's automation peer exposes the
+  displayed text.
+- Shaped strings and their arranged glyph runs are cached per font and shared by cells
+  showing the same value.
+- Value getters are compiled when a column presentation is created, as Avalonia's
+  `ColumnBase` does, instead of on the first realization of each column while scrolling.
+- The Uno parity host's text verification no longer produces garbage that was collected
+  inside later measured intervals.
+- Browser fixes: a font that finished loading after the first rows no longer leaves
+  recycled rows blank, and validation checks use bindable sources and the displayed text.
+
+Linux CI, Uno/Avalonia median ratios (2 pairs). Hosted runners differ by up to 2x between
+runs (Avalonia's own diagonal median was 2.6 ms in one run and 1.3 ms in the next):
+
+| Operation | Round start (`952bc9da`) | `f2242215` | `43adafed` | Allocation ratio now |
+| --- | ---: | ---: | ---: | ---: |
+| Visible-row replacement | 0.92 | 0.69 | 0.77 | 0.08 |
+| Visible-column resizing | 0.75 | 0.63 | 1.35 | 0.07 |
+| Sorting | 1.20 | 0.78 | 1.23 | 0.04 |
+| Vertical scrolling | 3.73 | 1.29 | 1.62 | 0.14 |
+| Distant diagonal scrolling | 4.80 | 1.99 | 2.58 | 0.09 |
+| Horizontal scrolling | 3.44 | 2.58 | 2.64 | 0.50 |
+
+Uno's own diagonal median fell from 6.4 ms to 3.4 ms and its vertical median from 1.9 ms
+to 1.3 ms.
+
 ## Remaining gap
 
-Allocations are at or below Avalonia's except row replacement. The remaining time gap is
-concentrated in scrolling. Sampled profiles of the Uno host attribute most of it to framework
-work per changed cell: text shaping (one `TextBlock` layout per new value), composition
-damage and render-thread lock contention, and on macOS the always-enabled native
-accessibility tree. TreeDataGrid's own code is under 10% of scroll samples. Avalonia draws
-cell text directly from a `TextLayout`; matching that would require a Skia-specific text cell
-renderer, which the Windows App SDK target cannot share.
+Allocations are now 4-25x lower than Avalonia's. Scrolling is still 1.3-2.6x slower, and
+the remaining time is Uno framework work rather than TreeDataGrid's:
+
+- A scroll step changes as little layout as it can: a vertical step moves 3 recycled rows
+  and a horizontal step 15 recycled cells out of about 1,300 elements.
+- `ScrollViewer.ChangeView` alone costs about 0.4 ms per step on macOS (more than
+  Avalonia's whole horizontal step): Uno's scroll presenter re-anchors the content visual,
+  marks the whole content subtree's matrices dirty and enqueues an arrange under a
+  dispatcher lock shared with the render thread.
+- Each moved or repainted element releases its recorded Skia picture
+  (`Visual.InvalidatePaint`), the largest single cost of the diagonal jump; the text block
+  path paid it as well.
+- On macOS, Uno's always-enabled accessibility mirror updates native elements for every
+  recycled cell; the Linux CI runner has no accessibility tree.
+
+TreeDataGrid's own code (realization, recycling, bindings, text shaping) is a small share
+of the remaining scroll samples. The API audit's remaining differences mostly stem from the
+documented use of the shared Core `IndexPath`/`IRow` types and from Avalonia-only
+framework overrides.
 
 Other known differences: `TabView` looks different from Avalonia's `TabControl`; Uno's
 default font (Open Sans) differs from the platform font Avalonia uses on macOS; Uno draws

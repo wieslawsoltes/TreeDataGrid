@@ -4,7 +4,10 @@ Updated 2026-09-30. **Latest round: [demo parity, visual comparison and performa
 The Uno sample now mirrors the Avalonia demo tab for tab; the round fixed a star-width
 layout hang, missing row/cell visual states, Core filtering, native columns in Core
 sources, and trimmed-browser bindings, and reduced sort/resize/replacement cost to about
-Avalonia's level on Linux CI. Scrolling remains roughly 3x slower. Full API and
+Avalonia's level on Linux CI. A continuation draws cell text directly with Skia
+([design](uno-direct-text-rendering.md)), pixel-identical to the text block it replaces;
+scrolling went from 3.4-4.8x to 1.3-2.6x Avalonia's time, with the remainder in Uno's
+scroll presenter, composition invalidation and (macOS) accessibility. Full API and
 performance parity remain open.
 
 The previous checkpoint follows unchanged.
