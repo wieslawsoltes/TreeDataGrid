@@ -1,3 +1,4 @@
+using System;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -48,7 +49,18 @@ public class TreeDataGridCellContentPanel : Grid
             var client = slot.Height - margin.Top - margin.Bottom;
             var content = stretched.DesiredSize.Height - margin.Top - margin.Bottom;
             if (client > content)
-                stretched.Arrange(new Rect(slot.X, slot.Y + (client - content) / 2, slot.Width, slot.Height));
+            {
+                // Centering rounds offset + margin once. Arrange also rounds the slot
+                // position before adding the margin, so pass the already-rounded result:
+                // a midpoint offset would otherwise round twice and land one pixel higher.
+                var top = slot.Y + (client - content) / 2;
+                if (UseLayoutRounding)
+                {
+                    var scale = XamlRoot?.RasterizationScale ?? 1;
+                    top = Math.Round((top + margin.Top) * scale) / scale - margin.Top;
+                }
+                stretched.Arrange(new Rect(slot.X, top, slot.Width, slot.Height));
+            }
         }
         return result;
     }
