@@ -58,6 +58,32 @@ step already changed as little as it can: across about 1,300 elements, a vertica
 element's layout slot before and after a step). The rest is the per-element cost of Uno's
 layout, composition and scrolling (findings 5–9).
 
+### Custom-drawn cells through the public API
+
+The demo's Custom Cell Rendering tab shows the supported way to avoid the `TextBlock` cost
+today: a `TreeDataGridElementFactory` subclass (the same extension point Avalonia has)
+creates `SkiaTextCell`, a `TreeDataGridTextCell` with a one-panel template whose text an Uno
+`SKCanvasElement` draws with SkiaSharp (`samples/TreeDataGridUnoShared/SkiaTextCells.cs`).
+Unlike the removed prototype it does not reproduce `TextBlock` exactly (simple shaping,
+character ellipsis, no editing), and it uses no Uno internals.
+
+Paired against Avalonia on macOS (3 AB/BA pairs, 40 iterations; `PARITY_UNO_CELLS=skia`
+switches the Uno host to these cells; Avalonia's own medians vary between runs):
+
+| Operation | Uno template cells ms | Uno custom cells ms | Custom ÷ Avalonia | Allocation ratio |
+| --- | ---: | ---: | ---: | ---: |
+| Visible-row replacement | 1.452 | 0.956 | 0.98 | 0.24 |
+| Visible-column resizing | 2.144 | 1.413 | 2.57 | 0.11 |
+| Sorting | 15.674 | 13.520 | 1.68 | 0.05 |
+| Vertical scrolling | 1.587 | 0.738 | 1.26 | 0.14 |
+| Distant diagonal scrolling | 6.794 | 3.268 | 0.78 | 0.15 |
+| Horizontal scrolling | 0.651 | 0.627 | 1.32 | 0.54 |
+
+The tab's own comparison (auto row heights, 60 steps) gives custom ÷ template ratios of
+0.19 for vertical scrolling, 0.82 for horizontal scrolling and 0.36 for distant jumps.
+Horizontal scrolling barely changes because its cost is in the scroll viewer and
+composition (findings 5 and 6), not in text.
+
 ## Summary
 
 | # | Finding | Uno API | Effect | TreeDataGrid mitigation | Fixable in Uno |

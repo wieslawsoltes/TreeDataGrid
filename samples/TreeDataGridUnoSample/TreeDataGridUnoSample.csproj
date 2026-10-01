@@ -27,6 +27,7 @@
   <ItemGroup>
     <Compile Include="../TreeDataGridUnoShared/SampleRunContext.cs" Link="Infrastructure/SampleRunContext.cs" />
     <Compile Include="../TreeDataGridUnoShared/ObservableSampleModel.cs" Link="Infrastructure/ObservableSampleModel.cs" />
+    <Compile Include="../TreeDataGridUnoShared/SkiaTextCells.cs" Link="Infrastructure/SkiaTextCells.cs" />
     <ProjectReference Include="../../src/TreeDataGrid.Controls.Uno/TreeDataGrid.Controls.Uno.csproj" Condition="'$(TreeDataGridUnoPackageVersion)' == ''" />
     <PackageReference Include="TreeDataGrid.Controls.Uno" Version="$(TreeDataGridUnoPackageVersion)" Condition="'$(TreeDataGridUnoPackageVersion)' != ''" />
     <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />

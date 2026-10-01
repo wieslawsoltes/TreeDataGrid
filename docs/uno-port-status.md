@@ -62,6 +62,15 @@ Wikipedia, Drag/Drop) with the same view models and column configuration. `--smo
 opens a tab, and `TDG_TOUR=1` runs the same scripted walkthrough as the Avalonia demo.
 `samples/TreeDataGridUnoActivityMonitor` is a second, larger consumer.
 
+The Uno demo has one extra tab, **Custom Cell Rendering**: the same element-factory
+extension point as Avalonia's `TreeDataGridElementFactory` creates `SkiaTextCell`, a
+`TreeDataGridTextCell` whose text is drawn by an Uno `SKCanvasElement`
+(`samples/TreeDataGridUnoShared/SkiaTextCells.cs`, public APIs only). The tab switches
+between template and custom cells and compares scrolling (`TDG_CUSTOM_CELLS=skia`,
+`TDG_CUSTOM_CELLS_BENCHMARK=1` for headless runs); the parity host measures the same cells
+with `PARITY_UNO_CELLS=skia`. The `custom-cell-rendering` native suite checks that recycled
+custom cells draw current text.
+
 | Avalonia demo construct | Uno adaptation |
 | --- | --- |
 | `TabControl` | `TabView` (stretched, non-closable items) |
@@ -135,8 +144,9 @@ Avalonia time): row replacement 1.0, column resize 1.5, sort 1.4, horizontal scr
 diagonal jump 4.6, vertical scroll 4.1; allocations 0.3–1.3. Most of the scroll time is
 `TextBlock` text layout and Uno's layout, composition and scrolling code. See
 [Uno performance findings](uno-performance-findings.md) for each issue and the Uno changes
-that would close it: a direct text renderer that worked around the `TextBlock` cost brought
-scrolling to 1.3–2.6× and was removed in favour of a fix in Uno.
+that would close it. Applications that need faster scrolling today can draw cells
+themselves through the element factory, as the Custom Cell Rendering sample does: on macOS
+it halves vertical scrolling and diagonal-jump time compared with template cells.
 
 ## Validation
 

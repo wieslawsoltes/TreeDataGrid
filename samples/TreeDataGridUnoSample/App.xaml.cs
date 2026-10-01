@@ -109,6 +109,7 @@ public partial class App : Application
             await AutomationRuntimeChecks.RunAsync(page.Grid);
             await TextSearchRuntimeChecks.RunAsync(page);
             await AppearanceRuntimeChecks.RunAsync(page);
+            await CustomCellRenderingRuntimeChecks.RunAsync(page);
             await ElementFactoryRuntimeChecks.RunAsync(page.Grid);
             StandaloneCellRuntimeChecks.Run((DataTemplate)page.Resources["RuntimeCellTemplate"]);
             await StandaloneRowRuntimeChecks.RunAsync(page);

@@ -43,8 +43,13 @@ internal sealed class NativeHost : INativeParityHost
     };
     public string Framework => "Uno";
     public string UiAssembly => typeof(Application).Assembly.FullName!;
+    // PARITY_UNO_CELLS=skia measures the sample's custom-drawn cells (a custom element factory)
+    // instead of the default template cells.
+    private static readonly bool s_skiaCells = Environment.GetEnvironmentVariable("PARITY_UNO_CELLS") == "skia";
     public void Bind(FlatTreeDataGridSource<BenchRow> source)
     {
+        if (s_skiaCells && Grid.ElementFactory is not TreeDataGridUnoSamples.SkiaTextCellElementFactory)
+            Grid.ElementFactory = new TreeDataGridUnoSamples.SkiaTextCellElementFactory();
         Grid.Model = source;
         Grid.UpdateLayout();
         var scroll = Grid.Scroll ?? throw new InvalidOperationException("The Uno scroll template is missing.");
@@ -82,6 +87,7 @@ internal sealed class NativeHost : INativeParityHost
     private static bool ContainsText(DependencyObject root, string expected)
     {
         if (root is TextBlock text && text.Text == expected) return true;
+        if (root is TreeDataGridUnoSamples.SkiaTextCell skia) return skia.RenderedText == expected;
         // Verification runs outside the measured intervals, but its garbage is collected
         // during them: Uno's VisualTreeHelper.GetChild enumerates the children for every
         // index, so walk panel children directly and use the helper only elsewhere.

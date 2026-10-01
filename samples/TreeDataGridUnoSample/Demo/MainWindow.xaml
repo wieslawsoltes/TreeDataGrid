@@ -266,5 +266,10 @@
         <TextBlock x:Name="dragDropRealizedCount" Grid.Row="1" Style="{StaticResource RealizedCountStyle}" />
       </Grid>
     </TabViewItem>
+
+    <!-- Uno-only: custom-drawn cells from a custom element factory, with a scrolling comparison. -->
+    <TabViewItem IsClosable="False" Header="Custom Cell Rendering">
+      <views:CustomCellRenderingPage />
+    </TabViewItem>
   </TabView>
 </Page>

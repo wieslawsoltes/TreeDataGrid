@@ -14,5 +14,6 @@
     <ProjectReference Include="../../src/TreeDataGrid.Controls.Uno/TreeDataGrid.Controls.Uno.csproj" />
     <ProjectReference Include="../TreeDataGrid.Parity.Shared/TreeDataGrid.Parity.Shared.csproj" />
     <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />
+    <Compile Include="../../samples/TreeDataGridUnoShared/SkiaTextCells.cs" Link="SkiaTextCells.cs" />
   </ItemGroup>
 </Project>

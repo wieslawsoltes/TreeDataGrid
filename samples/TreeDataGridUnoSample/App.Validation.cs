@@ -98,6 +98,7 @@ public partial class App
             case "automation": return AutomationRuntimeChecks.RunAsync(page.Grid);
             case "text-search": return TextSearchRuntimeChecks.RunAsync(page);
             case "appearance": return AppearanceRuntimeChecks.RunAsync(page);
+            case "custom-cell-rendering": return CustomCellRenderingRuntimeChecks.RunAsync(page);
             case "element-factory": return ElementFactoryRuntimeChecks.RunAsync(page.Grid);
             case "standalone-cell":
                 StandaloneCellRuntimeChecks.Run(Template("RuntimeCellTemplate"));
