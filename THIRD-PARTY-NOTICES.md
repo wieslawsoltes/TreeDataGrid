@@ -1,5 +1,15 @@
 # Third-party notices
 
+This repository and its packages are licensed under the MIT License (`licence.md`).
+
+## Avalonia.Controls.TreeDataGrid
+
+`TreeDataGrid.Core`, `TreeDataGrid.Controls.Uno` and their samples are extracted from
+and adapted from the Avalonia TreeDataGrid control in this repository (sources, rows,
+columns, selection, layout, recycling and the default templates). That code is
+licensed under the MIT License, Copyright (c) .NET Foundation and Contributors; the
+full notice is in `LICENSE-AVALONIA`, which accompanies every package.
+
 ## Avalonia 12.0.0 selection and observable contracts
 
 The shared Core flat-selection port and native experimental contract ports contain
