@@ -206,6 +206,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           msbuild src/TreeDataGrid.Controls.Uno/TreeDataGrid.Controls.Uno.csproj -restore -t:Pack -v:minimal -p:Configuration=Release -p:PackageVersion=12.0.0.7-ci.${{ github.run_id }} -p:PackageOutputPath="$env:GITHUB_WORKSPACE/artifacts/uno-pack"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify the release layout of the Uno package
+        run: python build/verify-uno-package.py artifacts/uno-pack 12.0.0.7-ci.${{ github.run_id }}
       - name: Publish native Windows package consumers
         run: |
           foreach ($item in @(@('TreeDataGridUnoSample', 'showcase'), @('TreeDataGridUnoActivityMonitor', 'monitor'))) {
