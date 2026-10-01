@@ -130,12 +130,13 @@ input on desktop (browser input is covered).
 
 The paired workload (`benchmarks/TreeDataGrid.Parity.*`, `build/run-native-parity.py`) runs
 the same operations on both frameworks on the same machine. CI reports the ratios in the job
-summary; the 1.10 budget is recorded but not enforced. Recent Linux CI ratios (Uno time ÷
-Avalonia time): row replacement 0.6–0.8, column resize 0.5–1.4, sort 0.7–1.2, vertical
-scroll 1.3–1.8, distant diagonal jump 1.4–2.6, horizontal scroll 2.1–2.7. Allocations are
-1.3–25× lower than Avalonia's. The remaining scroll gap is in Uno's text, layout, composition
-and scrolling code; see [Uno performance findings](uno-performance-findings.md) for each issue
-and proposed Uno changes.
+summary; the 1.10 budget is recorded but not enforced. Latest Linux CI ratios (Uno time ÷
+Avalonia time): row replacement 1.0, column resize 1.5, sort 1.4, horizontal scroll 2.9,
+diagonal jump 4.6, vertical scroll 4.1; allocations 0.3–1.3. Most of the scroll time is
+`TextBlock` text layout and Uno's layout, composition and scrolling code. See
+[Uno performance findings](uno-performance-findings.md) for each issue and the Uno changes
+that would close it: a direct text renderer that worked around the `TextBlock` cost brought
+scrolling to 1.3–2.6× and was removed in favour of a fix in Uno.
 
 ## Validation
 

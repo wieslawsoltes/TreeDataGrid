@@ -42,20 +42,21 @@ of fixes in Uno. Measurements from that prototype are labelled as such below.
 Linux CI, Uno time divided by Avalonia time (medians of the synchronous UI-thread time).
 Hosted runners vary by up to 2× between runs.
 
-| Operation | Start of work (`0cc1ca9b`) | Before direct text (`952bc9da`) | Now (last three runs) |
-| --- | ---: | ---: | ---: |
-| Visible-row replacement | 1.62 | 0.92 | 0.59–0.77 |
-| Visible-column resizing | 1.78 | 0.75 | 0.74–1.35 |
-| Sorting | 1.51 | 1.20 | 0.70–1.23 |
-| Vertical scrolling | 2.74 | 3.73 | 1.28–1.78 |
-| Distant diagonal scrolling | 4.23 | 4.80 | 1.86–2.58 |
-| Horizontal scrolling | 2.61 | 3.44 | 2.40–2.65 |
+| Operation | Start of work (`0cc1ca9b`) | `TextBlock` text (`952bc9da`) | With the direct-text prototype (several runs) | Now (`d00c799e`) |
+| --- | ---: | ---: | ---: | ---: |
+| Visible-row replacement | 1.62 | 0.92 | 0.59–0.77 | 1.01 |
+| Visible-column resizing | 1.78 | 0.75 | 0.49–1.35 | 1.50 |
+| Sorting | 1.51 | 1.20 | 0.69–1.23 | 1.41 |
+| Vertical scrolling | 2.74 | 3.73 | 1.28–1.78 | 4.10 |
+| Distant diagonal scrolling | 4.23 | 4.80 | 1.36–2.58 | 4.56 |
+| Horizontal scrolling | 2.61 | 3.44 | 2.12–2.65 | 2.91 |
 
-Allocations are now 1.4–25× lower than Avalonia's. The remaining time gap is in scrolling,
-and a scroll step already changes as little as it can. Across about 1,300 elements, a
-vertical step moves 3 recycled rows and a horizontal step moves 15 recycled cells
-(measured by comparing every element's layout slot before and after a step). What remains
-is mostly the per-element cost of Uno's layout, composition and scrolling (findings 5–9).
+"Now" is the current port, which uses `TextBlock` cell text. Allocation ratios are now
+0.3–1.3 (the prototype brought them to 0.04–0.8). Even with text drawn directly, a scroll
+step already changed as little as it can: across about 1,300 elements, a vertical step moves
+3 recycled rows and a horizontal step moves 15 recycled cells (measured by comparing every
+element's layout slot before and after a step). The rest is the per-element cost of Uno's
+layout, composition and scrolling (findings 5–9).
 
 ## Summary
 
