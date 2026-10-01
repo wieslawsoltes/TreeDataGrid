@@ -71,7 +71,9 @@ def main() -> None:
         themes = [entry for entry in names
                   if entry.startswith(FRAMEWORKS["windows"]) and entry.endswith("/Themes/Generic.xaml")]
         if len(themes) != 1:
-            fail(f"expected one Windows App SDK Themes/Generic.xaml, found {themes}")
+            layout = sorted(entry for entry in names if entry.startswith(FRAMEWORKS["windows"])
+                            and entry.rsplit(".", 1)[-1].lower() in ("xaml", "xbf", "pri"))
+            fail(f"expected one Windows App SDK Themes/Generic.xaml, found {themes}; XAML layout: {layout}")
         with zipfile.ZipFile(package) as archive:
             theme = ET.fromstring(archive.read(themes[0]))
         presentation = "{http://schemas.microsoft.com/winfx/2006/xaml/presentation}"

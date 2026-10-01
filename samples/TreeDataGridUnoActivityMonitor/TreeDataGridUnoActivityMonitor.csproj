@@ -25,6 +25,12 @@
     <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />
     <PackageReference Include="SkiaSharp" Version="3.119.2" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'" />
   </ItemGroup>
+  <!-- Start with a 256 MB heap instead of 32 MB. Uno's software canvas renderer (used when the
+       browser has no WebGL) blits through a view of the WASM heap; heap growth during a frame
+       detaches it and the blit throws InvalidStateError (Uno SoftwareBrowserRenderer.blitSoftware). -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">
+    <EmccInitialHeapSize>268435456</EmccInitialHeapSize>
+  </PropertyGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">
     <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.12" />
     <RuntimeHostConfigurationOption Include="TreeDataGrid.Binding.ReflectionEnabled" Value="false" Trim="true" />
