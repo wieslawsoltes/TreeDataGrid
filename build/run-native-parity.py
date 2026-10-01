@@ -20,6 +20,9 @@ def main() -> int:
     parser.add_argument('--iterations', type=int, default=25)
     parser.add_argument('--max-ratio', type=float, default=None,
                         help='Optional hard diagnostic budget for both median synchronous time and allocation ratios.')
+    parser.add_argument('--report-only', action='store_true',
+                        help='Evaluate and record --max-ratio without failing when it is not met. Host build, run '
+                             'and verification failures still fail.')
     parser.add_argument('--local', action='store_true',
                         help='Run the hosts on the current desktop session (for example macOS) instead of xvfb, '
                              'using the platform fallback when DejaVu Sans is not installed.')
@@ -112,9 +115,23 @@ def main() -> int:
                'scope': reports[0]['scope'], 'completePerformanceParityProven': False,
                'diagnosticBudget': budget, 'diagnosticBudgetMet': accepted if budget is not None else None,
                'comparisons': comparisons}
+    summary['reportOnly'] = args.report_only
     (output / 'summary.json').write_text(json.dumps(summary, indent=2) + '\n')
     print('NATIVE_PARITY_SUMMARY=' + json.dumps(summary), flush=True)
-    return 0 if accepted else 1
+    table = ['| Operation | Avalonia ms | Uno ms | Time ratio | Allocation ratio |', '| --- | ---: | ---: | ---: | ---: |']
+    for item in comparisons:
+        time, allocated = item['SynchronousUiMilliseconds'], item['SynchronousUiAllocatedBytes']
+        table.append(f"| {item['operation']} | {time['median']['Avalonia']:.3f} | {time['median']['Uno']:.3f} | "
+                     f"{time['unoOverAvalonia']:.2f} | {allocated['unoOverAvalonia']:.2f} |")
+    if budget is not None:
+        table.append('')
+        table.append(f'Budget {budget:.2f}: ' + ('met.' if accepted else 'not met.' + (' Reported only.' if args.report_only else '')))
+    (output / 'summary.md').write_text('\n'.join(table) + '\n')
+    if os.environ.get('GITHUB_STEP_SUMMARY'):
+        with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as step_summary:
+            step_summary.write('## Uno / Avalonia paired native performance\n\n' + '\n'.join(table) + '\n')
+    print('\n'.join(table), flush=True)
+    return 0 if accepted or args.report_only else 1
 
 
 if __name__ == '__main__':

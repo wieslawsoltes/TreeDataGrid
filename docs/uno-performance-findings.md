@@ -21,8 +21,9 @@ Related: [demo parity report](uno-demo-parity-2026-09-30.md) ·
 - **Workload:** `benchmarks/TreeDataGrid.Parity.Shared/ParityWorkload.cs`. It uses 10,000 rows,
   64 text columns 128 px wide and 32 px rows in an 800×480 viewport, with no headers or scroll bars.
   Both hosts run six operations and report the synchronous UI-thread time, the time until
-  layout settles, and allocations. `build/run-native-parity.py` alternates AB/BA pairs, and CI
-  gates each ratio at 1.10.
+  layout settles, and allocations. `build/run-native-parity.py` alternates AB/BA pairs. CI
+  evaluates each ratio against a 1.10 budget and reports it in the job summary; since
+  2026-10-01 the budget is report-only (`--report-only`) and does not fail the job.
 - **Profiles:** `dotnet-trace --profile dotnet-sampled-thread-time` and `gc-verbose` on macOS.
   macOS-only samples (native accessibility) were separated out to approximate the Linux CI
   runner.

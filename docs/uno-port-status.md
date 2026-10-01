@@ -53,7 +53,7 @@ remaining acceptance work; a green functional report does not override them.
 | Declarative/public API | Native XAML/source extensions, custom cells/rows/presenters, events | Tested contracts pass; classified compiled declaration differences remain |
 | Accessibility | Current peer roles, values, selection, toggles, expansion, stale providers | Native peer assertions pass; real screen-reader/multi-head verification remains |
 | Platform heads | Desktop Skia, browser and Windows App SDK | Per-head build/package status must be read for the exact revision; publishing alone is not runtime verification |
-| Performance | Same-workload allocation/timing comparable with Avalonia | Controlled paired measurements exist; 1.10 median ratio budget still fails |
+| Performance | Same-workload allocation/timing comparable with Avalonia | Controlled paired measurements exist; the 1.10 median ratio budget is not met and is reported (not enforced) by CI since 2026-10-01 |
 | Final acceptance | Complete contract review, full functionality and performance evidence | PR remains draft; no 100% claim |
 
 The old PR #12 (`9a5737226b5c26617da362e28ee3337812b88707`) remains a reference
