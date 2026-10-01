@@ -67,20 +67,10 @@ def main() -> None:
             fail(f"{entry} is not packed")
 
     if not args.without_windows:
-        # WinUI loads the packed theme XAML as-is: it must be the copy with explicit prefixes.
-        themes = [entry for entry in names
-                  if entry.startswith(FRAMEWORKS["windows"]) and entry.endswith("/Themes/Generic.xaml")]
-        if len(themes) != 1:
-            layout = sorted(entry for entry in names if entry.startswith(FRAMEWORKS["windows"])
-                            and entry.rsplit(".", 1)[-1].lower() in ("xaml", "xbf", "pri"))
-            fail(f"expected one Windows App SDK Themes/Generic.xaml, found {themes}; XAML layout: {layout}")
-        with zipfile.ZipFile(package) as archive:
-            theme = ET.fromstring(archive.read(themes[0]))
-        presentation = "{http://schemas.microsoft.com/winfx/2006/xaml/presentation}"
-        unprefixed = sorted({element.tag[len(presentation):] for element in theme.iter()
-                             if element.tag.startswith(presentation + "TreeDataGrid")})
-        if unprefixed:
-            fail(f"the Windows App SDK theme uses TreeDataGrid types without a prefix: {unprefixed}")
+        # The Windows App SDK build carries its compiled theme (XBF) in the package resource index.
+        pri = f"{PACKAGE_ID}.pri"
+        if not any(entry.startswith(FRAMEWORKS["windows"]) and entry.endswith("/" + pri) for entry in names):
+            fail(f"no {pri} for the Windows App SDK build")
 
     groups = [item for item in metadata.iter() if local_name(item.tag) == "group"]
     if not groups:

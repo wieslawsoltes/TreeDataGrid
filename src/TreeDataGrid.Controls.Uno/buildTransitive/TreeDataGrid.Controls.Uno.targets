@@ -73,10 +73,9 @@
       <Output TaskParameter="RewrittenFiles" ItemName="_TreeDataGridRewrittenApplication" />
     </TreeDataGridRewriteImplicitXaml>
     <ItemGroup>
-      <!-- WinUI's AddXamlFilesToNugetPackage packs Page items by project-relative identity;
-           _TreeDataGridPackImplicitXaml packs the rewritten copies by their Link instead. -->
+      <!-- WinUI's AddXamlFilesToNugetPackage packs Page items by project-relative identity, which
+           does not exist for the intermediate copies; the compiled XAML ships in the PRI file. -->
       <_TreeDataGridRewrittenPage>
-        <TreeDataGridPack>%(_TreeDataGridRewrittenPage.Pack)</TreeDataGridPack>
         <Pack>false</Pack>
       </_TreeDataGridRewrittenPage>
       <Page Remove="@(_TreeDataGridRewrittenPage->'%(TreeDataGridOriginalItemSpec)')" />
@@ -84,18 +83,6 @@
       <ApplicationDefinition Remove="@(_TreeDataGridRewrittenApplication->'%(TreeDataGridOriginalItemSpec)')" />
       <ApplicationDefinition Include="@(_TreeDataGridRewrittenApplication)" />
       <FileWrites Include="@(_TreeDataGridRewrittenPage);@(_TreeDataGridRewrittenApplication)" />
-    </ItemGroup>
-  </Target>
-
-  <Target Name="_TreeDataGridPackImplicitXaml"
-          BeforeTargets="BuiltProjectOutputGroup"
-          Condition="'$(IncludeXamlFilesInNugetPackage)' == 'true' and '@(_TreeDataGridRewrittenPage)' != ''">
-    <ItemGroup>
-      <BuiltProjectOutputGroupOutput Include="@(_TreeDataGridRewrittenPage)"
-                                     Condition="'%(_TreeDataGridRewrittenPage.TreeDataGridPack)' != 'False'"
-                                     KeepMetadata="False"
-                                     TargetPath="$(AssemblyName)\%(_TreeDataGridRewrittenPage.Link)"
-                                     FinalOutputPath="%(_TreeDataGridRewrittenPage.FullPath)" />
     </ItemGroup>
   </Target>
 
