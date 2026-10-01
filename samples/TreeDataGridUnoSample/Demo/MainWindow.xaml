@@ -1,7 +1,6 @@
 <Page x:Class="TreeDataGridUnoSample.Demo.MainWindow"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:tdg="using:Uno.Controls"
       xmlns:demo="using:TreeDataGridUnoSample.Demo"
       xmlns:views="using:TreeDataGridUnoSample.Demo.Views"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
@@ -33,26 +32,26 @@
           <RowDefinition Height="*" />
           <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <tdg:TreeDataGrid x:Name="peopleXamlGrid"
-                          ItemsSource="{Binding PeopleXaml.People}"
-                          SelectionMode="MultipleRows"
-                          AlternatingRowBackground="{StaticResource AlternatingRowBrush}"
-                          SelectionChanged="People_SelectionChanged">
-          <tdg:TreeDataGridRowHeaderColumn Width="48" />
-          <tdg:TreeDataGridHierarchicalExpanderColumn Header="Name"
+        <TreeDataGrid x:Name="peopleXamlGrid"
+                      ItemsSource="{Binding PeopleXaml.People}"
+                      SelectionMode="MultipleRows"
+                      AlternatingRowBackground="{StaticResource AlternatingRowBrush}"
+                      SelectionChanged="People_SelectionChanged">
+          <TreeDataGridRowHeaderColumn Width="48" />
+          <TreeDataGridHierarchicalExpanderColumn Header="Name"
                                                     Width="2*"
                                                     ChildrenBinding="{Binding Children}"
                                                     HasChildrenBinding="{Binding HasChildren}"
                                                     IsExpandedBinding="{Binding IsExpanded, Mode=TwoWay}">
-            <tdg:TreeDataGridTextColumn Binding="{Binding Name}" />
-          </tdg:TreeDataGridHierarchicalExpanderColumn>
-          <tdg:TreeDataGridTextColumn Header="Title"
-                                      Width="2*"
-                                      Binding="{Binding Title}" />
-          <tdg:TreeDataGridTemplateColumn Header="Age"
-                                          Width="90"
-                                          TextSearchBinding="{Binding Title}">
-            <tdg:TreeDataGridTemplateColumn.CellTemplate>
+            <TreeDataGridTextColumn Binding="{Binding Name}" />
+          </TreeDataGridHierarchicalExpanderColumn>
+          <TreeDataGridTextColumn Header="Title"
+                                  Width="2*"
+                                  Binding="{Binding Title}" />
+          <TreeDataGridTemplateColumn Header="Age"
+                                      Width="90"
+                                      TextSearchBinding="{Binding Title}">
+            <TreeDataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <Border Background="#204088C5"
                         CornerRadius="12"
@@ -61,12 +60,12 @@
                   <TextBlock Text="{Binding Age}" FontWeight="SemiBold" />
                 </Border>
               </DataTemplate>
-            </tdg:TreeDataGridTemplateColumn.CellTemplate>
-          </tdg:TreeDataGridTemplateColumn>
-          <tdg:TreeDataGridCheckBoxColumn Header="Active"
-                                          Width="90"
-                                          Binding="{Binding IsActive, Mode=TwoWay}" />
-        </tdg:TreeDataGrid>
+            </TreeDataGridTemplateColumn.CellTemplate>
+          </TreeDataGridTemplateColumn>
+          <TreeDataGridCheckBoxColumn Header="Active"
+                                      Width="90"
+                                      Binding="{Binding IsActive, Mode=TwoWay}" />
+        </TreeDataGrid>
         <TextBlock x:Name="peopleSelectionText"
                    Grid.Row="1"
                    Style="{StaticResource RealizedCountStyle}"
@@ -84,12 +83,12 @@
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <tdg:TreeDataGrid x:Name="countries"
-                          Source="{Binding Countries.Source}"
-                          AutoDragDropRows="True"
-                          AlternatingRowBackground="{StaticResource AlternatingRowBrush}"
-                          demo:LastColumnEmphasis.IsEnabled="True">
-          <tdg:TreeDataGrid.Resources>
+        <TreeDataGrid x:Name="countries"
+                      Source="{Binding Countries.Source}"
+                      AutoDragDropRows="True"
+                      AlternatingRowBackground="{StaticResource AlternatingRowBrush}"
+                      demo:LastColumnEmphasis.IsEnabled="True">
+          <TreeDataGrid.Resources>
             <!-- Template for Region column cells -->
             <DataTemplate x:Key="RegionCell">
               <TextBlock Text="{Binding Region}" />
@@ -98,8 +97,8 @@
               <ComboBox ItemsSource="{Binding Items, Source={StaticResource CountryRegions}}"
                         SelectedItem="{Binding Region, Mode=TwoWay}" />
             </DataTemplate>
-          </tdg:TreeDataGrid.Resources>
-        </tdg:TreeDataGrid>
+          </TreeDataGrid.Resources>
+        </TreeDataGrid>
         <StackPanel Grid.Column="1" Spacing="4" Width="220">
           <CheckBox IsChecked="{Binding Countries.CellSelection, Mode=TwoWay}" Content="Cell Selection" />
           <TextBlock Text="Filter" />
@@ -148,12 +147,12 @@
           <CheckBox x:Name="bringIntoViewNonUniformRowsVisible"
                     IsChecked="True"
                     Content="Show TreeDataGrid" />
-          <tdg:TreeDataGrid x:Name="bringIntoViewNonUniformRowsGrid"
-                            Grid.Row="1"
-                            Source="{Binding BringIntoViewNonUniformRows.Source}"
-                            AlternatingRowBackground="{StaticResource AlternatingRowBrush}"
-                            Visibility="{Binding IsChecked, ElementName=bringIntoViewNonUniformRowsVisible, Converter={StaticResource BooleanToVisibility}}">
-            <tdg:TreeDataGrid.Resources>
+          <TreeDataGrid x:Name="bringIntoViewNonUniformRowsGrid"
+                        Grid.Row="1"
+                        Source="{Binding BringIntoViewNonUniformRows.Source}"
+                        AlternatingRowBackground="{StaticResource AlternatingRowBrush}"
+                        Visibility="{Binding IsChecked, ElementName=bringIntoViewNonUniformRowsVisible, Converter={StaticResource BooleanToVisibility}}">
+            <TreeDataGrid.Resources>
               <DataTemplate x:Key="RegionCell">
                 <TextBlock Text="{Binding Region}" />
               </DataTemplate>
@@ -161,8 +160,8 @@
                 <ComboBox ItemsSource="{Binding Items, Source={StaticResource CountryRegions}}"
                           SelectedItem="{Binding Region, Mode=TwoWay}" />
               </DataTemplate>
-            </tdg:TreeDataGrid.Resources>
-          </tdg:TreeDataGrid>
+            </TreeDataGrid.Resources>
+          </TreeDataGrid>
           <TextBlock x:Name="bringIntoViewRealizedCount" Grid.Row="2" Style="{StaticResource RealizedCountStyle}" />
         </Grid>
       </Grid>
@@ -191,9 +190,9 @@
           <CheckBox Grid.Column="2" IsChecked="{Binding Files.FlatList, Mode=TwoWay}" Content="Flat" />
           <CheckBox Grid.Column="3" IsChecked="{Binding Files.CellSelection, Mode=TwoWay}" Content="Cell Selection" />
         </Grid>
-        <tdg:TreeDataGrid x:Name="fileViewer" Grid.Row="1" Source="{Binding Files.Source}"
-                          AlternatingRowBackground="{StaticResource AlternatingRowBrush}">
-          <tdg:TreeDataGrid.Resources>
+        <TreeDataGrid x:Name="fileViewer" Grid.Row="1" Source="{Binding Files.Source}"
+                      AlternatingRowBackground="{StaticResource AlternatingRowBrush}">
+          <TreeDataGrid.Resources>
 
             <!-- Template for Name column cells -->
             <DataTemplate x:Key="FileNameCell">
@@ -225,8 +224,8 @@
               </StackPanel>
             </DataTemplate>
 
-          </tdg:TreeDataGrid.Resources>
-        </tdg:TreeDataGrid>
+          </TreeDataGrid.Resources>
+        </TreeDataGrid>
         <TextBlock x:Name="filesRealizedCount" Grid.Row="2" Style="{StaticResource RealizedCountStyle}" />
       </Grid>
     </TabViewItem>
@@ -241,13 +240,13 @@
         <TextBlock Text="{Binding Wikipedia.LoadError}"
                    Margin="4"
                    TextWrapping="Wrap" />
-        <tdg:TreeDataGrid x:Name="wikipedia" Grid.Row="1" Source="{Binding Wikipedia.Source}">
-          <tdg:TreeDataGrid.Resources>
+        <TreeDataGrid x:Name="wikipedia" Grid.Row="1" Source="{Binding Wikipedia.Source}">
+          <TreeDataGrid.Resources>
             <DataTemplate x:Key="WikipediaImageCell">
               <Image demo:ArticleImage.Article="{Binding}" />
             </DataTemplate>
-          </tdg:TreeDataGrid.Resources>
-        </tdg:TreeDataGrid>
+          </TreeDataGrid.Resources>
+        </TreeDataGrid>
         <TextBlock x:Name="wikipediaRealizedCount" Grid.Row="2" Style="{StaticResource RealizedCountStyle}" />
       </Grid>
     </TabViewItem>
@@ -258,11 +257,11 @@
           <RowDefinition Height="*" />
           <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <tdg:TreeDataGrid x:Name="dragDrop"
-                          Source="{Binding DragDrop.Source}"
-                          AutoDragDropRows="True"
-                          RowDragStarted="DragDrop_RowDragStarted"
-                          RowDragOver="DragDrop_RowDragOver" />
+        <TreeDataGrid x:Name="dragDrop"
+                      Source="{Binding DragDrop.Source}"
+                      AutoDragDropRows="True"
+                      RowDragStarted="DragDrop_RowDragStarted"
+                      RowDragOver="DragDrop_RowDragOver" />
         <TextBlock x:Name="dragDropRealizedCount" Grid.Row="1" Style="{StaticResource RealizedCountStyle}" />
       </Grid>
     </TabViewItem>

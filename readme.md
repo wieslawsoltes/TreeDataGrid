@@ -36,7 +36,18 @@ assembly without copying the model layer. The control namespace remains
 source to its `Model` or `Source` property. The sample opens the same eight-tab demo as
 `samples/TreeDataGridDemo` (Template Column Reuse, People, Countries, Find Displayed Row,
 BringIntoView, Files, Wikipedia and Drag/Drop) with the same view models and column
-configuration, adapted to WinUI XAML. It runs on desktop and in the browser:
+configuration, adapted to WinUI XAML. As in Avalonia, XAML uses the control without an
+`xmlns` prefix:
+
+```xml
+<TreeDataGrid ItemsSource="{Binding People}">
+  <TreeDataGrid.ColumnDefinitions>
+    <TreeDataGridTextColumn Header="Name" Binding="{Binding Name}" />
+  </TreeDataGrid.ColumnDefinitions>
+</TreeDataGrid>
+```
+
+The sample runs on desktop and in the browser:
 
 ```sh
 dotnet run --project samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj -c Release -f net10.0-desktop

@@ -1,9 +1,8 @@
 <ResourceDictionary
     x:Class="TreeDataGridUnoSample.CellRenderingResources"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:primitives="using:Uno.Controls.Primitives">
-    <ControlTemplate x:Key="TextCellTemplate" TargetType="primitives:TreeDataGridCell">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ControlTemplate x:Key="TextCellTemplate" TargetType="TreeDataGridCell">
         <TextBlock x:Name="PART_Text" />
     </ControlTemplate>
     <DataTemplate x:Key="ContentTemplate">

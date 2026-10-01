@@ -1,7 +1,6 @@
 <UserControl x:Class="TreeDataGridUnoSample.Demo.Views.TemplateColumnBugPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:tdg="using:Uno.Controls"
              xmlns:demo="using:TreeDataGridUnoSample.Demo">
   <UserControl.Resources>
     <demo:BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
@@ -38,12 +37,12 @@
       Keep the viewport narrower than the columns' combined minimum width. Scrolling
       horizontally between the two template columns exercises cross-column cell recycling.
     -->
-    <tdg:TreeDataGrid x:Name="TemplateColumnGrid"
-                      Grid.Row="1"
-                      Width="260"
-                      HorizontalAlignment="Left"
-                      Source="{Binding Source}"
-                      Visibility="{Binding IsChecked, ElementName=IsVisibleCheckBox, Converter={StaticResource BooleanToVisibility}}"
-                      SelectionMode="SingleRow" />
+    <TreeDataGrid x:Name="TemplateColumnGrid"
+                  Grid.Row="1"
+                  Width="260"
+                  HorizontalAlignment="Left"
+                  Source="{Binding Source}"
+                  Visibility="{Binding IsChecked, ElementName=IsVisibleCheckBox, Converter={StaticResource BooleanToVisibility}}"
+                  SelectionMode="SingleRow" />
   </Grid>
 </UserControl>

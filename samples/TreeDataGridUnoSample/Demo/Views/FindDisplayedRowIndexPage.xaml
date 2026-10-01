@@ -1,7 +1,6 @@
 <UserControl x:Class="TreeDataGridUnoSample.Demo.Views.FindDisplayedRowIndexPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:tdg="using:Uno.Controls"
              xmlns:demo="using:TreeDataGridUnoSample.Demo">
   <UserControl.Resources>
     <demo:CountryRegions x:Key="CountryRegions" />
@@ -78,10 +77,10 @@
         <RowDefinition Height="*" />
         <RowDefinition Height="Auto" />
       </Grid.RowDefinitions>
-      <tdg:TreeDataGrid x:Name="displayedRowGrid"
-                        Source="{Binding Source}"
-                        AlternatingRowBackground="{StaticResource AlternatingRowBrush}">
-        <tdg:TreeDataGrid.Resources>
+      <TreeDataGrid x:Name="displayedRowGrid"
+                    Source="{Binding Source}"
+                    AlternatingRowBackground="{StaticResource AlternatingRowBrush}">
+        <TreeDataGrid.Resources>
           <DataTemplate x:Key="RegionCell">
             <TextBlock Text="{Binding Region}" />
           </DataTemplate>
@@ -89,8 +88,8 @@
             <ComboBox ItemsSource="{Binding Items, Source={StaticResource CountryRegions}}"
                       SelectedItem="{Binding Region, Mode=TwoWay}" />
           </DataTemplate>
-        </tdg:TreeDataGrid.Resources>
-      </tdg:TreeDataGrid>
+        </TreeDataGrid.Resources>
+      </TreeDataGrid>
       <TextBlock x:Name="displayedRowStatus"
                  Grid.Row="1"
                  Margin="4,8,4,0"

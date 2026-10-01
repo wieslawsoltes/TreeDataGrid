@@ -14,4 +14,10 @@
     <ProjectReference Include="../TreeDataGrid.Core/TreeDataGrid.Core.csproj" />
     <InternalsVisibleTo Include="TreeDataGrid.Uno.Tests" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- Unprefixed TreeDataGrid XAML on Windows App SDK heads (see the file for details). -->
+    <Compile Remove="buildTransitive/**" />
+    <None Include="buildTransitive/**" Pack="true" PackagePath="buildTransitive/" />
+  </ItemGroup>
+  <Import Project="buildTransitive/TreeDataGrid.Controls.Uno.targets" />
 </Project>

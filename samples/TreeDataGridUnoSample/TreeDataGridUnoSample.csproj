@@ -52,4 +52,6 @@
          optional unbounded reflection fallback. Trimming remains enabled. -->
     <RuntimeHostConfigurationOption Include="TreeDataGrid.Binding.ReflectionEnabled" Value="false" Trim="true" />
   </ItemGroup>
+  <!-- A package reference imports this from buildTransitive; a project reference needs the import. -->
+  <Import Project="../../src/TreeDataGrid.Controls.Uno/buildTransitive/TreeDataGrid.Controls.Uno.targets" Condition="'$(TreeDataGridUnoPackageVersion)' == ''" />
 </Project>

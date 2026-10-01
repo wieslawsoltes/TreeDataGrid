@@ -2,9 +2,8 @@
     x:Class="TreeDataGridUnoSample.CommittedExtentResources"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:TreeDataGridUnoSample"
-    xmlns:primitives="using:Uno.Controls.Primitives">
-    <ControlTemplate x:Key="ExtentRowTemplate" TargetType="primitives:TreeDataGridRow">
+    xmlns:local="using:TreeDataGridUnoSample">
+    <ControlTemplate x:Key="ExtentRowTemplate" TargetType="TreeDataGridRow">
         <local:CommittedExtentProbe x:Name="PART_CellsPresenter"
             ElementFactory="{TemplateBinding ElementFactory}"
             Items="{TemplateBinding Columns}" Rows="{TemplateBinding Rows}" />

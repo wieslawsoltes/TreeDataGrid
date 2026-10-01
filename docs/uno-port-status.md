@@ -46,6 +46,36 @@ var source = new FlatTreeDataGridSource<Person>(people)
 grid.Source = source;   // or Model
 ```
 
+In XAML the control, columns and primitives need no `xmlns` prefix, as in Avalonia:
+
+```xml
+<Page x:Class="App.MainPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Page.Resources>
+    <Style TargetType="TreeDataGridRow">
+      <Setter Property="MinHeight" Value="28" />
+    </Style>
+  </Page.Resources>
+  <TreeDataGrid ItemsSource="{Binding People}">
+    <TreeDataGrid.ColumnDefinitions>
+      <TreeDataGridTextColumn Header="Name" Binding="{Binding Name}" />
+      <TreeDataGridTextColumn Header="Age" Binding="{Binding Age}" />
+    </TreeDataGrid.ColumnDefinitions>
+  </TreeDataGrid>
+</Page>
+```
+
+The package registers `Uno.Controls` and `Uno.Controls.Primitives` for Uno's global XAML
+namespace (`[XmlnsDefinition]`, used when `UnoEnableImplicitXamlNamespaces` is on, the Uno.Sdk
+default). Uno's generator does not look up `TargetType` and `Setter.Property` values there, and
+WinUI's markup compiler (Windows App SDK heads) has no global namespace, so the package's
+`buildTransitive` targets give those files explicit `using:` prefixes in an intermediate copy;
+source files are not changed. On Uno heads only files with such values are copied, the rest
+keep XAML Hot Reload. Explicit prefixes (`xmlns:tdg="using:Uno.Controls"`) keep working, and
+`TreeDataGridImplicitXamlNamespaces=false` turns the rewrite off. XAML loaded at runtime with
+`XamlReader.Load` still needs explicit prefixes.
+
 Ported Avalonia code needs these substitutions: `Avalonia.Controls` → `Uno.Controls` for the
 control, columns and primitives, and `TreeDataGridCore` for sources, `IndexPath`, `CellIndex`,
 rows and selection models. Column guides:

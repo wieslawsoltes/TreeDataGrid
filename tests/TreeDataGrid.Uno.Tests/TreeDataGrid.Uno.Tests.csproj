@@ -9,6 +9,9 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" PrivateAssets="all" />
     <ProjectReference Include="../../src/TreeDataGrid.Controls.Uno/TreeDataGrid.Controls.Uno.csproj" />
     <Compile Include="../../tools/TreeDataGrid.ApiAudit/ApiDifferences.cs" Link="ApiAudit/ApiDifferences.cs" />
+    <!-- The Windows App SDK XAML rewrite task shipped in the package's buildTransitive folder. -->
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.8.43" />
+    <Compile Include="../../src/TreeDataGrid.Controls.Uno/buildTransitive/TreeDataGridImplicitXaml.cs" Link="Build/TreeDataGridImplicitXaml.cs" />
     <Compile Include="../../samples/TreeDataGridUnoSample/BindingSubscriptionLifetimeChecks.cs" Link="Runtime/BindingSubscriptionLifetimeChecks.cs" />
     <Compile Include="../../samples/TreeDataGridUnoSample/PublicExpanderConstructionChecks.cs" Link="Runtime/PublicExpanderConstructionChecks.cs" />
   </ItemGroup>

@@ -1,9 +1,7 @@
 <Page x:Class="TreeDataGridUnoSample.MainPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:tdg="using:Uno.Controls"
       xmlns:local="using:TreeDataGridUnoSample"
-      xmlns:primitives="using:Uno.Controls.Primitives"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
   <Page.Resources>
     <local:FileIconConverter x:Key="FileIconConverter" />
@@ -38,7 +36,7 @@
     <DataTemplate x:Key="RuntimeEditingTemplate">
       <TextBox Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" MinHeight="0" Padding="6,2" />
     </DataTemplate>
-    <ControlTemplate x:Key="CompatibleTextCellTemplate" TargetType="primitives:TreeDataGridTextCell">
+    <ControlTemplate x:Key="CompatibleTextCellTemplate" TargetType="TreeDataGridTextCell">
       <Grid>
         <VisualStateManager.VisualStateGroups>
           <VisualStateGroup x:Name="EditingStates">
@@ -56,24 +54,24 @@
                  Text="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
       </Grid>
     </ControlTemplate>
-    <ControlTemplate x:Key="CompatibleTemplateCellTemplate" TargetType="primitives:TreeDataGridTemplateCell">
+    <ControlTemplate x:Key="CompatibleTemplateCellTemplate" TargetType="TreeDataGridTemplateCell">
       <Grid>
         <ContentPresenter x:Name="PART_ContentPresenter" Content="{TemplateBinding Content}"
                           ContentTemplate="{TemplateBinding ContentTemplate}" Padding="{TemplateBinding Padding}" />
         <ContentPresenter x:Name="PART_EditingContentPresenter" Visibility="Collapsed" />
       </Grid>
     </ControlTemplate>
-    <ControlTemplate x:Key="AlternateGridTemplate" TargetType="tdg:TreeDataGrid">
+    <ControlTemplate x:Key="AlternateGridTemplate" TargetType="TreeDataGrid">
       <Grid>
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto" />
           <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <ScrollViewer x:Name="PART_HeaderScrollViewer" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-          <primitives:TreeDataGridColumnHeadersPresenter x:Name="PART_ColumnHeadersPresenter" />
+          <TreeDataGridColumnHeadersPresenter x:Name="PART_ColumnHeadersPresenter" />
         </ScrollViewer>
         <ScrollViewer x:Name="PART_ScrollViewer" Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-          <primitives:TreeDataGridRowsPresenter x:Name="PART_RowsPresenter" />
+          <TreeDataGridRowsPresenter x:Name="PART_RowsPresenter" />
         </ScrollViewer>
       </Grid>
     </ControlTemplate>
@@ -162,19 +160,19 @@
           <ListView.ItemTemplate><DataTemplate><TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" /></DataTemplate></ListView.ItemTemplate>
         </ListView>
       </Grid>
-      <tdg:TreeDataGrid x:Name="CountriesGrid" Grid.Column="1" CanUserResizeColumns="True">
-        <tdg:TreeDataGrid.ColumnDefinitions>
-          <tdg:TreeDataGridRowHeaderColumn Header="#" Width="45" />
-          <tdg:TreeDataGridHierarchicalExpanderColumn ChildrenBinding="{Binding Children}"
+      <TreeDataGrid x:Name="CountriesGrid" Grid.Column="1" CanUserResizeColumns="True">
+        <TreeDataGrid.ColumnDefinitions>
+          <TreeDataGridRowHeaderColumn Header="#" Width="45" />
+          <TreeDataGridHierarchicalExpanderColumn ChildrenBinding="{Binding Children}"
                                                     HasChildrenBinding="{Binding Children.Count}"
                                                     IsExpandedBinding="{Binding IsExpanded, Mode=TwoWay}">
-            <tdg:TreeDataGridTextColumn Header="Name" Binding="{Binding Name, Mode=TwoWay}" Width="250" />
-          </tdg:TreeDataGridHierarchicalExpanderColumn>
-          <tdg:TreeDataGridTextColumn Header="Title" Binding="{Binding Title, Mode=TwoWay}" Width="240" />
-          <tdg:TreeDataGridTextColumn Header="Age" Binding="{Binding Age, Mode=TwoWay}" Width="100" />
-          <tdg:TreeDataGridCheckBoxColumn Header="Active" Binding="{Binding IsActive, Mode=TwoWay}" Width="100" />
-        </tdg:TreeDataGrid.ColumnDefinitions>
-      </tdg:TreeDataGrid>
+            <TreeDataGridTextColumn Header="Name" Binding="{Binding Name, Mode=TwoWay}" Width="250" />
+          </TreeDataGridHierarchicalExpanderColumn>
+          <TreeDataGridTextColumn Header="Title" Binding="{Binding Title, Mode=TwoWay}" Width="240" />
+          <TreeDataGridTextColumn Header="Age" Binding="{Binding Age, Mode=TwoWay}" Width="100" />
+          <TreeDataGridCheckBoxColumn Header="Active" Binding="{Binding IsActive, Mode=TwoWay}" Width="100" />
+        </TreeDataGrid.ColumnDefinitions>
+      </TreeDataGrid>
     </Grid>
   </Grid>
 </Page>

@@ -1,7 +1,6 @@
 <UserControl x:Class="TreeDataGridUnoSample.Demo.Views.CustomCellRenderingPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:tdg="using:Uno.Controls">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Grid Margin="8" RowSpacing="8">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto" />
@@ -23,7 +22,7 @@
         <ColumnDefinition Width="*" />
         <ColumnDefinition Width="Auto" />
       </Grid.ColumnDefinitions>
-      <tdg:TreeDataGrid x:Name="grid" />
+      <TreeDataGrid x:Name="grid" />
       <TextBlock x:Name="results" Grid.Column="1" MinWidth="320" FontFamily="Consolas, Menlo, monospace" />
     </Grid>
   </Grid>

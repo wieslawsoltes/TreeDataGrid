@@ -31,12 +31,12 @@ reconstructing columns or raising a property notification.
 Declarative text/checkbox/template definitions already inherit the option:
 
 ```xml
-<tdg:TreeDataGridTextColumn Header="Name"
-                          Binding="{Binding Name}"
-                          AllowTriStateSorting="True" />
+<TreeDataGridTextColumn Header="Name"
+                        Binding="{Binding Name}"
+                        AllowTriStateSorting="True" />
 ```
 
-Here `tdg` denotes `using:Uno.Controls`. For a declarative hierarchical expander,
+For a declarative hierarchical expander,
 configure the **inner column**, whose sort/resize policies the expander forwards.
 Fluent creation and declarative common-option materialization capture scalar
 configuration. Changing a creation descriptor after it has produced its column

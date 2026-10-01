@@ -12,6 +12,7 @@ PACKAGE_ID = "TreeDataGrid.Controls.Uno"
 ASSEMBLY = "TreeDataGrid.Controls.Uno.dll"
 # NuGet folder prefixes for the reference/WebAssembly, Skia desktop and Windows App SDK builds.
 FRAMEWORKS = {"net10.0": "lib/net10.0/", "desktop": "lib/net10.0-desktop", "windows": "lib/net10.0-windows10.0."}
+BUILD_TRANSITIVE = (f"buildTransitive/{PACKAGE_ID}.targets", "buildTransitive/TreeDataGridImplicitXaml.cs")
 
 
 def fail(message: str) -> None:
@@ -60,6 +61,10 @@ def main() -> None:
         fail("the Uno package contains an Avalonia assembly")
     if "THIRD-PARTY-NOTICES.md" not in names:
         fail("THIRD-PARTY-NOTICES.md is not packed")
+    # Prefixless XAML for Windows App SDK heads and Style TargetType values on Uno heads.
+    for entry in BUILD_TRANSITIVE:
+        if entry not in names:
+            fail(f"{entry} is not packed")
 
     groups = [item for item in metadata.iter() if local_name(item.tag) == "group"]
     if not groups:
@@ -74,7 +79,7 @@ def main() -> None:
             fail(f"{framework} depends on an Avalonia package")
 
     print(f"Verified {PACKAGE_ID} {args.version}: {', '.join(required)} builds, "
-          "TreeDataGrid.Core dependency, notices and symbol package.")
+          "TreeDataGrid.Core dependency, notices, XAML build targets and symbol package.")
 
 
 if __name__ == "__main__":

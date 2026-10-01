@@ -29,4 +29,6 @@
     <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.12" />
     <RuntimeHostConfigurationOption Include="TreeDataGrid.Binding.ReflectionEnabled" Value="false" Trim="true" />
   </ItemGroup>
+  <!-- A package reference imports this from buildTransitive; a project reference needs the import. -->
+  <Import Project="../../src/TreeDataGrid.Controls.Uno/buildTransitive/TreeDataGrid.Controls.Uno.targets" Condition="'$(TreeDataGridUnoPackageVersion)' == ''" />
 </Project>
