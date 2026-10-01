@@ -26,23 +26,22 @@ We accept all issues and pull requests but we answer and review only pull reques
 
 ## Quick Start
 
-### Uno port (in development)
+### Uno
 
-The clean Uno port is `TreeDataGrid.Controls.Uno`, matching the platform package
-pattern of `TreeDataGrid.Controls.Avalonia`. It uses the same `TreeDataGrid.Core`
+The Uno Platform port is the `TreeDataGrid.Controls.Uno` package, matching the platform
+package pattern of `TreeDataGrid.Controls.Avalonia` (Skia desktop, Skia WebAssembly and
+Windows App SDK). It uses the same `TreeDataGrid.Core`
 assembly without copying the model layer. The control namespace remains
 `Uno.Controls` (parallel to `Avalonia.Controls`); assign a Core
 source to its `Model` or `Source` property. The sample opens the same eight-tab demo as
 `samples/TreeDataGridDemo` (Template Column Reuse, People, Countries, Find Displayed Row,
 BringIntoView, Files, Wikipedia and Drag/Drop) with the same view models and column
-configuration, adapted to WinUI XAML. It runs on desktop and in the browser. Run it from
-this branch with:
+configuration, adapted to WinUI XAML. It runs on desktop and in the browser:
 
 ```sh
 dotnet run --project samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj -c Release -f net10.0-desktop
 ```
 
-The port is not yet feature-complete or released as a supported NuGet package.
 The separate [Activity Monitor sample](samples/TreeDataGridUnoActivityMonitor/README.md)
 provides CPU, Memory, Energy, Disk and Network tables, charts, filtering and
 selection over the same Core API. It uses live read-only macOS telemetry or demo
@@ -55,8 +54,9 @@ dotnet run --project samples/TreeDataGridUnoActivityMonitor/TreeDataGridUnoActiv
 `solutions/TreeDataGrid.Uno.slnx` groups its Core, controls, sample, and tests separately from
 the Avalonia solution. See the [Uno sample README](samples/TreeDataGridUnoSample/README.md)
 for offline and validation commands.
-See the [Uno implementation and validation checklist](docs/uno-port-status.md) for
-verified behavior, remaining parity work, and native regression commands.
+See [Uno port status](docs/uno-port-status.md) for differences from Avalonia, remaining
+parity work and validation commands, and [Uno performance findings](docs/uno-performance-findings.md)
+for the measured performance gap and the Uno changes that would close it.
 
 ### Avalonia
 

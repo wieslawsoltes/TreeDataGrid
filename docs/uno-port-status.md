@@ -1,63 +1,165 @@
 # Uno port on the shared Core
 
-## Scope and authoritative checkpoint
+`TreeDataGrid.Controls.Uno` is the Uno Platform (WinUI API) presentation of TreeDataGrid,
+parallel to `TreeDataGrid.Controls.Avalonia`. Both use the same `TreeDataGrid.Core`
+package: sources, rows, columns, sorting, filtering, expansion and row/cell selection are
+the Core objects themselves, not copies.
 
-PR #26 replaces the source-linked architecture of PR #12 using the actual shared
-Core assembly. Baseline master is `3ca47316d724e5e040ab0281a880e8df999b25fc`
-(stable v12.0.0.7); the working branch is `codex/uno-core-port`. Changes are committed
-directly to the existing draft PR, not to master. No release or merge is implied.
+The port's goal is functional parity with the Avalonia control. This page records what is
+done, how it is validated, and what remains.
 
-The latest status, exact tested revisions and CI evidence are in the
-[demo parity report](uno-demo-parity-2026-09-30.md),
-[current completion checklist](uno-current-work.md),
-[2026-09-22 geometry/cells/API report](uno-geometry-observable-validation-2026-09-22.md)
-and [final CI checkpoint](uno-ci-checkpoint-5ed67958.json).
-These supersede older source-only/UNRUN notes. The entire previous detailed ledger
-is preserved unmodified in the [historical port-status archive](uno-port-status-history-before-2026-09-22.md),
-including its original requirements, implementation notes and dated evidence.
-Historical results are not descriptions of the current head.
+## Packages and namespaces
 
-**Complete API, functional and performance parity is not yet certified.**
-The `5ed67958` product checkpoint passes 1,047 unit cases, all 33 independently
-hosted native suites, sequential showcase, both native sample builds and Activity
-Monitor. The native measurement-recovery failure in earlier reports is resolved.
-The cross-framework metadata inventory and paired performance budget still expose
-remaining acceptance work; a green functional report does not override them.
+| Package | Contents |
+| --- | --- |
+| `TreeDataGrid.Core` | Framework-neutral sources, rows, columns, selection (namespace `TreeDataGridCore`) |
+| `TreeDataGrid.Controls.Uno` | The Uno control, primitives, columns, themes (namespace `Uno.Controls`, parallel to `Avalonia.Controls`) |
 
-## Architecture
+The Uno package is released with the others (see `.github/workflows/release.yml`). It
+contains three builds:
 
-- `TreeDataGrid.Core` owns source objects, rows, sorting, expansion and row/cell
-  selection. Uno and Avalonia use those objects directly, without a copied model
-  layer or an Avalonia compatibility implementation in the Uno library.
-- `TreeDataGrid.Controls.Uno` owns native binding subscriptions, declarative source
-  construction, view configuration, column/row geometry, template selection,
-  parent-retained recycling, editing, input and native accessibility.
-- The grid accepts Core sources through Model and exposes its native Source/view
-  contracts. Presentation options can register templates/custom columns by the
-  Core presentation key. Public lifecycle and custom-factory contracts are tested.
-- Samples reuse neutral data/models where appropriate. The showcase includes
-  Countries, editable People, Templates, variable-height Countries, Wikipedia,
-  Files tree/flat and Find Country. Activity Monitor exercises five metric sections.
-
-## Required parity and evidence
-
-| Area | Required behavior | Current evidence / remaining boundary |
+| Target | Package folder | Used by |
 | --- | --- | --- |
-| Core identity | Actual shared source/row/selection objects | Core tests and native identity assertions pass |
-| Binding | Nested/null owners, aliases, computed values, writeback, trim contracts | Unit/native suites and real trimmed consumer pass; broad native form equivalence remains review work |
-| Lifetime | Source/unload/factory changes retire observers, values and pools | Reentrancy/cleanup suites pass |
-| Recycling | Retained parent/template identity, bounded pools, no redundant row-owned child hide/show | Native replacement/sort/scroll/wide-grid suites pass |
-| Row/column geometry | Uniform/sparse height, Auto/fixed/star width, mutations, exact boundaries | Unit/native sizing and allocation invariants pass |
-| Bring-into-view | Grid and standalone variable-height targets and source supersession | Registered native suites pass |
-| Selection and editing | Row/cell selection, cancellation, buffered edits, retry, current mappings | Programmatic/native fixtures pass; physical event transport remains separate |
-| Declarative/public API | Native XAML/source extensions, custom cells/rows/presenters, events | Tested contracts pass; classified compiled declaration differences remain |
-| Accessibility | Current peer roles, values, selection, toggles, expansion, stale providers | Native peer assertions pass; real screen-reader/multi-head verification remains |
-| Platform heads | Desktop Skia, browser and Windows App SDK | Per-head build/package status must be read for the exact revision; publishing alone is not runtime verification |
-| Performance | Same-workload allocation/timing comparable with Avalonia | Controlled paired measurements exist; the 1.10 median ratio budget is not met and is reported (not enforced) by CI since 2026-10-01 |
-| Final acceptance | Complete contract review, full functionality and performance evidence | PR remains draft; no 100% claim |
+| `net10.0` | `lib/net10.0` | Uno Skia WebAssembly (and reference builds) |
+| `net10.0-desktop` | `lib/net10.0-desktop1.0` | Uno Skia desktop (macOS, Linux X11/framebuffer, Win32) |
+| `net10.0-windows10.0.26100` | `lib/net10.0-windows10.0.26100` | Native Windows App SDK |
 
-The old PR #12 (`9a5737226b5c26617da362e28ee3337812b88707`) remains a reference
-for platform behavior, not the source/model architecture. Remaining public export
-identities must be reviewed against intentional Core relocation and native framework
-contracts; missing namespace matches must neither be silently accepted nor filled
-with duplicated model/selection state. The audit preserves every raw difference.
+`build/verify-uno-package.py` checks the three builds, the `TreeDataGrid.Core` dependency,
+the licence files and the symbol package. The controls project honours
+`TreeDataGridUnoTargetFrameworks`; Windows hosts build all three targets, other hosts the
+first two. Samples honour `TreeDataGridUnoSampleTargetFrameworks`.
+
+## Usage
+
+```csharp
+using TreeDataGridCore;
+using Uno.Controls;
+
+var source = new FlatTreeDataGridSource<Person>(people)
+{
+    Columns =
+    {
+        new Uno.Controls.Models.TreeDataGrid.TextColumn<Person, string>("Name", x => x.Name),
+        new Uno.Controls.Models.TreeDataGrid.TextColumn<Person, int>("Age", x => x.Age),
+    },
+};
+grid.Source = source;   // or Model
+```
+
+Ported Avalonia code needs these substitutions: `Avalonia.Controls` → `Uno.Controls` for the
+control, columns and primitives, and `TreeDataGridCore` for sources, `IndexPath`, `CellIndex`,
+rows and selection models. Column guides:
+[typed columns](uno-typed-column-contract.md) ·
+[custom value columns](uno-custom-value-columns.md) ·
+[tri-state sorting](uno-tristate-sorting.md).
+
+## Samples
+
+`samples/TreeDataGridUnoSample` opens the same eight-tab demo as `samples/TreeDataGridDemo`
+(Template Column Reuse, People, Countries, Find Displayed Row, BringIntoView, Files,
+Wikipedia, Drag/Drop) with the same view models and column configuration. `--smoke`,
+`--suite <name>` and `--harness` run the validation harness instead. `TDG_START_TAB=<index>`
+opens a tab, and `TDG_TOUR=1` runs the same scripted walkthrough as the Avalonia demo.
+`samples/TreeDataGridUnoActivityMonitor` is a second, larger consumer.
+
+| Avalonia demo construct | Uno adaptation |
+| --- | --- |
+| `TabControl` | `TabView` (stretched, non-closable items) |
+| `DockPanel` | `Grid` rows/columns |
+| `#name.IsChecked` bindings | `ElementName` bindings with a visibility converter |
+| `x:Static` | Resource object (`CountryRegions`) |
+| `MultiBinding` file icon | `IsDirectory` visibility plus an `IsExpanded` folder converter |
+| `TreeDataGridRow:nth-child(2n)` style | `AlternatingRowBackground` |
+| `:nth-last-child(1)` cell/header styles | `CellPrepared`/`CellClearing` attached helper |
+
+## Platform status
+
+| Platform | Status |
+| --- | --- |
+| Skia desktop (macOS, Linux X11) | Runs; all native validation suites, smoke and package consumers pass in CI (Linux X11) and locally (macOS) |
+| Skia WebAssembly | Runs; trimmed consumers pass smoke validation and real browser input on Chromium, Firefox and WebKit |
+| Windows App SDK | Builds, packs and publishes as a package consumer in CI; not yet run |
+| Android, iOS | Not targeted |
+
+## Differences from Avalonia
+
+Framework mappings (WinUI has no equivalent of the Avalonia construct):
+
+- Avalonia styled properties, selectors and control themes become dependency properties,
+  control templates and visual states. Visual state groups must be declared on the template
+  root (Uno only reads groups there). Theme brush names are kept.
+- Row drag uses `DataPackageOperation` (`AcceptedOperation`/`AllowedOperations`) instead of
+  `DragEffects`, and native data packages instead of `DataTransfer`. Row drag events are CLR
+  events: WinUI applications cannot register custom routed events. The drag shows no content
+  image, as in Avalonia.
+- Avalonia-only overrides (`OnAttachedToVisualTree`, `OnPropertyChanged(AvaloniaPropertyChangedEventArgs)`,
+  `OnMeasureInvalidated`, …) have WinUI counterparts (`Loaded`/`Unloaded`, dependency-property
+  callbacks, `MeasureOverride`).
+- Native `ScrollViewer`, automation peers and binding objects replace the Avalonia ones.
+
+Visual differences in the samples: `TabView` looks different from `TabControl`; Uno's default
+font (Open Sans) differs from the platform font Avalonia uses on macOS; Uno draws bitmaps at
+one DIP per pixel.
+
+## Remaining parity work
+
+**Public API shape.** The compiled API audit (`tools/TreeDataGrid.ApiAudit`, run by the
+validation report job) compares Avalonia and Uno declarations after namespace normalization:
+1,070 of 1,851 Avalonia declarations match exactly. Most of the 781 differences have three
+causes:
+
+- Avalonia exposes Core-equivalent types in its own namespaces (sources, `IndexPath`,
+  `CellIndex`, rows, selection models and their event args: 42 types); Uno uses the
+  `TreeDataGridCore` types directly. Uno-namespace wrapper types over Core would close this
+  without copying state.
+- Signatures that use Core `IRow`/`IndexPath`/`GridLength` where Avalonia uses its own types
+  (360 declarations).
+- Avalonia-only framework overrides listed above.
+
+Portable members still missing on the Uno side: `ITreeDataGridRows.ModelIndexToRowIndex` and
+`RowIndexToModelIndex`, `IExpanderCell.Content`/`Row` re-declarations, the
+`HierarchicalExpanderColumn<TModel>` members (`Width`, `ActualWidth`, `Inner`, `CreateCell`,
+`HasChildren`, `GetChildModels`, `GetComparison`, …), the `ColumnBase<TModel>.Width` /
+`ActualWidth` accessor shape, and the `TreeDataGridPresentation<TModel>` selection overrides.
+
+**Verification not yet done.** Running the Windows App SDK target; screen-reader acceptance
+(VoiceOver, Narrator, NVDA) and multi-monitor scaling; physical keyboard, pointer and touch
+input on desktop (browser input is covered).
+
+## Performance
+
+The paired workload (`benchmarks/TreeDataGrid.Parity.*`, `build/run-native-parity.py`) runs
+the same operations on both frameworks on the same machine. CI reports the ratios in the job
+summary; the 1.10 budget is recorded but not enforced. Recent Linux CI ratios (Uno time ÷
+Avalonia time): row replacement 0.6–0.8, column resize 0.5–1.4, sort 0.7–1.2, vertical
+scroll 1.3–1.8, distant diagonal jump 1.4–2.6, horizontal scroll 2.1–2.7. Allocations are
+1.3–25× lower than Avalonia's. The remaining scroll gap is in Uno's text, layout, composition
+and scrolling code; see [Uno performance findings](uno-performance-findings.md) for each issue
+and proposed Uno changes.
+
+## Validation
+
+All of these run in `.github/workflows/uno.yml` on every pull request.
+
+```sh
+# Unit tests
+dotnet test tests/TreeDataGrid.Core.Tests -c Release
+dotnet test tests/TreeDataGrid.Uno.Tests -c Release -p:TreeDataGridUnoTargetFrameworks=net10.0
+dotnet test samples/TreeDataGridUnoSample.Tests -c Release
+
+# Native suites (each in a fresh process) and one native suite on its own
+python3 build/run-uno-native-suites.py --jobs 3
+dotnet run --project samples/TreeDataGridUnoSample -c Release -f net10.0-desktop -- --smoke --suite selection
+
+# Published trimmed browser consumers with real input (Playwright 1.57.0)
+python3 build/run-uno-browser.py --showcase <wwwroot> --monitor <wwwroot> --browser firefox
+
+# Paired performance against Avalonia (add --local on a desktop session)
+python3 build/run-native-parity.py --pairs 2 --columns 64 --iterations 25 --max-ratio 1.10 --report-only
+```
+
+The validation report job (`build/validate-uno-linux.py`) runs all .NET tests, the native
+suites, the canonical stages and the API regression gate (`build/check-uno-api-regression.py`)
+over a committed-source snapshot. The contract job regenerates
+`docs/uno-contract-materialization.json` from `build/uno-parity-inputs/` and requires it to be
+unchanged.

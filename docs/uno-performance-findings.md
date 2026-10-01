@@ -6,8 +6,13 @@ towards the Avalonia version. For each one it records what was measured, where t
 sits in TreeDataGrid and in Uno, why it is slower than Avalonia, what TreeDataGrid does about
 it, and what could be changed in Uno itself, with a sketch of a fix.
 
-Related: [demo parity report](uno-demo-parity-2026-09-30.md) ·
-[direct text rendering design](uno-direct-text-rendering.md)
+Related: [Uno port status](uno-port-status.md)
+
+TreeDataGrid uses only public Uno APIs. A direct Skia text renderer that worked around
+findings 1, 4 and 11 was prototyped (commits `f2242215` to `43adafed`); it matched the text
+block's pixels in 240 states and roughly halved scrolling time, but it reproduced Uno's
+internal text layout and read Uno internals through reflection, so it was removed in favour
+of fixes in Uno. Measurements from that prototype are labelled as such below.
 
 ## Versions and method
 
@@ -56,7 +61,7 @@ is mostly the per-element cost of Uno's layout, composition and scrolling (findi
 
 | # | Finding | Uno API | Effect | TreeDataGrid mitigation | Fixable in Uno |
 | --- | --- | --- | --- | --- | --- |
-| 1 | A `TextBlock` builds a full Unicode layout for every value | `TextBlock.MeasureOverride` → `UnicodeText..ctor` | Largest scroll cost before direct text | Direct Skia text presenter | Fast path and cache for simple text; public text API |
+| 1 | A `TextBlock` builds a full Unicode layout for every value | `TextBlock.MeasureOverride` → `UnicodeText..ctor` | Largest scroll cost | None (prototype removed) | Fast path and cache for simple text; public text API |
 | 2 | A `TextBlock` re-parses in arrange when the arranged size differs from the measured size | `TextBlock.ArrangeOverride` | Every vertically centred cell laid out text twice | `TreeDataGridCellContentPanel` | Compare only the dimensions the layout depends on |
 | 3 | Arrange rounds the slot position before adding the margin, using banker's rounding | `FrameworkElement.InnerArrangeCore`, `UIElement.XcpRound` | Workarounds for 1 px differences | Pre-rounded centring position | Round once; round half away from zero |
 | 4 | Assigning `Text` to a collapsed `TextBlock` rebuilds inlines and requests a frame | `TextBlock.OnTextChanged` → `InvalidateInlineAndRequireRepaint` | Compositor lock contention per cell | Assign only while it displays | Defer work while not visible |
@@ -66,15 +71,15 @@ is mostly the per-element cost of Uno's layout, composition and scrolling (findi
 | 8 | Visibility and opacity changes are expensive | `Visual` `"Opacity"` → `RecursiveInvalidate`; damage regions; `RaiseAutomaticPropertyChanges` | Sorting was 1.5–1.8× slower | Keep rows visible across resets | Layer alpha; rectangle damage |
 | 9 | macOS accessibility is always on and updates native elements per visual | `MacOSAccessibility.IsAccessibilityEnabled`, `OnSizeOrOffsetChanged`, `uno_accessibility_update_*` | 57% of a macOS diagonal jump | None (it keeps VoiceOver correct) | Enable on demand; batch per frame |
 | 10 | `VisualTreeHelper.GetChild` enumerates children for every index | `VisualTreeHelper.GetChild` | O(n²) walks; garbage collected in later frames | Walk `Panel.Children` in the benchmark host | Index the child list directly |
-| 11 | `SKCanvasElement` clips to its bounds, ignores inherited opacity and throws on unsupported platforms, and there is no public text API | `SKCanvasVisual.Paint`, `SKCanvasElement..ctor`, internal `FontDetailsCache` | Needed a panel plus canvas, reflection and a HarfBuzzSharp dependency | Workarounds in the presenter | Options on `SKCanvasElement`; public font/shaping API |
+| 11 | `SKCanvasElement` clips to its bounds, ignores inherited opacity and throws on unsupported platforms, and there is no public text API | `SKCanvasVisual.Paint`, `SKCanvasElement..ctor`, internal `FontDetailsCache` | A replacement text renderer needs reflection and a copy of Uno's text engine | None (prototype removed) | Options on `SKCanvasElement`; public font/shaping API |
 | 12 | Cold JIT dominates short measurements | IL-only Uno assemblies | Early iterations 2–3× slower | Eager getter compilation | ReadyToRun packages |
 
 ## 1. `TextBlock` builds a full Unicode layout for every value
 
-**Measured.** Before direct text, vertical scrolling was 3.73× and diagonal jumps 4.80×
-slower than Avalonia. A prototype that drew cell text straight to Skia cut local vertical
-scrolling from about 3.2 ms to 1.8 ms and allocations by about 6×. Profiles attributed most
-remaining UI-thread time to per-value `TextBlock` work.
+**Measured.** With `TextBlock` cell text, vertical scrolling was 3.73× and diagonal jumps
+4.80× slower than Avalonia on Linux CI (`952bc9da`). Profiles attribute most UI-thread time
+of a scroll step to per-value `TextBlock` work. The direct-text prototype brought the same
+operations to 1.3–1.8× and 1.4–2.6× (several CI runs) and allocations 6× lower.
 
 **Uno.** `TextBlock.MeasureOverride` calls `TextBlock.ParseText`, which constructs a new
 `Microsoft.UI.Xaml.Documents.UnicodeText` for every measure. Its constructor, for even a
@@ -94,19 +99,12 @@ six-character string, does all of the following:
 colour and font. Avalonia's text cell measures and draws from a `TextLayout` without most
 of these steps for plain text.
 
-**TreeDataGrid.** A direct Skia presenter
-([`TreeDataGridTextPresenter`](../src/TreeDataGrid.Controls.Uno/Primitives/TreeDataGridTextPresenter.cs#L35),
-added in `f2242215`) draws what `PART_Text` would draw for single-line left-to-right text.
-It reproduces `UnicodeText`: the same `FontDetails` objects, script runs, cluster widths,
-`CharacterEllipsis` search, alignment offset and `TextBlock` desired-size rounding (see
-[`Shape`](../src/TreeDataGrid.Controls.Uno/Primitives/TreeDataGridTextPresenter.cs#L294),
-[`Layout`](../src/TreeDataGrid.Controls.Uno/Primitives/TreeDataGridTextPresenter.cs#L423),
-[`MeasureOverride`](../src/TreeDataGrid.Controls.Uno/Primitives/TreeDataGridTextPresenter.cs#L458)).
-Shaped strings and arranged glyph runs are cached per font and shared between cells
-([`ShapedText`](../src/TreeDataGrid.Controls.Uno/Primitives/TreeDataGridTextPresenter.cs#L314),
-[`DirectTextFont.GetShapedText`](../src/TreeDataGrid.Controls.Uno/Primitives/DirectTextFont.cs#L121),
-`43adafed`). The `direct-text` native suite (`samples/TreeDataGridUnoSample/DirectTextParityChecks.cs`)
-requires identical pixels against the text block in 240 states.
+**TreeDataGrid.** Uses `TextBlock` (`PART_Text`), as the Avalonia template does. The removed
+prototype reproduced `UnicodeText` for single-line left-to-right text (the same `FontDetails`
+objects, script runs, cluster widths, `CharacterEllipsis` search, alignment offset and
+desired-size rounding), drew the glyph run with an `SKCanvasElement`, and cached shaped
+strings per font. That it matched `TextBlock` pixels exactly shows the fix below is
+compatible with existing rendering.
 
 **Fix in Uno.** Add a fast path for the most common case: one `Run`, no wrapping, no
 `MaxLines`, left-to-right, a single script and font, and no tabs or line breaks. The fast
@@ -196,11 +194,12 @@ do not alternate direction with parity.
 
 ## 4. Assigning `Text` to a collapsed `TextBlock` still costs a frame request
 
-**Measured.** After direct text, 29% of the UI thread's lock-contention time during
-vertical scrolling came from `TextBlock.OnTextChanged` on the collapsed `PART_Text`.
-Skipping the assignment, together with not rebuilding unchanged glyph runs (`b4219957`),
-reduced local Uno medians (sort 17.7 → 12.5 ms, resize 1.82 → 1.39 ms, vertical scroll
-1.02 → 0.89 ms).
+**Measured.** In the direct-text prototype, where `PART_Text` was collapsed, 29% of the UI
+thread's lock-contention time during vertical scrolling still came from
+`TextBlock.OnTextChanged` on that collapsed text block. Skipping the assignment, together
+with not rebuilding unchanged glyph runs (`b4219957`), reduced local Uno medians (sort
+17.7 → 12.5 ms, resize 1.82 → 1.39 ms, vertical scroll 1.02 → 0.89 ms). Any control that
+keeps hidden text blocks up to date pays this cost.
 
 **Uno.** `TextBlock.OnTextChanged` → `UpdateInlines` (clears and rebuilds `Inlines`) →
 `InvalidateTextBlock` → `InvalidateInlineAndRequireRepaint` →
@@ -208,10 +207,8 @@ reduced local Uno medians (sort 17.7 → 12.5 ms, resize 1.82 → 1.39 ms, verti
 takes a lock shared with the render thread. None of this checks whether the element is
 visible or in the live tree.
 
-**TreeDataGrid.** The presenter assigns `PART_Text.Text` only while the text block itself
-displays the text, exactly as before in that case
-([`SetText`](../src/TreeDataGrid.Controls.Uno/Primitives/TreeDataGridTextPresenter.cs#L157),
-[`UpdateVisibility`](../src/TreeDataGrid.Controls.Uno/Primitives/TreeDataGridTextPresenter.cs#L172)).
+**TreeDataGrid.** Cells hide `PART_Text` only while editing or showing other content, so the
+current port is affected only in those states.
 
 **Fix in Uno.** Defer inline rebuilding and render invalidation while the element is
 collapsed or not loaded, and do the work when it becomes visible:
@@ -259,9 +256,7 @@ but they discard its recorded `SKPicture`, so it must be re-recorded (for text, 
 run is rebuilt), and they walk and flag every descendant.
 
 **TreeDataGrid.** Only the recycled elements are moved (layout slots are absolute; see
-[`TreeDataGridCellsPresenter.ArrangeElement`](../src/TreeDataGrid.Controls.Uno/Primitives/TreeDataGridCellsPresenter.cs#L508)),
-and a direct-text canvas is invalidated only when its glyph run actually changes
-([`TextCanvas.SetFrame`](../src/TreeDataGrid.Controls.Uno/Primitives/TreeDataGridTextPresenter.cs#L587)).
+[`TreeDataGridCellsPresenter.ArrangeElement`](../src/TreeDataGrid.Controls.Uno/Primitives/TreeDataGridCellsPresenter.cs#L508)).
 The remaining cost cannot be avoided from a control.
 
 **Fix in Uno.** Separate transform invalidation from content invalidation, and make the
@@ -466,14 +461,14 @@ public static DependencyObject? GetChild(DependencyObject reference, int childIn
 
 ## 11. `SKCanvasElement` and text APIs are not enough for a replacement text renderer
 
-Drawing text outside `TextBlock` needed several workarounds.
+The direct-text prototype needed several workarounds; this is why it was removed.
 
-| Limitation | Uno | TreeDataGrid workaround | Suggested change |
+| Limitation | Uno | Prototype workaround | Suggested change |
 | --- | --- | --- | --- |
-| The canvas always clips to its size with an antialiased clip, but a `TextBlock` does not clip its ink unless layout clips it | `SKCanvasVisual.Paint` → `ClipRect(new SKRect(0,0,Size.X,Size.Y), Intersect, antialias: true)` | The presenter is a `Panel` with the text block's exact layout (so Uno applies the same layout clip), hosting a canvas 4 DIPs larger on every side ([`Bleed`](../src/TreeDataGrid.Controls.Uno/Primitives/TreeDataGridTextPresenter.cs#L43)) | `SKCanvasElement.ClipToBounds` (default true) |
+| The canvas always clips to its size with an antialiased clip, but a `TextBlock` does not clip its ink unless layout clips it | `SKCanvasVisual.Paint` → `ClipRect(new SKRect(0,0,Size.X,Size.Y), Intersect, antialias: true)` | The presenter is a `Panel` with the text block's exact layout (so Uno applies the same layout clip), hosting a canvas 4 DIPs larger on every side | `SKCanvasElement.ClipToBounds` (default true) |
 | Inherited opacity is not applied: the render callback receives only the canvas, not `PaintingSession.Opacity` | `SKCanvasVisual.Paint` ignores `session.Opacity` | Opacity on the text block makes it ineligible; opacity on ancestors is a documented limitation | Apply `session.Opacity` with `SaveLayerAlpha`, or pass it to `RenderOverride` |
-| The constructor throws when the platform is not supported, so the element cannot appear in shared XAML | `SKCanvasElement..ctor` → `PlatformNotSupportedException` | Created in code only when `SKCanvasElement.IsSupportedOnCurrentPlatform()` ([`AttachTextPresenter`](../src/TreeDataGrid.Controls.Uno/Primitives/TreeDataGridCell.TextPresentation.cs#L15)) | A no-op fallback instead of throwing |
-| No public API for the fonts and shaping `TextBlock` uses | `Microsoft.UI.Xaml.Documents.TextFormatting.FontDetailsCache.GetFont` and `FontDetails` are internal | Reflection with `DynamicDependency` for trimming ([`DirectTextFont`](../src/TreeDataGrid.Controls.Uno/Primitives/DirectTextFont.cs#L41)); a direct `HarfBuzzSharp` package reference matching Uno's version ([csproj](../src/TreeDataGrid.Controls.Uno/TreeDataGrid.Controls.Uno.csproj#L18)) | A public `TextFormatter`/`FontDetails` surface (see below) |
+| The constructor throws when the platform is not supported, so the element cannot appear in shared XAML | `SKCanvasElement..ctor` → `PlatformNotSupportedException` | Created in code only when `SKCanvasElement.IsSupportedOnCurrentPlatform()` | A no-op fallback instead of throwing |
+| No public API for the fonts and shaping `TextBlock` uses | `Microsoft.UI.Xaml.Documents.TextFormatting.FontDetailsCache.GetFont` and `FontDetails` are internal | Reflection with `DynamicDependency` for trimming, and a direct `HarfBuzzSharp` package reference matching Uno's version | A public `TextFormatter`/`FontDetails` surface (see below) |
 | Fonts load asynchronously in the browser; a control cannot observe completion | `FontDetailsCache` returns a fallback plus an internal `Task<FontDetails>` | Falls back to the text block until the font is loaded, and retries on the next text change | Expose the load task or a `FontLoaded` event |
 
 A public text API would let controls draw text exactly as `TextBlock` does, without
@@ -539,5 +534,5 @@ These are not performance problems, but each needed a workaround in the port.
   subtree work (finding 6), and on-demand, batched native accessibility on macOS
   (finding 9).
 - Findings 1, 2 and 4 help every app with many `TextBlock`s (lists, grids, logs), not
-  only TreeDataGrid, and would let TreeDataGrid drop its direct text presenter in favour of
-  the platform text block.
+  only TreeDataGrid; finding 1 alone roughly halved TreeDataGrid's scrolling time in the
+  prototype.
