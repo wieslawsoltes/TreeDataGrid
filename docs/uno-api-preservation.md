@@ -2,7 +2,7 @@
 
 ## Full Linux validation
 
-Use the SDK and native packages specified by `.github/workflows/uno-validation-report.yml`:
+Use the SDK and native packages specified by the validation report jobs in `.github/workflows/uno.yml`:
 
 ```bash
 TreeDataGridUnoSampleTargetFrameworks=net10.0-desktop \
