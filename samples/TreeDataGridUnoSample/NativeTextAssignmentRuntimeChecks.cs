@@ -33,9 +33,6 @@ internal static class NativeTextAssignmentRuntimeChecks
             await Task.Delay(80);
             host.UpdateLayout();
             native = ShowcaseRuntimeChecks.Descendants(candidate).OfType<TextBlock>().Single(text => text.Name == "PART_Text");
-            // Exercise publication to the text block itself: text selection makes it ineligible
-            // for direct Skia rendering, which assigns the block's text only while it displays it.
-            native.IsTextSelectionEnabled = true;
 
             reference.ClearValue(TextBlock.TextProperty);
             native.ClearValue(TextBlock.TextProperty);

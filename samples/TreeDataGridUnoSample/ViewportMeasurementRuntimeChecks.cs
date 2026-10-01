@@ -144,7 +144,7 @@ internal static class ViewportMeasurementRuntimeChecks
                 Check(ReferenceEquals(cell.RowModel, model), "A cell retained the wrong shared Core model.");
                 var text = ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>()
                     .FirstOrDefault(part => part.Name == "PART_Text");
-                Check(text is not null && ShowcaseRuntimeChecks.DisplayedText(text) == model.Name, "A retained native TextBlock did not display the current model value.");
+                Check(text?.Text == model.Name, "A retained native TextBlock did not display the current model value.");
             }
         }
         async Task Settle() { await Task.Delay(100); grid.UpdateLayout(); }

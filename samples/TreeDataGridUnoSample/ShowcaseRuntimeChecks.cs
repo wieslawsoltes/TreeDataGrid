@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-using Windows.Foundation;
 using TreeDataGridDemo.Models;
 
 namespace TreeDataGridUnoSample;
@@ -94,38 +92,5 @@ internal static class ShowcaseRuntimeChecks
             foreach (var descendant in Descendants(child)) yield return descendant;
         }
     }
-
-    /// <summary>
-    /// Whether a text block's text is displayed: it is visible, or it is a cell's
-    /// <c>PART_Text</c> whose visible direct Skia presenter sibling draws it.
-    /// </summary>
-    internal static bool IsDisplayed(TextBlock text) =>
-        text.Visibility == Visibility.Visible || DirectPresenter(text) is not null;
-
-    /// <summary>
-    /// The text a text block displays: its own text, or, when its direct presenter draws it,
-    /// the presenter's text as exposed to automation.
-    /// </summary>
-    internal static string DisplayedText(TextBlock text) =>
-        text.Visibility != Visibility.Visible && DirectPresenter(text) is { } presenter
-            ? FrameworkElementAutomationPeer.CreatePeerForElement(presenter).GetName()
-            : text.Text;
-
-    /// <summary>The top-left corner of a displayed text block's text, relative to an element.</summary>
-    internal static Point TextOrigin(TextBlock text, UIElement relative)
-    {
-        if (text.Visibility == Visibility.Visible || DirectPresenter(text) is not { } presenter)
-            return text.TransformToVisual(relative).TransformPoint(default);
-        // The presenter extends past the text block's margin by a bleed area.
-        return presenter.TransformToVisual(relative).TransformPoint(
-            new Point(text.Margin.Left - presenter.Margin.Left, text.Margin.Top - presenter.Margin.Top));
-    }
-
-    private static FrameworkElement? DirectPresenter(TextBlock text) =>
-        text.Name == "PART_Text" && VisualTreeHelper.GetParent(text) is Panel panel
-            ? panel.Children.OfType<FrameworkElement>().FirstOrDefault(element =>
-                element.GetType().Name == "TreeDataGridTextPresenter" && element.Visibility == Visibility.Visible)
-            : null;
-
     private static void Check(bool condition, string message) { if (!condition) throw new InvalidOperationException(message); }
 }

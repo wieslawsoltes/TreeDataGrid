@@ -21,7 +21,7 @@ public partial class TreeDataGridCell
             {
                 var value = DisplayText;
                 if (!Current() || !ReferenceEquals(_text, text)) return;
-                SetDisplayText(text, value ?? string.Empty);
+                text.Text = value ?? string.Empty;
                 if (!Current()) return;
             }
             if (!usesInner && _check is { } check && _kind == Presentation.CellKind.CheckBox)

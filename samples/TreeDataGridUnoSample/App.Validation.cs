@@ -97,7 +97,6 @@ public partial class App
             case "source-compatibility": return SourceCompatibilityRuntimeChecks.RunAsync(page.Grid);
             case "automation": return AutomationRuntimeChecks.RunAsync(page.Grid);
             case "text-search": return TextSearchRuntimeChecks.RunAsync(page);
-            case "direct-text": return DirectTextParityChecks.RunAsync(page);
             case "appearance": return AppearanceRuntimeChecks.RunAsync(page);
             case "element-factory": return ElementFactoryRuntimeChecks.RunAsync(page.Grid);
             case "standalone-cell":

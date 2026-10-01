@@ -73,7 +73,7 @@ internal static class CustomCellOptionsRuntimeChecks
             grid.UpdateLayout();
             Check(first.TextAlignment == TextAlignment.Center, "A model update overwrote explicit control alignment.");
             Check(ShowcaseRuntimeChecks.Descendants(first).OfType<TextBlock>().Any(t =>
-                ShowcaseRuntimeChecks.DisplayedText(t) == "Montant 13,75" && t.TextAlignment == TextAlignment.Center),
+                t.Text == "Montant 13,75" && t.TextAlignment == TextAlignment.Center),
                 "The same control lost its current display format or explicit alignment.");
 
             textOptions.BeginEditGestures = UI.BeginEditGestures.Default;
@@ -152,7 +152,7 @@ internal static class CustomCellOptionsRuntimeChecks
             Check(snapshot is not null && snapshot.TextAlignment == textOptions.TextAlignment &&
                 snapshot.TextWrapping == textOptions.TextWrapping && snapshot.TextTrimming == textOptions.TextTrimming &&
                 ReferenceEquals(snapshot.Culture, textOptions.Culture), $"Stale custom adapter metadata at row {rowIndex}.");
-            var text = ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().FirstOrDefault(t => ShowcaseRuntimeChecks.DisplayedText(t) == expected);
+            var text = ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().FirstOrDefault(t => t.Text == expected);
             Check(text is not null, $"Stale custom display at row {rowIndex}; expected '{expected}'.");
             Check(text!.TextAlignment == style.Alignment && text.TextWrapping == style.Wrapping && text.TextTrimming == style.Trimming,
                 $"Custom control style disagrees with its preparation/override at row {rowIndex}.");

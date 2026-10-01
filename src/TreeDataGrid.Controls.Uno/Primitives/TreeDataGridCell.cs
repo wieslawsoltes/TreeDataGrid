@@ -83,9 +83,6 @@ public partial class TreeDataGridCell : Control
         if (_content is not null) _content.Content = null;
         base.OnApplyTemplate();
         _text = GetTemplateChild("PART_Text") as TextBlock;
-#if !WINDOWS
-        AttachTextPresenter();
-#endif
         _templateTextAlignment = _text?.TextAlignment ?? TextAlignment.Left;
         _templateTextWrapping = _text?.TextWrapping ?? TextWrapping.NoWrap;
         _templateTextTrimming = _text?.TextTrimming ?? TextTrimming.None;

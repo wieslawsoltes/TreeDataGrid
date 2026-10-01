@@ -65,7 +65,7 @@ internal static class AppearanceRuntimeChecks
             grid.UpdateLayout();
             var cellsOrigin = row.CellsPresenter!.TransformToVisual(row).TransformPoint(new Point());
             var borderText = ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().Single(x => x.Name == "PART_Text");
-            var textOrigin = ShowcaseRuntimeChecks.TextOrigin(borderText, cell);
+            var textOrigin = borderText.TransformToVisual(cell).TransformPoint(new Point());
             Check(Math.Abs(cellsOrigin.X - 7) < 1 && Math.Abs(cellsOrigin.Y - 4) < 1 &&
                 textOrigin.X >= cell.Padding.Left + 3 - 0.5 && textOrigin.Y >= cell.Padding.Top + 5 - 0.5 &&
                 grid.RowsPresenter!.GetRowHeight(0) > borderHeight,

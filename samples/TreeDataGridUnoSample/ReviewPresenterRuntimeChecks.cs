@@ -102,7 +102,7 @@ internal static class ReviewPresenterRuntimeChecks
             foreach (var current in grid.RowsPresenter.RealizedCells)
             {
                 Check(ReferenceEquals(current.RowModel, source.Rows[current.RowIndex].Model), "A native cell retained an old Core model.");
-                Check(ShowcaseRuntimeChecks.Descendants(current).OfType<TextBlock>().Any(x => ShowcaseRuntimeChecks.DisplayedText(x) == ((Item)current.RowModel!).Name),
+                Check(ShowcaseRuntimeChecks.Descendants(current).OfType<TextBlock>().Any(x => x.Text == ((Item)current.RowModel!).Name),
                     "The new native cell text did not match its Core model.");
             }
         }

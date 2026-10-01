@@ -73,7 +73,7 @@ internal static class ColumnCompatibilityRuntimeChecks
             grid.Resources.Remove("CompatEditing");
         }
         string? CellText(int column) => grid.TryGetCell(column, 0) is { } cell
-            ? ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().Where(ShowcaseRuntimeChecks.IsDisplayed).Select(ShowcaseRuntimeChecks.DisplayedText).FirstOrDefault() : null;
+            ? ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().FirstOrDefault(text => text.Visibility == Visibility.Visible)?.Text : null;
     }
     private static void Check(bool condition, string message) { if (!condition) throw new InvalidOperationException(message); }
 }

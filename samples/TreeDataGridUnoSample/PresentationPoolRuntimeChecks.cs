@@ -63,7 +63,7 @@ internal static class PresentationPoolRuntimeChecks
                 grid.UpdateLayout();
                 var cell = grid.TryGetCell(column, 50) as global::Uno.Controls.Primitives.TreeDataGridCell;
                 Check(cell is not null && ReferenceEquals(cell.RowModel, items[50]), "The native control references an obsolete row after pool turnover.");
-                Check(ShowcaseRuntimeChecks.Descendants(cell!).OfType<TextBlock>().Any(text => ShowcaseRuntimeChecks.DisplayedText(text) == items[50].Name),
+                Check(ShowcaseRuntimeChecks.Descendants(cell!).OfType<TextBlock>().Any(text => text.Text == items[50].Name),
                     "Wide-grid recycling left stale native text.");
                 Check(grid.RowsPresenter!.RealizedCells.Count() < 2048, "The native grid stopped bounding its realized viewport.");
             }

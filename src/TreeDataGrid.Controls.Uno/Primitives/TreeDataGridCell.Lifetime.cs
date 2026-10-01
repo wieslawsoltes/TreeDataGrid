@@ -96,7 +96,7 @@ public partial class TreeDataGridCell
         List<Exception>? errors = null;
         try { if (_content is not null) _content.Content = null; }
         catch (Exception error) { (errors ??= new()).Add(error); }
-        try { if (_text is not null) SetDisplayText(_text, string.Empty); }
+        try { if (_text is not null) _text.Text = string.Empty; }
         catch (Exception error) { (errors ??= new()).Add(error); }
         try { Visibility = Visibility.Collapsed; }
         catch (Exception error) { (errors ??= new()).Add(error); }

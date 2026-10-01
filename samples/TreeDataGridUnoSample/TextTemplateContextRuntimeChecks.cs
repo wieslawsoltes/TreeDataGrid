@@ -91,7 +91,7 @@ internal static class TextTemplateContextRuntimeChecks
                 var model = (Item)source.Rows[cell.RowIndex].Model!;
                 Check(ReferenceEquals(cell.RowModel, model) && ReferenceEquals(cell.DataContext, model),
                     "Public cell RowModel or inherited DataContext is stale.");
-                Check(ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().Any(x => ShowcaseRuntimeChecks.DisplayedText(x) == model.Name),
+                Check(ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().Any(x => x.Text == model.Name),
                     "Scalar template text is stale.");
             }
         }

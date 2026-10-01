@@ -26,7 +26,7 @@ public class TreeDataGridCellContentPanel : Grid
         var children = Children;
         for (var i = 0; i < children.Count; ++i)
         {
-            if (children[i] is TextBlock { Name: "PART_Text", Visibility: Visibility.Visible } text &&
+            if (children[i] is TextBlock { Name: "PART_Text" } text &&
                 text.VerticalAlignment is VerticalAlignment.Center or VerticalAlignment.Stretch)
             {
                 var margin = text.Margin;

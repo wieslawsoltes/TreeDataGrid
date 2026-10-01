@@ -136,7 +136,7 @@ internal static class VerticalRetirementRuntimeChecks
                 var model = items[cell.RowIndex];
                 currentModels.Add(model);
                 Check(ReferenceEquals(cell.RowModel, model) && cell.Visibility == Visibility.Visible &&
-                    ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().Any(x => ShowcaseRuntimeChecks.DisplayedText(x) == model.Text),
+                    ShowcaseRuntimeChecks.Descendants(cell).OfType<TextBlock>().Any(x => x.Text == model.Text),
                     "Reused native column contains old text, visibility or Core row identity.");
             }
             Check(items.Where(x => !currentModels.Contains(x)).All(x => x.Subscribers == 0),
