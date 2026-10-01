@@ -14,6 +14,36 @@ STAGES = (
 MARKER = 'UNO_BROWSER_INPUT_STEP='
 
 
+_EDITOR_STATE = '''(install) => {
+    const extension = globalThis.Uno?.UI?.Runtime?.Skia?.BrowserInvisibleTextBoxViewExtension;
+    if (install && !globalThis.__tdgKeyProbe) {
+        globalThis.__tdgKeyProbe = [];
+        for (const type of ['keydown', 'keyup', 'compositionstart', 'compositionend']) {
+            document.addEventListener(type, ev => globalThis.__tdgKeyProbe.push(
+                { type, key: ev.key ?? null, isComposing: ev.isComposing ?? null }), true);
+        }
+    }
+    const active = document.activeElement;
+    return {
+        composing: extension ? !!extension.isComposing : null,
+        active: active ? active.tagName + (extension && active === extension.inputElement ? ':invisible-input' : '') : null,
+        events: (globalThis.__tdgKeyProbe ?? []).splice(0),
+    };
+}'''
+
+
+def _editor_state(page: Any, install_probe: bool = False) -> dict[str, Any]:
+    """Diagnostic browser-side editor state; never fails the input protocol."""
+    evaluate = getattr(page, 'evaluate', None)
+    if evaluate is None:
+        return {}
+    try:
+        state = evaluate(_EDITOR_STATE, install_probe)
+        return state if isinstance(state, dict) else {}
+    except Exception as error:  # diagnostics only
+        return {'error': str(error)[:200]}
+
+
 def drive(page: Any, messages: list[dict[str, Any]], timeout: int) -> list[str]:
     completed: list[str] = []
     cursor = 0
@@ -52,8 +82,18 @@ def drive(page: Any, messages: list[dict[str, Any]], timeout: int) -> list[str]:
             page.keyboard.insert_text(value)
         elif expected in ('commit-edit', 'cancel-edit'):
             # The application requests the key only after its editor holds the inserted
-            # text, so the committing or cancelling key cannot race the text input.
-            page.keyboard.press('Enter' if expected == 'commit-edit' else 'Escape')
+            # text, so the committing or cancelling key cannot race the text input. A key
+            # pressed while the browser still reports a text composition belongs to the
+            # composition, so wait for the browser to finish it first.
+            key = 'Enter' if expected == 'commit-edit' else 'Escape'
+            before = _editor_state(page, install_probe=True)
+            composition_deadline = time.monotonic() + 5
+            while before.get('composing') and time.monotonic() < composition_deadline:
+                time.sleep(0.05)
+                before = _editor_state(page)
+            page.keyboard.press(key)
+            print('UNO_BROWSER_INPUT_KEY_STATE=' + json.dumps(
+                {'stage': expected, 'key': key, 'before': before, 'after': _editor_state(page)}), flush=True)
         else:
             x, y = float(step['x']), float(step['y'])
             viewport = page.viewport_size
