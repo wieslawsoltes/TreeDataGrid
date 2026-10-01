@@ -6,8 +6,8 @@ import time
 from typing import Any
 
 STAGES = (
-    'select-row', 'arrow-down', 'begin-edit', 'commit-edit',
-    'select-cancel-row', 'begin-cancel-edit', 'cancel-edit',
+    'select-row', 'arrow-down', 'begin-edit', 'type-edit', 'commit-edit',
+    'select-cancel-row', 'begin-cancel-edit', 'type-cancel-edit', 'cancel-edit',
     'ctrl-select', 'resize-column', 'cancel-resize', 'sort-column',
     'sort-column-descending', 'sort-column-clear', 'sort-column-restart', 'wheel-scroll',
 )
@@ -42,7 +42,7 @@ def drive(page: Any, messages: list[dict[str, Any]], timeout: int) -> list[str]:
 
         if expected in ('arrow-down', 'begin-edit', 'begin-cancel-edit'):
             page.keyboard.press('ArrowDown' if expected == 'arrow-down' else 'F2')
-        elif expected in ('commit-edit', 'cancel-edit'):
+        elif expected in ('type-edit', 'type-cancel-edit'):
             value = step.get('text')
             if not isinstance(value, str) or len(value) > 1024:
                 raise ValueError('Invalid fixture editor text.')
@@ -50,9 +50,9 @@ def drive(page: Any, messages: list[dict[str, Any]], timeout: int) -> list[str]:
             # Committed text, not invented virtual keys for non-ASCII scalars.
             # This covers Unicode writeback; it is not an OS IME simulation.
             page.keyboard.insert_text(value)
-            # Let a slower engine deliver the inserted text to the editor before the
-            # committing or cancelling key; the key must not race the text input.
-            time.sleep(0.25)
+        elif expected in ('commit-edit', 'cancel-edit'):
+            # The application requests the key only after its editor holds the inserted
+            # text, so the committing or cancelling key cannot race the text input.
             page.keyboard.press('Enter' if expected == 'commit-edit' else 'Escape')
         else:
             x, y = float(step['x']), float(step['y'])

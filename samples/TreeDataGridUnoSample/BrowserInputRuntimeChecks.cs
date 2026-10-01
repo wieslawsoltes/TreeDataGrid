@@ -66,7 +66,9 @@ internal static class BrowserInputRuntimeChecks
             await Until(() => source.RowSelection!.SelectedIndex == new Core.IndexPath(2));
             Emit("begin-edit");
             await Until(() => grid.EditingCell is { IsEditing: true, RowIndex: 2 });
-            Emit("commit-edit", text: EditedName);
+            Emit("type-edit", text: EditedName);
+            await Until(() => EditorText(grid) == EditedName);
+            Emit("commit-edit");
             await Until(() => items[2].Name == EditedName && grid.EditingCell is null);
 
             Console.WriteLine("UNO_BROWSER_UNICODE_EDIT_PASSED: browser-committed Polish, Japanese, supplementary scalar and extended grapheme text retained exactly in the Core model");
@@ -75,7 +77,9 @@ internal static class BrowserInputRuntimeChecks
             await Until(() => source.RowSelection!.SelectedIndex == new Core.IndexPath(3));
             Emit("begin-cancel-edit");
             await Until(() => grid.EditingCell is { IsEditing: true, RowIndex: 3 });
-            Emit("cancel-edit", text: "Must not persist");
+            Emit("type-cancel-edit", text: "Must not persist");
+            await Until(() => EditorText(grid) == "Must not persist");
+            Emit("cancel-edit");
             await Until(() => grid.EditingCell is null);
             Check(items[3].Name == "Item 003", "Escape committed the cancelled editor text.");
 
@@ -205,6 +209,9 @@ internal static class BrowserInputRuntimeChecks
         }
     }
 
+    // The text the browser delivered to the active cell editor, or null without one.
+    private static string? EditorText(global::Uno.Controls.TreeDataGrid grid) =>
+        grid.EditingCell is { } cell ? FindVisual<TextBox>(cell)?.Text : null;
     private static T? FindVisual<T>(DependencyObject owner) where T : FrameworkElement
     {
         for (var index = 0; index < VisualTreeHelper.GetChildrenCount(owner); ++index)
