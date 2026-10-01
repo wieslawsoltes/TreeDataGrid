@@ -53,7 +53,9 @@
   <Target Name="TreeDataGridRewriteImplicitXaml"
           DependsOnTargets="_TreeDataGridImplicitXamlOutputPath"
           BeforeTargets="MarkupCompilePass1;DesignTimeMarkupCompilationCT"
-          Condition="'$(TreeDataGridImplicitXamlNamespaces)' == 'true' and '$(TargetPlatformIdentifier)' == 'windows' and '$(UseWinUI)' == 'true'">
+          Condition="'$(TreeDataGridImplicitXamlNamespaces)' == 'true'">
+    <!-- Hooked to WinUI's markup compiler targets, which only Windows App SDK builds define
+         (Uno.Sdk sets UseWinUI for application heads only, not for class libraries). -->
     <TreeDataGridRewriteImplicitXaml InputFiles="@(Page)"
                                      ControlsTypes="$(TreeDataGridXamlControlsTypes)"
                                      PrimitivesTypes="$(TreeDataGridXamlPrimitivesTypes)"
@@ -82,7 +84,7 @@
   <Target Name="TreeDataGridRewriteImplicitXamlForUno"
           DependsOnTargets="_TreeDataGridImplicitXamlOutputPath"
           AfterTargets="_InjectAdditionalFiles"
-          Condition="'$(TreeDataGridImplicitXamlNamespaces)' == 'true' and !('$(TargetPlatformIdentifier)' == 'windows' and '$(UseWinUI)' == 'true')">
+          Condition="'$(TreeDataGridImplicitXamlNamespaces)' == 'true' and !$(TargetFramework.Contains('-windows'))">
     <ItemGroup>
       <_TreeDataGridUnoXaml Include="@(AdditionalFiles)"
                             Condition="'%(AdditionalFiles.Extension)' == '.xaml' and ('%(AdditionalFiles.SourceItemGroup)' == 'Page' or '%(AdditionalFiles.SourceItemGroup)' == 'ApplicationDefinition')" />

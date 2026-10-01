@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows.Markup;
 using System.Xml.Linq;
@@ -138,6 +137,6 @@ public class XamlNamespaceTests
         .Where(type => type.GetCustomAttribute<EditorBrowsableAttribute>()?.State != EditorBrowsableState.Never)
         .ToArray();
 
-    private static string TargetsPath([CallerFilePath] string source = "") =>
-        Path.GetFullPath(Path.Combine(Path.GetDirectoryName(source)!, "../../src/TreeDataGrid.Controls.Uno/buildTransitive/TreeDataGrid.Controls.Uno.targets"));
+    // Copied next to the tests: CI builds map source paths, so [CallerFilePath] is not a real path.
+    private static string TargetsPath() => Path.Combine(AppContext.BaseDirectory, "Build", "TreeDataGrid.Controls.Uno.targets");
 }
