@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Windows.Markup;
 using System.Xml.Linq;
 using Xunit;
@@ -91,7 +90,7 @@ public class XamlNamespaceTests
             """)!;
 
         var root = output.Root!;
-        Assert.Equal(["grid", "tdgp", "tdgp1"], root.Attributes().Where(a => a.IsNamespaceDeclaration && a.Name.Namespace == XNamespace.Xmlns).Select(a => a.Name.LocalName));
+        Assert.Equal(["grid", "tdgp", "tdgp1"], root.Attributes().Where(a => a.IsNamespaceDeclaration && a.Name.Namespace == XNamespace.Xmlns).Select(a => a.Name.LocalName).Order());
         Assert.Equal("using:Uno.Controls.Primitives", root.Attribute(XNamespace.Xmlns + "tdgp1")!.Value);
         Assert.Equal(2, root.Descendants(XName.Get("TreeDataGrid", "using:Uno.Controls")).Count());
         Assert.Single(root.Descendants(XName.Get("TreeDataGridRowsPresenter", "using:Uno.Controls.Primitives")));
@@ -111,7 +110,43 @@ public class XamlNamespaceTests
             </ResourceDictionary>
             """, typeValuesOnly: true)!;
         Assert.Equal(["tdgp:TreeDataGridRow", "tdgp:TreeDataGridRow"], styled.Root!.Descendants().Attributes("TargetType").Select(a => a.Value));
-        Assert.Single(styled.Root.Descendants(XName.Get("TreeDataGridCellsPresenter", "using:Uno.Controls.Primitives")));
+        // Uno resolves the elements itself; only the string values change.
+        Assert.Single(styled.Root.Descendants(XName.Get("TreeDataGridCellsPresenter", Presentation)));
+    }
+
+    [Theory]
+    [InlineData("\n")]
+    [InlineData("\r\n")]
+    public void Rewrite_only_inserts_prefixes_and_declarations(string newLine)
+    {
+        var source = string.Join(newLine,
+            "<Page x:Class=\"App.MainPage\"",
+            "      xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\"",
+            "      xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\">",
+            "  <!-- <TreeDataGrid /> in a comment stays as written -->",
+            "  <Page.Resources>",
+            "    <Style TargetType=\" TreeDataGridRow\">",
+            "      <Setter Property=\"MinHeight\"\tValue=\"28\" />",
+            "    </Style>",
+            "  </Page.Resources>",
+            "  <TreeDataGrid x:Name=\"Grid\"",
+            "                ItemsSource=\"{Binding People}\">",
+            "    <TreeDataGrid.ColumnDefinitions><TreeDataGridTextColumn Header=\"&#xE70F; &amp; Name\" /></TreeDataGrid.ColumnDefinitions>",
+            "  </TreeDataGrid>",
+            "</Page>");
+
+        var output = RewriteText(source)!;
+
+        // Removing exactly what was inserted gives back the source, so every line keeps its number.
+        var inserted = new[] { " xmlns:tdg=\"using:Uno.Controls\"", " xmlns:tdgp=\"using:Uno.Controls.Primitives\"", "tdgp:", "tdg:" };
+        Assert.Equal(source, inserted.Aggregate(output, (text, insertion) => text.Replace(insertion, "")));
+        var lines = output.Split(newLine);
+        Assert.StartsWith("<Page xmlns:tdg=\"using:Uno.Controls\" xmlns:tdgp=\"using:Uno.Controls.Primitives\" x:Class=", lines[0]);
+        Assert.Equal("    <Style TargetType=\" tdgp:TreeDataGridRow\">", lines[5]);
+        Assert.Equal("  <tdg:TreeDataGrid x:Name=\"Grid\"", lines[9]);
+        Assert.Equal("    <tdg:TreeDataGrid.ColumnDefinitions><tdg:TreeDataGridTextColumn Header=\"&#xE70F; &amp; Name\" /></tdg:TreeDataGrid.ColumnDefinitions>", lines[11]);
+        Assert.Equal("  </tdg:TreeDataGrid>", lines[12]);
+        Assert.Contains("<!-- <TreeDataGrid /> in a comment stays as written -->", output);
     }
 
     [Fact]
@@ -121,19 +156,21 @@ public class XamlNamespaceTests
         Assert.Null(Rewrite("""<Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:t="using:Uno.Controls"><t:TreeDataGrid /></Grid>"""));
     }
 
-    private static XDocument? Rewrite(string xaml, bool typeValuesOnly = false)
+    private static XDocument? Rewrite(string xaml, bool typeValuesOnly = false) =>
+        RewriteText(xaml, typeValuesOnly) is string text ? XDocument.Parse(text) : null;
+
+    private static string? RewriteText(string xaml, bool typeValuesOnly = false)
     {
         var targets = XDocument.Load(TargetsPath());
         var types = TreeDataGridRewriteImplicitXaml.CreateTypeMap(
             targets.Descendants("TreeDataGridXamlControlsTypes").Single().Value,
             targets.Descendants("TreeDataGridXamlPrimitivesTypes").Single().Value);
-        var bytes = TreeDataGridRewriteImplicitXaml.Rewrite(xaml, types, typeValuesOnly);
-        return bytes is null ? null : XDocument.Parse(Encoding.UTF8.GetString(bytes).TrimStart('﻿'));
+        return TreeDataGridRewriteImplicitXaml.Rewrite(xaml, types, typeValuesOnly);
     }
 
     private static Type[] ExportedGlobalTypes() => Library.GetExportedTypes()
         .Where(type => GlobalNamespaces.Contains(type.Namespace) && !type.IsNested && !type.IsGenericTypeDefinition)
-        // Generated by Uno tooling (GlobalStaticResources, Resizetizer's WindowExtensions), not XAML types.
+        // Uno's XAML generator emits Uno.Controls.GlobalStaticResources.
         .Where(type => type.GetCustomAttribute<EditorBrowsableAttribute>()?.State != EditorBrowsableState.Never)
         .ToArray();
 

@@ -4,17 +4,19 @@
     Properties/XamlNamespaces.cs), so XAML can use <TreeDataGrid>, <TreeDataGridTextColumn>,
     Style TargetType="TreeDataGridCell" and so on without declaring an xmlns prefix.
 
-    Two places cannot resolve those names on their own; for them the project's XAML is rewritten
-    into the intermediate directory with explicit using: prefixes (elements, property elements,
-    attached properties, TargetType and Setter.Property values). Rewritten items keep their
-    original path as Link metadata, so generated code, XBF output and ms-appx URIs are unchanged,
-    and source files are never modified.
+    Two places cannot resolve those names on their own. For them the affected XAML is copied
+    into the intermediate directory with explicit using: prefixes inserted in place (lines,
+    formatting, entities and encoding unchanged); the copy keeps the original path as Link
+    metadata, so generated code, XBF output and ms-appx URIs are unchanged. Sources are never
+    modified.
 
-    - Windows App SDK heads: WinUI's markup compiler has no global namespace, so every XAML file
-      using an unprefixed TreeDataGrid type is rewritten before MarkupCompilePass1.
-    - Uno heads: the Uno generator resolves unprefixed elements but not TargetType and
-      Setter.Property values, so only files with such values are rewritten (all other files keep
-      XAML Hot Reload). With UnoEnableImplicitXamlNamespaces=false every such file is rewritten.
+    - Windows App SDK heads: WinUI's markup compiler has no global namespace, so elements,
+      property elements, attached properties, TargetType and Setter.Property values all get a
+      prefix, before MarkupCompilePass1.
+    - Uno heads: the Uno generator resolves unprefixed elements but not type names given as
+      strings, so only TargetType and Setter.Property values get a prefix, and only files with
+      such values are copied (all others keep XAML Hot Reload). With
+      UnoEnableImplicitXamlNamespaces=false every name gets a prefix.
 
     Set TreeDataGridImplicitXamlNamespaces to false to opt out.
   -->

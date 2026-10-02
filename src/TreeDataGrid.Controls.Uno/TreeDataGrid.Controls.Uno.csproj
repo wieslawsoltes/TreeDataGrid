@@ -19,5 +19,12 @@
     <Compile Remove="buildTransitive/**" />
     <None Include="buildTransitive/**" Pack="true" PackagePath="buildTransitive/" />
   </ItemGroup>
+  <!-- Uno.Sdk references Resizetizer in every project; its source generator would add a public
+       Uno.Controls.WindowExtensions to this library, which has no assets or windows. -->
+  <Target Name="_TreeDataGridRemoveResizetizerGenerator" BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <Analyzer Remove="@(Analyzer)" Condition="'%(Analyzer.Filename)' == 'Uno.Resizetizer.Generators'" />
+    </ItemGroup>
+  </Target>
   <Import Project="buildTransitive/TreeDataGrid.Controls.Uno.targets" />
 </Project>

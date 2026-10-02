@@ -68,12 +68,21 @@ In XAML the control, columns and primitives need no `xmlns` prefix, as in Avalon
 
 The package registers `Uno.Controls` and `Uno.Controls.Primitives` for Uno's global XAML
 namespace (`[XmlnsDefinition]`, used when `UnoEnableImplicitXamlNamespaces` is on, the Uno.Sdk
-default). Uno's generator does not look up `TargetType` and `Setter.Property` values there, and
-WinUI's markup compiler (Windows App SDK heads) has no global namespace, so the package's
-`buildTransitive` targets give those files explicit `using:` prefixes in an intermediate copy;
-source files are not changed. On Uno heads only files with such values are copied, the rest
-keep XAML Hot Reload. Explicit prefixes (`xmlns:tdg="using:Uno.Controls"`) keep working, and
-`TreeDataGridImplicitXamlNamespaces=false` turns the rewrite off. XAML loaded at runtime with
+default), so Uno heads compile unprefixed elements directly. Two cases cannot resolve them, and
+the package's `buildTransitive` targets handle them with an intermediate copy of the file in
+`obj/` that only inserts explicit `using:` prefixes (every line keeps its number; source files
+are not changed):
+
+- Uno's generator does not look up type names given as strings (`TargetType`,
+  `Setter.Property`) in the global namespace. On Uno heads only those values get a prefix, and
+  only files containing them are copied; XAML Hot Reload does not see edits to such files until
+  the next build.
+- WinUI's markup compiler (Windows App SDK heads) has no global namespace, so every file using
+  an unprefixed TreeDataGrid type is copied, and compiler messages name the copy at the same
+  line.
+
+Explicit prefixes (`xmlns:tdg="using:Uno.Controls"`) keep working, and
+`TreeDataGridImplicitXamlNamespaces=false` turns the copies off. XAML loaded at runtime with
 `XamlReader.Load` still needs explicit prefixes.
 
 Ported Avalonia code needs these substitutions: `Avalonia.Controls` → `Uno.Controls` for the
@@ -119,6 +128,12 @@ custom cells draw current text.
 | Skia WebAssembly | Runs; trimmed consumers pass smoke validation and real browser input on Chromium, Firefox and WebKit |
 | Windows App SDK | Builds, packs and publishes as a package consumer in CI; not yet run |
 | Android, iOS | Not targeted |
+
+Without WebGL (Firefox on the CI runners) Uno draws through its software canvas renderer, whose
+blit reads a view of the WebAssembly heap that becomes unusable if the heap grows during a frame
+(`InvalidStateError` from `SoftwareBrowserRenderer.blitSoftware`). The WebAssembly samples start
+with a 256 MB heap (`EmccInitialHeapSize`) so it does not grow after startup; applications that
+expect browsers without WebGL can do the same until Uno rebuilds that view for every blit.
 
 ## Differences from Avalonia
 
