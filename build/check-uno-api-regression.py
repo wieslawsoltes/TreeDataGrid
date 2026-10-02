@@ -25,6 +25,15 @@ REVIEWED_REFERENCE_ADDITIONS = frozenset({
     "public void TreeDataGridCore.HierarchicalTreeDataGridSource<TModel>.RefreshFilter()",
 })
 
+# Target exports removed after explicit review. Uno.Sdk's Resizetizer source generator emitted
+# these into the controls assembly; they were never TreeDataGrid API, and the generator no
+# longer runs for the library. Any other removal or change still fails.
+REVIEWED_TARGET_REMOVALS = frozenset({
+    "class UI.Controls.WindowExtensions | bases=class System.Object",
+    "public static void UI.Controls.WindowExtensions.SetWindowIcon(Microsoft.UI.Xaml.Window window)",
+    "class Uno.Resizetizer.__LegacyResizetizerSupport__ | bases=class System.Object",
+})
+
 
 def read_json(path: Path):
     def unique(pairs):
@@ -102,13 +111,15 @@ def compare(before: dict, after: dict) -> dict:
                 any(new_reference[key]["Assembly"] != "TreeDataGrid.Core" for key in added)):
             raise ValueError("Reference declarations changed; explicit baseline review required")
     old, new, reference = before["uno"], after["uno"], before["avalonia"]
-    removed = sorted(old.keys() - new.keys())
+    reviewed = sorted((old.keys() - new.keys()) & (REVIEWED_TARGET_REMOVALS - reference.keys()))
+    removed = sorted(old.keys() - new.keys() - set(reviewed))
     rewritten = sorted(shape for shape in old.keys() & new.keys() if old[shape] != new[shape])
     lost = sorted((reference.keys() & old.keys()) - new.keys())
     return {
         "schemaVersion": 1,
         "declaredRegressionGatePassed": not removed and not rewritten and not lost,
-        "removedOrChangedTargetShapes": removed, "rewrittenExistingRecords": rewritten,
+        "removedOrChangedTargetShapes": removed, "reviewedRemovedTargetShapes": reviewed,
+        "rewrittenExistingRecords": rewritten,
         "lostReferenceMatches": lost,
         "newReferenceMatches": sorted((reference.keys() & new.keys()) - old.keys()),
         "addedTargetShapes": sorted(new.keys() - old.keys()),

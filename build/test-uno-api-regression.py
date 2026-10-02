@@ -103,6 +103,36 @@ class RegressionGateTests(unittest.TestCase):
         self.mutate('summary.json', lambda x: x.update(exactNormalizedMatches=1, missingOrDifferent=1, additionalOrDifferent=1))
         with self.assertRaises(ValueError): self.result()
 
+    def test_reviewed_target_removals_are_accepted(self):
+        names = sorted(gate.REVIEWED_TARGET_REMOVALS)
+        fixture(self.before, [entry('A'), entry('B')] + [entry(name) for name in names])
+        result = self.result()
+        self.assertTrue(result['declaredRegressionGatePassed'])
+        self.assertEqual(names, result['reviewedRemovedTargetShapes'])
+
+    def test_reviewed_removal_cannot_hide_another_removal(self):
+        name = sorted(gate.REVIEWED_TARGET_REMOVALS)[0]
+        fixture(self.before, [entry('A'), entry('B'), entry(name), entry('Extra')])
+        result = self.result()
+        self.assertFalse(result['declaredRegressionGatePassed'])
+        self.assertEqual(['Extra'], result['removedOrChangedTargetShapes'])
+
+    def test_reviewed_removal_cannot_drop_a_reference_match(self):
+        name = sorted(gate.REVIEWED_TARGET_REMOVALS)[0]
+        for path in (self.before, self.after):
+            fixture(path, [entry('A'), entry('B')])
+        def add(document): document['Entries'].append(entry(name))
+        for path in (self.before, self.after):
+            data = json.loads((path / 'avalonia.json').read_text()); add(data); (path / 'avalonia.json').write_text(json.dumps(data))
+        data = json.loads((self.before / 'uno.json').read_text()); add(data); (self.before / 'uno.json').write_text(json.dumps(data))
+        for path, matches in ((self.before, 3), (self.after, 2)):
+            summary = json.loads((path / 'summary.json').read_text())
+            summary.update(baselineShapes=3, targetShapes=matches, exactNormalizedMatches=matches, missingOrDifferent=3 - matches)
+            (path / 'summary.json').write_text(json.dumps(summary))
+        result = self.result()
+        self.assertFalse(result['declaredRegressionGatePassed'])
+        self.assertEqual([name], result['lostReferenceMatches'])
+
     def test_missing_or_malformed_dependency_lists_fail_closed(self):
         for bad in (None, 0, '', {}, ['Missing.Assembly']):
             with self.subTest(bad=bad):
