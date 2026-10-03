@@ -124,7 +124,8 @@ public sealed partial class TextTemplateParityView : UserControl
             Check(expectedPixels.Pixels.AsSpan().SequenceEqual(actualPixels.Pixels),
                 $"Native text template pixels differ: theme={theme}, border={thick}, state={state}; " +
                 $"reference={Convert.ToHexString(SHA256.HashData(expectedPixels.Pixels))}; " +
-                $"candidate={Convert.ToHexString(SHA256.HashData(actualPixels.Pixels))}");
+                $"candidate={Convert.ToHexString(SHA256.HashData(actualPixels.Pixels))}; " +
+                DescribeDifference(expectedPixels.Width, expectedPixels.Pixels, actualPixels.Pixels));
             ++pixelStates;
 #endif
         }
@@ -173,6 +174,22 @@ public sealed partial class TextTemplateParityView : UserControl
     }
 #endif
 #endif
+    // Bounding box, count and first differing pixel (BGRA) of two equally sized rasters.
+    private static string DescribeDifference(int width, byte[] expected, byte[] actual)
+    {
+        int count = 0, left = int.MaxValue, top = int.MaxValue, right = -1, bottom = -1, first = -1;
+        for (var i = 0; i + 3 < Math.Min(expected.Length, actual.Length); i += 4)
+        {
+            if (expected.AsSpan(i, 4).SequenceEqual(actual.AsSpan(i, 4))) continue;
+            if (first < 0) first = i;
+            ++count;
+            int x = i / 4 % width, y = i / 4 / width;
+            left = Math.Min(left, x); top = Math.Min(top, y); right = Math.Max(right, x); bottom = Math.Max(bottom, y);
+        }
+        return first < 0 ? "no differing pixel" :
+            $"{count} pixels differ in [{left},{top}]-[{right},{bottom}] of width {width}; first " +
+            $"{Convert.ToHexString(expected, first, 4)}/{Convert.ToHexString(actual, first, 4)}";
+    }
     private static void Check(bool condition, string message)
     {
         if (!condition) throw new InvalidOperationException(message);
