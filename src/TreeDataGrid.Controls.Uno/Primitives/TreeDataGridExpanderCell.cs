@@ -163,7 +163,7 @@ public class TreeDataGridExpanderCell : TreeDataGridCell
         {
             var created = factory.GetOrCreateElement(content.PresentationModel, host);
             if (created is not TreeDataGridCell cell || cell.RowIndex >= 0 ||
-                (cell.Parent is not null && !ReferenceEquals(cell.Parent, host)))
+                (cell.HostParent() is not null && !ReferenceEquals(cell.HostParent(), host)))
                 throw new InvalidOperationException("The expander factory must return an unrealized cell belonging to no other parent.");
             if (!Current()) return;
             inner = cell;

@@ -545,9 +545,11 @@ namespace Uno.Controls.Primitives
             // is being raised when the parent control hasn't yet been arranged. This is a bug in
             // Avalonia, but we can work around it by forcing MeasureOverride to estimate the
             // viewport.
-            Viewport = new Size(e.EffectiveViewport.Width, e.EffectiveViewport.Height) == default ?
+            // WinUI reports a negative width or height for an element outside the viewport.
+            var effective = e.EffectiveViewport;
+            Viewport = (Math.Max(0, effective.Width) == 0 && Math.Max(0, effective.Height) == 0) ?
                 s_invalidViewport :
-                Intersect(e.EffectiveViewport, new Rect(0, 0, ActualWidth, ActualHeight));
+                Intersect(effective, new Rect(0, 0, ActualWidth, ActualHeight));
 
             // Cache the viewport size for use when estimating viewport on reattachment
             if (Viewport != s_invalidViewport && new Size(Viewport.Width, Viewport.Height) != default)
@@ -565,6 +567,9 @@ namespace Uno.Controls.Primitives
                 if (oldViewportWasInvalid || NeedsMeasureForViewportChange(_lastMeasureViewport, Viewport))
                     InvalidateMeasure();
             }
+#if WINDOWS
+            ResumeDeferredBringIntoView();
+#endif
         }
 
         protected virtual void UnrealizeElementOnItemRemoved(Control element)
@@ -790,14 +795,14 @@ namespace Uno.Controls.Primitives
             var generation = _generation;
             var item = items[index];
             var element = GetElementFromFactory(item, index);
-            if (element.Parent is not null && !ReferenceEquals(element.Parent, this))
+            if (element.HostParent() is not null && !ReferenceEquals(element.HostParent(), this))
                 throw new InvalidOperationException("The element factory returned a control belonging to another parent.");
             if (_previousConstraints.ContainsKey(element))
                 throw new InvalidOperationException("The element factory returned an already realized control.");
             // This existing constraint map also tracks in-flight realizations so
             // retirement can release controls not yet in the measured range.
             _previousConstraints.Add(element, default);
-            var wasRetained = element.Visibility == Visibility.Collapsed && ReferenceEquals(element.Parent, this);
+            var wasRetained = element.Visibility == Visibility.Collapsed && ReferenceEquals(element.HostParent(), this);
             element.Visibility = Visibility.Visible;
             if (wasRetained && _retainedRecycledElementCount > 0) --_retainedRecycledElementCount;
             try
@@ -805,7 +810,7 @@ namespace Uno.Controls.Primitives
                 if (generation != _generation) throw new RetiredLayoutException();
                 // Uno resource/template lookup requires the native parent chain
                 // during realization. Reused controls already have this parent.
-                if (element.Parent is null) Children.Add(element);
+                if (element.HostParent() is null) Children.Add(element);
                 if (generation != _generation) throw new RetiredLayoutException();
                 RealizeElement(element, item, index);
                 if (generation != _generation) throw new RetiredLayoutException();
@@ -933,7 +938,7 @@ namespace Uno.Controls.Primitives
             {
                 if (!OwnsRecyclingPool) ++_retainedRecycledElementCount;
             }
-            else if (ReferenceEquals(element.Parent, this))
+            else if (ReferenceEquals(element.HostParent(), this))
                 RemoveRecycledElement(element);
         }
 

@@ -39,8 +39,14 @@ public class TreeDataGridAutomationPeer : FrameworkElementAutomationPeer, ISelec
     {
         var previous = _canSelectMultiple;
         _canSelectMultiple = CanSelectMultiple;
+#if WINDOWS
+        // WinUI rejects these property-changed events (E_INVALIDARG for CanSelectMultiple and for
+        // null Selection values); its own selectors raise the invalidated event instead.
+        RaiseAutomationEvent(AutomationEvents.SelectionPatternOnInvalidated);
+#else
         if (previous != _canSelectMultiple)
             RaisePropertyChangedEvent(SelectionPatternIdentifiers.CanSelectMultipleProperty, previous, _canSelectMultiple);
         RaisePropertyChangedEvent(SelectionPatternIdentifiers.SelectionProperty, null!, null!);
+#endif
     }
 }

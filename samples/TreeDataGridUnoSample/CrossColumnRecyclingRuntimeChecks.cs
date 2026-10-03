@@ -37,6 +37,9 @@ internal static class CrossColumnRecyclingRuntimeChecks
             grid.Width = 340;
             grid.Height = 200;
             grid.RowHeight = 28;
+            // WinUI reports the resized viewport only after a layout pass; realizing the new
+            // source before that would use the previous, larger viewport once.
+            await Settle();
             grid.ElementFactory = factory;
             grid.Model = source;
             await Settle();
@@ -62,7 +65,9 @@ internal static class CrossColumnRecyclingRuntimeChecks
                 Check(factory.CreatedCells == created,
                     $"A compatible horizontal window created new template controls: before={created}, after={factory.CreatedCells}, offset={x}.");
                 Check(unloads == 0 && parents.All(pair => ReferenceEquals(pair.Key.Parent, pair.Value)),
-                    "Cross-column reuse detached native controls from their retained row.");
+                    "Cross-column reuse detached native controls from their retained row: " +
+                    $"unloads={unloads}, moved={parents.Count(pair => !ReferenceEquals(pair.Key.Parent, pair.Value))} of {parents.Count}, " +
+                    $"unparented={parents.Count(pair => pair.Key.Parent is null)}, initiallyUnparented={parents.Count(pair => pair.Value is null)}, offset={x}.");
             }
 
             items[0] = new("Replacement");

@@ -44,9 +44,11 @@ internal static class StandaloneRowRuntimeChecks
             Check(row.Realizations == 1 && row.RowIndex == 0 && ReferenceEquals(row.Model, models[0]) && row.IsSelected,
                 "Standalone row realization lost its model, selection or indexed hook.");
             var presenter = row.CellsPresenter!;
+            // The viewport of a newly shown window can arrive after the first layout.
+            await SampleWait.UntilAsync(() => presenter.RealizedCells.Count is > 0 and < 8, scroll.UpdateLayout);
             var initial = presenter.RealizedCells.ToArray();
             Check(initial.Length is > 0 and < 8 && initial.All(cell => ReferenceEquals(cell.RowModel, models[0]) && cell.IsEffectivelySelected),
-                "Standalone cells were not virtualized or lost the captured Core model/row selection.");
+                $"Standalone cells were not virtualized or lost the captured Core model/row selection: cells={initial.Length}.");
             Check(ReferenceEquals(presenter.Items, view.Columns) && ReferenceEquals(presenter.Rows, view.Rows) &&
                 ReferenceEquals(presenter.ElementFactory, factory), "The row did not configure its compatible presenter properties.");
             var first = (TreeDataGridTextCell)row.TryGetCell(0)!;

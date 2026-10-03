@@ -16,7 +16,7 @@ internal sealed partial class NativeColumnBinding
         // Local generated names carry their own source identity. Outer-scope
         // names still require a visual namescope and are left to native binding.
         _namedSource = (_binding.ElementName as ElementNameSubject ??
-            (_binding.ElementName is null ? _binding.Source as ElementNameSubject : null)) is { IsLoadTimeBound: false } subject
+            (_binding.ElementName is null or "" ? _binding.Source as ElementNameSubject : null)) is { IsLoadTimeBound: false } subject
             ? subject : null;
 #endif
     }

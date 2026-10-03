@@ -141,7 +141,9 @@ internal static class ElementFactoryRuntimeChecks
             var retained = direct.GetOrCreateElement(data, host);
             host.Children.Add(retained);
             direct.RecycleElement(retained);
-            Check(ReferenceEquals(retained, direct.GetOrCreateElement(data, host)) && ReferenceEquals(retained.Parent, host),
+            // Ask the panel, not the element: WinUI reports no parent for an element whose panel
+            // is not connected to a window.
+            Check(ReferenceEquals(retained, direct.GetOrCreateElement(data, host)) && host.Children.Contains(retained),
                 "Direct factory recycling detached a compatible parented control.");
             direct.RecycleElement(retained);
             var duplicateRejected = false;
@@ -149,11 +151,11 @@ internal static class ElementFactoryRuntimeChecks
             catch (InvalidOperationException) { duplicateRejected = true; }
             Check(duplicateRejected, "Duplicate factory pool ownership was accepted.");
             var otherHost = new Grid();
-            Check(ReferenceEquals(retained, direct.GetOrCreateElement(data, otherHost)) && retained.Parent is null,
+            Check(ReferenceEquals(retained, direct.GetOrCreateElement(data, otherHost)) && !host.Children.Contains(retained),
                 "The direct factory did not apply Avalonia's cross-panel fallback when no same-parent element existed.");
             otherHost.Children.Add(retained);
             direct.RecycleElement(retained);
-            Check(ReferenceEquals(retained, direct.GetOrCreateElement(data, otherHost)) && ReferenceEquals(retained.Parent, otherHost),
+            Check(ReferenceEquals(retained, direct.GetOrCreateElement(data, otherHost)) && otherHost.Children.Contains(retained),
                 "Direct checkout did not remove the previous fallback ownership.");
             Console.WriteLine("UNO_RUNTIME_ELEMENT_FACTORY_PASSED: custom rows/headers/cells, compatible retained parent, incompatible keys, factory replacement, legacy delegate, source reentrancy, same-parent pool/cross-panel fallback");
         }

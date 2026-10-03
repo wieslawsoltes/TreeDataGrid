@@ -18,6 +18,11 @@ internal sealed partial class NativeColumnBinding : IDisposable
     private int _updating;
     private bool _disposed;
     private int _revision;
+    // The probe whose expression is inside UpdateSource. WinUI crashes when an expression loses
+    // its source or is cleared from within its own UpdateSource (a converter or setter can
+    // recycle the cell); Uno tolerates it. A reentrant retarget/suspend/dispose sets that probe
+    // aside instead, and Write detaches it once UpdateSource returns.
+    private Probe? _sourceUpdateProbe;
     internal NativeColumnBinding(Binding binding, Action? changed = null, CultureInfo? culture = null)
     {
         // Editing is committed explicitly by CellEditSession, never on a probe
@@ -71,6 +76,11 @@ internal sealed partial class NativeColumnBinding : IDisposable
         try
         {
             var binding = ResolveNamedSource();
+            if (_probe is { } updating && ReferenceEquals(updating, _sourceUpdateProbe))
+            {
+                _probe = null;
+                _activeBinding = null;
+            }
             if (!ReferenceEquals(_activeBinding, binding) && _probe is { } previous)
             {
                 _probe = null;
@@ -146,9 +156,17 @@ internal sealed partial class NativeColumnBinding : IDisposable
 #endif
                 if (!written)
                 {
-                    _probe.SetValue(Probe.ValueProperty, value);
+                    var probe = _probe;
+                    probe.SetValue(Probe.ValueProperty, value);
                     if (!IsCurrent()) throw new OperationCanceledException("The binding changed before native source update.");
-                    expression.UpdateSource();
+                    _sourceUpdateProbe = probe;
+                    try { expression.UpdateSource(); }
+                    finally
+                    {
+                        _sourceUpdateProbe = null;
+                        // Set aside by a reentrant retarget, suspension or disposal.
+                        if (!ReferenceEquals(_probe, probe)) DetachProbe(probe);
+                    }
                 }
             }
             if (revision == _revision) Error = null;
@@ -225,7 +243,13 @@ internal sealed partial class NativeColumnBinding : IDisposable
         ++_updating;
         try
         {
-            if (_probe is { } probe)
+            if (_probe is { } updating && ReferenceEquals(updating, _sourceUpdateProbe))
+            {
+                // Write detaches it after UpdateSource; a later realization gets a new probe.
+                _probe = null;
+                _activeBinding = null;
+            }
+            else if (_probe is { } probe)
             {
                 try { probe.DataContext = null; }
                 catch
@@ -235,7 +259,7 @@ internal sealed partial class NativeColumnBinding : IDisposable
                     if (revision == _revision) probe.ClearValue(Probe.ValueProperty);
                     throw;
                 }
-                if (revision == _revision && (_binding.Source is not null || _binding.ElementName is not null || _binding.RelativeSource is not null))
+                if (revision == _revision && (_binding.Source is not null || _binding.ElementName is not null and not "" || _binding.RelativeSource is not null))
                     probe.ClearValue(Probe.ValueProperty);
             }
             if (revision == _revision) Error = null;
@@ -253,13 +277,15 @@ internal sealed partial class NativeColumnBinding : IDisposable
         var probe = _probe;
         _probe = null;
         Error = null;
+        if (probe is null || ReferenceEquals(probe, _sourceUpdateProbe)) return; // Write detaches it.
         ++_updating;
-        try
-        {
-            try { if (probe is not null) probe.DataContext = null; }
-            finally { probe?.ClearValue(Probe.ValueProperty); }
-        }
+        try { DetachProbe(probe); }
         finally { --_updating; }
+    }
+    private static void DetachProbe(Probe probe)
+    {
+        try { probe.DataContext = null; }
+        finally { probe.ClearValue(Probe.ValueProperty); }
     }
     private void OnChanged() { if (_updating == 0 && !_disposed) _changed?.Invoke(); }
 

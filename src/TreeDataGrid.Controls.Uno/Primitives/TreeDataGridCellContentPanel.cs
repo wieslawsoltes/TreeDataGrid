@@ -57,7 +57,12 @@ public class TreeDataGridCellContentPanel : Grid
                 if (UseLayoutRounding)
                 {
                     var scale = XamlRoot?.RasterizationScale ?? 1;
+#if WINDOWS
+                    // WinUI rounds a midpoint up; Math.Round would round it to even.
+                    top = Math.Floor((top + margin.Top) * scale + 0.5) / scale - margin.Top;
+#else
                     top = Math.Round((top + margin.Top) * scale) / scale - margin.Top;
+#endif
                 }
                 stretched.Arrange(new Rect(slot.X, top, slot.Width, slot.Height));
             }

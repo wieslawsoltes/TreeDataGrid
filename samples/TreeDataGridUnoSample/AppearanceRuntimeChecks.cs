@@ -82,7 +82,12 @@ internal static class AppearanceRuntimeChecks
             Check(Equals(header.Header, source.Columns[0].Header) && Equals(header.GetValue(TreeDataGridColumnHeader.HeaderProperty), header.Header),
                 "The public header value/dependency property did not preserve the column header.");
             var headerContent = ShowcaseRuntimeChecks.Descendants(header).OfType<ContentPresenter>().Single(x => x.Name == "PART_ContentPresenter");
+#if WINDOWS
+            // A string crossing the WinRT boundary comes back as another instance.
+            Check(Equals(headerContent.Content, header.Header), "The default header theme did not bind Header.");
+#else
             Check(ReferenceEquals(headerContent.Content, header.Header), "The default header theme did not bind Header.");
+#endif
             Check(ShowcaseRuntimeChecks.Descendants(headerContent).OfType<TextBlock>().Any(value => value.TextTrimming == TextTrimming.CharacterEllipsis),
                 "The default string header template did not preserve reference ellipsis trimming.");
             grid.CanUserResizeColumns = true;

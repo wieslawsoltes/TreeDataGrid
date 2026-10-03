@@ -54,7 +54,7 @@ internal static class SelectionInteractionRuntimeChecks
                 "A retired interaction changed current selection visuals.");
 
             page.Content = previous;
-            await Task.Delay(100);
+            await SampleWait.UntilAsync(() => second.Subscribers == 0);
             Check(second.Subscribers == 0, "Unloading retained the custom selection-interaction observer.");
             page.Content = grid;
             await Settle();

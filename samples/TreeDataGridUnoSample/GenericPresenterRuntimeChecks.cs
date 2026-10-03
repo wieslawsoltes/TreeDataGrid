@@ -69,6 +69,7 @@ internal static class GenericPresenterRuntimeChecks
 
             var brought = presenter.BringIntoView(160);
             await Settle();
+            await SampleWait.UntilAsync(() => presenter.TryGetElement(160) is not null, scroll.UpdateLayout);
             Check(brought is not null && ReferenceEquals(presenter.TryGetElement(160)?.DataContext, items[160]),
                 "The generic bring-into-view contract failed for an unrealized variable-height item.");
             CheckModels();

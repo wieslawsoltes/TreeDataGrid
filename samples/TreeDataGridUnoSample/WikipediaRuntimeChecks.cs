@@ -93,10 +93,7 @@ internal static class WikipediaRuntimeChecks
 
     private static async Task VerifyDelayedImageAsync(MainPage page)
     {
-        var file = await StorageFile.GetFileFromApplicationUriAsync(new Uri("ms-appx:///Assets/file.png"));
-        using var stream = await file.OpenStreamForReadAsync();
-        using var buffer = new MemoryStream();
-        await stream.CopyToAsync(buffer);
+        var bytes = await SampleAssets.ReadAllBytesAsync("Assets/file.png");
         var response = new TaskCompletionSource<HttpResponseMessage>(TaskCreationOptions.RunContinuationsAsynchronously);
         var requested = false;
         using var client = WikipediaViewModel.CreateClient(new ImageHandler(request =>
@@ -128,7 +125,7 @@ internal static class WikipediaRuntimeChecks
             items[0] = replacement;
             await Task.Delay(100);
             Check(image.Source is null, "A missing image did not clear the recycled Image source.");
-            response.SetResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(buffer.ToArray()) });
+            response.SetResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(bytes) });
             await article.ImageLoadingTask;
             await Task.Delay(100);
             Check(oldImage?.PixelWidth > 0 && article.ImageLoadError is null, "The delayed identified image download did not decode.");

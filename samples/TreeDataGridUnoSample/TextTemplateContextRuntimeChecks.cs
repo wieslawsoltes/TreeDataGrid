@@ -26,7 +26,9 @@ internal static class TextTemplateContextRuntimeChecks
         using var source = new FlatTreeDataGridSource<Item>(items);
         for (var i = 0; i < 32; ++i)
             source.WithTextColumn($"Column {i}", item => item.Name, options => options.Width = new GridLength(96));
-        var observers = new List<(FrameworkElement Element, long Token)>();
+        // DataContextChanged is the notification both Uno and WinUI raise; WinUI does not invoke
+        // property-changed callbacks registered for DataContextProperty.
+        var contextObservers = new List<(FrameworkElement Element, Windows.Foundation.TypedEventHandler<FrameworkElement, DataContextChangedEventArgs> Handler)>();
         var templateContextChanges = 0;
         var publicContextChanges = 0;
         try
@@ -46,10 +48,12 @@ internal static class TextTemplateContextRuntimeChecks
                 var border = ShowcaseRuntimeChecks.Descendants(cell).OfType<FrameworkElement>().Single(x => x.Name == "CellBorder");
                 Check(border.ReadLocalValue(FrameworkElement.DataContextProperty) is null && border.DataContext is null,
                     "The private scalar template did not locally isolate unused inherited context.");
-                observers.Add((border, border.RegisterPropertyChangedCallback(FrameworkElement.DataContextProperty,
-                    (_, _) => ++templateContextChanges)));
-                observers.Add((cell, cell.RegisterPropertyChangedCallback(FrameworkElement.DataContextProperty,
-                    (_, _) => ++publicContextChanges)));
+                Windows.Foundation.TypedEventHandler<FrameworkElement, DataContextChangedEventArgs> templateChanged = (_, _) => ++templateContextChanges;
+                Windows.Foundation.TypedEventHandler<FrameworkElement, DataContextChangedEventArgs> publicChanged = (_, _) => ++publicContextChanges;
+                border.DataContextChanged += templateChanged;
+                cell.DataContextChanged += publicChanged;
+                contextObservers.Add((border, templateChanged));
+                contextObservers.Add((cell, publicChanged));
             }
             Verify();
             items[0] = new("Replacement");
@@ -68,14 +72,13 @@ internal static class TextTemplateContextRuntimeChecks
             Check(publicContextChanges > 0, "Public cell DataContext notifications were suppressed.");
             Check(templateContextChanges == 0, $"Unused scalar template contexts changed {templateContextChanges} times.");
             grid.Model = null;
-            Check(observers.Where(x => x.Element is TreeDataGridCell).All(x => x.Element.DataContext is null),
+            Check(contextObservers.Where(x => x.Element is TreeDataGridCell).All(x => x.Element.DataContext is null),
                 "Source retirement retained public cell contexts.");
             Console.WriteLine($"UNO_RUNTIME_TEXT_TEMPLATE_CONTEXT_PASSED: inherited public model contexts; replacement/sort/two-axis reuse; template context changes={templateContextChanges}; public context changes={publicContextChanges}; source cleanup");
         }
         finally
         {
-            foreach (var observer in observers)
-                observer.Element.UnregisterPropertyChangedCallback(FrameworkElement.DataContextProperty, observer.Token);
+            foreach (var observer in contextObservers) observer.Element.DataContextChanged -= observer.Handler;
             grid.Model = null;
             grid.Width = width;
             grid.Height = height;

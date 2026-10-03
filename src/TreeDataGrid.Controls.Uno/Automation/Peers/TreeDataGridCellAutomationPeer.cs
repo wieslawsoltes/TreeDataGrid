@@ -271,7 +271,8 @@ public class TreeDataGridCellAutomationPeer : FrameworkElementAutomationPeer,
         _lastReadOnly = readOnly;
         _lastToggle = toggle;
         _lastExpanded = expanded;
-        if (oldValue != value) RaisePropertyChangedEvent(ValuePatternIdentifiers.ValueProperty, oldValue, value);
+        // WinUI rejects a null value (E_INVALIDARG); an absent value is the empty string there.
+        if (oldValue != value) RaisePropertyChangedEvent(ValuePatternIdentifiers.ValueProperty, oldValue ?? string.Empty, value ?? string.Empty);
         if (!Current(state)) return;
         if (oldReadOnly != readOnly) RaisePropertyChangedEvent(ValuePatternIdentifiers.IsReadOnlyProperty, oldReadOnly, readOnly);
         if (!Current(state)) return;

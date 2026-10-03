@@ -50,7 +50,7 @@ public partial class TreeDataGrid
         var element = (factory ?? ElementFactory).GetOrCreateElement(data, parent);
         if (element is not T typed)
             throw new InvalidOperationException($"The element factory must create a {typeof(T).Name} for this data.");
-        if (element.Parent is not null && !ReferenceEquals(element.Parent, parent))
+        if (element.HostParent() is not null && !ReferenceEquals(element.HostParent(), parent))
             throw new InvalidOperationException("The element factory returned an element owned by another parent.");
         if (element is TreeDataGridCell { RowIndex: >= 0 } or TreeDataGridRow { RowIndex: >= 0 } or TreeDataGridColumnHeader { ColumnIndex: >= 0 })
             throw new InvalidOperationException("The element factory returned an already realized element.");

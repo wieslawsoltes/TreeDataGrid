@@ -129,15 +129,25 @@ internal static class NativeTextAssignmentRuntimeChecks
                 candidate.Refresh();
                 SameState();
             }
+            // WinUI marshals a new managed string on every read; identity exists only on Uno.
+            static bool SameString(string expected, string actual) =>
+#if WINDOWS
+                string.Equals(expected, actual, StringComparison.Ordinal);
+#else
+                ReferenceEquals(expected, actual);
+#endif
             void SameState()
             {
                 Check(string.Equals(reference.Text, native.Text, StringComparison.Ordinal),
                     "Guarded publication differs from the original native text setter.");
+#if !WINDOWS
+                // WinUI marshals a new managed string on every Text read; identity exists only on Uno.
                 Check(ReferenceEquals(reference.Text, native.Text),
                     "Guarded publication changed the native string-instance ownership.");
+#endif
                 var expectedLocal = reference.ReadLocalValue(TextBlock.TextProperty);
                 var actualLocal = native.ReadLocalValue(TextBlock.TextProperty);
-                Check(expectedLocal is string expected ? actualLocal is string actual && ReferenceEquals(expected, actual) :
+                Check(expectedLocal is string expected ? actualLocal is string actual && SameString(expected, actual) :
                     ReferenceEquals(expectedLocal, DependencyProperty.UnsetValue) == ReferenceEquals(actualLocal, DependencyProperty.UnsetValue),
                     "Guarded publication changed dependency-property local ownership.");
                 Check((reference.GetBindingExpression(TextBlock.TextProperty) is null) ==

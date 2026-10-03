@@ -16,11 +16,7 @@ internal static class WikipediaImageCompletionRuntimeChecks
 {
     public static async Task RunAsync()
     {
-        var file = await StorageFile.GetFileFromApplicationUriAsync(new Uri("ms-appx:///Assets/file.png"));
-        using var stream = await file.OpenStreamForReadAsync();
-        using var buffer = new MemoryStream();
-        await stream.CopyToAsync(buffer);
-        var bytes = buffer.ToArray();
+        var bytes = await SampleAssets.ReadAllBytesAsync("Assets/file.png");
         var requests = 0;
         using var client = WikipediaViewModel.CreateClient(new ImageHandler(request =>
         {

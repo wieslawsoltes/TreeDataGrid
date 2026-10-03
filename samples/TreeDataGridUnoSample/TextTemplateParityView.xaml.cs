@@ -116,7 +116,8 @@ public sealed partial class TextTemplateParityView : UserControl
             var expectedPixels = await CaptureAsync(Reference);
             var actualPixels = await CaptureAsync(Candidate);
             Check(expectedPixels.Width == actualPixels.Width && expectedPixels.Height == actualPixels.Height,
-                "Native template raster dimensions differ.");
+                $"Native template raster dimensions differ: {expectedPixels.Width}x{expectedPixels.Height} and " +
+                $"{actualPixels.Width}x{actualPixels.Height} for {Describe(Bounds(Reference, this))} and {Describe(Bounds(Candidate, this))}.");
             Check(expectedPixels.Width > 0 && expectedPixels.Height > 0 &&
                 expectedPixels.Pixels.Length == checked(expectedPixels.Width * expectedPixels.Height * 4),
                 "Native reference raster is missing or incomplete.");
@@ -139,12 +140,38 @@ public sealed partial class TextTemplateParityView : UserControl
     private static T Find<T>(DependencyObject owner, string name) where T : FrameworkElement =>
         ShowcaseRuntimeChecks.Descendants(owner).OfType<T>().Single(element => element.Name == name);
 #if !__WASM__
-    private static async Task<(int Width, int Height, byte[] Pixels)> CaptureAsync(UIElement element)
+    private static async Task<(int Width, int Height, byte[] Pixels)> CaptureAsync(FrameworkElement element)
     {
         var bitmap = new RenderTargetBitmap();
         await bitmap.RenderAsync(element);
-        return (bitmap.PixelWidth, bitmap.PixelHeight, (await bitmap.GetPixelsAsync()).ToArray());
+        var pixels = (await bitmap.GetPixelsAsync()).ToArray();
+#if WINDOWS
+        return Crop(element, bitmap.PixelWidth, bitmap.PixelHeight, pixels);
+#else
+        return (bitmap.PixelWidth, bitmap.PixelHeight, pixels);
+#endif
     }
+#if WINDOWS
+    // WinUI sizes the bitmap to cover the layout slots of descendants as well. The cell panel
+    // arranges its text in a slot extending below the cell, so crop to the element itself and
+    // require that nothing was drawn outside it.
+    private static (int Width, int Height, byte[] Pixels) Crop(FrameworkElement element, int pixelWidth, int pixelHeight, byte[] pixels)
+    {
+        var scale = element.XamlRoot?.RasterizationScale ?? 1;
+        var width = Math.Min(pixelWidth, (int)Math.Round(element.ActualWidth * scale));
+        var height = Math.Min(pixelHeight, (int)Math.Round(element.ActualHeight * scale));
+        if (width == pixelWidth && height == pixelHeight) return (pixelWidth, pixelHeight, pixels);
+        var cropped = new byte[width * height * 4];
+        for (var y = 0; y < pixelHeight; ++y)
+        {
+            var row = pixels.AsSpan(y * pixelWidth * 4, pixelWidth * 4);
+            if (y < height) row[..(width * 4)].CopyTo(cropped.AsSpan(y * width * 4));
+            Check((y < height ? row[(width * 4)..] : row).IndexOfAnyExcept((byte)0) < 0,
+                "The native template drew outside its own bounds.");
+        }
+        return (width, height, cropped);
+    }
+#endif
 #endif
     private static void Check(bool condition, string message)
     {

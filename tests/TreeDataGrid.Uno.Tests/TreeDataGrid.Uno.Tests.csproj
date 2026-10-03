@@ -13,6 +13,7 @@
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.8.43" />
     <Compile Include="../../src/TreeDataGrid.Controls.Uno/buildTransitive/TreeDataGridImplicitXaml.cs" Link="Build/TreeDataGridImplicitXaml.cs" />
     <None Include="../../src/TreeDataGrid.Controls.Uno/buildTransitive/TreeDataGrid.Controls.Uno.targets" Link="Build/TreeDataGrid.Controls.Uno.targets" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../src/TreeDataGrid.Controls.Uno/Windows/XamlMetadata.xaml" Link="Build/XamlMetadata.xaml" CopyToOutputDirectory="PreserveNewest" />
     <Compile Include="../../samples/TreeDataGridUnoSample/BindingSubscriptionLifetimeChecks.cs" Link="Runtime/BindingSubscriptionLifetimeChecks.cs" />
     <Compile Include="../../samples/TreeDataGridUnoSample/PublicExpanderConstructionChecks.cs" Link="Runtime/PublicExpanderConstructionChecks.cs" />
   </ItemGroup>

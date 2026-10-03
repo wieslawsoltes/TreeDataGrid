@@ -43,6 +43,7 @@ internal static class FocusRuntimeChecks
             var parent = cell.Parent;
             var unloads = 0;
             cell.Unloaded += (_, _) => ++unloads;
+            await FocusSettled();
             Check(grid.BringCellIntoView(150, 7), "Far two-axis bring-into-view failed.");
             await Settle();
             Check(ReferenceEquals(FocusManager.GetFocusedElement(grid.XamlRoot ?? throw new InvalidOperationException("The focus fixture must be attached to a XamlRoot.")), cell) &&
@@ -51,10 +52,14 @@ internal static class FocusRuntimeChecks
                 "Scrolling recycled or detached the focused row/cell for another model.");
             Check(after.Focus(FocusState.Keyboard), "Could not move focus outside the grid.");
             await Settle();
-            Check(grid.TryGetRow(2) is null, "The offscreen focused row was not released after focus left it.");
+            await SampleWait.UntilAsync(() => grid.TryGetRow(2) is null, grid.UpdateLayout);
+            Check(grid.TryGetRow(2) is null, "The offscreen focused row was not released after focus left it: " +
+                $"offset={grid.Scroll?.HorizontalOffset},{grid.Scroll?.VerticalOffset}; " +
+                $"focused={FocusManager.GetFocusedElement(grid.XamlRoot!)?.GetType().Name}.");
 
             var horizontal = (TreeDataGridCell)grid.TryGetCell(7, 150)!;
             Check(horizontal.Focus(FocusState.Keyboard), "Could not focus the last visible column.");
+            await FocusSettled();
             Check(grid.BringCellIntoView(150, 0), "Horizontal return failed.");
             await Settle();
             Check(ReferenceEquals(grid.TryGetCell(7, 150), horizontal) && horizontal.ColumnIndex == 7 &&
@@ -67,6 +72,7 @@ internal static class FocusRuntimeChecks
             var header = grid.ColumnHeadersPresenter!.TryGetElement(0)!;
             var headerParent = header.Parent;
             Check(header.Focus(FocusState.Keyboard), "Could not focus a header.");
+            await FocusSettled();
             Check(grid.BringCellIntoView(150, 7), "Header retention scrolling failed.");
             await Settle();
             Check(ReferenceEquals(grid.ColumnHeadersPresenter!.TryGetElement(0), header) && header.ColumnIndex == 0 &&
@@ -109,6 +115,13 @@ internal static class FocusRuntimeChecks
             finally { Check(original.Focus(FocusState.Keyboard), "Could not restore the focus origin after Tab traversal."); }
         }
         async Task Settle() { await Task.Delay(100); grid.UpdateLayout(); }
+        // WinUI brings a keyboard-focused element into view asynchronously; let that request
+        // finish so it does not undo the scroll that follows.
+#if WINDOWS
+        async Task FocusSettled() { for (var i = 0; i < 3; ++i) await Settle(); }
+#else
+        Task FocusSettled() => Task.CompletedTask;
+#endif
     }
 
     private sealed record Item(string Name);

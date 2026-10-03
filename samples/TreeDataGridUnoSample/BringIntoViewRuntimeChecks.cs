@@ -37,6 +37,7 @@ internal static class BringIntoViewRuntimeChecks
             {
                 Check(rows.BringIntoView(index) is TreeDataGridRow, $"No container returned for row {index}.");
                 await Settle();
+                await Realized(index);
                 Verify(index);
             }
 
@@ -45,6 +46,7 @@ internal static class BringIntoViewRuntimeChecks
             var target = new Rect(0, 320, 80, 40);
             Check(rows.BringIntoView(10, target) is TreeDataGridRow, "No tall-row container returned.");
             await Settle();
+            await Realized(10);
             Check(ReferenceEquals(rows.TryGetElement(10)?.Model, items[10]), "The tall target was recycled away.");
             var top = rows.GetRowStart(10) + target.Y;
             Check(top >= scroll.VerticalOffset - 1 && top + target.Height <= scroll.VerticalOffset + scroll.ViewportHeight + 1,
@@ -54,6 +56,7 @@ internal static class BringIntoViewRuntimeChecks
             rows.BringIntoView(220);
             rows.BringIntoView(2);
             await Settle();
+            await Realized(2);
             Verify(2);
             Check(rows.TryGetElement(220) is null, "An obsolete deferred request overrode the newer target.");
 
@@ -78,6 +81,7 @@ internal static class BringIntoViewRuntimeChecks
             await Settle();
             Check(rows.BringIntoView(40) is not null, "The presenter did not recover after reattachment.");
             await Settle();
+            await Realized(40);
             Verify(40);
             Console.WriteLine("UNO_RUNTIME_BRING_INTO_VIEW_PASSED: measured distant/last/reverse targets, tall-row TargetRect, superseded requests, source retirement, unload and reattach");
         }
@@ -101,6 +105,9 @@ internal static class BringIntoViewRuntimeChecks
             foreach (var row in rows.RealizedRows)
                 Check(ReferenceEquals(row.Model, items[row.RowIndex]), "A reused row retained the wrong source model.");
         }
+        // The realized range follows the scroll offset one notification later on WinUI.
+        Task Realized(int index) => SampleWait.UntilAsync(
+            () => ReferenceEquals(rows.TryGetElement(index)?.Model, items[index]), scroll.UpdateLayout);
         async Task Settle()
         {
             // Exercise native dispatcher/layout delivery, without issuing a

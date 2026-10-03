@@ -9,6 +9,25 @@ namespace Uno.Controls.Primitives;
 public abstract partial class TreeDataGridPresenterBase<TItem>
 {
     private long _bringIntoViewRequest;
+#if WINDOWS
+    // WinUI applies a scroll request and reports the new viewport after the dispatcher has
+    // already run the queued correction, which then sees unchanged geometry. The request is
+    // kept until the next viewport notification (briefly, so a later user scroll is not undone).
+    private DeferredBringIntoView? _deferredBringIntoView;
+
+    private readonly record struct DeferredBringIntoView(
+        long Request, int Generation, int Index, Rect? Rect, Rect Bounds, int Pass, long Expires);
+
+    private void ResumeDeferredBringIntoView()
+    {
+        if (_deferredBringIntoView is not { } deferred) return;
+        _deferredBringIntoView = null;
+        if (deferred.Request == _bringIntoViewRequest && deferred.Generation == _generation &&
+            Environment.TickCount64 < deferred.Expires)
+            QueueBringIntoViewCorrection(new(this), deferred.Request, deferred.Generation, deferred.Index,
+                deferred.Rect, deferred.Bounds, deferred.Pass + 1, deferred.Expires);
+    }
+#endif
 
     public Control? BringIntoView(int index, Rect? rect = null)
     {
@@ -19,8 +38,29 @@ public abstract partial class TreeDataGridPresenterBase<TItem>
         try
         {
             var element = BringIntoViewCore(index, rect);
+#if WINDOWS
+            // WinUI applies a native request later, and an arrangement made outside a layout
+            // pass is not reflected in the element's bounds. A target that is not realized yet
+            // was therefore requested at stale bounds, and the layout above (still using the
+            // previous viewport) may have recycled it with its request. Ask for its position
+            // instead; the viewport notification refines it.
             if (element is not null && generation == _generation && request == _bringIntoViewRequest &&
-                ReferenceEquals(element.Parent, this))
+                _realizedElements is not null && !ReferenceEquals(GetRealizedElement(index), element))
+            {
+                var position = GetElementPosition(index);
+                if (position < 0) position = _realizedElements.GetOrEstimateElementU(index, ref _lastEstimatedElementSizeU);
+                var size = element.DesiredSize;
+                var estimated = Orientation == Orientation.Horizontal
+                    ? new Rect(position + (rect?.X ?? 0), rect?.Y ?? 0, rect?.Width ?? size.Width, rect?.Height ?? size.Height)
+                    : new Rect(rect?.X ?? 0, position + (rect?.Y ?? 0), rect?.Width ?? size.Width, rect?.Height ?? size.Height);
+                StartBringIntoView(new BringIntoViewOptions { TargetRect = estimated, AnimationDesired = false });
+                if (generation == _generation && request == _bringIntoViewRequest)
+                    _deferredBringIntoView = new(request, generation, index, rect, estimated, 0, Environment.TickCount64 + 1000);
+                return element;
+            }
+#endif
+            if (element is not null && generation == _generation && request == _bringIntoViewRequest &&
+                ReferenceEquals(element.HostParent(), this))
             {
                 var bounds = element.TransformToVisual(this).TransformBounds(
                     rect ?? new Rect(0, 0, element.ActualWidth, element.ActualHeight));
@@ -95,7 +135,7 @@ public abstract partial class TreeDataGridPresenterBase<TItem>
     }
 
     private void QueueBringIntoViewCorrection(WeakReference<TreeDataGridPresenterBase<TItem>> owner,
-        long request, int generation, int index, Rect? rect, Rect requestedBounds, int pass)
+        long request, int generation, int index, Rect? rect, Rect requestedBounds, int pass, long resumedUntil = 0)
     {
         // Native effective-viewport notification can arrive after UpdateLayout
         // returns. A newly measured preceding row then shifts the requested row.
@@ -113,6 +153,15 @@ public abstract partial class TreeDataGridPresenterBase<TItem>
                 presenter.QueueBringIntoViewCorrection(owner, request, generation, index, rect, requestedBounds, pass + 1);
                 return;
             }
+#if WINDOWS
+            // The viewport notification that resumed this request has not been measured yet.
+            if (resumedUntil != 0)
+            {
+                presenter.UpdateLayout();
+                if (generation != presenter._generation || request != presenter._bringIntoViewRequest ||
+                    presenter._isInLayout || presenter._resetting) return;
+            }
+#endif
             var position = presenter.GetElementPosition(index);
             if (generation != presenter._generation || request != presenter._bringIntoViewRequest) return;
             // Generic custom presenters may not expose precise position geometry.
@@ -124,25 +173,58 @@ public abstract partial class TreeDataGridPresenterBase<TItem>
                 var slot = LayoutInformation.GetLayoutSlot(current);
                 position = presenter.Orientation == Orientation.Horizontal ? slot.Left : slot.Top;
             }
+#if WINDOWS
+            if (position < 0 && current is null && presenter._realizedElements is { } realized)
+                position = realized.GetOrEstimateElementU(index, ref presenter._lastEstimatedElementSizeU);
+#endif
             if (!double.IsFinite(position) || position < 0) return;
             var next = requestedBounds;
             if (presenter.Orientation == Orientation.Horizontal)
             {
                 next.X = position + (rect?.X ?? 0);
                 if (rect is null && current is not null) next.Width = current.ActualWidth;
+#if WINDOWS
+                else if (rect is null) next.Width = presenter.EstimateElementSizeU();
+#endif
             }
             else
             {
                 next.Y = position + (rect?.Y ?? 0);
                 if (rect is null && current is not null) next.Height = current.ActualHeight;
+#if WINDOWS
+                else if (rect is null) next.Height = presenter.EstimateElementSizeU();
+#endif
             }
+#if WINDOWS
+            if (next == requestedBounds)
+            {
+                if (resumedUntil == 0)
+                {
+                    presenter._deferredBringIntoView = new(request, generation, index, rect, next, pass,
+                        Environment.TickCount64 + 1000);
+                    return;
+                }
+                // Unchanged geometry after the viewport moved: done once the target is inside
+                // it; otherwise the scroll was clamped by an extent that has grown since.
+                var viewport = presenter.Viewport;
+                if (current is not null && (presenter.Orientation == Orientation.Horizontal
+                    ? next.Left >= viewport.Left - 1 && next.Right <= viewport.Right + 1
+                    : next.Top >= viewport.Top - 1 && next.Bottom <= viewport.Bottom + 1)) return;
+            }
+#else
             if (next == requestedBounds) return;
+#endif
             // Keep native routing, clipping, cancellation, nested viewers and
             // alignment. Direct ChangeView would bypass those contracts.
             presenter.StartBringIntoView(new BringIntoViewOptions { TargetRect = next, AnimationDesired = false });
             if (generation != presenter._generation || request != presenter._bringIntoViewRequest) return;
             presenter.InvalidateMeasure();
+#if WINDOWS
+            presenter._deferredBringIntoView = new(request, generation, index, rect, next, pass,
+                resumedUntil != 0 ? resumedUntil : Environment.TickCount64 + 1000);
+#else
             presenter.QueueBringIntoViewCorrection(owner, request, generation, index, rect, next, pass + 1);
+#endif
         });
     }
 
@@ -155,7 +237,7 @@ public abstract partial class TreeDataGridPresenterBase<TItem>
         }
         // Newly created virtualized elements can be measured/arranged before
         // Loaded. Route their measured rectangle through the loaded presenter.
-        if (!ReferenceEquals(element.Parent, this) || !IsLoaded) return;
+        if (!ReferenceEquals(element.HostParent(), this) || !IsLoaded) return;
         var local = rect ?? new Rect(0, 0, element.ActualWidth, element.ActualHeight);
         var target = element.TransformToVisual(this).TransformBounds(local);
         StartBringIntoView(new BringIntoViewOptions { TargetRect = target, AnimationDesired = false });

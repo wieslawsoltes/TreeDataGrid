@@ -38,7 +38,7 @@ public partial class TreeDataGridCell
                 // A model/DP callback can interrupt ordinary edit cancellation.
                 // Continue native editor cleanup without invoking Cancel twice.
                 _edit = null;
-                try { if (_editor is not null) _editor.Text = string.Empty; }
+                try { if (_editor is not null) SetEditorText(_editor, string.Empty); }
                 catch (Exception cleanup) { errors.Add(cleanup); }
                 try { if (_editContent is not null) _editContent.Content = null; }
                 catch (Exception cleanup) { errors.Add(cleanup); }

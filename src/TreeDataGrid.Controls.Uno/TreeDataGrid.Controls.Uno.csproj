@@ -10,6 +10,10 @@
     <GenerateLibraryLayout>true</GenerateLibraryLayout>
     <Description>Uno Platform presentation of framework-neutral TreeDataGrid Core sources.</Description>
   </PropertyGroup>
+  <!-- Windows/ holds Windows App SDK-only XAML metadata (see Windows/XamlMetadata.xaml). -->
+  <PropertyGroup Condition="!$(TargetFramework.Contains('-windows'))">
+    <DefaultItemExcludes>$(DefaultItemExcludes);Windows/**</DefaultItemExcludes>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../TreeDataGrid.Core/TreeDataGrid.Core.csproj" />
     <InternalsVisibleTo Include="TreeDataGrid.Uno.Tests" />

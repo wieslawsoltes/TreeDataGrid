@@ -43,6 +43,21 @@ public class XamlNamespaceTests
     }
 
     [Fact]
+    public void Windows_xaml_metadata_names_every_public_xaml_type()
+    {
+        // Windows/XamlMetadata.xaml makes WinUI generate complete metadata for the library.
+        var listed = XDocument.Load(Path.Combine(AppContext.BaseDirectory, "Build", "XamlMetadata.xaml")).Root!
+            .Elements().Select(element => element.Name.LocalName).ToArray();
+        var exported = ExportedGlobalTypes().ToDictionary(type => type.Name);
+        Assert.All(listed, name => Assert.True(exported.ContainsKey(name), $"{name} is not a public TreeDataGrid type."));
+        var required = exported.Values
+            .Where(type => typeof(Microsoft.UI.Xaml.DependencyObject).IsAssignableFrom(type) && !type.IsAbstract &&
+                type.GetConstructor(Type.EmptyTypes) is not null)
+            .Select(type => type.Name);
+        Assert.Empty(required.Except(listed).Order());
+    }
+
+    [Fact]
     public void Rewrite_adds_prefixes_to_elements_property_elements_attached_properties_and_type_values()
     {
         var output = Rewrite("""

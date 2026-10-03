@@ -153,7 +153,7 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
     {
         foreach (var row in _realized.Values.ToArray())
         {
-            if (ReferenceEquals(row.Parent, this))
+            if (ReferenceEquals(row.HostParent(), this))
                 row.UpdateAlternation();
         }
     }
@@ -171,13 +171,13 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
         var style = Owner?.RowStyle;
         foreach (var row in realized)
         {
-            if (!ReferenceEquals(row.Parent, this)) continue;
+            if (!ReferenceEquals(row.HostParent(), this)) continue;
             row.Style = style;
             if (request != _styleRefreshVersion || revision != _revision || generation != PresenterGeneration) return;
         }
         foreach (var row in pooled)
         {
-            if (!ReferenceEquals(row.Parent, this)) continue;
+            if (!ReferenceEquals(row.HostParent(), this)) continue;
             row.Style = style;
             if (request != _styleRefreshVersion || revision != _revision || generation != PresenterGeneration) return;
         }
@@ -195,13 +195,13 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
             var pooled = _pool.ToArray();
             foreach (var row in realized)
             {
-                if (!ReferenceEquals(row.Parent, this)) continue;
+                if (!ReferenceEquals(row.HostParent(), this)) continue;
                 row.CellsPresenter?.SynchronizeColumns();
                 if (refreshRevision != _revision || generation != PresenterGeneration) return;
             }
             foreach (var row in pooled)
             {
-                if (!ReferenceEquals(row.Parent, this)) continue;
+                if (!ReferenceEquals(row.HostParent(), this)) continue;
                 row.CellsPresenter?.SynchronizeColumns();
                 if (refreshRevision != _revision || generation != PresenterGeneration) return;
             }
@@ -378,7 +378,7 @@ public partial class TreeDataGridRowsPresenter : TreeDataGridPresenterBase<IRow>
         }
         var created = factory.GetOrCreateElement(item, this);
         if (created is not TreeDataGridRow row || row.RowIndex >= 0 ||
-            (row.Parent is not null && !ReferenceEquals(row.Parent, this)))
+            (row.HostParent() is not null && !ReferenceEquals(row.HostParent(), this)))
             throw new InvalidOperationException("The row factory must return an unrealized row owned by this presenter or no parent.");
         try { EnsureGeneration(generation); return row; }
         catch { RemoveRecycledElement(row); throw; }

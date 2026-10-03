@@ -83,9 +83,11 @@ internal static class DeclarativeRuntimeChecks
             Check(CellText(1) == "Nested update", "Nested INPC did not refresh the native cell binding.");
             Check(grid.BeginEdit(0, 1), "Two-way declarative text did not enter editing.");
             grid.EditingCell!.EditingText = "invalid";
-            Check(!grid.CommitEdit() && grid.EditingCell!.HasValidationError &&
+            var rejected = !grid.CommitEdit();
+            Check(rejected && grid.EditingCell!.HasValidationError &&
                 grid.EditingCell.EditError is ArgumentException { Message: "Rejected name." },
-                $"The declarative setter's actual rejection was not preserved: {grid.EditingCell?.EditError}.");
+                $"The declarative setter's actual rejection was not preserved: rejected={rejected}, " +
+                $"invalid={grid.EditingCell?.HasValidationError}, name={root.State.Name}, error={grid.EditingCell?.EditError}.");
             grid.EditingCell!.EditingText = "Edited";
             Check(grid.CommitEdit() && root.State.Name == "Edited", "Declarative text retry did not write back.");
             var check = (TreeDataGridCell)grid.TryGetCell(2, 0)!;

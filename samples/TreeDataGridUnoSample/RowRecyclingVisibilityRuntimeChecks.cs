@@ -35,6 +35,11 @@ internal static class RowRecyclingVisibilityRuntimeChecks
             grid.Width = 360;
             grid.Height = 220;
             grid.RowHeight = 28;
+#if WINDOWS
+            // WinUI reports the resized viewport only after a layout pass; realizing the new
+            // source before that would use the previous, larger viewport once and pool extra cells.
+            await Settle();
+#endif
             grid.ElementFactory = factory;
             grid.Model = source;
             await Settle();
@@ -72,7 +77,15 @@ internal static class RowRecyclingVisibilityRuntimeChecks
             row.UnregisterPropertyChangedCallback(UIElement.VisibilityProperty, rowToken);
             grid.Scroll.ChangeView(1600, 0, null, true);
             await Settle();
+#if WINDOWS
+            // WinUI applies the horizontal jump inside one layout pass, where recycled cells
+            // are reused directly without a visibility change. None may be left visible unused.
+            Check(grid.Scroll.HorizontalOffset == 1600 &&
+                cells.Values.All(cell => cell.RowIndex >= 0 ? cell.ColumnIndex >= 20 : cell.Visibility == Visibility.Collapsed),
+                "Horizontal-only recycling left an unused cell visible.");
+#else
             Check(collapses > 0, "Horizontal-only recycling incorrectly deferred local cell visibility.");
+#endif
             Check(grid.RowsPresenter!.RealizedCells.Count is > 0 and < 100, "Recycling exceeded the viewport cell budget.");
             grid.Model = null;
             Check(factory.Cells.All(cell => cell.Model is null && cell.RowModel is null && cell.Visibility == Visibility.Collapsed),

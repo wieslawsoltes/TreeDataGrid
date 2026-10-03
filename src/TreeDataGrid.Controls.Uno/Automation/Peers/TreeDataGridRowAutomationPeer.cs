@@ -98,7 +98,7 @@ public class TreeDataGridRowAutomationPeer : FrameworkElementAutomationPeer,
         _expanded = expanded;
         _value = value;
         if (previousValue != value)
-            RaisePropertyChangedEvent(ValuePatternIdentifiers.ValueProperty, previousValue, value);
+            RaisePropertyChangedEvent(ValuePatternIdentifiers.ValueProperty, previousValue ?? string.Empty, value ?? string.Empty);
         if (previousSelected != selected)
             RaisePropertyChangedEvent(SelectionItemPatternIdentifiers.IsSelectedProperty, previousSelected, selected);
         if (previousExpanded != expanded)

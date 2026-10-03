@@ -23,6 +23,13 @@ public class TreeDataGridElementFactory
     public Control GetOrCreateElement(object? data, FrameworkElement parent)
     {
         ArgumentNullException.ThrowIfNull(parent);
+        var element = TakeOrCreateElement(data, parent);
+        ElementParent.RecordHost(element, parent);
+        return element;
+    }
+
+    private Control TakeOrCreateElement(object? data, FrameworkElement parent)
+    {
         var key = GetDataRecycleKey(data);
         if (_parents.TryGetValue(parent, out var pool) && Take(pool, key, parent) is { } retained)
             return retained;
@@ -34,12 +41,12 @@ public class TreeDataGridElementFactory
             else if (_entries.TryGetValue(candidate, out var entry) && entry.Key == key)
             {
                 Remove(entry);
-                if (candidate.Parent is Panel oldParent)
+                if (candidate.HostParent() is Panel oldParent)
                 {
                     oldParent.Children.Remove(candidate);
                     return candidate;
                 }
-                if (candidate.Parent is null) return candidate;
+                if (candidate.HostParent() is null) return candidate;
             }
             node = next;
         }
@@ -52,7 +59,7 @@ public class TreeDataGridElementFactory
         var key = GetElementRecycleKey(element);
         var entry = _entries.GetValue(element, static control => new(control));
         if (entry.Pool is not null) throw new InvalidOperationException("The element is already in this factory's recycle pool.");
-        var pool = element.Parent is FrameworkElement parent
+        var pool = element.HostParent() is FrameworkElement parent
             ? _parents.GetValue(parent, static _ => new()) : _unparented;
         // Presenters have their own bounded pools. This pool serves direct
         // factory consumers only; no element belongs to both pools.
@@ -62,7 +69,7 @@ public class TreeDataGridElementFactory
         ++pool.Count;
         entry.Pool = pool;
         entry.Key = key;
-        if (element.Parent is null or Panel)
+        if (element.HostParent() is null or Panel)
         {
             // Weak fallback entries preserve Avalonia's same-parent-first,
             // cross-panel fallback behavior without rooting an old visual tree.
@@ -111,7 +118,7 @@ public class TreeDataGridElementFactory
             Remove(_entries.GetValue(element, static control => new(control)));
             // A direct consumer may have moved an element since recycling it.
             // Never steal it from its new parent.
-            if (ReferenceEquals(element.Parent, parent)) return element;
+            if (ReferenceEquals(element.HostParent(), parent)) return element;
         }
         return null;
     }

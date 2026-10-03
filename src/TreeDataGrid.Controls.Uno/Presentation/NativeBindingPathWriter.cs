@@ -15,7 +15,8 @@ internal static partial class NativeBindingPathWriter
 {
     internal static bool TryWrite(Binding binding, object model, object? value, CultureInfo culture, Func<bool>? isCurrent = null)
     {
-        if (binding.ElementName is not null || binding.RelativeSource is not null) return false;
+        // WinUI reports an unset ElementName as an empty string, Uno as null.
+        if (binding.ElementName is not null and not "" || binding.RelativeSource is not null) return false;
         return TryWriteResolvedSource(binding, binding.Source ?? model, value, culture, isCurrent);
     }
 

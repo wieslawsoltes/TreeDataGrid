@@ -66,7 +66,7 @@ public partial class TreeDataGridCell
                 }
                 var text = Convert.ToString(raw, options?.Culture ?? CultureInfo.CurrentCulture) ?? string.Empty;
                 if (!IsCurrent() || !ReferenceEquals(_editor, editor)) return false;
-                editor.Text = text;
+                SetEditorText(editor, text);
                 if (!IsCurrent() || !ReferenceEquals(_editor, editor)) return false;
             }
             else

@@ -17,6 +17,8 @@ public partial class TreeDataGridCell
     private CellEditSession? _edit;
     private Grid? _editorHost;
     private TextBox? _editor;
+    private string? _editorText;
+    private int _editorTextVersion;
     private ContentPresenter? _editContent;
     private DataTemplate? _editingTemplate;
     protected bool UsesTextEditor => _editingTemplate is null;
@@ -29,8 +31,23 @@ public partial class TreeDataGridCell
         set
         {
             if (!IsEditing || _editor is null) throw new InvalidOperationException("No text edit is active.");
-            _editor.Text = value;
+            SetEditorText(_editor, value);
         }
+    }
+
+    /// <summary>
+    /// Assigns the native editor text. A callback of the assignment can start or end an edit that
+    /// assigns its own text; WinUI then lets this outer, by now obsolete, assignment win when the
+    /// callback returns, while Uno keeps the nested value. The newest text is restored.
+    /// </summary>
+    private void SetEditorText(TextBox editor, string text)
+    {
+        var version = unchecked(++_editorTextVersion);
+        _editorText = text;
+        editor.Text = text;
+        if (version != _editorTextVersion && ReferenceEquals(_editor, editor) &&
+            _editorText is { } latest && editor.Text != latest)
+            editor.Text = latest;
     }
     public virtual bool BeginEdit() => !_unrealizing && BeginEditForCurrentRealization();
     protected override void OnLostFocus(RoutedEventArgs e)
@@ -107,7 +124,7 @@ public partial class TreeDataGridCell
         // Clear a template-bound editor while still editing: the text cell's
         // Value facade must not write this cleanup value to the model. Each
         // native setter is a reentrancy boundary, not an atomic block.
-        if (_editor is not null) _editor.Text = string.Empty;
+        if (_editor is not null) SetEditorText(_editor, string.Empty);
         if (!IsCurrent()) return false;
         if (_editContent is not null) _editContent.Content = null;
         if (!IsCurrent()) return false;

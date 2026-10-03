@@ -217,7 +217,7 @@ public partial class TreeDataGridCellsPresenter : TreeDataGridColumnarPresenterB
             {
                 var created = legacy ? nativePresenter!.Owner!.CellFactory(nativeColumn!) : factory.GetOrCreateElement(model, this);
                 if (created is not TreeDataGridCell candidate || candidate.RowIndex >= 0 ||
-                    (candidate.Parent is not null && !ReferenceEquals(candidate.Parent, this)))
+                    (candidate.HostParent() is not null && !ReferenceEquals(candidate.HostParent(), this)))
                     throw new InvalidOperationException("The cell factory must return an unrealized cell owned by this presenter or no parent.");
                 cell = candidate;
             }

@@ -11,7 +11,23 @@ public partial class App : Application
     private Window? _window;
     public App()
     {
-        UnhandledException += (_, e) => { if (SampleRunContext.HasArgument("--smoke")) SampleRunContext.ReportResult(false, e.Exception.ToString()); };
+        UnhandledException += (_, e) =>
+        {
+            if (!SampleRunContext.HasArgument("--smoke")) return;
+            // WinUI ends the process right after this event (a stowed exception); print first.
+            Console.Error.WriteLine($"Unhandled exception: {e.Message}{Environment.NewLine}{e.Exception}");
+            Console.Error.Flush();
+            SampleRunContext.ReportResult(false, e.Exception.ToString());
+        };
+#if WINDOWS
+        if (SampleRunContext.HasArgument("--smoke"))
+        {
+            // WinUI reports XAML resource and binding failures only through DebugSettings.
+            DebugSettings.IsXamlResourceReferenceTracingEnabled = true;
+            DebugSettings.XamlResourceReferenceFailed += (_, e) => Console.Error.WriteLine("XAML resource reference failed: " + e.Message);
+            DebugSettings.BindingFailed += (_, e) => Console.Error.WriteLine("Binding failed: " + e.Message);
+        }
+#endif
         InitializeComponent();
     }
     public static void InitializeLogging() { }
