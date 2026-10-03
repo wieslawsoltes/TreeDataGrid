@@ -374,15 +374,13 @@ namespace TreeDataGridCore.Models
             {
                 var i = rowIndex;
 
-                while (count > 0)
-                {
-                    var row = _flattenedRows[i];
-                    if (row.Children?.Count > 0)
-                        i = Advance(i + 1, row.Children.Count);
-                    else
-                        i += +1;
-                    --count;
-                }
+                // Use the existing flattened sequence, not live child collections.
+                // Removed/replaced rows have already released those collections
+                // before their parent's notification arrives. The old visible
+                // descendants still occupy this sequence until Remove runs.
+                // Scanning by depth also avoids recursive stack growth here.
+                while (count-- > 0)
+                    i += 1 + GetDescendentRowCount(i);
 
                 return i;
             }

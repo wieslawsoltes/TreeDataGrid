@@ -1,0 +1,34 @@
+<Project Sdk="Uno.Sdk">
+  <PropertyGroup>
+    <TreeDataGridUnoTargetFrameworks Condition="'$(TreeDataGridUnoTargetFrameworks)' == '' and '$(OS)' == 'Windows_NT'">net10.0;net10.0-desktop;net10.0-windows10.0.26100</TreeDataGridUnoTargetFrameworks>
+    <TreeDataGridUnoTargetFrameworks Condition="'$(TreeDataGridUnoTargetFrameworks)' == ''">net10.0;net10.0-desktop</TreeDataGridUnoTargetFrameworks>
+    <TargetFrameworks>$(TreeDataGridUnoTargetFrameworks)</TargetFrameworks>
+    <RootNamespace>Uno.Controls</RootNamespace>
+    <PackageId>TreeDataGrid.Controls.Uno</PackageId>
+    <AssemblyName>TreeDataGrid.Controls.Uno</AssemblyName>
+    <IsPackable>true</IsPackable>
+    <GenerateLibraryLayout>true</GenerateLibraryLayout>
+    <Description>Uno Platform presentation of framework-neutral TreeDataGrid Core sources.</Description>
+  </PropertyGroup>
+  <!-- Windows/ holds Windows App SDK-only XAML metadata (see Windows/XamlMetadata.xaml). -->
+  <PropertyGroup Condition="!$(TargetFramework.Contains('-windows'))">
+    <DefaultItemExcludes>$(DefaultItemExcludes);Windows/**</DefaultItemExcludes>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../TreeDataGrid.Core/TreeDataGrid.Core.csproj" />
+    <InternalsVisibleTo Include="TreeDataGrid.Uno.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Unprefixed TreeDataGrid XAML on Windows App SDK heads (see the file for details). -->
+    <Compile Remove="buildTransitive/**" />
+    <None Include="buildTransitive/**" Pack="true" PackagePath="buildTransitive/" />
+  </ItemGroup>
+  <!-- Uno.Sdk references Resizetizer in every project; its source generator would add a public
+       Uno.Controls.WindowExtensions to this library, which has no assets or windows. -->
+  <Target Name="_TreeDataGridRemoveResizetizerGenerator" BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <Analyzer Remove="@(Analyzer)" Condition="'%(Analyzer.Filename)' == 'Uno.Resizetizer.Generators'" />
+    </ItemGroup>
+  </Target>
+  <Import Project="buildTransitive/TreeDataGrid.Controls.Uno.targets" />
+</Project>

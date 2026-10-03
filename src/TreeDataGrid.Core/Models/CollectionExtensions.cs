@@ -1,8 +1,7 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 
 namespace TreeDataGridCore.Models
 {
@@ -60,11 +59,27 @@ namespace TreeDataGridCore.Models
 
         public static void InsertMany<T>(this List<T> list, int index, T item, int count)
         {
-            var repeat = FastRepeat<T>.Instance;
-            repeat.Count = count;
-            repeat.Item = item;
-            list.InsertRange(index, FastRepeat<T>.Instance);
-            repeat.Item = default;
+            ArgumentNullException.ThrowIfNull(list);
+            var previousCount = list.Count;
+            if ((uint)index > (uint)previousCount)
+                throw new ArgumentOutOfRangeException(nameof(index));
+            if (count < 0 || count > int.MaxValue - previousCount)
+                throw new ArgumentOutOfRangeException(nameof(count));
+            if (count == 0) return;
+
+            // All validation and potentially failing growth precede the content
+            // mutation. There are no application callbacks after this point.
+            // This replaces the process-wide mutable FastRepeat<T> singleton,
+            // which could cross-contaminate independent lists and retain Item
+            // when InsertRange threw. No operation state escapes this call.
+            var nextCount = previousCount + count;
+            list.EnsureCapacity(nextCount);
+            CollectionsMarshal.SetCount(list, nextCount);
+            var storage = CollectionsMarshal.AsSpan(list);
+            // CopyTo has memmove semantics for overlapping slices and preserves
+            // GC references. Fill initializes every newly exposed element.
+            storage.Slice(index, previousCount - index).CopyTo(storage.Slice(index + count));
+            storage.Slice(index, count).Fill(item);
         }
 
         public static T[] Slice<T>(this List<T> list, int index, int count)
@@ -72,30 +87,6 @@ namespace TreeDataGridCore.Models
             var result = new T[count];
             list.CopyTo(index, result, 0, count);
             return result;
-        }
-
-        private class FastRepeat<T> : ICollection<T>
-        {
-            public static readonly FastRepeat<T> Instance = new();
-            public int Count { get; set; }
-            public bool IsReadOnly => true;
-            [AllowNull] public T Item { get; set; }
-            public void Add(T item) => throw new NotImplementedException();
-            public void Clear() => throw new NotImplementedException();
-            public bool Contains(T item) => throw new NotImplementedException();
-            public bool Remove(T item) => throw new NotImplementedException();
-            IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
-            public IEnumerator<T> GetEnumerator() => throw new NotImplementedException();
-
-            public void CopyTo(T[] array, int arrayIndex)
-            {
-                var end = arrayIndex + Count;
-
-                for (var i = arrayIndex; i < end; ++i)
-                {
-                    array[i] = Item;
-                }
-            }
         }
     }
 }

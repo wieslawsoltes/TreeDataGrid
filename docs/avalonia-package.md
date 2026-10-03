@@ -33,5 +33,5 @@ a package-reference replacement plus changing explicit theme URIs to
 `avares://TreeDataGrid.Avalonia/`; C# namespaces and XAML control names remain the
 same.
 
-A future `TreeDataGrid.Uno` package can share `TreeDataGrid.Core`; it is intentionally
+A future `TreeDataGrid.Controls.Uno` package can share `TreeDataGrid.Core`; it is intentionally
 outside the current Avalonia 11/12 work.

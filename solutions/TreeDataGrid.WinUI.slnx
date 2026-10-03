@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/Samples/">
+    <Project Path="../samples/TreeDataGridWinUIActivityMonitor/TreeDataGridWinUIActivityMonitor.csproj" />
+    <Project Path="../samples/TreeDataGridWinUISample/TreeDataGridWinUISample.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="../tests/TreeDataGrid.Core.Tests/TreeDataGrid.Core.Tests.csproj" />
+    <Project Path="../tests/TreeDataGrid.WinUI.Tests/TreeDataGrid.WinUI.Tests.csproj" />
+    <Project Path="../samples/TreeDataGridWinUISample.Tests/TreeDataGridWinUISample.Tests.csproj" />
+  </Folder>
+  <Project Path="../src/TreeDataGrid.Core/TreeDataGrid.Core.csproj" />
+  <Project Path="../src/TreeDataGrid.Controls.WinUI/TreeDataGrid.Controls.WinUI.csproj" />
+</Solution>

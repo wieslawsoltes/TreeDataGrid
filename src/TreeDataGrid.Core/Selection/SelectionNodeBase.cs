@@ -315,7 +315,7 @@ namespace TreeDataGridCore.Selection
         /// assigning new indexes. Override this method to carry out additional computation when
         /// items are added.
         /// </remarks>
-        private protected CollectionChangeState OnItemsAdded(int index, IList items)
+        private protected virtual CollectionChangeState OnItemsAdded(int index, IList items)
         {
             var count = items.Count;
             var shifted = false;
@@ -377,7 +377,7 @@ namespace TreeDataGridCore.Selection
         /// assigning new indexes. Override this method to carry out additional computation when
         /// items are removed.
         /// </remarks>
-        private protected CollectionChangeState OnItemsRemoved(int index, IList items)
+        private protected virtual CollectionChangeState OnItemsRemoved(int index, IList items)
         {
             var count = items.Count;
             var removedRange = new IndexRange(index, index + count - 1);

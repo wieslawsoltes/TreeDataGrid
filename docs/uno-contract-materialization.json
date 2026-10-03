@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "upstreamRelease": "Avalonia 12.0.0",
+  "upstreamGitBlobs": {
+    "ISelectionModel.cs": "4c2a355bb5258bbdfecec7161f274ac6a1cd1f0b",
+    "ReadOnlySelectionListBase.cs": "f603fd81686440d75352250d0bf4c9e3baeee182",
+    "SelectedIndexes.cs": "b742d91e2182a4fcf9b3d0165102a615cb6e54e7",
+    "SelectedItems.cs": "a892876b295545afaac46214751688db2c0b141f",
+    "SelectionModel.cs": "d191f79801b1858c76b0d81623fc739894999435",
+    "SelectionModelIndexesChangedEventArgs.cs": "621fba48e8ce757a0dcdc3d27ef23fa842dd7669",
+    "SelectionModelSelectionChangedEventArgs.cs": "8f6d2568471f676cffc37db91d24adeb935f4f78",
+    "SelectionNodeBase.cs": "c50f77830f1db5dd2663afe0ffc91d26baa539ce"
+  },
+  "normalBuildRequiresNetwork": false,
+  "sharedCoreRangeEngine": true,
+  "treeSelectionAlgorithmBodiesChanged": false,
+  "completePortParityProven": false,
+  "notes": [
+    "Flat selection preserves the pinned reference collection semantics, including its move policy.",
+    "The two Core collection hooks became virtual; their bodies and tree algorithms are unchanged.",
+    "Native column selection exposes the Core flat selection interface and event types.",
+    "Visitor and observable are native extension APIs, not replacements for existing cell bindings."
+  ],
+  "outputs": [
+    "build/uno-parity-inputs/upstream/ISelectionModel.cs.txt",
+    "build/uno-parity-inputs/upstream/ReadOnlySelectionListBase.cs.txt",
+    "build/uno-parity-inputs/upstream/SelectedIndexes.cs.txt",
+    "build/uno-parity-inputs/upstream/SelectedItems.cs.txt",
+    "build/uno-parity-inputs/upstream/SelectionModel.cs.txt",
+    "build/uno-parity-inputs/upstream/SelectionModelIndexesChangedEventArgs.cs.txt",
+    "build/uno-parity-inputs/upstream/SelectionModelSelectionChangedEventArgs.cs.txt",
+    "build/uno-parity-inputs/upstream/SelectionNodeBase.cs.txt",
+    "src/TreeDataGrid.Controls.Uno/Experimental/Data/Core/LightweightObservableBase.cs",
+    "src/TreeDataGrid.Controls.Uno/Experimental/Data/Core/Parsers/ExpressionChainVisitor.cs",
+    "src/TreeDataGrid.Controls.Uno/Selection/ITreeDataGridColumnSelectionModel.cs",
+    "src/TreeDataGrid.Controls.Uno/Selection/TreeDataGridColumnSelectionModel.cs",
+    "src/TreeDataGrid.Core/Selection/FlatReadOnlySelectionListBase.cs",
+    "src/TreeDataGrid.Core/Selection/FlatSelectedIndexes.cs",
+    "src/TreeDataGrid.Core/Selection/FlatSelectedItems.cs",
+    "src/TreeDataGrid.Core/Selection/FlatSelectionModel.cs",
+    "src/TreeDataGrid.Core/Selection/ISelectionModel.cs",
+    "src/TreeDataGrid.Core/Selection/SelectionModelIndexesChangedEventArgs.cs",
+    "src/TreeDataGrid.Core/Selection/SelectionModelSelectionChangedEventArgs.cs",
+    "src/TreeDataGrid.Core/Selection/SelectionNodeBase.cs",
+    "tests/TreeDataGrid.Parity.Tests/FlatSelectionParityTests.cs",
+    "tests/TreeDataGrid.Parity.Tests/ObservableContractParityTests.cs"
+  ]
+}
