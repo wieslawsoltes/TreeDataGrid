@@ -126,7 +126,7 @@ custom cells draw current text.
 | --- | --- |
 | Skia desktop (macOS, Linux X11) | Runs; all native validation suites, smoke and package consumers pass in CI (Linux X11) and locally (macOS) |
 | Skia WebAssembly | Runs; trimmed consumers pass smoke validation and real browser input on Chromium, Firefox and WebKit |
-| Windows App SDK | Builds, packs and publishes as a package consumer in CI; not yet run |
+| Windows App SDK | Builds, packs and publishes as a package consumer in CI. The same sources run as plain WinUI 3 projects: unit tests and all native suites pass ([WinUI port status](winui-port-status.md)) |
 | Android, iOS | Not targeted |
 
 Without WebGL (Firefox on the CI runners) Uno draws through its software canvas renderer, whose
@@ -176,7 +176,7 @@ Portable members still missing on the Uno side: `ITreeDataGridRows.ModelIndexToR
 `HasChildren`, `GetChildModels`, `GetComparison`, …), the `ColumnBase<TModel>.Width` /
 `ActualWidth` accessor shape, and the `TreeDataGridPresentation<TModel>` selection overrides.
 
-**Verification not yet done.** Running the Windows App SDK target; screen-reader acceptance
+**Verification not yet done.** Running the Uno.Sdk Windows App SDK target itself (the linked WinUI 3 projects are validated instead); screen-reader acceptance
 (VoiceOver, Narrator, NVDA) and multi-monitor scaling; physical keyboard, pointer and touch
 input on desktop (browser input is covered).
 

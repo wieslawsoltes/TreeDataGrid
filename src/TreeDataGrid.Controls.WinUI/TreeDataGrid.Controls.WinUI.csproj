@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- WinUI 3 (Windows App SDK) build of the Uno port: the controls project's sources, theme and
+       build targets linked unchanged, compiled without Uno.Sdk. -->
+  <PropertyGroup>
+    <RootNamespace>Uno.Controls</RootNamespace>
+    <AssemblyName>TreeDataGrid.Controls.WinUI</AssemblyName>
+    <PackageId>TreeDataGrid.Controls.WinUI</PackageId>
+    <IsPackable>true</IsPackable>
+    <GenerateLibraryLayout>true</GenerateLibraryLayout>
+    <DefineConstants>$(DefineConstants);TREEDATAGRID_WINUI_PACKAGE</DefineConstants>
+    <Description>WinUI 3 (Windows App SDK) presentation of framework-neutral TreeDataGrid Core sources, built from the same sources as TreeDataGrid.Controls.Uno.</Description>
+  </PropertyGroup>
+  <Import Project="../../build/WinUI.props" />
+  <PropertyGroup>
+    <UnoControlsSources>../TreeDataGrid.Controls.Uno/</UnoControlsSources>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(UnoControlsSources)**/*.cs"
+             Exclude="$(UnoControlsSources)bin/**;$(UnoControlsSources)obj/**;$(UnoControlsSources)buildTransitive/**"
+             Link="%(RecursiveDir)%(Filename)%(Extension)" />
+    <Page Include="$(UnoControlsSources)Themes/Generic.xaml" Link="Themes/Generic.xaml" />
+    <Page Include="$(UnoControlsSources)Windows/XamlMetadata.xaml" Link="Windows/XamlMetadata.xaml" />
+    <ProjectReference Include="../TreeDataGrid.Core/TreeDataGrid.Core.csproj" />
+    <InternalsVisibleTo Include="TreeDataGrid.WinUI.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Prefixless TreeDataGrid XAML for consumers, as in the Uno package. -->
+    <None Include="$(UnoControlsSources)buildTransitive/TreeDataGrid.Controls.Uno.targets" Link="buildTransitive/TreeDataGrid.Controls.Uno.targets" Pack="true" PackagePath="buildTransitive/" />
+    <None Include="$(UnoControlsSources)buildTransitive/TreeDataGridImplicitXaml.cs" Link="buildTransitive/TreeDataGridImplicitXaml.cs" Pack="true" PackagePath="buildTransitive/" />
+    <None Include="buildTransitive/TreeDataGrid.Controls.WinUI.targets" Pack="true" PackagePath="buildTransitive/" />
+  </ItemGroup>
+  <Import Project="$(UnoControlsSources)buildTransitive/TreeDataGrid.Controls.Uno.targets" />
+</Project>

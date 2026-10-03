@@ -69,6 +69,22 @@ See [Uno port status](docs/uno-port-status.md) for differences from Avalonia, re
 parity work and validation commands, and [Uno performance findings](docs/uno-performance-findings.md)
 for the measured performance gap and the Uno changes that would close it.
 
+### WinUI 3
+
+`src/TreeDataGrid.Controls.WinUI` builds the Uno port's sources, theme and build targets as a
+plain WinUI 3 (Windows App SDK) library, without Uno.Sdk; the API and the `Uno.Controls`
+namespace are the same. The samples (`samples/TreeDataGridWinUISample`,
+`samples/TreeDataGridWinUIActivityMonitor`) and tests (`tests/TreeDataGrid.WinUI.Tests`,
+`samples/TreeDataGridWinUISample.Tests`) link the Uno ones; `solutions/TreeDataGrid.WinUI.slnx`
+groups them. Build and validate on Windows with Visual Studio's MSBuild:
+
+```powershell
+./build/validate-winui.ps1
+```
+
+See [WinUI port status](docs/winui-port-status.md) for the differences from Uno found while
+making it work and how each is handled.
+
 ### Avalonia
 
 For new Avalonia applications, install the platform-specific package:

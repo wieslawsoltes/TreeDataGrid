@@ -224,6 +224,38 @@ jobs:
           path: artifacts/windows
           if-no-files-found: error
 
+  # WinUI 3 build of the same sources (docs/winui-port-status.md): library, samples and tests
+  # linked from the Uno projects, the unit tests on the XAML UI thread and every native suite.
+  winui:
+    name: WinUI 3 linked build, tests and native suites
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.201
+      - name: Build and validate the WinUI projects
+        shell: powershell
+        run: ./build/validate-winui.ps1 -Output artifacts/winui -SuiteTimeoutSeconds 300
+      - name: Pack TreeDataGrid.Controls.WinUI
+        run: |
+          dotnet pack src/TreeDataGrid.Core/TreeDataGrid.Core.csproj -c Release -p:PackageVersion=12.0.0.7-ci.${{ github.run_id }} -o artifacts/winui-pack
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $msbuild = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.Component.MSBuild -find 'MSBuild\**\Bin\MSBuild.exe' | Select-Object -First 1
+          & $msbuild src/TreeDataGrid.Controls.WinUI/TreeDataGrid.Controls.WinUI.csproj -restore -t:Pack -v:minimal -p:Configuration=Release -p:PackageVersion=12.0.0.7-ci.${{ github.run_id }} -p:PackageOutputPath="$env:GITHUB_WORKSPACE/artifacts/winui-pack"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify the WinUI package
+        run: python build/verify-winui-package.py artifacts/winui-pack 12.0.0.7-ci.${{ github.run_id }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: winui-validation
+          path: artifacts/winui
+          if-no-files-found: warn
+
   # --------------------------------------------------------------------------------------
   # Validation report: all .NET tests, native suites, canonical stages and the API gate over a committed-source snapshot.
   source-snapshot:

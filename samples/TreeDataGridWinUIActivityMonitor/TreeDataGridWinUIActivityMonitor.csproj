@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- WinUI 3 (Windows App SDK) build of the Uno Activity Monitor sample: its sources and XAML
+       linked unchanged, compiled without Uno.Sdk. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>TreeDataGridUnoActivityMonitor</RootNamespace>
+    <AssemblyName>TreeDataGridWinUIActivityMonitor</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <ApplicationManifest>../TreeDataGridUnoActivityMonitor/Platforms/Windows/app.manifest</ApplicationManifest>
+    <DefineConstants>$(DefineConstants);TREEDATAGRID_WINUI</DefineConstants>
+  </PropertyGroup>
+  <Import Project="../../build/WinUI.props" />
+  <PropertyGroup>
+    <UnoMonitorSources>../TreeDataGridUnoActivityMonitor/</UnoMonitorSources>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(UnoMonitorSources)**/*.cs"
+             Exclude="$(UnoMonitorSources)bin/**;$(UnoMonitorSources)obj/**;$(UnoMonitorSources)Platforms/**"
+             Link="%(RecursiveDir)%(Filename)%(Extension)" />
+    <ApplicationDefinition Include="$(UnoMonitorSources)App.xaml" Link="App.xaml" />
+    <Page Include="$(UnoMonitorSources)**/*.xaml"
+          Exclude="$(UnoMonitorSources)App.xaml;$(UnoMonitorSources)bin/**;$(UnoMonitorSources)obj/**"
+          Link="%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="../TreeDataGridUnoShared/SampleRunContext.cs" Link="Infrastructure/SampleRunContext.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/TreeDataGrid.Controls.WinUI/TreeDataGrid.Controls.WinUI.csproj" />
+    <PackageReference Include="SkiaSharp" Version="3.119.2" />
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />
+  </ItemGroup>
+  <!-- A package reference imports this from buildTransitive; a project reference needs the import. -->
+  <Import Project="../../src/TreeDataGrid.Controls.Uno/buildTransitive/TreeDataGrid.Controls.Uno.targets" />
+</Project>
