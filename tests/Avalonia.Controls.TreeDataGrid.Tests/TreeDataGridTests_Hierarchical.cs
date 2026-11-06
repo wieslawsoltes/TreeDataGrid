@@ -7,6 +7,7 @@ using Avalonia.Collections;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
+using Avalonia.Data;
 using Avalonia.Headless.XUnit;
 using Avalonia.Layout;
 using Avalonia.LogicalTree;
@@ -61,6 +62,71 @@ namespace Avalonia.Controls.TreeDataGridTests
             Layout(target);
 
             Assert.Equal(10, target.RowsPresenter!.RealizedElements.Count);
+        }
+
+        [AvaloniaFact(Timeout = 10000)]
+        public void Recycled_Expander_Template_Text_Arranges_To_Desired_Width()
+        {
+            var items = new AvaloniaList<Model>
+            {
+                new Model
+                {
+                    Title = "Parent",
+                    Children = new AvaloniaList<Model> { new Model { Title = "Child" } },
+                },
+                new Model { Title = "AA" },
+            };
+
+            var (target, source) = CreateTarget(
+                columns: new IColumn<Model>[]
+                {
+                    new HierarchicalExpanderColumn<Model>(
+                        new TemplateColumn<Model>(
+                            "Title",
+                            new FuncDataTemplate<Model>((_, _) => new StackPanel
+                            {
+                                Orientation = Orientation.Horizontal,
+                                Children =
+                                {
+                                    new TextBlock
+                                    {
+                                        Name = "TitleText",
+                                        [!TextBlock.TextProperty] = new Binding(nameof(Model.Title)),
+                                    },
+                                },
+                            }, supportsRecycling: true)),
+                        x => x.Children),
+                },
+                items: items);
+
+            var before = TitleTexts();
+            Assert.Equal(new[] { "Parent", "AA" }, before.Select(t => t.Text));
+
+            // One child insert with two realized rows recycles AA onto Child.
+            source.Expand(new IndexPath(0));
+            Layout(target);
+
+            Assert.Equal(3, source.Rows.Count);
+            var after = TitleTexts();
+            Assert.Equal(new[] { "Parent", "Child", "AA" }, after.Select(t => t.Text));
+            Assert.Same(before[1], after[1]);
+            Assert.All(after, text =>
+            {
+                Assert.True(text.DesiredSize.Width > 0, $"{text.Text} DesiredSize.Width was 0.");
+                Assert.True(
+                    text.Bounds.Width + 0.5 >= text.DesiredSize.Width,
+                    $"{text.Text}: Bounds={text.Bounds} DesiredSize={text.DesiredSize}.");
+            });
+
+            List<TextBlock> TitleTexts()
+            {
+                return target.RowsPresenter!.GetVisualChildren()
+                    .OfType<TreeDataGridRow>()
+                    .Where(row => row.RowIndex >= 0)
+                    .OrderBy(row => row.RowIndex)
+                    .Select(row => row.GetVisualDescendants().OfType<TextBlock>().Single(t => t.Name == "TitleText"))
+                    .ToList();
+            }
         }
 
         [AvaloniaFact(Timeout = 10000)]
@@ -570,9 +636,10 @@ namespace Avalonia.Controls.TreeDataGridTests
 
         private static (TreeDataGrid, HierarchicalTreeDataGridSource<Model>) CreateTarget(
             IEnumerable<IColumn<Model>>? columns = null,
-            bool runLayout = true)
+            bool runLayout = true,
+            IEnumerable<Model>? items = null)
         {
-            var items = new AvaloniaList<Model>
+            var itemList = items as AvaloniaList<Model> ?? new AvaloniaList<Model>(items ?? new[]
             {
                 new Model
                 {
@@ -585,7 +652,7 @@ namespace Avalonia.Controls.TreeDataGridTests
                     Id = 1,
                     Title = "Root 1",
                 },
-            };
+            });
 
             columns ??= new IColumn<Model>[]
             {
@@ -596,7 +663,7 @@ namespace Avalonia.Controls.TreeDataGridTests
                 new TextColumn<Model, string?>("Title", x => x.Title),
             };
 
-            var source = new HierarchicalTreeDataGridSource<Model>(items);
+            var source = new HierarchicalTreeDataGridSource<Model>(itemList);
             source.Columns.AddRange(columns);
 
             var target = new TreeDataGrid
