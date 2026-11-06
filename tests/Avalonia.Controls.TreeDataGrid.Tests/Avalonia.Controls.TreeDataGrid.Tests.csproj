@@ -4,8 +4,10 @@
     <IsPackable>False</IsPackable>
     <IsTestProject>True</IsTestProject>
     <RootNamespace>Avalonia.Controls.TreeDataGridTests</RootNamespace>
+    <DefineConstants>$(DefineConstants);TREEDATAGRID_AVALONIA_CONTRACT_TESTS</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../TreeDataGrid.Uno.Tests/CellColumnBaseCompatibilityTests.cs" Link="SharedContracts/CellColumnBaseCompatibilityTests.cs" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaSamplesVersion)" />
     <PackageReference Include="Avalonia.Headless.XUnit" Version="$(AvaloniaSamplesVersion)" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />

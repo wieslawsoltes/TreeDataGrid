@@ -26,6 +26,67 @@ We accept all issues and pull requests but we answer and review only pull reques
 
 ## Quick Start
 
+### Uno
+
+The Uno Platform port is the `TreeDataGrid.Controls.Uno` package, matching the platform
+package pattern of `TreeDataGrid.Controls.Avalonia` (Skia desktop, Skia WebAssembly and
+Windows App SDK). It uses the same `TreeDataGrid.Core`
+assembly without copying the model layer. The control namespace remains
+`Uno.Controls` (parallel to `Avalonia.Controls`); assign a Core
+source to its `Model` or `Source` property. The sample opens the same eight-tab demo as
+`samples/TreeDataGridDemo` (Template Column Reuse, People, Countries, Find Displayed Row,
+BringIntoView, Files, Wikipedia and Drag/Drop) with the same view models and column
+configuration, adapted to WinUI XAML. As in Avalonia, XAML uses the control without an
+`xmlns` prefix:
+
+```xml
+<TreeDataGrid ItemsSource="{Binding People}">
+  <TreeDataGrid.ColumnDefinitions>
+    <TreeDataGridTextColumn Header="Name" Binding="{Binding Name}" />
+  </TreeDataGrid.ColumnDefinitions>
+</TreeDataGrid>
+```
+
+The sample runs on desktop and in the browser:
+
+```sh
+dotnet run --project samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj -c Release -f net10.0-desktop
+```
+
+The separate [Activity Monitor sample](samples/TreeDataGridUnoActivityMonitor/README.md)
+provides CPU, Memory, Energy, Disk and Network tables, charts, filtering and
+selection over the same Core API. It uses live read-only macOS telemetry or demo
+data on other desktop systems:
+
+```sh
+dotnet run --project samples/TreeDataGridUnoActivityMonitor/TreeDataGridUnoActivityMonitor.csproj -c Release -f net10.0-desktop
+```
+
+`solutions/TreeDataGrid.Uno.slnx` groups its Core, controls, sample, and tests separately from
+the Avalonia solution. See the [Uno sample README](samples/TreeDataGridUnoSample/README.md)
+for offline and validation commands.
+See [Uno port status](docs/uno-port-status.md) for differences from Avalonia, remaining
+parity work and validation commands, and [Uno performance findings](docs/uno-performance-findings.md)
+for the measured performance gap and the Uno changes that would close it.
+
+### WinUI 3
+
+`src/TreeDataGrid.Controls.WinUI` builds the Uno port's sources, theme and build targets as a
+plain WinUI 3 (Windows App SDK) library, without Uno.Sdk; the API and the `Uno.Controls`
+namespace are the same. The samples (`samples/TreeDataGridWinUISample`,
+`samples/TreeDataGridWinUIActivityMonitor`) and tests (`tests/TreeDataGrid.WinUI.Tests`,
+`samples/TreeDataGridWinUISample.Tests`) link the Uno ones; `solutions/TreeDataGrid.WinUI.slnx`
+groups them. Build and validate on Windows with Visual Studio's MSBuild:
+
+```powershell
+./build/validate-winui.ps1
+```
+
+See [WinUI port status](docs/winui-port-status.md) for the differences from Uno found while
+making it work and how each is handled.
+
+### Avalonia
+
 For new Avalonia applications, install the platform-specific package:
 
 ```bash

@@ -23,6 +23,7 @@ namespace TreeDataGridCore
         private IComparer<TModel>? _comparer;
         private ITreeDataGridSelection? _selection;
         private bool _isSelectionSet;
+        private Func<TModel, bool>? _filter;
 
         public FlatTreeDataGridSource(IEnumerable<TModel> items)
         {
@@ -43,10 +44,7 @@ namespace TreeDataGridCore
                 if (_items != value)
                 {
                     _items = value;
-                    _itemsView = TreeDataGridItemsSourceView<TModel>.GetOrCreate(value);
-                    _rows?.SetItems(_itemsView);
-                    if (_selection is object)
-                        _selection.Source = value;
+                    UpdateItemsView();
                     RaisePropertyChanged();
                 }
             }
@@ -57,15 +55,21 @@ namespace TreeDataGridCore
             get
             {
                 if (_selection == null && !_isSelectionSet)
+                {
                     _selection = new TreeDataGridRowSelectionModel<TModel>(this);
+                    if (_filter is not null)
+                        _selection.Source = _itemsView;
+                }
                 return _selection;
             }
             set
             {
                 if (_selection != value || value is null)
                 {
-                    if (value is not null && value.Source != _items)
+                    if (value is not null && value.Source != _items && value.Source != _itemsView)
                         throw new InvalidOperationException("Selection source must be set to Items.");
+                    if (value is not null && _filter is not null && value.Source == _items)
+                        value.Source = _itemsView;
                     _selection = value;
                     _isSelectionSet = true;
                     RaisePropertyChanged();
@@ -73,7 +77,10 @@ namespace TreeDataGridCore
             }
         }
 
-        IEnumerable<object> ITreeDataGridSource.Items => Items;
+        IEnumerable<object> ITreeDataGridSource.Items => _filter is null ? _items : _itemsView;
+
+        /// <summary>Gets a value indicating whether a filter predicate is applied.</summary>
+        public bool IsFiltered => _filter is not null;
 
         public ITreeDataGridRowSelectionModel<TModel>? RowSelection => Selection as ITreeDataGridRowSelectionModel<TModel>;
         public bool IsHierarchical => false;
@@ -100,6 +107,8 @@ namespace TreeDataGridCore
                 throw new NotSupportedException("Only move is currently supported for drag/drop.");
             if (IsSorted)
                 throw new NotSupportedException("Drag/drop is not supported on sorted data.");
+            if (IsFiltered)
+                throw new NotSupportedException("Drag/drop is not supported on filtered data.");
             if (position is not RowDropPosition.None and not RowDropPosition.Before and
                 not RowDropPosition.After and not RowDropPosition.Inside)
             {
@@ -243,6 +252,25 @@ namespace TreeDataGridCore
             Sorted?.Invoke();
         }
 
+        /// <summary>
+        /// Displays only the items that match <paramref name="predicate"/>, or all items when it is null.
+        /// </summary>
+        /// <remarks>
+        /// Row model indexes refer to the filtered item view while a filter is applied.
+        /// Call <see cref="RefreshFilter"/> after changing values that the predicate reads.
+        /// </remarks>
+        public void Filter(Func<TModel, bool>? predicate)
+        {
+            _filter = predicate;
+            RefreshFilter();
+        }
+
+        /// <summary>Re-evaluates the current filter against the source items.</summary>
+        public void RefreshFilter()
+        {
+            UpdateItemsView();
+        }
+
         IEnumerable<object> ITreeDataGridSource.GetModelChildren(object model)
         {
             return Enumerable.Empty<object>();
@@ -251,6 +279,16 @@ namespace TreeDataGridCore
         private AnonymousSortableRows<TModel> CreateRows()
         {
             return new AnonymousSortableRows<TModel>(_itemsView, _comparer);
+        }
+
+        private void UpdateItemsView()
+        {
+            var filtered = _filter is null ? _items : _items.Where(_filter).ToList();
+            _itemsView = TreeDataGridItemsSourceView<TModel>.GetOrCreate(filtered);
+            _rows?.SetItems(_itemsView);
+
+            if (_selection is object)
+                _selection.Source = _filter is null ? _items : _itemsView;
         }
     }
 }

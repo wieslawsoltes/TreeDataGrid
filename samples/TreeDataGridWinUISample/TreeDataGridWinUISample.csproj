@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- WinUI 3 (Windows App SDK) build of the Uno sample: its sources, XAML and assets linked
+       unchanged, compiled without Uno.Sdk. A console-subsystem executable, like the Uno sample,
+       so smoke and suite runs report on stdout and through the exit code. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>TreeDataGridUnoSample</RootNamespace>
+    <AssemblyName>TreeDataGridWinUISample</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <ApplicationManifest>../TreeDataGridUnoSample/Platforms/Windows/app.manifest</ApplicationManifest>
+    <DefineConstants>$(DefineConstants);TREEDATAGRID_UNO_SAMPLE;TREEDATAGRID_WINUI</DefineConstants>
+  </PropertyGroup>
+  <Import Project="../../build/WinUI.props" />
+  <PropertyGroup>
+    <UnoSampleSources>../TreeDataGridUnoSample/</UnoSampleSources>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(UnoSampleSources)**/*.cs"
+             Exclude="$(UnoSampleSources)bin/**;$(UnoSampleSources)obj/**;$(UnoSampleSources)Platforms/**"
+             Link="%(RecursiveDir)%(Filename)%(Extension)" />
+    <ApplicationDefinition Include="$(UnoSampleSources)App.xaml" Link="App.xaml" />
+    <Page Include="$(UnoSampleSources)**/*.xaml"
+          Exclude="$(UnoSampleSources)App.xaml;$(UnoSampleSources)bin/**;$(UnoSampleSources)obj/**"
+          Link="%(RecursiveDir)%(Filename)%(Extension)" />
+    <!-- The files the Uno sample links from the shared and Avalonia demo folders. -->
+    <Compile Include="../TreeDataGridUnoShared/SampleRunContext.cs" Link="Infrastructure/SampleRunContext.cs" />
+    <Compile Include="../TreeDataGridUnoShared/ObservableSampleModel.cs" Link="Infrastructure/ObservableSampleModel.cs" />
+    <Compile Include="../TreeDataGridUnoShared/SkiaTextCells.cs" Link="Infrastructure/SkiaTextCells.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/Country.cs" Link="Models/Country.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/Countries.cs" Link="Models/Countries.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/Person.cs" Link="Models/Person.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/DragDropItem.cs" Link="Models/DragDropItem.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/TemplateColumnItem.cs" Link="Models/TemplateColumnItem.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/OnThisDay.cs" Link="Models/OnThisDay.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/OnThisDayJsonSerializerContext.cs" Link="Models/OnThisDayJsonSerializerContext.cs" />
+    <Compile Include="../TreeDataGridDemo/Models/FileTreeNodeModel.cs" Link="Models/FileTreeNodeModel.cs" />
+    <Compile Include="../TreeDataGridDemo/ViewModels/PeopleXamlPageViewModel.cs" Link="Models/PeopleXamlPageViewModel.cs" />
+    <Content Include="../TreeDataGridDemo/Assets/file.png" Link="Assets/file.png" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../TreeDataGridDemo/Assets/folder.png" Link="Assets/folder.png" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../TreeDataGridDemo/Assets/folder-open.png" Link="Assets/folder-open.png" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/TreeDataGrid.Controls.WinUI/TreeDataGrid.Controls.WinUI.csproj" />
+    <PackageReference Include="Bogus" Version="34.0.2" />
+    <PackageReference Include="SkiaSharp" Version="3.119.2" />
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />
+  </ItemGroup>
+  <!-- A package reference imports this from buildTransitive; a project reference needs the import. -->
+  <Import Project="../../src/TreeDataGrid.Controls.Uno/buildTransitive/TreeDataGrid.Controls.Uno.targets" />
+</Project>

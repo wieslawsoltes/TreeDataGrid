@@ -21,10 +21,12 @@ namespace TreeDataGridCore.Models
         private IEnumerable<TModel>? _childModels;
         private ChildRows? _childRows;
         private readonly IDisposable? _isExpandedSubscription;
+        private IDisposable? _childrenPropertySubscription;
         private readonly bool _observesExpansionViaModel;
         private INotifyPropertyChanged? _modelNotifications;
         private bool _isExpanded;
         private bool? _showExpander;
+        private bool _isDisposed;
 
         public HierarchicalRow(
             IExpanderRowController<TModel> controller,
@@ -51,12 +53,13 @@ namespace TreeDataGridCore.Models
             if (expanded.HasValue)
             {
                 _isExpandedSubscription =
-                    (expanderColumn as IModelExpansionObserver<TModel>)?.ExpansionObserver?.Subscribe(
+                    (expanderColumn as IModelExpansionObserver<TModel>)?.SubscribeToExpansion(
                         model, OnModelIsExpandedChanged);
             }
             _observesExpansionViaModel = expanded.HasValue && _isExpandedSubscription is null;
             if (_observesExpansionViaModel || _isExpanded)
                 SubscribeToModelChanges();
+            UpdateChildrenPropertySubscription();
         }
 
         /// <summary>
@@ -113,12 +116,36 @@ namespace TreeDataGridCore.Models
 
         public void Dispose()
         {
-            _isExpandedSubscription?.Dispose();
-            UnsubscribeFromModelChanges();
-            _childRows?.Dispose();
+            if (_isDisposed)
+                return;
+
+            // Retire before application-controlled cleanup. Each independent
+            // owner must be released even when an earlier accessor throws.
+            _isDisposed = true;
+            var childrenSubscription = _childrenPropertySubscription;
+            var childRows = _childRows;
+            _childrenPropertySubscription = null;
+            _childRows = null;
+            _childModels = null;
+            List<Exception>? failures = null;
+            try { UnsubscribeFromModelChanges(); }
+            catch (Exception error) { (failures ??= new()).Add(error); }
+            try { _isExpandedSubscription?.Dispose(); }
+            catch (Exception error) { (failures ??= new()).Add(error); }
+            try { childrenSubscription?.Dispose(); }
+            catch (Exception error) { (failures ??= new()).Add(error); }
+            try { childRows?.Dispose(); }
+            catch (Exception error) { (failures ??= new()).Add(error); }
+            if (failures is { Count: 1 })
+                System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(failures[0]).Throw();
+            if (failures is not null)
+                throw new AggregateException(failures);
         }
+
         private void OnModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
+            if (_isDisposed)
+                return;
             if (_isExpanded || _showExpander == false)
                 RefreshChildModels();
             if (_observesExpansionViaModel)
@@ -127,7 +154,7 @@ namespace TreeDataGridCore.Models
 
         private void OnModelIsExpandedChanged()
         {
-            if (_expanderColumn.GetModelIsExpanded(Model) is bool expanded)
+            if (!_isDisposed && _expanderColumn.GetModelIsExpanded(Model) is bool expanded)
                 IsExpanded = expanded;
         }
 
@@ -187,6 +214,8 @@ namespace TreeDataGridCore.Models
 
         private void Expand()
         {
+            if (_isDisposed)
+                return;
             if (!_expanderColumn.HasChildren(Model))
             {
                 _expanderColumn.SetModelIsExpanded(this);
@@ -230,6 +259,8 @@ namespace TreeDataGridCore.Models
 
         private void RefreshChildModels()
         {
+            if (_isDisposed)
+                return;
             var childModels = _expanderColumn.GetChildModels(Model);
             if (ReferenceEquals(_childModels, childModels))
                 return;
@@ -275,7 +306,7 @@ namespace TreeDataGridCore.Models
 
         private void SubscribeToModelChanges()
         {
-            if (_modelNotifications is null && Model is INotifyPropertyChanged notify)
+            if (!_isDisposed && _modelNotifications is null && Model is INotifyPropertyChanged notify)
             {
                 _modelNotifications = notify;
                 notify.PropertyChanged += OnModelPropertyChanged;
@@ -284,23 +315,49 @@ namespace TreeDataGridCore.Models
 
         private void UnsubscribeFromModelChanges()
         {
-            if (_modelNotifications is not null)
-            {
-                _modelNotifications.PropertyChanged -= OnModelPropertyChanged;
-                _modelNotifications = null;
-            }
+            var notifications = _modelNotifications;
+            _modelNotifications = null;
+            // A removal callback may establish a new observation. Do not erase
+            // that new generation after the old accessor returns or throws.
+            if (notifications is not null)
+                notifications.PropertyChanged -= OnModelPropertyChanged;
         }
 
         private void UpdateModelChangeSubscription()
         {
+            if (_isDisposed)
+                return;
             if (_observesExpansionViaModel || _isExpanded || _showExpander == false)
                 SubscribeToModelChanges();
             else
                 UnsubscribeFromModelChanges();
+            UpdateChildrenPropertySubscription();
+        }
+
+        private void UpdateChildrenPropertySubscription()
+        {
+            if (_isDisposed)
+                return;
+            // Do not evaluate a lazy Children binding just to show a collapsed
+            // expander. Collection-reference observation is needed once expanded,
+            // or after discovering an empty collection that can later be replaced.
+            if (_isExpanded || _showExpander == false)
+            {
+                _childrenPropertySubscription ??= (_expanderColumn as IModelChildrenObserver<TModel>)?
+                    .SubscribeToChildren(Model, RefreshChildModels);
+            }
+            else
+            {
+                var subscription = _childrenPropertySubscription;
+                _childrenPropertySubscription = null;
+                subscription?.Dispose();
+            }
         }
 
         private void Collapse()
         {
+            if (_isDisposed)
+                return;
             _controller.OnBeginExpandCollapse(this);
             _isExpanded = false;
             _controller.OnChildCollectionChanged(this, CollectionExtensions.ResetEvent);
@@ -325,6 +382,15 @@ namespace TreeDataGridCore.Models
                 CollectionChanged += OnCollectionChanged;
             }
 
+            public override void Dispose()
+            {
+                // Retiring a collection is not a model mutation. In particular,
+                // its final Reset must not resubscribe a disposed owner or forward
+                // a spurious empty-child update while replacing the collection.
+                CollectionChanged -= OnCollectionChanged;
+                base.Dispose();
+            }
+
             protected override HierarchicalRow<TModel> CreateRow(int modelIndex, TModel model)
             {
                 return new HierarchicalRow<TModel>(
@@ -344,6 +410,8 @@ namespace TreeDataGridCore.Models
 
             private void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
             {
+                if (_owner._isDisposed)
+                    return;
                 _owner.ClearShowExpander();
                 _owner.UpdateModelChangeSubscription();
                 if (_owner.IsExpanded)

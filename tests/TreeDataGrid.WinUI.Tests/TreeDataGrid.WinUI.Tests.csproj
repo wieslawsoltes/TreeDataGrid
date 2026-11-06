@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The Uno unit tests linked unchanged and run against the WinUI 3 build. WinUI objects need a
+       running XAML application on its UI thread, so this is a console-subsystem WinUI executable
+       that runs the xunit tests in-process on that thread (Runner/): stdout lists failures and a
+       WINUI_TESTS_RESULT summary, and the exit code is 1 when any test fails. The filter option
+       (Runner/App.xaml.cs) runs only tests whose name contains its text. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>TreeDataGrid.WinUI.Tests</RootNamespace>
+    <AssemblyName>TreeDataGrid.WinUI.Tests</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>false</IsTestProject>
+    <DefineConstants>$(DefineConstants);TREEDATAGRID_WINUI</DefineConstants>
+  </PropertyGroup>
+  <Import Project="../../build/WinUI.props" />
+  <PropertyGroup>
+    <UnoTestSources>../TreeDataGrid.Uno.Tests/</UnoTestSources>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(UnoTestSources)**/*.cs"
+             Exclude="$(UnoTestSources)bin/**;$(UnoTestSources)obj/**;$(UnoTestSources)NativeBindingMetadataTests.cs;$(UnoTestSources)XamlNamespaceTests.cs"
+             Link="%(RecursiveDir)%(Filename)%(Extension)" />
+    <!-- Uno-only: Uno's BindableMetadata provider and Uno's [XmlnsDefinition] registration (the XAML
+         rewrite they share is covered by the Uno tests). -->
+    <Compile Include="../../tools/TreeDataGrid.ApiAudit/ApiDifferences.cs" Link="ApiAudit/ApiDifferences.cs" />
+    <Compile Include="../../samples/TreeDataGridUnoSample/BindingSubscriptionLifetimeChecks.cs" Link="Runtime/BindingSubscriptionLifetimeChecks.cs" />
+    <Compile Include="../../samples/TreeDataGridUnoSample/PublicExpanderConstructionChecks.cs" Link="Runtime/PublicExpanderConstructionChecks.cs" />
+    <Compile Include="Runner/*.cs" />
+    <ApplicationDefinition Include="Runner/App.xaml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/TreeDataGrid.Controls.WinUI/TreeDataGrid.Controls.WinUI.csproj" />
+    <PackageReference Include="xunit.assert" Version="2.9.3" />
+    <PackageReference Include="xunit.extensibility.core" Version="2.9.3" />
+  </ItemGroup>
+</Project>

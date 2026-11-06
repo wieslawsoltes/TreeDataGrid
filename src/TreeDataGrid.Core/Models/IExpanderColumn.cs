@@ -1,10 +1,20 @@
+using System;
 using System.Collections.Generic;
 
 namespace TreeDataGridCore.Models
 {
-    internal interface IModelExpansionObserver<TModel>
+    /// <summary>Optional model observation supplied by a binding-aware column.</summary>
+    public interface IModelExpansionObserver<TModel>
     {
-        Utils.PropertyPathObserver<TModel>? ExpansionObserver { get; }
+        /// <summary>Observes expansion changes. The caller owns the returned subscription. Must not notify synchronously during subscription.</summary>
+        IDisposable? SubscribeToExpansion(TModel model, Action changed);
+    }
+
+    /// <summary>Optional nested child-collection property observation, separate from collection changes.</summary>
+    public interface IModelChildrenObserver<TModel>
+    {
+        /// <summary>Observes the child collection reference while a row needs it. Must not notify synchronously during subscription.</summary>
+        IDisposable? SubscribeToChildren(TModel model, Action changed);
     }
 
     /// <summary>

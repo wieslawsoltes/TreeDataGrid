@@ -29,6 +29,8 @@ namespace TreeDataGridCore
         private Comparison<TModel>? _comparison;
         private ITreeDataGridSelection? _selection;
         private bool _isSelectionSet;
+        private Func<TModel, bool>? _filter;
+        private FilteredExpanderColumn<TModel>? _filteredExpanderColumn;
 
         public HierarchicalTreeDataGridSource(TModel item)
             : this(new[] { item })
@@ -51,10 +53,7 @@ namespace TreeDataGridCore
                 if (_items != value)
                 {
                     _items = value;
-                    _itemsView = TreeDataGridItemsSourceView<TModel>.GetOrCreate(value);
-                    _rows?.SetItems(_itemsView);
-                    if (_selection is object)
-                        _selection.Source = value;
+                    UpdateItemsView(recreateRows: false);
                     RaisePropertyChanged();
                 }
             }
@@ -68,15 +67,21 @@ namespace TreeDataGridCore
             get
             {
                 if (_selection == null && !_isSelectionSet)
+                {
                     _selection = new TreeDataGridRowSelectionModel<TModel>(this);
+                    if (_filter is not null)
+                        _selection.Source = _itemsView;
+                }
                 return _selection;
             }
             set
             {
                 if (_selection != value || value is null)
                 {
-                    if (value is not null && value.Source != _items)
+                    if (value is not null && value.Source != _items && value.Source != _itemsView)
                         throw new InvalidOperationException("Selection source must be set to Items.");
+                    if (value is not null && _filter is not null && value.Source == _items)
+                        value.Source = _itemsView;
                     _selection = value;
                     _isSelectionSet = true;
                     RaisePropertyChanged();
@@ -84,7 +89,10 @@ namespace TreeDataGridCore
             }
         }
 
-        IEnumerable<object> ITreeDataGridSource.Items => Items;
+        IEnumerable<object> ITreeDataGridSource.Items => _filter is null ? _items : _itemsView;
+
+        /// <summary>Gets a value indicating whether a filter predicate is applied.</summary>
+        public bool IsFiltered => _filter is not null;
 
         public ITreeDataGridRowSelectionModel<TModel>? RowSelection => Selection as ITreeDataGridRowSelectionModel<TModel>;
         public bool IsHierarchical => true;
@@ -160,7 +168,8 @@ namespace TreeDataGridCore
             if (_expanderColumn is null)
                 throw new InvalidOperationException("No expander column defined.");
 
-            var items = (IEnumerable<TModel>?)Items;
+            var items = _filter is null ? _items : _itemsView;
+            var expanderColumn = GetActiveExpanderColumn();
             var count = index.Count;
 
             for (var depth = 0; depth < count; ++depth)
@@ -173,7 +182,7 @@ namespace TreeDataGridCore
 
                     if (depth < count - 1)
                     {
-                        items = _expanderColumn.GetChildModels(e);
+                        items = expanderColumn.GetChildModels(e);
                     }
                     else
                     {
@@ -258,6 +267,8 @@ namespace TreeDataGridCore
                 throw new NotSupportedException("Only move is currently supported for drag/drop.");
             if (IsSorted)
                 throw new NotSupportedException("Drag/drop is not supported on sorted data.");
+            if (IsFiltered)
+                throw new NotSupportedException("Drag/drop is not supported on filtered data.");
             if (position is not RowDropPosition.None and not RowDropPosition.Before and
                 not RowDropPosition.After and not RowDropPosition.Inside)
             {
@@ -590,8 +601,61 @@ namespace TreeDataGridCore
 
         internal IEnumerable<TModel>? GetModelChildren(TModel model)
         {
-            _ = _expanderColumn ?? throw new InvalidOperationException("No expander column defined.");
-            return _expanderColumn.GetChildModels(model);
+            return GetActiveExpanderColumn().GetChildModels(model);
+        }
+
+        /// <summary>
+        /// Displays only the items that match <paramref name="predicate"/>, or all items when it is null.
+        /// </summary>
+        /// <remarks>
+        /// The predicate applies at every hierarchy level. Row model index paths refer to the
+        /// filtered children while a filter is applied. Rows are recreated, so expansion that is
+        /// not bound to the model is reset. Call <see cref="RefreshFilter"/> after changing
+        /// values that the predicate reads.
+        /// </remarks>
+        public void Filter(Func<TModel, bool>? predicate)
+        {
+            _filter = predicate;
+            RefreshFilter();
+        }
+
+        /// <summary>Re-evaluates the current filter against the source items.</summary>
+        public void RefreshFilter()
+        {
+            UpdateItemsView(recreateRows: true);
+        }
+
+        private IExpanderColumn<TModel> GetActiveExpanderColumn()
+        {
+            var expanderColumn = _expanderColumn ??
+                throw new InvalidOperationException("No expander column defined.");
+
+            if (_filter is null)
+                return expanderColumn;
+
+            if (_filteredExpanderColumn?.Inner != expanderColumn)
+                _filteredExpanderColumn = new FilteredExpanderColumn<TModel>(expanderColumn, () => _filter);
+            return _filteredExpanderColumn;
+        }
+
+        private void UpdateItemsView(bool recreateRows)
+        {
+            var filtered = _filter is null ? _items : _items.Where(_filter).ToList();
+            _itemsView = TreeDataGridItemsSourceView<TModel>.GetOrCreate(filtered);
+
+            if (_selection is object)
+                _selection.Source = _filter is null ? _items : _itemsView;
+
+            if (recreateRows && _rows is not null)
+            {
+                _rows.Dispose();
+                _rows = null;
+                RaisePropertyChanged(nameof(Rows));
+            }
+            else
+            {
+                _rows?.SetItems(_itemsView);
+            }
         }
 
         internal int GetRowIndex(in IndexPath index, int fromRowIndex = 0)
@@ -609,7 +673,7 @@ namespace TreeDataGridCore
                     throw new InvalidOperationException("No columns defined.");
                 if (_expanderColumn is null)
                     throw new InvalidOperationException("No expander column defined.");
-                _rows = new HierarchicalRows<TModel>(this, _itemsView, _expanderColumn, _comparison);
+                _rows = new HierarchicalRows<TModel>(this, _itemsView, GetActiveExpanderColumn(), _comparison);
             }
 
             return _rows;
