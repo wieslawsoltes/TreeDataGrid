@@ -7,6 +7,7 @@ using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.LogicalTree;
 using Avalonia.Markup.Xaml.Styling;
+using Avalonia.Media.Imaging;
 using Avalonia.Styling;
 using Avalonia.Themes.Fluent;
 using Avalonia.Threading;
@@ -97,7 +98,7 @@ public sealed class RenderingSmokeTests
             root = Path.Combine(AppContext.BaseDirectory, "headless-screenshots");
         Directory.CreateDirectory(root);
         var path = Path.GetFullPath(Path.Combine(root, fileName));
-        frame.Save(path);
+        frame.Save(path, PngBitmapEncoderOptions.Default);
         Assert.True(File.Exists(path));
         Assert.True(new FileInfo(path).Length > 0);
     }

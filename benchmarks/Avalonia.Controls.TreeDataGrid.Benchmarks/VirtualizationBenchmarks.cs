@@ -444,7 +444,7 @@ public class VirtualizationBenchmarks
         _window.Show();
         Dispatcher.UIThread.RunJobs();
         _window.UpdateLayout();
-        _scroll = (ScrollViewer)_grid.GetTemplateChildren().Single(x => x.Name == "PART_ScrollViewer");
+        _scroll = (ScrollViewer)_grid.GetTemplateDescendants().Single(x => x.Name == "PART_ScrollViewer");
     }
 
     private void CleanupGrid()
