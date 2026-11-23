@@ -1,0 +1,29 @@
+<UserControl x:Class="TreeDataGridUnoSample.Demo.Views.CustomCellRenderingPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Grid Margin="8" RowSpacing="8">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+    <TextBlock TextWrapping="Wrap"
+               Text="Text cells drawn by a custom element factory: SkiaTextCellElementFactory creates SkiaTextCell, a TreeDataGridTextCell whose text is drawn by an Uno SKCanvasElement. Only public TreeDataGrid and Uno APIs are used. Compare scrolling with the default template cells (TextBlock)." />
+    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="12">
+      <ComboBox x:Name="renderingMode" Width="280" SelectedIndex="0" SelectionChanged="RenderingMode_SelectionChanged">
+        <x:String>Template cells (TextBlock)</x:String>
+        <x:String>Custom Skia cells (element factory)</x:String>
+      </ComboBox>
+      <Button x:Name="benchmarkButton" Content="Compare scrolling" Click="Benchmark_Click" />
+      <TextBlock x:Name="status" VerticalAlignment="Center" />
+    </StackPanel>
+    <Grid Grid.Row="2" ColumnSpacing="8">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+      <TreeDataGrid x:Name="grid" />
+      <TextBlock x:Name="results" Grid.Column="1" MinWidth="320" FontFamily="Consolas, Menlo, monospace" />
+    </Grid>
+  </Grid>
+</UserControl>

@@ -1,0 +1,31 @@
+<!--
+  Windows App SDK only, never loaded. Naming every public XAML type here makes WinUI's XAML
+  compiler generate complete metadata for them in this library, which [FullXamlMetadataProvider]
+  (FullXamlMetadataProvider.cs) lets applications use instead of their own partial entries.
+  XamlNamespaceTests keeps this list in sync with the assembly.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <TreeDataGrid x:Key="TreeDataGrid" />
+  <TreeDataGridColumns x:Key="TreeDataGridColumns" />
+  <TreeDataGridCheckBoxColumn x:Key="TreeDataGridCheckBoxColumn" />
+  <TreeDataGridHierarchicalExpanderColumn x:Key="TreeDataGridHierarchicalExpanderColumn" />
+  <TreeDataGridRowHeaderColumn x:Key="TreeDataGridRowHeaderColumn" />
+  <TreeDataGridTemplateColumn x:Key="TreeDataGridTemplateColumn" />
+  <TreeDataGridTextColumn x:Key="TreeDataGridTextColumn" />
+  <TreeDataGridCell x:Key="TreeDataGridCell" />
+  <TreeDataGridCellContentPanel x:Key="TreeDataGridCellContentPanel" />
+  <TreeDataGridCellsPresenter x:Key="TreeDataGridCellsPresenter" />
+  <TreeDataGridCheckBoxCell x:Key="TreeDataGridCheckBoxCell" />
+  <TreeDataGridColumnHeader x:Key="TreeDataGridColumnHeader" />
+  <TreeDataGridColumnHeadersPresenter x:Key="TreeDataGridColumnHeadersPresenter" />
+  <TreeDataGridColumnResizer x:Key="TreeDataGridColumnResizer" />
+  <TreeDataGridElementFactory x:Key="TreeDataGridElementFactory" />
+  <TreeDataGridExpanderButton x:Key="TreeDataGridExpanderButton" />
+  <TreeDataGridExpanderCell x:Key="TreeDataGridExpanderCell" />
+  <TreeDataGridHeaderTemplateSelector x:Key="TreeDataGridHeaderTemplateSelector" />
+  <TreeDataGridRow x:Key="TreeDataGridRow" />
+  <TreeDataGridRowsPresenter x:Key="TreeDataGridRowsPresenter" />
+  <TreeDataGridTemplateCell x:Key="TreeDataGridTemplateCell" />
+  <TreeDataGridTextCell x:Key="TreeDataGridTextCell" />
+</ResourceDictionary>

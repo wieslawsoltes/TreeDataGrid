@@ -1,0 +1,67 @@
+<UserControl x:Class="TreeDataGridUnoSample.TextTemplateParityView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <UserControl.Resources>
+    <!-- Preserve the pre-flattening Border/Grid layout and every visual setter.
+         Attach its state groups to the template root so the reference actually
+         exercises them; Uno's GoToState does not search descendant groups.
+         verify-flat-text-template.py checks this single explicit correction. -->
+    <SolidColorBrush x:Key="TreeDataGridSelectedCellBackgroundBrush" Color="#708025DC" />
+    <SolidColorBrush x:Key="TreeDataGridSelectedCellForegroundBrush" Color="#FFE2F4B1" />
+    <SolidColorBrush x:Key="TreeDataGridCurrentCellBorderBrush" Color="#803098D0" />
+    <SolidColorBrush x:Key="TreeDataGridValidationBorderBrush" Color="#908B2055" />
+    <ControlTemplate x:Key="ReferenceTextTemplate" TargetType="TreeDataGridTextCell">
+      <Border x:Name="CellBorder" DataContext="{x:Null}" Background="{TemplateBinding Background}"
+              BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+              CornerRadius="{TemplateBinding CornerRadius}">
+        <VisualStateManager.VisualStateGroups>
+          <VisualStateGroup x:Name="SelectionStates">
+            <VisualState x:Name="Unselected" />
+            <VisualState x:Name="Selected">
+              <VisualState.Setters>
+                <Setter Target="SelectionBackground.Opacity" Value="1" />
+                <Setter Target="PART_Text.Foreground" Value="{ThemeResource TreeDataGridSelectedCellForegroundBrush}" />
+              </VisualState.Setters>
+            </VisualState>
+            <VisualState x:Name="RowSelected">
+              <VisualState.Setters>
+                <Setter Target="PART_Text.Foreground" Value="{ThemeResource TreeDataGridSelectedCellForegroundBrush}" />
+              </VisualState.Setters>
+            </VisualState>
+          </VisualStateGroup>
+          <VisualStateGroup x:Name="CurrentStates">
+            <VisualState x:Name="NotCurrent" />
+            <VisualState x:Name="Current">
+              <VisualState.Setters><Setter Target="CurrentBorder.Opacity" Value="1" /></VisualState.Setters>
+            </VisualState>
+          </VisualStateGroup>
+          <VisualStateGroup x:Name="ValidationStates">
+            <VisualState x:Name="Valid" />
+            <VisualState x:Name="Invalid">
+              <VisualState.Setters><Setter Target="ValidationBorder.Opacity" Value="1" /></VisualState.Setters>
+            </VisualState>
+          </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+        <Grid>
+          <Border x:Name="SelectionBackground" Background="{ThemeResource TreeDataGridSelectedCellBackgroundBrush}" Opacity="0" />
+          <TextBlock x:Name="PART_Text" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
+                     TextTrimming="CharacterEllipsis" Foreground="{TemplateBinding Foreground}" />
+          <Grid x:Name="PART_EditorHost" Visibility="Collapsed" />
+          <ContentPresenter x:Name="PART_EditingContent" Visibility="Collapsed" />
+          <Border x:Name="CurrentBorder" BorderBrush="{ThemeResource TreeDataGridCurrentCellBorderBrush}"
+                  BorderThickness="1" Opacity="0" IsHitTestVisible="False" />
+          <Border x:Name="ValidationBorder" BorderBrush="{ThemeResource TreeDataGridValidationBorderBrush}"
+                  BorderThickness="1" Opacity="0" IsHitTestVisible="False" />
+        </Grid>
+      </Border>
+    </ControlTemplate>
+  </UserControl.Resources>
+  <Grid x:Name="Host" Width="640" Height="160" Background="White">
+    <Grid.ColumnDefinitions><ColumnDefinition Width="320" /><ColumnDefinition Width="320" /></Grid.ColumnDefinitions>
+    <TreeDataGridTextCell x:Name="Reference" Grid.Column="0" Width="280" Height="96"
+        HorizontalAlignment="Left" VerticalAlignment="Top" UseSystemFocusVisuals="False"
+        Template="{StaticResource ReferenceTextTemplate}" />
+    <TreeDataGridTextCell x:Name="Candidate" Grid.Column="1" Width="280" Height="96"
+        HorizontalAlignment="Left" VerticalAlignment="Top" UseSystemFocusVisuals="False" />
+  </Grid>
+</UserControl>

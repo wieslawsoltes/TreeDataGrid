@@ -1,0 +1,115 @@
+<Project>
+  <!--
+    TreeDataGrid types are registered for Uno's global XAML namespace ([XmlnsDefinition] in
+    Properties/XamlNamespaces.cs), so XAML can use <TreeDataGrid>, <TreeDataGridTextColumn>,
+    Style TargetType="TreeDataGridCell" and so on without declaring an xmlns prefix.
+
+    Two places cannot resolve those names on their own. For them the affected XAML is copied
+    into the intermediate directory with explicit using: prefixes inserted in place (lines,
+    formatting, entities and encoding unchanged); the copy keeps the original path as Link
+    metadata, so generated code, XBF output and ms-appx URIs are unchanged. Sources are never
+    modified.
+
+    - Windows App SDK heads: WinUI's markup compiler has no global namespace, so elements,
+      property elements, attached properties, TargetType and Setter.Property values all get a
+      prefix, before MarkupCompilePass1.
+    - Uno heads: the Uno generator resolves unprefixed elements but not type names given as
+      strings, so only TargetType and Setter.Property values get a prefix, and only files with
+      such values are copied (all others keep XAML Hot Reload). With
+      UnoEnableImplicitXamlNamespaces=false every name gets a prefix.
+
+    Set TreeDataGridImplicitXamlNamespaces to false to opt out.
+  -->
+  <PropertyGroup>
+    <TreeDataGridImplicitXamlNamespaces Condition="'$(TreeDataGridImplicitXamlNamespaces)' == ''">true</TreeDataGridImplicitXamlNamespaces>
+    <!-- Public types of the namespaces registered for the global XAML namespace
+         (kept in sync with the assembly by XamlNamespaceTests). -->
+    <TreeDataGridXamlControlsTypes>CheckBoxColumnCreateOptions;ColumnCreateOptions;HierarchicalExpanderColumnCreateOptions;TemplateColumnCreateOptions;TextColumnCreateOptions;TreeDataGrid;TreeDataGridBindingRegistry;TreeDataGridCellEventArgs;TreeDataGridCheckBoxColumn;TreeDataGridColumn;TreeDataGridColumns;TreeDataGridDiagnostics;TreeDataGridHierarchicalExpanderColumn;TreeDataGridItemsSourceView;TreeDataGridNavigation;TreeDataGridRowDragEventArgs;TreeDataGridRowDragFailedEventArgs;TreeDataGridRowDragStartedEventArgs;TreeDataGridRowDropPosition;TreeDataGridRowEventArgs;TreeDataGridRowHeaderColumn;TreeDataGridRowModel;TreeDataGridRowModelEventArgs;TreeDataGridSelectionChangedEventArgs;TreeDataGridSelectionMode;TreeDataGridSourceExtensions;TreeDataGridTemplateColumn;TreeDataGridTextColumn</TreeDataGridXamlControlsTypes>
+    <TreeDataGridXamlPrimitivesTypes>TreeDataGridCell;TreeDataGridCellContentPanel;TreeDataGridCellsPresenter;TreeDataGridCheckBoxCell;TreeDataGridColumnHeader;TreeDataGridColumnHeadersPresenter;TreeDataGridColumnResizer;TreeDataGridElementFactory;TreeDataGridExpanderButton;TreeDataGridExpanderCell;TreeDataGridHeaderTemplateSelector;TreeDataGridRow;TreeDataGridRowUnrealizeReason;TreeDataGridRowsPresenter;TreeDataGridTemplateCell;TreeDataGridTextCell</TreeDataGridXamlPrimitivesTypes>
+  </PropertyGroup>
+
+  <UsingTask TaskName="TreeDataGridRewriteImplicitXaml"
+             TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <InputFiles ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+      <ControlsTypes ParameterType="System.String" Required="true" />
+      <PrimitivesTypes ParameterType="System.String" Required="true" />
+      <ProjectDirectory ParameterType="System.String" Required="true" />
+      <OutputRoot ParameterType="System.String" Required="true" />
+      <TypeValuesOnly ParameterType="System.Boolean" />
+      <RewrittenFiles ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Code Type="Class" Language="cs" Source="$(MSBuildThisFileDirectory)TreeDataGridImplicitXaml.cs" />
+    </Task>
+  </UsingTask>
+
+  <!-- Resolved at execution time: IntermediateOutputPath is not defined yet where projects import this file. -->
+  <Target Name="_TreeDataGridImplicitXamlOutputPath">
+    <PropertyGroup>
+      <TreeDataGridImplicitXamlOutputPath Condition="'$(TreeDataGridImplicitXamlOutputPath)' == ''">$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '$(IntermediateOutputPath)', 'TreeDataGrid', 'ImplicitXaml'))/</TreeDataGridImplicitXamlOutputPath>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="TreeDataGridRewriteImplicitXaml"
+          DependsOnTargets="_TreeDataGridImplicitXamlOutputPath"
+          BeforeTargets="MarkupCompilePass1;DesignTimeMarkupCompilationCT"
+          Condition="'$(TreeDataGridImplicitXamlNamespaces)' == 'true'">
+    <!-- Hooked to WinUI's markup compiler targets, which only Windows App SDK builds define
+         (Uno.Sdk sets UseWinUI for application heads only, not for class libraries). -->
+    <TreeDataGridRewriteImplicitXaml InputFiles="@(Page)"
+                                     ControlsTypes="$(TreeDataGridXamlControlsTypes)"
+                                     PrimitivesTypes="$(TreeDataGridXamlPrimitivesTypes)"
+                                     ProjectDirectory="$(MSBuildProjectDirectory)"
+                                     OutputRoot="$(TreeDataGridImplicitXamlOutputPath)"
+                                     Condition="'@(Page)' != ''">
+      <Output TaskParameter="RewrittenFiles" ItemName="_TreeDataGridRewrittenPage" />
+    </TreeDataGridRewriteImplicitXaml>
+    <TreeDataGridRewriteImplicitXaml InputFiles="@(ApplicationDefinition)"
+                                     ControlsTypes="$(TreeDataGridXamlControlsTypes)"
+                                     PrimitivesTypes="$(TreeDataGridXamlPrimitivesTypes)"
+                                     ProjectDirectory="$(MSBuildProjectDirectory)"
+                                     OutputRoot="$(TreeDataGridImplicitXamlOutputPath)"
+                                     Condition="'@(ApplicationDefinition)' != ''">
+      <Output TaskParameter="RewrittenFiles" ItemName="_TreeDataGridRewrittenApplication" />
+    </TreeDataGridRewriteImplicitXaml>
+    <ItemGroup>
+      <!-- WinUI's AddXamlFilesToNugetPackage packs Page items by project-relative identity, which
+           does not exist for the intermediate copies; the compiled XAML ships in the PRI file. -->
+      <_TreeDataGridRewrittenPage>
+        <Pack>false</Pack>
+      </_TreeDataGridRewrittenPage>
+      <Page Remove="@(_TreeDataGridRewrittenPage->'%(TreeDataGridOriginalItemSpec)')" />
+      <Page Include="@(_TreeDataGridRewrittenPage)" />
+      <ApplicationDefinition Remove="@(_TreeDataGridRewrittenApplication->'%(TreeDataGridOriginalItemSpec)')" />
+      <ApplicationDefinition Include="@(_TreeDataGridRewrittenApplication)" />
+      <FileWrites Include="@(_TreeDataGridRewrittenPage);@(_TreeDataGridRewrittenApplication)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="TreeDataGridRewriteImplicitXamlForUno"
+          DependsOnTargets="_TreeDataGridImplicitXamlOutputPath"
+          AfterTargets="_InjectAdditionalFiles"
+          Condition="'$(TreeDataGridImplicitXamlNamespaces)' == 'true' and !$(TargetFramework.Contains('-windows'))">
+    <ItemGroup>
+      <_TreeDataGridUnoXaml Include="@(AdditionalFiles)"
+                            Condition="'%(AdditionalFiles.Extension)' == '.xaml' and ('%(AdditionalFiles.SourceItemGroup)' == 'Page' or '%(AdditionalFiles.SourceItemGroup)' == 'ApplicationDefinition')" />
+    </ItemGroup>
+    <TreeDataGridRewriteImplicitXaml InputFiles="@(_TreeDataGridUnoXaml)"
+                                     ControlsTypes="$(TreeDataGridXamlControlsTypes)"
+                                     PrimitivesTypes="$(TreeDataGridXamlPrimitivesTypes)"
+                                     ProjectDirectory="$(MSBuildProjectDirectory)"
+                                     OutputRoot="$(TreeDataGridImplicitXamlOutputPath)"
+                                     TypeValuesOnly="$(UnoEnableImplicitXamlNamespaces)"
+                                     Condition="'@(_TreeDataGridUnoXaml)' != ''">
+      <Output TaskParameter="RewrittenFiles" ItemName="_TreeDataGridRewrittenUnoXaml" />
+    </TreeDataGridRewriteImplicitXaml>
+    <ItemGroup>
+      <AdditionalFiles Remove="@(_TreeDataGridRewrittenUnoXaml->'%(TreeDataGridOriginalItemSpec)')" />
+      <AdditionalFiles Include="@(_TreeDataGridRewrittenUnoXaml)" />
+      <FileWrites Include="@(_TreeDataGridRewrittenUnoXaml)" />
+      <_TreeDataGridUnoXaml Remove="@(_TreeDataGridUnoXaml)" />
+    </ItemGroup>
+  </Target>
+</Project>

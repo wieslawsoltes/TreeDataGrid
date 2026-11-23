@@ -1,0 +1,548 @@
+name: Uno
+
+on:
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: uno-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build-test:
+    name: Uno build and unit tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    env:
+      TreeDataGridUnoSampleTargetFrameworks: net10.0-desktop
+      # Native WinUI is built with Visual Studio MSBuild in its own job.
+      TreeDataGridUnoTargetFrameworks: net10.0;net10.0-desktop
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.201
+      - name: Core tests
+        run: dotnet test tests/TreeDataGrid.Core.Tests/TreeDataGrid.Core.Tests.csproj -c Release --logger trx --results-directory artifacts/core-tests
+      - name: Uno presentation tests
+        run: dotnet test tests/TreeDataGrid.Uno.Tests/TreeDataGrid.Uno.Tests.csproj -c Release -p:TreeDataGridUnoTargetFrameworks=net10.0 --logger trx --results-directory artifacts/uno-tests
+      - name: Uno solution build
+        run: dotnet build solutions/TreeDataGrid.Uno.slnx -c Release
+      - name: Uno sample state tests
+        run: dotnet test samples/TreeDataGridUnoSample.Tests/TreeDataGridUnoSample.Tests.csproj -c Release --logger trx --results-directory artifacts/uno-sample-tests
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uno-tests-${{ matrix.os }}
+          path: artifacts/**/*tests/*.trx
+          if-no-files-found: warn
+
+  native-runtime:
+    name: Uno native runtime (Linux X11)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TreeDataGridUnoSampleTargetFrameworks: net10.0-desktop
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.201
+      - name: Install X11 runtime dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb libfontconfig1 libx11-6 libxrandr2 libxi6 libxcursor1 libgl1
+      - name: Build native showcase
+        run: dotnet build samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj -c Release -f net10.0-desktop
+      - name: Isolated native suites
+        id: isolated
+        continue-on-error: true
+        run: python3 build/run-uno-native-suites.py --jobs 3
+      - name: Sequential native regression checks
+        id: sequential
+        continue-on-error: true
+        run: >-
+          xvfb-run -a -s "-screen 0 1280x800x24"
+          dotnet run --project samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj
+          --no-build -c Release -f net10.0-desktop -- --smoke
+          --screenshot-dir "$GITHUB_WORKSPACE/artifacts/uno"
+      - name: Pack shared Core and Uno controls
+        run: |
+          dotnet pack src/TreeDataGrid.Core/TreeDataGrid.Core.csproj -c Release -p:PackageVersion=12.0.0.7-ci.${{ github.run_id }} -o artifacts/uno-pack
+          dotnet pack src/TreeDataGrid.Controls.Uno/TreeDataGrid.Controls.Uno.csproj -c Release -p:PackageVersion=12.0.0.7-ci.${{ github.run_id }} -o artifacts/uno-pack
+      - name: Run Activity Monitor native checks
+        run: >-
+          xvfb-run -a -s "-screen 0 1280x800x24"
+          dotnet run --project samples/TreeDataGridUnoActivityMonitor/TreeDataGridUnoActivityMonitor.csproj
+          -c Release -f net10.0-desktop -- --smoke --demo
+          --screenshot-dir "$GITHUB_WORKSPACE/artifacts/uno"
+      - name: Validate Activity Monitor package consumer
+        run: >-
+          xvfb-run -a -s "-screen 0 1280x800x24"
+          dotnet run --project samples/TreeDataGridUnoActivityMonitor/TreeDataGridUnoActivityMonitor.csproj
+          -c Release -f net10.0-desktop
+          -p:TreeDataGridUnoPackageVersion=12.0.0.7-ci.${{ github.run_id }}
+          -p:RestoreAdditionalProjectSources="$GITHUB_WORKSPACE/artifacts/uno-pack"
+          -- --smoke --demo
+      - name: Validate native package consumer
+        id: package
+        continue-on-error: true
+        run: >-
+          xvfb-run -a -s "-screen 0 1280x800x24"
+          dotnet run --project samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj
+          -c Release -f net10.0-desktop
+          -p:TreeDataGridUnoPackageVersion=12.0.0.7-ci.${{ github.run_id }}
+          -p:RestoreAdditionalProjectSources="$GITHUB_WORKSPACE/artifacts/uno-pack"
+          -- --smoke
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uno-native-renders-and-results
+          path: |
+            artifacts/uno
+            artifacts/uno-native-suites
+            artifacts/uno-pack
+          if-no-files-found: warn
+      - name: Require all native gates
+        if: always()
+        env:
+          ISOLATED_RESULT: ${{ steps.isolated.outcome }}
+          SEQUENTIAL_RESULT: ${{ steps.sequential.outcome }}
+          PACKAGE_RESULT: ${{ steps.package.outcome }}
+        run: test "$ISOLATED_RESULT" = success && test "$SEQUENTIAL_RESULT" = success && test "$PACKAGE_RESULT" = success
+
+  browser-build:
+    name: Uno browser samples and package consumers
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TreeDataGridUnoSampleTargetFrameworks: net10.0-browserwasm
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.201
+      - name: Install browser workload
+        run: dotnet workload install wasm-tools
+      - name: Build both browser samples
+        run: |
+          dotnet build samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj -c Release -f net10.0-browserwasm
+          dotnet build samples/TreeDataGridUnoActivityMonitor/TreeDataGridUnoActivityMonitor.csproj -c Release -f net10.0-browserwasm
+      - name: Pack shared Core and Uno library
+        run: |
+          dotnet pack src/TreeDataGrid.Core/TreeDataGrid.Core.csproj -c Release -p:PackageVersion=12.0.0.7-ci.${{ github.run_id }} -o artifacts/uno-pack
+          dotnet pack src/TreeDataGrid.Controls.Uno/TreeDataGrid.Controls.Uno.csproj -c Release -p:PackageVersion=12.0.0.7-ci.${{ github.run_id }} -o artifacts/uno-pack
+      - name: Publish browser package consumers
+        run: |
+          dotnet publish samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj -c Release -f net10.0-browserwasm -p:TreeDataGridUnoPackageVersion=12.0.0.7-ci.${{ github.run_id }} -p:RestoreAdditionalProjectSources="$GITHUB_WORKSPACE/artifacts/uno-pack" -o artifacts/browser/showcase
+          dotnet publish samples/TreeDataGridUnoActivityMonitor/TreeDataGridUnoActivityMonitor.csproj -c Release -f net10.0-browserwasm -p:TreeDataGridUnoPackageVersion=12.0.0.7-ci.${{ github.run_id }} -p:RestoreAdditionalProjectSources="$GITHUB_WORKSPACE/artifacts/uno-pack" -o artifacts/browser/monitor
+      - name: Install pinned browser validation tools
+        run: |
+          python3 -m pip install playwright==1.57.0
+          python3 -m playwright install --with-deps chromium
+      - name: Execute published browser package consumers
+        run: python3 build/run-uno-browser.py --showcase artifacts/browser/showcase --monitor artifacts/browser/monitor
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uno-browser-samples
+          path: |
+            artifacts/browser
+            artifacts/browser-runtime
+          if-no-files-found: error
+
+  windows-app-sdk-build:
+    name: Native Windows App SDK samples and package consumers
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      TreeDataGridUnoSampleTargetFrameworks: net10.0-windows10.0.26100
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.201
+      - uses: microsoft/setup-msbuild@v2
+        with:
+          msbuild-architecture: x64
+      - name: Build native Windows samples
+        run: |
+          foreach ($name in @('TreeDataGridUnoSample', 'TreeDataGridUnoActivityMonitor')) {
+            $project = "samples/$name/$name.csproj"
+            # Restore the project graph WITHOUT a global TargetFramework, which
+            # would incorrectly retarget the shared net8.0 Core dependency.
+            msbuild $project -t:Restore -v:minimal -p:Configuration=Release -p:RuntimeIdentifier=win-x64
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            msbuild $project -t:Build -v:minimal -p:Configuration=Release -p:TargetFramework=net10.0-windows10.0.26100 -p:RuntimeIdentifier=win-x64
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+      - name: Pack all Core and Uno framework assets
+        run: |
+          dotnet pack src/TreeDataGrid.Core/TreeDataGrid.Core.csproj -c Release -p:PackageVersion=12.0.0.7-ci.${{ github.run_id }} -o artifacts/uno-pack
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          msbuild src/TreeDataGrid.Controls.Uno/TreeDataGrid.Controls.Uno.csproj -restore -t:Pack -v:minimal -p:Configuration=Release -p:PackageVersion=12.0.0.7-ci.${{ github.run_id }} -p:PackageOutputPath="$env:GITHUB_WORKSPACE/artifacts/uno-pack"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify the release layout of the Uno package
+        run: python build/verify-uno-package.py artifacts/uno-pack 12.0.0.7-ci.${{ github.run_id }}
+      - name: Publish native Windows package consumers
+        run: |
+          foreach ($item in @(@('TreeDataGridUnoSample', 'showcase'), @('TreeDataGridUnoActivityMonitor', 'monitor'))) {
+            $project = "samples/$($item[0])/$($item[0]).csproj"
+            $common = @('-p:Configuration=Release', '-p:RuntimeIdentifier=win-x64', '-p:TreeDataGridUnoPackageVersion=12.0.0.7-ci.${{ github.run_id }}', "-p:RestoreAdditionalProjectSources=$env:GITHUB_WORKSPACE/artifacts/uno-pack")
+            msbuild $project -t:Restore -v:minimal @common
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            msbuild $project -t:Publish -v:minimal @common -p:TargetFramework=net10.0-windows10.0.26100 "-p:PublishDir=$env:GITHUB_WORKSPACE/artifacts/windows/$($item[1])/"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uno-windows-app-sdk-samples
+          path: artifacts/windows
+          if-no-files-found: error
+
+  # WinUI 3 build of the same sources (docs/winui-port-status.md): library, samples and tests
+  # linked from the Uno projects, the unit tests on the XAML UI thread and every native suite.
+  winui:
+    name: WinUI 3 linked build, tests and native suites
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.201
+      - name: Build and validate the WinUI projects
+        shell: powershell
+        run: ./build/validate-winui.ps1 -Output artifacts/winui -SuiteTimeoutSeconds 300
+      - name: Pack TreeDataGrid.Controls.WinUI
+        run: |
+          dotnet pack src/TreeDataGrid.Core/TreeDataGrid.Core.csproj -c Release -p:PackageVersion=12.0.0.7-ci.${{ github.run_id }} -o artifacts/winui-pack
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $msbuild = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.Component.MSBuild -find 'MSBuild\**\Bin\MSBuild.exe' | Select-Object -First 1
+          & $msbuild src/TreeDataGrid.Controls.WinUI/TreeDataGrid.Controls.WinUI.csproj -restore -t:Pack -v:minimal -p:Configuration=Release -p:PackageVersion=12.0.0.7-ci.${{ github.run_id }} -p:PackageOutputPath="$env:GITHUB_WORKSPACE/artifacts/winui-pack"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify the WinUI package
+        run: python build/verify-winui-package.py artifacts/winui-pack 12.0.0.7-ci.${{ github.run_id }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: winui-validation
+          path: artifacts/winui
+          if-no-files-found: warn
+
+  # --------------------------------------------------------------------------------------
+  # Validation report: all .NET tests, native suites, canonical stages and the API gate over a committed-source snapshot.
+  source-snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Archive the exact validation input
+        run: |
+          mkdir -p artifacts/source
+          git rev-parse HEAD > artifacts/source/revision.txt
+          git rev-parse HEAD^{tree} > artifacts/source/tree.txt
+          git archive --format=tar HEAD > artifacts/source/source.tar
+          cd artifacts/source
+          sha256sum source.tar > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uno-validation-source
+          path: artifacts/source
+          if-no-files-found: error
+          retention-days: 14
+
+  validate-committed-sources:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      TreeDataGridUnoSampleTargetFrameworks: net10.0-desktop
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.201
+      - name: Install native runtime dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb libfontconfig1 libx11-6 libxrandr2 libxi6 libxcursor1 libgl1
+      - name: Validate the checked-out sources without modifying them
+        run: |
+          mkdir -p artifacts
+          git rev-parse HEAD > artifacts/validated-revision.txt
+          dotnet --info > artifacts/dotnet-info.txt
+          python3 -u build/validate-uno-linux.py
+      - name: Publish full evidence, including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uno-validation-report
+          path: artifacts
+          if-no-files-found: error
+          retention-days: 14
+      - name: Require an unchanged source checkout
+        if: always()
+        run: git diff --exit-code && git diff --cached --exit-code
+
+  # --------------------------------------------------------------------------------------
+  # Browser engines: one trimmed consumer bundle validated on Chromium, Firefox and WebKit with real input.
+  consumers:
+    name: Publish one identical trimmed consumer bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TreeDataGridUnoSampleTargetFrameworks: net10.0-browserwasm
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.201
+      - name: Test browser drivers and evidence verdicts
+        run: python3 build/run-uno-browser-tests.py
+      - name: Install browser workload
+        run: dotnet workload install wasm-tools
+      - name: Pack the actual shared Core and native controls
+        run: |
+          dotnet pack src/TreeDataGrid.Core/TreeDataGrid.Core.csproj -c Release -p:PackageVersion=12.0.0.7-ci.${{ github.run_id }} -o artifacts/engine-pack
+          dotnet pack src/TreeDataGrid.Controls.Uno/TreeDataGrid.Controls.Uno.csproj -c Release -p:PackageVersion=12.0.0.7-ci.${{ github.run_id }} -o artifacts/engine-pack
+      - name: Publish both trimmed NuGet consumers once
+        run: |
+          dotnet publish samples/TreeDataGridUnoSample/TreeDataGridUnoSample.csproj -c Release -f net10.0-browserwasm -p:TreeDataGridUnoPackageVersion=12.0.0.7-ci.${{ github.run_id }} -p:RestoreAdditionalProjectSources="$GITHUB_WORKSPACE/artifacts/engine-pack" -o artifacts/engine-consumers/showcase
+          dotnet publish samples/TreeDataGridUnoActivityMonitor/TreeDataGridUnoActivityMonitor.csproj -c Release -f net10.0-browserwasm -p:TreeDataGridUnoPackageVersion=12.0.0.7-ci.${{ github.run_id }} -p:RestoreAdditionalProjectSources="$GITHUB_WORKSPACE/artifacts/engine-pack" -o artifacts/engine-consumers/monitor
+      - name: Fingerprint every published file and exact revision
+        run: |
+          python3 build/uno_browser_artifacts.py create --bundle artifacts/engine-consumers
+          git diff --exit-code
+          git diff --cached --exit-code
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uno-identical-browser-consumers
+          path: artifacts/engine-consumers
+          include-hidden-files: true
+          if-no-files-found: error
+
+  engine:
+    name: Native consumers and input (${{ matrix.engine }})
+    needs: consumers
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: uno-identical-browser-consumers
+          path: artifacts/engine-consumers
+      - name: Install the pinned selected engine without fallback
+        run: |
+          python3 -m pip install playwright==1.57.0
+          python3 -m playwright install --with-deps ${{ matrix.engine }}
+      - name: Verify exact consumer inputs
+        run: python3 build/uno_browser_artifacts.py verify --bundle artifacts/engine-consumers --output artifacts/engine-results/consumer-identity.json
+      - name: Run native assertions and real browser-dispatched input at DPR 1 and 2
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 build/run-uno-browser.py --browser ${{ matrix.engine }} --timeout ${{ matrix.engine == 'firefox' && 1200 || 360 }} --showcase artifacts/engine-consumers/showcase --monitor artifacts/engine-consumers/monitor --output artifacts/engine-results 2>&1 | tee artifacts/engine-results/driver.log
+      - name: Require an unchanged published bundle and checkout
+        if: always()
+        run: |
+          python3 build/uno_browser_artifacts.py verify --bundle artifacts/engine-consumers
+          git diff --exit-code
+          git diff --cached --exit-code
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uno-browser-engine-${{ matrix.engine }}
+          path: artifacts/engine-results
+          if-no-files-found: error
+
+  verdict:
+    name: Require all three engines and identical consumers
+    needs: [consumers, engine]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: uno-identical-browser-consumers
+          path: artifacts/engine-consumers
+      - uses: actions/download-artifact@v4
+        with:
+          name: uno-browser-engine-chromium
+          path: artifacts/engine-results/chromium
+      - uses: actions/download-artifact@v4
+        with:
+          name: uno-browser-engine-firefox
+          path: artifacts/engine-results/firefox
+      - uses: actions/download-artifact@v4
+        with:
+          name: uno-browser-engine-webkit
+          path: artifacts/engine-results/webkit
+      - name: Join actual complete engine reports
+        run: python3 build/uno_browser_artifacts.py matrix --bundle artifacts/engine-consumers --reports artifacts/engine-results --output artifacts/engine-results/matrix.json
+      - name: Require every preceding job to succeed
+        if: always()
+        env:
+          CONSUMERS: ${{ needs.consumers.result }}
+          ENGINES: ${{ needs.engine.result }}
+        run: test "$CONSUMERS" = success && test "$ENGINES" = success
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uno-browser-engine-parity-evidence
+          path: artifacts/engine-results
+          if-no-files-found: error
+
+  # --------------------------------------------------------------------------------------
+  # Trimmed binding contract.
+  trimmed-binding:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.201
+      - name: Publish the real library consumer with trimming enabled
+        run: |
+          dotnet publish tests/TreeDataGrid.Uno.TrimTests/TreeDataGrid.Uno.TrimTests.csproj \
+            -c Release -r linux-x64 --self-contained true \
+            -p:TreeDataGridUnoTargetFrameworks=net10.0 -o artifacts/trimmed-binding
+      - name: Execute the trimmed binary
+        run: artifacts/trimmed-binding/TreeDataGrid.Uno.TrimTests
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uno-trimmed-binding
+          path: artifacts/trimmed-binding
+          retention-days: 7
+      - name: Verify unchanged checkout
+        if: always()
+        run: git diff --exit-code && git diff --cached --exit-code
+
+  # --------------------------------------------------------------------------------------
+  # Contract reproducibility: committed parity contracts must regenerate unchanged.
+  verify-committed-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.201
+      - name: Verify hash-pinned inputs and exact generated sources offline
+        run: python3 build/materialize-uno-parity-contracts.py --check
+      - name: Compile and compare the actual framework contracts
+        run: dotnet test tests/TreeDataGrid.Parity.Tests/TreeDataGrid.Parity.Tests.csproj -c Release -p:TreeDataGridUnoTargetFrameworks=net10.0 --logger trx --results-directory artifacts/contract-reproducibility-tests
+      - name: Exercise the compiled metadata reader including nonfinite constants
+        run: dotnet run --project tools/TreeDataGrid.ApiAudit -c Release -- --self-test
+      - name: Require unchanged product sources
+        if: always()
+        run: git diff --exit-code && git diff --cached --exit-code
+      - name: Record exact validation input
+        if: always()
+        run: |
+          mkdir -p artifacts
+          git rev-parse HEAD > artifacts/validated-revision.txt
+          git rev-parse HEAD^{tree} > artifacts/validated-tree.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uno-contract-reproducibility
+          path: artifacts
+          if-no-files-found: error
+          retention-days: 14
+
+  # --------------------------------------------------------------------------------------
+  # Paired native performance against Avalonia (report-only; see docs/uno-performance-findings.md).
+  paired-native-layout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.201
+      - name: Install matched native environment
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb fonts-dejavu-core libfontconfig1 libx11-6 libxrandr2 libxi6 libxcursor1 libgl1
+      # Report-only: the 1.10 parity budget is evaluated and recorded in summary.json and the
+      # job summary, but the remaining scroll gap (docs/uno-performance-findings.md) does not
+      # fail the job. Host build, run and frame-verification failures still fail it.
+      - name: Measure original Avalonia and Uno on this runner
+        run: python3 -u build/run-native-parity.py --pairs 2 --columns 64 --iterations 25 --max-ratio 1.10 --report-only
+      - name: Preserve raw measurements and failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-parity
+          path: artifacts/native-parity
+          if-no-files-found: error
+          retention-days: 14
+      - name: Require unchanged sources
+        if: always()
+        run: git diff --exit-code && git diff --cached --exit-code

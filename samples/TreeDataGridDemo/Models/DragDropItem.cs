@@ -1,11 +1,16 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+#if TREEDATAGRID_UNO_SAMPLE
+using SampleModelBase = TreeDataGridUnoShared.ObservableSampleModel;
+#else
 using ReactiveUI;
+using SampleModelBase = ReactiveUI.ReactiveObject;
+#endif
 
 namespace TreeDataGridDemo.Models
 {
-    public class DragDropItem : ReactiveObject
+    public partial class DragDropItem : SampleModelBase
     {
         private static Random _random = new Random(0);
         private ObservableCollection<DragDropItem>? _children;

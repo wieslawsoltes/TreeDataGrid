@@ -1,0 +1,4 @@
+<Project>
+  <!-- NuGet imports buildTransitive/<PackageId>.targets; the rules are shared with the Uno package. -->
+  <Import Project="$(MSBuildThisFileDirectory)TreeDataGrid.Controls.Uno.targets" />
+</Project>
