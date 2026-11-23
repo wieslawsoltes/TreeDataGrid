@@ -11,14 +11,16 @@ TreeDataGrid ships with two theme entry files:
 
 ## Include Pattern
 
-For Fluent applications, include Fluent theme and TreeDataGrid Fluent styles:
+Include the TreeDataGrid Fluent styles after your app theme. This example uses Fluent2, the default for new Avalonia 12.2 projects.
 
 ```xml
 <Application.Styles>
-  <FluentTheme/>
+  <Fluent2Theme/>
   <StyleInclude Source="avares://TreeDataGrid.Avalonia/Themes/Fluent.axaml"/>
 </Application.Styles>
 ```
+
+If your project uses `Avalonia.Themes.Fluent`, use `<FluentTheme/>` with the same `StyleInclude`.
 
 ## Fluent vs Generic
 

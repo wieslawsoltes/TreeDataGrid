@@ -28,18 +28,20 @@ The Avalonia UI package uses these distribution identities:
 
 ## 2. Add TreeDataGrid Theme
 
-Add the style include to `App.axaml`:
+Add the style include after your app theme in `App.axaml`. New Avalonia 12.2 projects use Fluent2 by default.
 
 ```xml
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="AvaloniaApplication.App">
   <Application.Styles>
-    <FluentTheme/>
+    <Fluent2Theme/>
     <StyleInclude Source="avares://TreeDataGrid.Avalonia/Themes/Fluent.axaml"/>
   </Application.Styles>
 </Application>
 ```
+
+If your project uses `Avalonia.Themes.Fluent`, use `<FluentTheme/>` with the same `StyleInclude`.
 
 Existing applications may keep the compatibility `TreeDataGrid` package and its
 `avares://Avalonia.Controls.TreeDataGrid/...` URI. Do not reference both UI packages
