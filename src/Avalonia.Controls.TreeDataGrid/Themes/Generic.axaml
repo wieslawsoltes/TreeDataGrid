@@ -276,7 +276,13 @@
                       CornerRadius="{TemplateBinding CornerRadius}"
                       Padding="{TemplateBinding Padding}">
                 <TextBox Name="PART_Edit"
-                         Text="{TemplateBinding Value, Mode=TwoWay}" />
+                         Text="{TemplateBinding Value, Mode=TwoWay}">
+                  <TextBox.Styles>
+                    <Style Selector="DataValidationErrors">
+                      <Setter Property="Theme" Value="{DynamicResource TooltipDataValidationErrors}" />
+                    </Style>
+                  </TextBox.Styles>
+                </TextBox>
               </Border>
             </ControlTemplate>
           </Setter>
@@ -287,11 +293,6 @@
           <Setter Property="MinHeight" Value="25" />
           <Setter Property="Padding" Value="10,3,6,3" />
           <Setter Property="VerticalAlignment" Value="Center" />
-        </Style>
-
-        <Style Selector="^:editing /template/ TextBox#PART_Edit DataValidationErrors">
-          <Setter Property="Template" Value="{DynamicResource TooltipDataValidationContentTemplate}" />
-          <Setter Property="ErrorTemplate" Value="{DynamicResource TooltipDataValidationErrorTemplate}" />
         </Style>
 
       </ControlTheme>

@@ -7,6 +7,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaSamplesVersion)" />
+    <PackageReference Include="Avalonia.Themes.Fluent2" Version="$(AvaloniaSamplesVersion)" />
     <PackageReference Include="Avalonia.Headless.XUnit" Version="$(AvaloniaSamplesVersion)" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
     <PackageReference Include="xunit.analyzers" Version="1.27.0">

@@ -40,18 +40,20 @@ Or add a package reference:
 </ItemGroup>
 ```
 
-Add the theme to `App.axaml`:
+Add the TreeDataGrid styles after your app theme in `App.axaml`. New Avalonia 12.2 projects use Fluent2 by default.
 
 ```xml
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="AvaloniaApplication.App">
   <Application.Styles>
-    <FluentTheme/>
+    <Fluent2Theme/>
     <StyleInclude Source="avares://TreeDataGrid.Avalonia/Themes/Fluent.axaml"/>
   </Application.Styles>
 </Application>
 ```
+
+If your project uses `Avalonia.Themes.Fluent`, use `<FluentTheme/>` with the same `StyleInclude`.
 
 ## Basic Usage
 
