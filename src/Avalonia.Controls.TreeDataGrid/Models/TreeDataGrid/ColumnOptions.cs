@@ -32,6 +32,16 @@ namespace Avalonia.Controls.Models.TreeDataGrid
         WhenSelected = 0x1000,
 
         /// <summary>
+        /// A cell will enter edit mode when the user presses Enter.
+        /// </summary>
+        Enter = 0x10000,
+
+        /// <summary>
+        /// A cell will enter edit mode when the user presses Space.
+        /// </summary>
+        Space = 0x100000,
+
+        /// <summary>
         /// A cell will enter edit mode when the user presses F2 or double-taps it.
         /// </summary>
         Default = F2 | DoubleTap,

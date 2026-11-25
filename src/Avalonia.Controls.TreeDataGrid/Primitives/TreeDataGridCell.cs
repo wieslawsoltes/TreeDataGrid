@@ -6,7 +6,6 @@ using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Selection;
 using Avalonia.Input;
-using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
 using Avalonia.VisualTree;
 
@@ -219,10 +218,26 @@ namespace Avalonia.Controls.Primitives
             if (Model is null || e.Handled)
                 return;
 
-            if (e.Key == Key.F2 && 
-                !IsEditing && 
-                Model.CanEdit &&
-                IsEnabledEditGesture(BeginEditGestures.F2, Model.EditGestures))
+            if (
+                (
+                    e.Key == Key.F2
+                    && !IsEditing
+                    && Model.CanEdit
+                    && IsEnabledEditGesture(BeginEditGestures.F2, Model.EditGestures)
+                )
+                || (
+                    e.Key == Key.Enter
+                    && !IsEditing
+                    && Model.CanEdit
+                    && IsEnabledEditGesture(BeginEditGestures.Enter, Model.EditGestures)
+                )
+                || (
+                    e.Key == Key.Space
+                    && !IsEditing
+                    && Model.CanEdit
+                    && IsEnabledEditGesture(BeginEditGestures.Space, Model.EditGestures)
+                )
+            )
             {
                 BeginEdit();
                 e.Handled = true;
